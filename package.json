@@ -10,5 +10,9 @@
     "@types/node": "24.13.2",
     "typescript": "6.0.3",
     "vitest": "4.1.9"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "1.17.11",
+    "zod": "4.4.3"
   }
 }

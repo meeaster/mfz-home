@@ -1,0 +1,132 @@
+{
+  "runs": [
+    {
+      "id": "run-1783139946184",
+      "thread": "phases-livetest",
+      "started_at": "2026-07-04T04:39:06.184Z",
+      "finished_at": "2026-07-04T04:43:25.870Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.2881877,
+          "input_tokens": 1212238,
+          "output_tokens": 15037,
+          "reasoning_tokens": null,
+          "duration_ms": 186729
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.2089854,
+          "input_tokens": 43667,
+          "output_tokens": 3466,
+          "reasoning_tokens": null,
+          "duration_ms": 36671
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.19014119999999998,
+          "input_tokens": 39870,
+          "output_tokens": 3005,
+          "reasoning_tokens": null,
+          "duration_ms": 35960
+        }
+      ],
+      "total_cost_usd": 0.6873142999999999
+    },
+    {
+      "id": "run-1783140681257",
+      "thread": "phases-livetest",
+      "started_at": "2026-07-04T04:51:21.257Z",
+      "finished_at": "2026-07-04T04:51:50.187Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.0412854,
+          "input_tokens": 116423,
+          "output_tokens": 2107,
+          "reasoning_tokens": null,
+          "duration_ms": 28823
+        }
+      ],
+      "total_cost_usd": 0.0412854
+    },
+    {
+      "id": "run-1783140821964",
+      "thread": "phases-livetest",
+      "started_at": "2026-07-04T04:53:41.964Z",
+      "finished_at": "2026-07-04T04:57:59.127Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.40350210000000003,
+          "input_tokens": 2061238,
+          "output_tokens": 12977,
+          "reasoning_tokens": null,
+          "duration_ms": 158192
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1259202,
+          "input_tokens": 18626,
+          "output_tokens": 5530,
+          "reasoning_tokens": null,
+          "duration_ms": 52239
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1670211,
+          "input_tokens": 45926,
+          "output_tokens": 4294,
+          "reasoning_tokens": null,
+          "duration_ms": 46525
+        }
+      ],
+      "total_cost_usd": 0.6964434
+    },
+    {
+      "id": "run-1783145776748",
+      "thread": "phases-livetest",
+      "started_at": "2026-07-04T06:16:16.748Z",
+      "finished_at": "2026-07-04T06:17:01.400Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 44542,
+          "cost_usd": 0.08020320000000002,
+          "input_tokens": 125868,
+          "output_tokens": 3210,
+          "reasoning_tokens": null
+        }
+      ],
+      "total_cost_usd": 0.08020320000000002
+    }
+  ]
+}

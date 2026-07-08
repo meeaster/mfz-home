@@ -1,0 +1,28 @@
+- [2026-06-26 22:28] decision (0af0f6b3 · turn 7): evolve thread-log from a skill into a CLI-driven orchestration layer; keep the existing skill working in parallel.
+- [2026-06-26 22:28] decision (0af0f6b3 · turn 7): build the system into mindframe-z (the "all-one") rather than a standalone slim repo.
+- [2026-06-26 22:28] open_question (0af0f6b3 · turn 7): is there a higher-level grouping above threads (a "project"-like layer), with thread compaction and a parent/group digest?
+- [2026-06-26 22:28] open_question (0af0f6b3 · turn 7): should the digest gain a "Principles" / "Guiding Principles" section to check alignment against?
+- [2026-06-26 22:28] open_question (0af0f6b3 · turn 7): what is the ChatGPT capture mechanism — browser extension vs. headless logged-in browser scrape?
+- [2026-06-26 22:47] decision (0af0f6b3 · turn 55): accept ~$1–2/session as the baseline ingestion cost; further optimization likely diminishing.
+- [2026-06-26 22:47] learning (0af0f6b3 · turn 55): reading the build/usage digests reconfirmed ~$1/session economics and the single-source-of-truth + cost-consciousness principles this work builds on.
+- [2026-06-26 23:09] decision (0af0f6b3 · turn 68): the CLI is an orchestration layer for agent workflows, NOT a determinism engine — judgment steps stay agent dispatches.
+- [2026-06-26 23:19] decision (0af0f6b3 · turn 86): run dispatched research/gather agents on Haiku 4.5, reserving the capable model for synthesis.
+- [2026-06-26 23:19] mistake_fixed (0af0f6b3 · turn 86): research agents first dispatched on Opus; rejected over cost and re-dispatched on Haiku 4.5.
+- [2026-06-26 23:23] learning (0af0f6b3 · turn 73): eval frameworks exist, are CLI-wrappable, and need no API key if you bring your own model — Inspect/DeepEval strongest, promptfoo most mature.
+- [2026-06-26 23:24] decision (0af0f6b3 · turn 73): build a custom lightweight orchestrator rather than adopt an off-the-shelf workflow engine.
+- [2026-06-26 23:24] learning (0af0f6b3 · turn 73): no off-the-shelf workflow engine (Vercel AI SDK, LangGraph, Mastra, Eve, Codex) can orchestrate subscription-CLI agents — each needs an API key for its own reasoning.
+- [2026-06-26 23:28] decision (0af0f6b3 · turn 105): defer evals out of v1; treat them as a dev-time regression suite, not a per-run ingestion cost.
+- [2026-06-26 23:42] decision (0af0f6b3 · turn 110): observability is a v1 cross-cutting requirement — run registry (PID-keyed), per-run logs, cost surfacing, and model-action history.
+- [2026-06-26 23:55] learning (0af0f6b3 · turn 115): mindframe-z is public — the fact that forces sensitive thread data into separate, private destinations.
+- [2026-06-26 23:55] open_question (0af0f6b3 · turn 115): how do shared work/personal threads sync, and is there a canonical backup destination?
+- [2026-06-26 23:56] decision (0af0f6b3 · turn 115): separate thread storage from config; config stays public, threads are sensitive — mindframe-z holds multiple backup destinations, one assigned per thread.
+- [2026-06-27 00:08] open_question (0af0f6b3 · turn 124): how should threads relate to each other — one- vs. bi-directional links, parent/child, what "read related threads" means? Deferred until a real use case.
+- [2026-06-27 00:15] decision (0af0f6b3 · turn 129): one-session-to-one-thread is a soft default, not a hard rule — a session spanning two threads earns two different (per-charter) extractions.
+- [2026-06-27 00:23] decision (0af0f6b3 · turn 134): keep the existing skill as the working path; build the new core separately alongside it, zero risk to what works.
+- [2026-06-27 00:32] decision (0af0f6b3 · turn 134): design for an MCP-server interface over the same core, but do not build it in v1.
+- [2026-06-27 00:32] decision (0af0f6b3 · turn 138): design for ChatGPT ingestion via a source-adapter port; build it in v2+ (v1 scope is Claude Code + OpenCode).
+- [2026-06-27 00:32] open_question (0af0f6b3 · turn 138): how does cross-machine session sourcing and refresh work when raw transcripts live on one machine? Sketch: record source-machine, archive raw sessions in git.
+- [2026-06-27 00:32] open_question (0af0f6b3 · turn 134): what thread operations does the eventual MCP server expose?
+- [2026-06-27 00:38] decision (0af0f6b3 · turn 147): the session-reader skills (claude-code-sessions, opencode-sessions) stay pure, portable readers — all archival/storage logic lives in the CLI/core.
+- [2026-06-27 00:40] decision (0af0f6b3 · turn 152): capture this session into the new thread-log-system thread (high-rationale design session → max-effort synthesis).
+- [2026-06-27 00:43] open_question (0af0f6b3 · turn 105): how is "faithfulness" defined for the eval phase, and against what ground truth? Deferred to the eval-design phase.

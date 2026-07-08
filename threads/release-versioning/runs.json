@@ -1,0 +1,440 @@
+{
+  "runs": [
+    {
+      "id": "run-1782788362843",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T02:59:22.843Z",
+      "finished_at": "2026-06-30T03:02:55.472Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.0169062208,
+          "input_tokens": 105270,
+          "output_tokens": 4887,
+          "reasoning_tokens": 602,
+          "duration_ms": 72956
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.037540848,
+          "input_tokens": 9668,
+          "output_tokens": 4158,
+          "reasoning_tokens": 1762,
+          "duration_ms": 87517
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.028343556,
+          "input_tokens": 10931,
+          "output_tokens": 1810,
+          "reasoning_tokens": 786,
+          "duration_ms": 51983
+        }
+      ],
+      "total_cost_usd": 0.08279062479999999
+    },
+    {
+      "id": "run-1782788593569",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T03:03:13.569Z",
+      "finished_at": "2026-06-30T03:07:30.798Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.016936136,
+          "input_tokens": 75954,
+          "output_tokens": 11390,
+          "reasoning_tokens": 988,
+          "duration_ms": 137818
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.031176276,
+          "input_tokens": 10135,
+          "output_tokens": 2341,
+          "reasoning_tokens": 1515,
+          "duration_ms": 64227
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.025593312,
+          "input_tokens": 8974,
+          "output_tokens": 1056,
+          "reasoning_tokens": 1781,
+          "duration_ms": 55011
+        }
+      ],
+      "total_cost_usd": 0.073705724
+    },
+    {
+      "id": "run-1782793112146",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T04:18:32.146Z",
+      "finished_at": "2026-06-30T04:22:31.894Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.014000134400000001,
+          "input_tokens": 82274,
+          "output_tokens": 4504,
+          "reasoning_tokens": 1651,
+          "duration_ms": 75679
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.054284404,
+          "input_tokens": 9351,
+          "output_tokens": 2888,
+          "reasoning_tokens": 8004,
+          "duration_ms": 124615
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.025425112,
+          "input_tokens": 9704,
+          "output_tokens": 1076,
+          "reasoning_tokens": 1345,
+          "duration_ms": 39249
+        }
+      ],
+      "total_cost_usd": 0.0937096504
+    },
+    {
+      "id": "run-1782797459751",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T05:30:59.751Z",
+      "finished_at": "2026-06-30T05:31:47.143Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.026192568,
+          "input_tokens": 9840,
+          "output_tokens": 1152,
+          "reasoning_tokens": 1421,
+          "duration_ms": 47317
+        }
+      ],
+      "total_cost_usd": 0.026192568
+    },
+    {
+      "id": "run-1782799056342",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T05:57:36.342Z",
+      "finished_at": "2026-06-30T05:58:33.756Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.028384852000000002,
+          "input_tokens": 9983,
+          "output_tokens": 1222,
+          "reasoning_tokens": 1910,
+          "duration_ms": 57338
+        }
+      ],
+      "total_cost_usd": 0.028384852000000002
+    },
+    {
+      "id": "run-1782800636131",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T06:23:56.131Z",
+      "finished_at": "2026-06-30T06:25:00.320Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.028059472000000002,
+          "input_tokens": 10200,
+          "output_tokens": 1792,
+          "reasoning_tokens": 1138,
+          "duration_ms": 64112
+        }
+      ],
+      "total_cost_usd": 0.028059472000000002
+    },
+    {
+      "id": "run-1782801058294",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T06:30:58.294Z",
+      "finished_at": "2026-06-30T06:32:20.069Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.033517852,
+          "input_tokens": 10279,
+          "output_tokens": 2608,
+          "reasoning_tokens": 1851,
+          "duration_ms": 81701
+        }
+      ],
+      "total_cost_usd": 0.033517852
+    },
+    {
+      "id": "run-1782801958479",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T06:45:58.479Z",
+      "finished_at": "2026-06-30T06:47:03.041Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.029274108,
+          "input_tokens": 10475,
+          "output_tokens": 1811,
+          "reasoning_tokens": 1330,
+          "duration_ms": 64372
+        }
+      ],
+      "total_cost_usd": 0.029274108
+    },
+    {
+      "id": "run-1782803922113",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T07:18:42.113Z",
+      "finished_at": "2026-06-30T07:27:19.619Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.2963142000000001,
+          "input_tokens": 1146236,
+          "output_tokens": 8556,
+          "reasoning_tokens": null,
+          "duration_ms": 135256
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.34612380000000004,
+          "input_tokens": 29122,
+          "output_tokens": 16434,
+          "reasoning_tokens": null,
+          "duration_ms": 287203
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.1355478,
+          "input_tokens": 28874,
+          "output_tokens": 5356,
+          "reasoning_tokens": null,
+          "duration_ms": 94854
+        }
+      ],
+      "total_cost_usd": 0.7779858000000001
+    },
+    {
+      "id": "run-1782804577824",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T07:29:37.824Z",
+      "finished_at": "2026-06-30T07:41:54.031Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.1447235,
+          "input_tokens": 434950,
+          "output_tokens": 8491,
+          "reasoning_tokens": null,
+          "duration_ms": 127355
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.4910061,
+          "input_tokens": 32064,
+          "output_tokens": 25475,
+          "reasoning_tokens": null,
+          "duration_ms": 504549
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.1604793,
+          "input_tokens": 32084,
+          "output_tokens": 6344,
+          "reasoning_tokens": null,
+          "duration_ms": 104098
+        }
+      ],
+      "total_cost_usd": 0.7962089
+    },
+    {
+      "id": "run-1782805453970",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T07:44:13.970Z",
+      "finished_at": "2026-06-30T07:54:10.226Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.1994093,
+          "input_tokens": 731852,
+          "output_tokens": 12728,
+          "reasoning_tokens": null,
+          "duration_ms": 156502
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.3396783,
+          "input_tokens": 31351,
+          "output_tokens": 18489,
+          "reasoning_tokens": null,
+          "duration_ms": 350300
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "sonnet",
+          "cost_usd": 0.1343298,
+          "input_tokens": 30345,
+          "output_tokens": 5017,
+          "reasoning_tokens": null,
+          "duration_ms": 89272
+        }
+      ],
+      "total_cost_usd": 0.6734173999999999
+    },
+    {
+      "id": "run-1782806148348",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T07:55:48.348Z",
+      "finished_at": "2026-06-30T07:59:42.042Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.26328860000000004,
+          "input_tokens": 922229,
+          "output_tokens": 8885,
+          "reasoning_tokens": null,
+          "duration_ms": 123752
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "opus",
+          "cost_usd": 0.3268405,
+          "input_tokens": 31325,
+          "output_tokens": 5379,
+          "reasoning_tokens": null,
+          "duration_ms": 70237
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "opus",
+          "cost_usd": 0.207967,
+          "input_tokens": 30347,
+          "output_tokens": 2901,
+          "reasoning_tokens": null,
+          "duration_ms": 39518
+        }
+      ],
+      "total_cost_usd": 0.7980961
+    },
+    {
+      "id": "run-1782806411665",
+      "thread": "release-versioning",
+      "started_at": "2026-06-30T08:00:11.665Z",
+      "finished_at": "2026-06-30T08:11:33.391Z",
+      "sessions": [
+        "ses_0ea3314f8ffeXOrrNECh5btGD6"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 115153,
+          "cost_usd": 0.2081588,
+          "input_tokens": 688426,
+          "output_tokens": 9191,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "opus",
+          "duration_ms": 430671,
+          "cost_usd": 1.02941,
+          "input_tokens": 30088,
+          "output_tokens": 33733,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "opus",
+          "duration_ms": 135706,
+          "cost_usd": 0.4135759999999999,
+          "input_tokens": 30638,
+          "output_tokens": 11050,
+          "reasoning_tokens": null
+        }
+      ],
+      "total_cost_usd": 1.6511448
+    }
+  ]
+}

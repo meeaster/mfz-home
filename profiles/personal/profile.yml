@@ -2,10 +2,6 @@ name: personal
 extends: base
 description: Personal AI setup with Home Assistant and DeepSeek models.
 thread:
-  destinations:
-    - name: personal
-      remote: git@github.com:meeaster/threads.git
-      default: true
   defaults:
     discover: claude-code:claude-sonnet-5@high
     gather: claude-code:haiku@low

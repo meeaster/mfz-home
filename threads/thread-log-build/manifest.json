@@ -1,0 +1,83 @@
+{
+  "slug": "thread-log-build",
+  "title": "Thread-log skill — construction and design history",
+  "charter": "The construction and design of the thread-log skill itself: sessions where the skill was first conceived, designed, and built — capturing the original problem (scattered AI session context across tools like Claude, ChatGPT, OpenCode), the architectural decisions (event-sourcing model, two-phase pipeline, slim runtime, gather-then-synthesize extraction), and the evolution of the skill's structure. In scope: skill creation and design sessions, architectural decisions shaping thread-log, design of dependent session skills (claude-code-sessions, opencode-sessions) when they inform thread-log's architecture, and the motivation/vision for where thread-log could go. Out of scope: usage-run friction and process improvements (thread-log-usage covers that), and domain work from the threads thread-log created.",
+  "read_subagents": false,
+  "sessions": [
+    {
+      "id": "9080ad37-5b0b-45c0-8eef-bf8a6f7b162c",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Original creation of opencode-sessions/claude-code-sessions skills",
+      "high_water": "2026-06-24T14:25:49.321Z"
+    },
+    {
+      "id": "795825f4-0611-4b8a-b50f-62519864c460",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Earlier thread-log/claude-code-sessions skill work — subagent depth, sources",
+      "high_water": "2026-06-24T19:54:41.454Z"
+    },
+    {
+      "id": "ac753514-674a-428b-9236-856ba7f32300",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Earlier thread-log skill edits — add sources bucket, tighten contract",
+      "high_water": "2026-06-25T06:41:42.195Z"
+    },
+    {
+      "id": "685e7813-8fad-4443-a0e1-dcfab107552b",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Refine thread-log skill from first-run findings — read_subagents flag, watermarks, charter for dependent skills",
+      "high_water": "2026-06-25T08:25:35.022Z"
+    },
+    {
+      "id": "e915cf55-55fb-41ba-8d28-a682d27b8fc9",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Follow-up thread-log skill changes after first-run refinements",
+      "high_water": "2026-06-25T08:47:10.748Z"
+    },
+    {
+      "id": "0a64f481-031f-4f18-97e7-e37d0c5f9d6e",
+      "source": "claude-code",
+      "project": "/home/mark/work/ps-watchtower",
+      "title": "Evaluate thread-log extraction accuracy — model×effort×two-stage experiment",
+      "high_water": "2026-06-26T04:50:39.398Z"
+    },
+    {
+      "id": "8c343e36-56ca-428c-901b-6ad550577842",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "thread-log skill upgrade — ARTIFACTS.md file contract, full runs[] telemetry, slim session frontmatter",
+      "high_water": "2026-06-26T16:17:59.551Z"
+    }
+  ],
+  "excluded": [],
+  "runs": [
+    {
+      "at": "2026-06-26T20:51:12.966Z",
+      "mode": "incremental",
+      "sessions": [
+        "9080ad37-5b0b-45c0-8eef-bf8a6f7b162c",
+        "795825f4-0611-4b8a-b50f-62519864c460",
+        "ac753514-674a-428b-9236-856ba7f32300",
+        "685e7813-8fad-4443-a0e1-dcfab107552b",
+        "e915cf55-55fb-41ba-8d28-a682d27b8fc9",
+        "0a64f481-031f-4f18-97e7-e37d0c5f9d6e",
+        "8c343e36-56ca-428c-901b-6ad550577842"
+      ],
+      "model": "opus-4.8 high",
+      "duration_ms": 824697,
+      "num_turns": 32,
+      "usage": {
+        "input": 3172,
+        "output": 47791,
+        "cache_read": 2588601,
+        "cache_creation": 138344
+      },
+      "cost_usd": 4.8947297999999995
+    }
+  ]
+}

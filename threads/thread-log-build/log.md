@@ -1,0 +1,80 @@
+- [2026-06-24 13:39] decision (9080ad37 · turn 2): refactor opencode-db skill per writing-great-skills, not referencing other skills.
+- [2026-06-24 13:45] learning (9080ad37 · turn 12): opencode DB drifted — `db migrate` gone; tables now sessions/messages/projects/todos; DB at ~/.opencode/db.sqlite.
+- [2026-06-24 13:46] decision (9080ad37 · turn 6): explore the current opencode reference before editing, since it's evolved several versions.
+- [2026-06-24 13:50] decision (9080ad37 · turn 18): rename "Progressive disclosure" → "Outline-first" — a leading word the model acts on.
+- [2026-06-24 13:53] decision (9080ad37 · turn 14): keep SPEC.md but move it out of the skill folder to docs/skill-specs/ — design reference, not bundled at runtime.
+- [2026-06-24 13:58] decision (9080ad37 · turn 30): pivot to building a Claude Code session-reading skill mirroring the opencode one.
+- [2026-06-24 13:59] learning (9080ad37 · turn 30): a prior claude-code-session-reader attempt and a claude-code-docs skill already exist to build on.
+- [2026-06-24 19:09] learning (795825f4 · turn 4): the digest's Sources was scavenged from learnings + artifacts at digest time — no single home.
+- [2026-06-24 19:09] decision (795825f4 · turn 4): add `sources` as a first-class external-only state bucket with a dedicated home, killing the scavenge logic.
+- [2026-06-24 19:30] learning (795825f4 · turn 20): first real run — CC agents wasted turns on Read's token cap; OC agents under-read by stopping at the session boundary.
+- [2026-06-24 19:36] decision (795825f4 · turn 22): drop reasoning/thinking parts from extraction.
+- [2026-06-24 19:41] decision (795825f4 · turn 30): mandate jq, forbid Read on full JSONL in claude-code-sessions.
+- [2026-06-24 19:45] mistake_fixed (795825f4 · turn 36): prescriptive depth language was drafted into claude-code-sessions; corrected — depth is the caller's policy.
+- [2026-06-24 19:47] decision (795825f4 · turn 36): subagent-read depth is the consumer's choice, not baked into the session skill.
+- [2026-06-24 19:47] decision (795825f4 · turn 36): capture subagent I/O from the parent's Agent/tool_result pair, never the nested transcript.
+- [2026-06-24 19:47] learning (795825f4 · turn 36): a subagent's prompt is in the parent's tool_use.input and its result in the matching tool_result — read the parent, not the nested file.
+- [2026-06-24 19:53] decision (795825f4 · turn 48): create a matching spec doc for claude-code-sessions, parallel to opencode-sessions.
+- [2026-06-25 06:09] learning (ac753514 · turn 40): two members had grown past their watermarks; growth detection during Update was implicit, not a named step.
+- [2026-06-25 06:18] issue (ac753514 · turn 47): watermark unit ambiguity (ms vs ISO) is a latent regeneration hazard — re-runs gate on high_water.
+- [2026-06-25 06:22] decision (ac753514 · turn 75): reject all four candidate sessions and pivot to evaluating/hardening the skill itself.
+- [2026-06-25 06:26] decision (ac753514 · turn 84): apply three skill fixes — high_water unit/provenance, growth-scan step, charter meta-work clause.
+- [2026-06-25 06:26] decision (ac753514 · turn 100): standardize Claude Code high_water to ISO 8601 (was mixed ms/ISO).
+- [2026-06-25 06:26] learning (ac753514 · turn 84): high_water was being written inconsistently across members, with no schema documentation of unit/provenance.
+- [2026-06-25 06:32] decision (ac753514 · turn 114): re-extract a grown member by appending only new bullets past the watermark, never rewriting.
+- [2026-06-25 06:36] learning (ac753514 · turn 158): the spec named `sources` but no session file actually had one — the contract was too loose.
+- [2026-06-25 06:38] decision (ac753514 · turn 162): tighten the extraction contract to explicitly demand artifacts_touched and sources.
+- [2026-06-25 07:49] decision (685e7813 · turn 6): name the incremental default and add a full-refresh escape hatch (re-read from offset 0).
+- [2026-06-25 07:53] decision (685e7813 · turn 12): add a single Intent & Vision state bucket (the why + the vision), not two parallel buckets.
+- [2026-06-25 08:00] learning (685e7813 · turn 18): for meta/process threads the subagents *are* the subject — reading subagent detail is load-bearing.
+- [2026-06-25 08:02] learning (685e7813 · turn 20): the gatherer hit the read-only constraint and pivoted to returning text — it must be a no-write, return-text role.
+- [2026-06-25 08:04] decision (685e7813 · turn 24): edit claude-code-sessions find-session recipe to lead with the structural key (project + recency), phrase as tiebreaker.
+- [2026-06-25 08:04] learning (685e7813 · turn 30): the dogfood loop closed — a usage run surfaced friction in a dependent skill and the fix landed there.
+- [2026-06-25 08:16] decision (685e7813 · turn 30): widen the thread-log-usage charter to the whole skill stack (thread-log + the two session skills).
+- [2026-06-25 08:16] decision (685e7813 · turn 30): make the charter do triple duty — scope + membership + purpose-as-lens, tied to read_subagents.
+- [2026-06-25 08:16] open_question (685e7813 · turn 30): should narrow-scope discovery accept an explicit sessionId and skip the phrase hunt?
+- [2026-06-25 08:16] open_question (685e7813 · turn 30): should the extraction contract live in a shared reference instead of being inlined into every Agent prompt?
+- [2026-06-25 08:32] decision (e915cf55 · turn 1): add session 685e7813 to thread-log-usage as an Update (fits existing charter); exclude three older sessions.
+- [2026-06-25 08:36] decision (e915cf55 · turn 40): mark the earlier "prefer parent I/O, don't drill into subagents" decision (6cb8e32a) as superseded.
+- [2026-06-25 08:40] mistake_fixed (e915cf55 · turn 71): wrongly claimed no nested subagents existed — had checked the project-level path; fixed by using the session-level path.
+- [2026-06-25 08:40] learning (e915cf55 · turn 71): nested subagent transcripts live at projects/<proj>/<session-id>/subagents/, not the project-level path.
+- [2026-06-25 08:40] issue (e915cf55 · turn 71): nested transcripts were invisible due to the wrong path — resolved by using the session-level path.
+- [2026-06-25 08:45] decision (e915cf55 · turn 110): change INGEST.md step 1 to "load via the Skill tool" — "read the SKILL.md" produced a file-Read, not a Skill tool_use.
+- [2026-06-25 08:45] mistake_fixed (e915cf55 · turn 109): first assumed claude-code-sessions was at fault; SESSIONS.md was correct — the defect was INGEST.md wording.
+- [2026-06-25 08:45] learning (e915cf55 · turn 109): claude-code-sessions SESSIONS.md already documented the correct nested path; the defect was in thread-log's wording.
+- [2026-06-25 08:46] decision (e915cf55 · turn 110): spawn a test subagent to verify the corrected prompt fires the Skill tool — test passed.
+- [2026-06-25 08:46] learning (e915cf55 · turn 110): "read and follow the SKILL.md" reliably yields a file-Read, not a Skill invocation — wording must say "load via the Skill tool."
+- [2026-06-25 08:46] issue (e915cf55 · turn 110): skill-load non-compliance partially resolved — corrected wording verified, but the cascade root cause not fully run down.
+- [2026-06-25 08:46] open_question (e915cf55 · turn 110): is "load via the Skill tool" the universal phrasing, and should it live in a central reference?
+- [2026-06-26 02:13] decision (0a64f481 · turn 60): make model and effort configurable per run, full-value defaults with an override clause.
+- [2026-06-26 02:33] issue (0a64f481 · turn 160): editing the skill mid-experiment forced backfilling and re-auditing earlier runs — a versioning hazard.
+- [2026-06-26 02:54] decision (0a64f481 · turn 215): default the Explore gatherer subagent to Haiku — Opus gatherers at scale are too expensive.
+- [2026-06-26 02:54] mistake_fixed (0a64f481 · turn 215): the gatherer was running a costlier model than intended; corrected to Haiku mid-campaign and affected audits re-run.
+- [2026-06-26 02:54] learning (0a64f481 · turn 215): the Explore subagent was not defaulting to Haiku as assumed — a live misconfiguration.
+- [2026-06-26 03:02] decision (0a64f481 · turn 245): run the comparison via headless mode, not inline Explore subagents, for true parallel isolation.
+- [2026-06-26 03:04] decision (0a64f481 · turn 250): expand the matrix to include Opus alongside Sonnet.
+- [2026-06-26 03:50] learning (0a64f481 · turn 310): effort is the dominant fidelity lever — Sonnet-high 2.5/6, Sonnet-max 4.5/6, Opus-high 2.5/6, Opus-max 6.0/6; model only separates at max effort.
+- [2026-06-26 03:50] learning (0a64f481 · turn 310): effort is nearly free (+2.0 pts for ~−$0.02); model is expensive (+1.5 pts for ~+$3.44) — spend effort first.
+- [2026-06-26 03:50] learning (0a64f481 · turn 310): Opus-max's ~2× larger output is precision density, not bloat — extra forks and ~40 user quotes, no padding.
+- [2026-06-26 03:52] issue (0a64f481 · turn 310): cost visibility was poor — user repeatedly asked "what was the cost?"; per-run cost should be first-class.
+- [2026-06-26 04:00] decision (0a64f481 · turn 310): default to Sonnet-max for most sessions; reserve Opus-max for high-value/durable/high-rationale-density sessions.
+- [2026-06-26 04:00] learning (0a64f481 · turn 310): the two-stage pipeline (Haiku gather → capable synthesize) matched single-stage Opus-max on fidelity — structurally sound.
+- [2026-06-26 04:00] open_question (0a64f481 · turn 380): should thread-log support explicit archival/versioning of experiment runs, vs the manual threads-archive/ copy?
+- [2026-06-26 04:34] decision (0a64f481 · turn 380): archive intermediate runs to threads-archive/, then run a final Opus-default baseline.
+- [2026-06-26 15:06] learning (8c343e36 · turn 4): templates should fix structure (bullets/table/ASCII, citation form, log shape) but never cap content length.
+- [2026-06-26 15:22] decision (8c343e36 · turn 7): delete the "regenerated from session files" boilerplate entirely; add full telemetry (model, duration, cost) to runs[].
+- [2026-06-26 15:23] learning (8c343e36 · turn 4): real drift across 5 threads — citation variants, bold/plain timestamps, even `### decisions` headers inside logs.
+- [2026-06-26 15:23] learning (8c343e36 · turn 4): session frontmatter duplicated manifest fields (id, project, time_range).
+- [2026-06-26 15:23] decision (8c343e36 · turn 9): enforce a strict canonical log-line template; no section headers grouping the log (they break chronology).
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): create ARTIFACTS.md as the single source of truth for what each file is, distinct from INGEST.md's how.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): make the ARTIFACTS.md read phase-scoped — worker phase only; split the short why (SKILL.md) from the long shape (ARTIFACTS.md).
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): put each section's local boundary "why" in ARTIFACTS.md per-section — answers a different question than the global lens.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): manifest gets a stub in ARTIFACTS.md pointing to manifest.schema.json — no duplication.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): singular log tags (decision, learning) but plural Title-Case session headers (## Decisions); one mapping table.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): session-file headers → Title Case, no underscores.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): slim the session frontmatter — keep title + worker fields; drop project/time_range (manifest is the source).
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): standardize extracted_by to a terse model id, naming the synthesizer only.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): no new bucket types — fork + why-it-won live inside decisions; keep five events.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): digest keeps empty sections with explicit "None"; omit only ## Design when nothing is spatial.
+- [2026-06-26 15:29] decision (8c343e36 · turn 9): the completion criterion stays in INGEST.md — process discipline, not artifact shape.
+- [2026-06-26 15:59] decision (8c343e36 · turn 22): apply changes to the in-repo skill copy; user syncs to ~/.claude themselves.

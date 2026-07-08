@@ -1,0 +1,18 @@
+{
+  "slug": "quality-garden-skill",
+  "charter": "Track development of the quality-garden skill: requirements, design decisions, implementation changes, review findings, tests, docs, and follow-up work needed to make the skill reliable and useful.",
+  "destination": "personal",
+  "created_at": "2026-07-05T07:20:12.464Z",
+  "sessions": [
+    {
+      "id": "ses_0d3e36b65ffe0wjUjB3wf3au4h",
+      "source": "opencode",
+      "title": "Thermonuclear code review maintenance run",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 207,
+      "last_message_id": "msg_f2f105288001ClzOlP467yn9d1",
+      "last_activity_at": "2026-07-04T21:37:06.696Z"
+    }
+  ],
+  "synthesis": {}
+}

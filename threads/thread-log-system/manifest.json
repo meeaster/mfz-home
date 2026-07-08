@@ -1,0 +1,33 @@
+{
+  "slug": "thread-log-system",
+  "title": "Thread-log's next era — the CLI-orchestrated thread system",
+  "charter": "The evolution of thread-log from a Claude Code skill into a standalone, CLI-orchestrated thread-management system. In scope: design and construction of the core engine (a pure library that orchestrates subscription-harness agents — Claude Code / OpenCode — through the ingest pipeline), its interfaces (CLI first, MCP server / web API later over the same core), the SessionSource adapter port (Claude Code + OpenCode in v1, ChatGPT designed-for-but-deferred), storage/backup model (separate sensitive thread data, first-class backup destinations, two-way git sync, provenance/source-machine, local raw-session archival), observability (run registry, per-run logs, cost surfacing, model-action history), and the deferred-but-specced problem of higher-level thread structure (grouping vs. relationship graph vs. nothing). Builds on the thread-log-build thread (the skill being lifted into the system). Out of scope: ongoing hardening of the existing skill as a skill (thread-log-build / thread-log-usage cover that) and the domain work inside any thread the system manages.",
+  "read_subagents": true,
+  "sessions": [
+    {
+      "id": "0af0f6b3-9521-48a5-b346-54380cefca80",
+      "source": "claude-code",
+      "project": "/home/mark/code/mindframe-z",
+      "title": "Grilling session — design of the thread-log CLI/core system (this session's foundational design)",
+      "high_water": "2026-06-27T00:57:29.040Z"
+    }
+  ],
+  "excluded": [],
+  "runs": [
+    {
+      "at": "2026-06-27T00:57:29.040Z",
+      "mode": "capture-self",
+      "sessions": ["0af0f6b3-9521-48a5-b346-54380cefca80"],
+      "model": "opus-4.8 max",
+      "duration_ms": 1282408,
+      "num_turns": 21,
+      "usage": {
+        "input": 2381,
+        "output": 52763,
+        "cache_read": 814504,
+        "cache_creation": 72780
+      },
+      "cost_usd": 2.67003585
+    }
+  ]
+}

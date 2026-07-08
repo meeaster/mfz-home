@@ -1,0 +1,36 @@
+{
+  "slug": "session-backup-hydration",
+  "charter": "Design and implementation of the session-backup-hydration feature: the archives machine-config concept, mfz sessions backup (S3 upload with freshness guard and bucket-hardening preflight), and hydration of vanished sessions from archive during thread refresh/ingest, including the adversarial-review hardening pass (atomic staging, negative caching, profile-pinned read skip, data-home centralization).",
+  "destination": "personal",
+  "created_at": "2026-07-03T17:39:39.681Z",
+  "sessions": [
+    {
+      "id": "95f4346a-0c0e-40d5-9d6c-abad6ae6a7b4",
+      "source": "claude-code",
+      "title": "Add S3 backup for thread session data",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 196,
+      "last_message_id": "75605357-3840-4aea-a7d8-6d76c790a3c7",
+      "last_activity_at": "2026-07-02T00:22:28.266Z"
+    },
+    {
+      "id": "2dae409f-d5e3-4693-84a3-b795da5a2a9c",
+      "source": "claude-code",
+      "title": "Review openspec changes for session-backup-hydration",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 530,
+      "last_message_id": "5256be74-b713-4ad2-ad0b-27473a04ede1",
+      "last_activity_at": "2026-07-03T07:44:20.985Z"
+    },
+    {
+      "id": "086785c0-ac29-4bb3-9168-5af382108e96",
+      "source": "claude-code",
+      "title": "Session-backup-hydration: recovery, bucket hardening, adversarial review pass, and discovery-skill fix",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 1634,
+      "last_message_id": "b41c77dc-5193-48d7-b384-7c04e6ee1610",
+      "last_activity_at": "2026-07-03T18:31:17.517Z"
+    }
+  ],
+  "synthesis": {}
+}

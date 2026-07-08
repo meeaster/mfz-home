@@ -1,0 +1,27 @@
+{
+  "slug": "thread-sweep",
+  "charter": "Designing and building the mfz thread sweep and review system: proactive detection of new and changed sessions from cheap source signals, baseline and quiescence-gate semantics, cheap-model triage of candidate sessions against thread charters, the machine-local verdict ledger (fits/no-fit/pass/reject pinned to session watermarks and charter hashes), and the human review workflow (pending, ingest-as-accept, reject, conclude). Covers the design decisions and their rationale, the thread-sweep OpenSpec change, implementation, and follow-on refinements. Emphasize decisions made, alternatives rejected and why, domain terms coined, and open questions.",
+  "destination": "personal",
+  "created_at": "2026-07-06T07:29:21.827Z",
+  "sessions": [
+    {
+      "id": "b0e94b51-08a9-48dd-b816-afdc41953b42",
+      "source": "claude-code",
+      "title": "Continue session ingestion workflow setup",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 289,
+      "last_message_id": "168ddd9c-cd8b-443c-9967-6a9921e94e23",
+      "last_activity_at": "2026-07-06T14:04:53.310Z"
+    },
+    {
+      "id": "ses_0c9992e59ffeIo76tW0hebXP5N",
+      "source": "opencode",
+      "title": "OpenSpec skill loading and subagent prompts",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 138,
+      "last_message_id": "msg_f3699dddf001bi7uLtebKx0gRq",
+      "last_activity_at": "2026-07-06T08:44:41.311Z"
+    }
+  ],
+  "synthesis": {}
+}

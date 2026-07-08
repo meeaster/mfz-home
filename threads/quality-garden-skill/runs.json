@@ -1,0 +1,46 @@
+{
+  "runs": [
+    {
+      "id": "run-1783238217302",
+      "thread": "quality-garden-skill",
+      "started_at": "2026-07-05T07:56:57.302Z",
+      "finished_at": "2026-07-05T08:02:20.917Z",
+      "sessions": [
+        "opencode:ses_0d3e36b65ffe0wjUjB3wf3au4h"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 221177,
+          "cost_usd": 0.3685333,
+          "input_tokens": 1506855,
+          "output_tokens": 18348,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 48031,
+          "cost_usd": 0.22022730000000001,
+          "input_tokens": 44139,
+          "output_tokens": 4119,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 54101,
+          "cost_usd": 0.1542738,
+          "input_tokens": 41134,
+          "output_tokens": 4384,
+          "reasoning_tokens": null
+        }
+      ],
+      "total_cost_usd": 0.7430344000000001
+    }
+  ]
+}

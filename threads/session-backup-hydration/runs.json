@@ -1,0 +1,88 @@
+{
+  "runs": [
+    {
+      "id": "run-1783103361535",
+      "thread": "session-backup-hydration",
+      "started_at": "2026-07-03T18:29:21.535Z",
+      "finished_at": "2026-07-03T18:35:16.584Z",
+      "sessions": [
+        "claude-code:95f4346a-0c0e-40d5-9d6c-abad6ae6a7b4",
+        "claude-code:2dae409f-d5e3-4693-84a3-b795da5a2a9c",
+        "claude-code:086785c0-ac29-4bb3-9168-5af382108e96"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 206717,
+          "cost_usd": 0.28700290000000006,
+          "input_tokens": 1230019,
+          "output_tokens": 13819,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 47253,
+          "cost_usd": 0.1730517,
+          "input_tokens": 45533,
+          "output_tokens": 4854,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 183182,
+          "cost_usd": 0.223686,
+          "input_tokens": 833279,
+          "output_tokens": 12472,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 28427,
+          "cost_usd": 0.14331,
+          "input_tokens": 44676,
+          "output_tokens": 3051,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 128550,
+          "cost_usd": 0.13390580000000002,
+          "input_tokens": 376826,
+          "output_tokens": 8482,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 41507,
+          "cost_usd": 0.2177508,
+          "input_tokens": 42675,
+          "output_tokens": 4340,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 100868,
+          "cost_usd": 0.3319608,
+          "input_tokens": 56780,
+          "output_tokens": 8991,
+          "reasoning_tokens": null
+        }
+      ],
+      "total_cost_usd": 1.5106680000000001
+    }
+  ]
+}

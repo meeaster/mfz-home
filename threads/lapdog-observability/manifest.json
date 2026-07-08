@@ -1,0 +1,39 @@
+{
+  "slug": "lapdog-observability",
+  "charter": "Lapdog/DataDog APM observability overlay for mfz thread dispatches. Captures session lifecycle events, cost spans (msgpack to lapdog), container lifecycle management, and the OpenCode plugin + Claude Settings hooks instrumentation. Includes adsversarial review blockers and prototype validations.",
+  "destination": "personal",
+  "created_at": "2026-06-29T15:02:39.726Z",
+  "sessions": [
+    {
+      "id": "ses_0ef14b3a5ffelZyRS6mbJBWvnz",
+      "source": "opencode",
+      "title": "Implement lapdog-thread-observability spec",
+      "extracted_by": "opencode:opencode-go/deepseek-v4-pro@max"
+    },
+    {
+      "id": "ses_0eef5b33fffecssLzTpVi5ByWo",
+      "source": "opencode",
+      "title": "\"Thread observability spec implementation plan\"",
+      "extracted_by": "opencode:opencode-go/deepseek-v4-pro@max"
+    },
+    {
+      "id": "ses_0ee9a898affeZLxl2ZX93omXfS",
+      "source": "opencode",
+      "title": "Thermo Nuclear Review of Lapdog Feature",
+      "extracted_by": "opencode:opencode-go/deepseek-v4-pro@max"
+    },
+    {
+      "id": "e8a9a49e-4f97-43a0-99ab-37647d501cba",
+      "source": "claude-code",
+      "title": "Evaluate cloud plugin with Lapdog hooks",
+      "extracted_by": "opencode:opencode-go/deepseek-v4-pro@max"
+    },
+    {
+      "id": "46037a58-419c-48e9-80af-a7ac4ce27922",
+      "source": "claude-code",
+      "title": "Debug session traces and cost tracking",
+      "extracted_by": "claude-code:us.anthropic.claude-sonnet-4-6@max"
+    }
+  ],
+  "synthesis": {}
+}

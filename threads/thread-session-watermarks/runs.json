@@ -1,0 +1,712 @@
+{
+  "runs": [
+    {
+      "id": "run-1782789890507",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T03:24:50.507Z",
+      "finished_at": "2026-06-30T03:26:23.026Z",
+      "sessions": [
+        "a712ce9c-589a-46fc-b10f-e72c193e165c"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.0010541944,
+          "input_tokens": 6841,
+          "output_tokens": 97,
+          "reasoning_tokens": 195,
+          "duration_ms": 14300
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.01742726,
+          "input_tokens": 6709,
+          "output_tokens": 803,
+          "reasoning_tokens": 829,
+          "duration_ms": 39509
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.020004896,
+          "input_tokens": 7544,
+          "output_tokens": 870,
+          "reasoning_tokens": 1082,
+          "duration_ms": 38425
+        }
+      ],
+      "total_cost_usd": 0.0384863504
+    },
+    {
+      "id": "run-1782791898856",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T03:58:18.856Z",
+      "finished_at": "2026-06-30T04:01:50.912Z",
+      "sessions": [
+        "a712ce9c-589a-46fc-b10f-e72c193e165c"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.007501284,
+          "input_tokens": 37039,
+          "output_tokens": 4525,
+          "reasoning_tokens": 1941,
+          "duration_ms": 73026
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.046150135999999994,
+          "input_tokens": 9568,
+          "output_tokens": 2738,
+          "reasoning_tokens": 5707,
+          "duration_ms": 101159
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.023378872000000002,
+          "input_tokens": 9644,
+          "output_tokens": 1002,
+          "reasoning_tokens": 861,
+          "duration_ms": 36557
+        }
+      ],
+      "total_cost_usd": 0.077030292
+    },
+    {
+      "id": "run-1782791959028",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T03:59:19.028Z",
+      "finished_at": "2026-06-30T04:02:21.766Z",
+      "sessions": [
+        "a712ce9c-589a-46fc-b10f-e72c193e165c"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.0079206848,
+          "input_tokens": 41120,
+          "output_tokens": 4901,
+          "reasoning_tokens": 975,
+          "duration_ms": 74006
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.039469,
+          "input_tokens": 10162,
+          "output_tokens": 2106,
+          "reasoning_tokens": 4120,
+          "duration_ms": 76643
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.021793152,
+          "input_tokens": 8968,
+          "output_tokens": 1076,
+          "reasoning_tokens": 672,
+          "duration_ms": 31903
+        }
+      ],
+      "total_cost_usd": 0.0691828368
+    },
+    {
+      "id": "run-1782793112654",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T04:18:32.654Z",
+      "finished_at": "2026-06-30T04:21:55.059Z",
+      "sessions": [
+        "a712ce9c-589a-46fc-b10f-e72c193e165c"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.008732242400000001,
+          "input_tokens": 42291,
+          "output_tokens": 5308,
+          "reasoning_tokens": 1103,
+          "duration_ms": 82941
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.04717836,
+          "input_tokens": 15574,
+          "output_tokens": 1457,
+          "reasoning_tokens": 4313,
+          "duration_ms": 69989
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.026309612000000003,
+          "input_tokens": 8307,
+          "output_tokens": 1484,
+          "reasoning_tokens": 1895,
+          "duration_ms": 49255
+        }
+      ],
+      "total_cost_usd": 0.0822202144
+    },
+    {
+      "id": "run-1782794303436",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T04:38:23.436Z",
+      "finished_at": "2026-06-30T04:43:47.989Z",
+      "sessions": [
+        "88375301-2380-418e-96e8-194664c80c6e"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-flash",
+          "cost_usd": 0.010907371999999999,
+          "input_tokens": 36383,
+          "output_tokens": 9264,
+          "reasoning_tokens": 2565,
+          "duration_ms": 146331
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.043251991999999996,
+          "input_tokens": 8510,
+          "output_tokens": 2179,
+          "reasoning_tokens": 5967,
+          "duration_ms": 114898
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.032960008,
+          "input_tokens": 10500,
+          "output_tokens": 1341,
+          "reasoning_tokens": 2844,
+          "duration_ms": 63147
+        }
+      ],
+      "total_cost_usd": 0.087119372
+    },
+    {
+      "id": "run-1782797056238",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T05:24:16.238Z",
+      "finished_at": "2026-06-30T05:25:16.064Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.031917748,
+          "input_tokens": 10703,
+          "output_tokens": 1362,
+          "reasoning_tokens": 2422,
+          "duration_ms": 59642
+        }
+      ],
+      "total_cost_usd": 0.031917748
+    },
+    {
+      "id": "run-1782797296617",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T05:28:16.617Z",
+      "finished_at": "2026-06-30T05:29:22.033Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.033814348,
+          "input_tokens": 10729,
+          "output_tokens": 1417,
+          "reasoning_tokens": 2899,
+          "duration_ms": 65341
+        }
+      ],
+      "total_cost_usd": 0.033814348
+    },
+    {
+      "id": "run-1782798734190",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T05:52:14.190Z",
+      "finished_at": "2026-06-30T05:53:36.223Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.032939128,
+          "input_tokens": 10806,
+          "output_tokens": 928,
+          "reasoning_tokens": 3098,
+          "duration_ms": 81838
+        }
+      ],
+      "total_cost_usd": 0.032939128
+    },
+    {
+      "id": "run-1782800541700",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T06:22:21.700Z",
+      "finished_at": "2026-06-30T06:23:54.565Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.035429068,
+          "input_tokens": 11003,
+          "output_tokens": 973,
+          "reasoning_tokens": 3670,
+          "duration_ms": 92664
+        }
+      ],
+      "total_cost_usd": 0.035429068
+    },
+    {
+      "id": "run-1782800917719",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T06:28:37.719Z",
+      "finished_at": "2026-06-30T06:30:56.983Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.041606068,
+          "input_tokens": 11073,
+          "output_tokens": 1705,
+          "reasoning_tokens": 4678,
+          "duration_ms": 139186
+        }
+      ],
+      "total_cost_usd": 0.041606068
+    },
+    {
+      "id": "run-1782802077178",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-06-30T06:47:57.178Z",
+      "finished_at": "2026-06-30T06:49:49.066Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "opencode-go/deepseek-v4-pro",
+          "cost_usd": 0.042453448,
+          "input_tokens": 11286,
+          "output_tokens": 1748,
+          "reasoning_tokens": 4772,
+          "duration_ms": 111811
+        }
+      ],
+      "total_cost_usd": 0.042453448
+    },
+    {
+      "id": "run-1782888339387",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T06:45:39.387Z",
+      "finished_at": "2026-07-01T06:49:14.267Z",
+      "sessions": [
+        "claude-code:88375301-2380-418e-96e8-194664c80c6e"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.20020340000000003,
+          "input_tokens": 713555,
+          "output_tokens": 7608,
+          "reasoning_tokens": null,
+          "duration_ms": 108908
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.13762829999999998,
+          "input_tokens": 37452,
+          "output_tokens": 4274,
+          "reasoning_tokens": null,
+          "duration_ms": 40350
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1748154,
+          "input_tokens": 42853,
+          "output_tokens": 5625,
+          "reasoning_tokens": null,
+          "duration_ms": 65407
+        }
+      ],
+      "total_cost_usd": 0.5126471
+    },
+    {
+      "id": "run-1782889621484",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T07:07:01.484Z",
+      "finished_at": "2026-07-01T07:11:04.171Z",
+      "sessions": [
+        "claude-code:a712ce9c-589a-46fc-b10f-e72c193e165c",
+        "claude-code:88375301-2380-418e-96e8-194664c80c6e"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.1753259,
+          "input_tokens": 443741,
+          "output_tokens": 9377,
+          "reasoning_tokens": null,
+          "duration_ms": 131930
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1602906,
+          "input_tokens": 45496,
+          "output_tokens": 4099,
+          "reasoning_tokens": null,
+          "duration_ms": 42900
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.22732289999999997,
+          "input_tokens": 1004442,
+          "output_tokens": 10803,
+          "reasoning_tokens": null,
+          "duration_ms": 174586
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1038906,
+          "input_tokens": 38296,
+          "output_tokens": 1851,
+          "reasoning_tokens": null,
+          "duration_ms": 26187
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1389147,
+          "input_tokens": 41987,
+          "output_tokens": 3415,
+          "reasoning_tokens": null,
+          "duration_ms": 41710
+        }
+      ],
+      "total_cost_usd": 0.8057447
+    },
+    {
+      "id": "run-1782890502067",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T07:21:42.067Z",
+      "finished_at": "2026-07-01T07:28:04.451Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.2902563,
+          "input_tokens": 1281179,
+          "output_tokens": 14527,
+          "reasoning_tokens": null,
+          "duration_ms": 230554
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.167217,
+          "input_tokens": 45006,
+          "output_tokens": 4661,
+          "reasoning_tokens": null,
+          "duration_ms": 41704
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.2627346,
+          "input_tokens": 51182,
+          "output_tokens": 9737,
+          "reasoning_tokens": null,
+          "duration_ms": 109896
+        }
+      ],
+      "total_cost_usd": 0.7202079
+    },
+    {
+      "id": "run-1782891004479",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T07:30:04.479Z",
+      "finished_at": "2026-07-01T07:35:56.906Z",
+      "sessions": [
+        "claude-code:a20ffd6c-b828-411c-a2ee-30d8f6542325",
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.0571518,
+          "input_tokens": 160112,
+          "output_tokens": 2361,
+          "reasoning_tokens": null,
+          "duration_ms": 35647
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.019018200000000002,
+          "input_tokens": 14059,
+          "output_tokens": 230,
+          "reasoning_tokens": null,
+          "duration_ms": 6515
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.3987259,
+          "input_tokens": 1926498,
+          "output_tokens": 13027,
+          "reasoning_tokens": null,
+          "duration_ms": 203262
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1617888,
+          "input_tokens": 43024,
+          "output_tokens": 4718,
+          "reasoning_tokens": null,
+          "duration_ms": 43039
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.2581479,
+          "input_tokens": 51781,
+          "output_tokens": 9306,
+          "reasoning_tokens": null,
+          "duration_ms": 105902
+        }
+      ],
+      "total_cost_usd": 0.8948326
+    },
+    {
+      "id": "run-1782891447454",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T07:37:27.454Z",
+      "finished_at": "2026-07-01T07:42:53.435Z",
+      "sessions": [
+        "claude-code:a20ffd6c-b828-411c-a2ee-30d8f6542325",
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.24866210000000005,
+          "input_tokens": 1015017,
+          "output_tokens": 11524,
+          "reasoning_tokens": null,
+          "duration_ms": 177972
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1459614,
+          "input_tokens": 40628,
+          "output_tokens": 4166,
+          "reasoning_tokens": null,
+          "duration_ms": 40323
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.2454488,
+          "input_tokens": 919263,
+          "output_tokens": 11918,
+          "reasoning_tokens": null,
+          "duration_ms": 168350
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.17229870000000003,
+          "input_tokens": 45524,
+          "output_tokens": 4891,
+          "reasoning_tokens": null,
+          "duration_ms": 49637
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.2893245,
+          "input_tokens": 59867,
+          "output_tokens": 9686,
+          "reasoning_tokens": null,
+          "duration_ms": 107485
+        }
+      ],
+      "total_cost_usd": 1.1016955
+    },
+    {
+      "id": "run-1782916507945",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T14:35:07.945Z",
+      "finished_at": "2026-07-01T14:40:23.900Z",
+      "sessions": [
+        "claude-code:a20ffd6c-b828-411c-a2ee-30d8f6542325",
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.2387335,
+          "input_tokens": 980003,
+          "output_tokens": 12186,
+          "reasoning_tokens": null,
+          "duration_ms": 200350
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.1335501,
+          "input_tokens": 40102,
+          "output_tokens": 3446,
+          "reasoning_tokens": null,
+          "duration_ms": 34726
+        },
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "cost_usd": 0.07558050000000001,
+          "input_tokens": 284301,
+          "output_tokens": 3777,
+          "reasoning_tokens": null,
+          "duration_ms": 53053
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.082209,
+          "input_tokens": 14128,
+          "output_tokens": 321,
+          "reasoning_tokens": null,
+          "duration_ms": 8229
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "cost_usd": 0.2799699,
+          "input_tokens": 49405,
+          "output_tokens": 7155,
+          "reasoning_tokens": null,
+          "duration_ms": 80645
+        }
+      ],
+      "total_cost_usd": 0.810043
+    },
+    {
+      "id": "run-1782917588946",
+      "thread": "thread-session-watermarks",
+      "started_at": "2026-07-01T14:53:08.946Z",
+      "finished_at": "2026-07-01T14:59:32.731Z",
+      "sessions": [
+        "claude-code:70e15b3d-cdc8-490a-9ece-1a59db138b88"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "claude-code",
+          "model": "haiku",
+          "duration_ms": 201121,
+          "cost_usd": 0.24942940000000002,
+          "input_tokens": 1140973,
+          "output_tokens": 12367,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "synthesize",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 43141,
+          "cost_usd": 0.1435623,
+          "input_tokens": 40307,
+          "output_tokens": 4071,
+          "reasoning_tokens": null
+        },
+        {
+          "role": "digest",
+          "harness": "claude-code",
+          "model": "claude-sonnet-5",
+          "duration_ms": 139286,
+          "cost_usd": 0.3336093,
+          "input_tokens": 55537,
+          "output_tokens": 13548,
+          "reasoning_tokens": null
+        }
+      ],
+      "total_cost_usd": 0.726601
+    }
+  ]
+}

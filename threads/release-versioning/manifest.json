@@ -1,0 +1,15 @@
+{
+  "slug": "release-versioning",
+  "charter": "Track design and implementation of release versioning, rolling Next Release draft maintenance, portable release-notes and cut-release skills, and AI-assisted GitHub release publishing for mindframe-z.",
+  "destination": "personal",
+  "created_at": "2026-06-30T02:47:00.229Z",
+  "sessions": [
+    {
+      "id": "ses_0ea3314f8ffeXOrrNECh5btGD6",
+      "source": "opencode",
+      "title": "Release versioning design and AI-assisted GitHub publishing",
+      "extracted_by": "claude-code:opus@max"
+    }
+  ],
+  "synthesis": {}
+}
