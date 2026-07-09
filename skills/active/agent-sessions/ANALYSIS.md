@@ -29,14 +29,14 @@ Before summarizing a substantive user message, classify its shape:
 
 Look especially for repeated language such as "I think", "I don't like", "what I want", "to be clear", "actually", "maybe", and moments where the user corrects the agent's behavior. Length is only a triage signal: medium-long unstructured messages are often dictated exploration, while very long messages are usually pasted context or structured briefs.
 
-Exclude routine task instructions, pasted context with no user stance, transient frustration with no reusable principle, and implementation-only preferences scoped to one branch. When reporting candidates for thread ingestion, include the session locator, the message shape, the reusable perspective, and why it passes the admission rule.
+Exclude routine task instructions, pasted context with no user stance, transient frustration with no reusable principle, and implementation-only preferences scoped to one branch. When reporting perspective candidates, include the session locator, the message shape, the reusable perspective, and why it passes the admission rule.
 
 ## Reporting Pattern
 
 Report in this order:
 
 1. **Scope**: source, session IDs or files, row/record counts, and whether the read was sampled or complete.
-2. **Location**: how the session was found, including prompt, project, recency, branch, path, or mounted store.
+2. **Location**: how the session was found, including prompt, project, recency, branch, or path.
 3. **Timeline**: main turns and important tool or subagent events.
 4. **Findings**: stuck points, missed guidance, effective behavior, and risky behavior, with row IDs, record positions, timestamps, or quoted artifacts.
 5. **Recommendations**: specific changes to instructions, skills, subagent prompts, or MCP usage, only when the evidence supports them.

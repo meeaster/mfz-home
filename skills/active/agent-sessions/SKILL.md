@@ -14,7 +14,7 @@ Session archaeology reconstructs past agent work from durable artifacts. Every r
 
 1. Identify the source and artifact.
 
-   Use the user's locator, requested harness, mounted path, session ID, or recency clue to choose the branch: [OpenCode](OPENCODE.md), [Claude Code](CLAUDE.md), or a direct exported file. Done when the session source and read path are explicit, not inferred.
+   Use the requested harness, session ID, or recency clue to choose the branch: [OpenCode](OPENCODE.md), [Claude Code](CLAUDE.md), or a direct exported file. Done when the session source and read path are explicit, not inferred.
 
 2. Confirm the storage shape before trusting recipes.
 
@@ -37,7 +37,7 @@ Session archaeology reconstructs past agent work from durable artifacts. Every r
 - Treat session stores as read-only. Never write, edit, migrate, vacuum, or delete session artifacts unless the user explicitly asks.
 - Do not surface secrets or private transcript content beyond what answers the question.
 - Prefer structured extraction (`sqlite3`/`opencode db` SQL, `jq`) over raw transcript dumps.
-- If a mounted or explicit path is provided, use that path. Do not fall back to the agent's own runtime home.
+- When the user names a store root, read that path instead of the harness default.
 
 ## Branches
 
