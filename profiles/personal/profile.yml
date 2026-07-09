@@ -27,6 +27,10 @@ mcp:
     agents: { opencode: false, claude-code: true, codex: false }
   exa-research:
     agents: { opencode: false, claude-code: true, codex: false }
+claude:
+  settings:
+    permissions:
+      defaultMode: auto
 opencode:
   config:
     permission:

@@ -45,6 +45,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   agent-sessions:
     agents: { opencode: true, claude-code: true, codex: true }
+  agent-exec:
+    agents: { opencode: true, claude-code: true, codex: true }
   threads:
     agents: { opencode: true, claude-code: true, codex: true }
   openspec-apply-change:
@@ -79,8 +81,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   grilling:
     agents: { opencode: false, claude-code: false, codex: false }
-  to-prd:
-    agents: { opencode: true, claude-code: true, codex: true }
+  to-spec:
+    agents: { opencode: false, claude-code: false, codex: false }
   improve-codebase-architecture:
     agents: { opencode: false, claude-code: false, codex: false }
   domain-modeling:

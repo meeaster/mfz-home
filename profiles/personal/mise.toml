@@ -1,4 +1,5 @@
 [tools]
+node = "26"
 websocat = "1"
 "npm:executor" = "1"
 usage = "3"

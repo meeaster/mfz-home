@@ -21,12 +21,12 @@ skills:
       Interview me relentlessly about every aspect of this plan until we reach a shared
       understanding. Walk down each branch of the design tree, resolving dependencies between
       decisions one-by-one. For each question, provide your recommended answer.
-  - name: to-prd
+  - name: to-spec
     source: git
     repo: https://github.com/mattpocock/skills
-    skill: to-prd
+    skill: to-spec
     description: >
-      Turn the current conversation into a PRD and publish it to the project issue tracker — no interview,
+      Turn the current conversation into a spec and publish it to the project issue tracker — no interview,
       just synthesis of what you've already discussed.
     installer: skills
   - name: improve-codebase-architecture
@@ -83,6 +83,13 @@ skills:
       Use when doing session archaeology: finding, reading, reconstructing, catching up on, or auditing prior OpenCode
       or Claude Code sessions, including catching up on or resuming from a specific past session, tool calls, subagents,
       permission events, failures, skill usage, and local session stores.
+  - name: agent-exec
+    source: local
+    skill: agent-exec
+    description: >
+      Execute work through another agent harness CLI. Use when asked to run Codex, OpenCode, or Claude Code; delegate
+      implementation, investigation, review, or a second opinion to GPT-5.5, Opus, Fable, or another agent/model;
+      continue a prior agent thread/session; or inspect available models/variants before choosing a target.
   - name: threads
     source: local
     skill: threads
