@@ -1,9 +1,8 @@
 ---
 name: agent-exec
 description: >
-  Execute work through another agent harness CLI. Use when the user asks to run Codex, OpenCode, or Claude Code;
-  delegate implementation, investigation, review, or a second opinion to GPT-5.5, Opus, Fable, or another agent/model;
-  continue a prior agent thread/session; or inspect available models/variants before choosing a target.
+  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
+  continue a session from one of those harnesses; or inspect a harness's available models or variants.
 ---
 
 # Agent Exec
@@ -11,6 +10,10 @@ description: >
 Agent exec drives another agent CLI and preserves the continuation handle. It is a primitive, not a review, planning, or session-archaeology workflow.
 
 CLI delegation normally starts the target harness's primary/main agent, not a nested subagent in that harness. Only use a harness-specific agent flag when the named agent is valid for direct CLI runs; parent-session subagents and child-harness run agents are different concepts.
+
+## Native Subagents
+
+For a request to use a named subagent available in the current environment, such as `explore`, `general`, or `research`, use the native task tool. Reserve agent exec for explicitly running an external harness CLI or resuming its session.
 
 ## Steps
 

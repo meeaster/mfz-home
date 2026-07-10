@@ -87,9 +87,8 @@ skills:
     source: local
     skill: agent-exec
     description: >
-      Execute work through another agent harness CLI. Use when asked to run Codex, OpenCode, or Claude Code; delegate
-      implementation, investigation, review, or a second opinion to GPT-5.5, Opus, Fable, or another agent/model;
-      continue a prior agent thread/session; or inspect available models/variants before choosing a target.
+      Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
+      continue a session from one of those harnesses; or inspect a harness's available models or variants.
   - name: threads
     source: local
     skill: threads
