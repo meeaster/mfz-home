@@ -139,6 +139,9 @@ opencode:
   plugins:
     - advisor
     - agent-task
+  tui_plugins:
+    - advisor-tui
+    - session-cost-tui
   commands:
     - apply-spec
     - rmslop

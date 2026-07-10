@@ -1,5 +1,5 @@
 import process from "node:process";
-import { tool, type Plugin, type ToolDefinition } from "@opencode-ai/plugin";
+import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
 
 /**
  * Advisor plugin — a client-side port of Anthropic's server-side `advisor` tool.
@@ -41,7 +41,7 @@ Before calling advisor(), write one sentence stating what the task asks and your
 // is not exposed, so this is ours. It encodes the reviewer role we observed:
 // prioritize the one load-bearing issue, confirm-and-proceed when sound, never
 // rewrite, stay concrete.
-const ADVISOR_SYSTEM = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's full transcript -- its task, every tool call and result, and its reasoning so far.
+const ADVISOR_SYSTEM_BASELINE = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's full transcript -- its task, every tool call and result, and its reasoning so far.
 
 Give strategic guidance, not a rewrite. Your job is to catch what the executor is about to get wrong before it commits, or to confirm it is on track and should proceed.
 
@@ -51,6 +51,17 @@ Give strategic guidance, not a rewrite. Your job is to catch what the executor i
 - Distinguish blocking issues from nits: say which must be fixed before proceeding and which are optional.
 - You have no tools and cannot act. Reason only from the transcript you were given; do not ask the executor to run things for you.
 - Be concise. A few tight paragraphs beat a long list.`;
+
+const ADVISOR_SYSTEM_GPT56 = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's full transcript -- its task, every tool call and result, and its reasoning so far.
+
+Give strategic guidance, not a rewrite. Your job is to catch what the executor is about to get wrong before it commits, or to confirm it is on track and should proceed.
+
+- Lead with the single most important thing: the load-bearing decision, the flawed assumption, the bug the executor hasn't noticed, or the gap between what the task asked and what the executor is doing.
+- If the work is sound, say so plainly and say "proceed". Do not invent problems or request cosmetic changes -- a false alarm costs the executor a turn.
+- Be concrete and testable. Name the specific step, file, or claim. Prefer "the lock is held across submit(), so shutdown() can starve" over "watch out for concurrency".
+- Distinguish blocking issues from nits: say which must be fixed before proceeding and which are optional.
+- You have no tools and cannot act. Reason only from the transcript. If the evidence is insufficient, name the smallest specific evidence the executor must gather before deciding; do not guess or request broad exploration.
+- Lead with the conclusion. Include the evidence needed to support it, any material caveat, and the next action. Omit repetition and secondary detail.`;
 
 // Disabled in the advisor's review session: it must not mutate anything, and it
 // must never call `advisor` again (infinite recursion).
@@ -81,10 +92,41 @@ function modelLabel(model: { modelID: string; variant?: string }): string {
   return model.variant ? `${model.modelID}@${model.variant}` : model.modelID;
 }
 
+type AdvisorPromptVariant = "baseline" | "gpt56";
+
+export function resolveAdvisorPrompt(
+  modelID: string,
+  mode = process.env.OPENCODE_ADVISOR_PROMPT ?? "auto",
+): { variant: AdvisorPromptVariant; system: string } {
+  if (mode === "baseline") return { variant: "baseline", system: ADVISOR_SYSTEM_BASELINE };
+  if (mode === "gpt56") return { variant: "gpt56", system: ADVISOR_SYSTEM_GPT56 };
+  if (mode === "auto") {
+    return modelID.startsWith("gpt-5.6")
+      ? { variant: "gpt56", system: ADVISOR_SYSTEM_GPT56 }
+      : { variant: "baseline", system: ADVISOR_SYSTEM_BASELINE };
+  }
+  throw new Error(`Invalid OPENCODE_ADVISOR_PROMPT value "${mode}". Use auto, baseline, or gpt56.`);
+}
+
 type Role = "user" | "assistant" | string;
 
 type MessageEntry = {
-  info?: { role?: Role };
+  info?: {
+    id?: string;
+    parentID?: string;
+    role?: Role;
+    summary?: boolean;
+    finish?: string;
+    error?: unknown;
+    cost?: number;
+    tokens?: {
+      total?: number;
+      input?: number;
+      output?: number;
+      reasoning?: number;
+      cache?: { read?: number; write?: number };
+    };
+  };
   parts?: Array<Record<string, unknown>>;
 };
 
@@ -155,6 +197,44 @@ function serializeTranscript(messages: MessageEntry[]): string {
   return blocks.join("\n\n");
 }
 
+export function selectAdvisorMessages(messages: MessageEntry[]): MessageEntry[] {
+  const markers = new Map<string, number>();
+  let latest:
+    | { markerIndex: number; summaryIndex: number; tailStartID: string | undefined }
+    | undefined;
+
+  for (const [index, message] of messages.entries()) {
+    if (message.info?.role === "user" && message.info.id && message.parts?.some((part) => part.type === "compaction")) {
+      markers.set(message.info.id, index);
+      continue;
+    }
+    if (
+      message.info?.role === "assistant" &&
+      message.info.summary &&
+      message.info.finish &&
+      !message.info.error &&
+      message.info.parentID &&
+      markers.has(message.info.parentID)
+    ) {
+      const markerIndex = markers.get(message.info.parentID)!;
+      const marker = messages[markerIndex]!;
+      const tailStartID = str(marker.parts?.find((part) => part.type === "compaction")?.tail_start_id);
+      latest = { markerIndex, summaryIndex: index, tailStartID };
+    }
+  }
+
+  if (!latest) return messages;
+  const tailIndex = latest.tailStartID ? messages.findIndex((message) => message.info?.id === latest.tailStartID) : -1;
+  if (tailIndex >= 0 && tailIndex < latest.markerIndex) {
+    return [
+      ...messages.slice(latest.markerIndex, latest.summaryIndex + 1),
+      ...messages.slice(tailIndex, latest.markerIndex),
+      ...messages.slice(latest.summaryIndex + 1),
+    ];
+  }
+  return messages.slice(latest.summaryIndex);
+}
+
 function extractText(result: PromptResult | undefined): string {
   const parts = result?.parts ?? [];
   const text = parts
@@ -165,12 +245,72 @@ function extractText(result: PromptResult | undefined): string {
   return text;
 }
 
+type AdvisorUsage = {
+  input: number;
+  output: number;
+  reasoning: number;
+  cacheRead: number;
+  cacheWrite: number;
+  total: number;
+  cost: number;
+};
+
+function number(value: unknown): number {
+  return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+export function extractUsage(messages: MessageEntry[]): AdvisorUsage | undefined {
+  let found = false;
+  const usage: AdvisorUsage = {
+    input: 0,
+    output: 0,
+    reasoning: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    total: 0,
+    cost: 0,
+  };
+
+  for (const message of messages) {
+    if (message.info?.role !== "assistant") continue;
+    const tokens = message.info.tokens;
+    if (!tokens && message.info.cost === undefined) continue;
+    found = true;
+    usage.input += number(tokens?.input);
+    usage.output += number(tokens?.output);
+    usage.reasoning += number(tokens?.reasoning);
+    usage.cacheRead += number(tokens?.cache?.read);
+    usage.cacheWrite += number(tokens?.cache?.write);
+    usage.total +=
+      number(tokens?.total) ||
+      number(tokens?.input) +
+        number(tokens?.output) +
+        number(tokens?.reasoning) +
+        number(tokens?.cache?.read) +
+        number(tokens?.cache?.write);
+    usage.cost += number(message.info.cost);
+  }
+
+  return found ? usage : undefined;
+}
+
+function formatUsage(usage: AdvisorUsage | undefined): string {
+  if (!usage) return "Usage: unavailable";
+  return `Usage: ${usage.total.toLocaleString()} tokens (input ${usage.input.toLocaleString()}, output ${usage.output.toLocaleString()}, reasoning ${usage.reasoning.toLocaleString()}, cache read ${usage.cacheRead.toLocaleString()}, cache write ${usage.cacheWrite.toLocaleString()}); reported cost $${usage.cost.toFixed(6)}`;
+}
+
 function createAdvisorTool(client: SessionClient): ToolDefinition {
-  return tool({
+  return {
     description: ADVISOR_DESCRIPTION,
     args: {},
     async execute(_args, ctx) {
       const model = resolveAdvisorModel();
+      let prompt: { variant: AdvisorPromptVariant; system: string };
+      try {
+        prompt = resolveAdvisorPrompt(model.modelID);
+      } catch (error) {
+        return `Error: ${error instanceof Error ? error.message : String(error)}`;
+      }
 
       const history = await client.messages({
         path: { id: ctx.sessionID },
@@ -180,7 +320,7 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
         return `Error: could not read the session transcript (${String(history.error ?? "no data")}).`;
       }
 
-      const transcript = serializeTranscript(history.data);
+      const transcript = serializeTranscript(selectAdvisorMessages(history.data));
       if (transcript.length === 0) {
         return "Error: the transcript is empty; there is nothing to advise on yet.";
       }
@@ -202,7 +342,7 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
           body: {
             model: { providerID: model.providerID, modelID: model.modelID },
             ...(model.variant !== undefined ? { variant: model.variant } : {}),
-            system: ADVISOR_SYSTEM,
+            system: prompt.system,
             tools: CHILD_TOOL_OVERRIDES,
             parts: [
               {
@@ -221,12 +361,28 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
           return `Error: the advisor returned no text (model ${model.providerID}/${label}).`;
         }
 
-        const meta = { providerID: model.providerID, modelID: model.modelID, variant: model.variant };
+        let usage: AdvisorUsage | undefined;
+        try {
+          const childMessages = await client.messages({
+            path: { id: childId },
+            query: { directory: ctx.directory },
+          });
+          usage = childMessages.error || !childMessages.data ? undefined : extractUsage(childMessages.data);
+        } catch {
+          // Usage must not hide valid advice if the completed child disappears first.
+        }
+        const meta = {
+          providerID: model.providerID,
+          modelID: model.modelID,
+          variant: model.variant,
+          promptVariant: prompt.variant,
+          usage,
+        };
         ctx.metadata({ title: `advisor: ${label}`, metadata: meta });
 
         return {
           title: `Advisor (${label})`,
-          output: advice,
+          output: `${advice}\n\n${formatUsage(usage)}`,
           metadata: meta,
         };
       } finally {
@@ -238,13 +394,16 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
         }
       }
     },
-  });
+  };
 }
 
-const AdvisorPlugin: Plugin = async ({ client }) => ({
-  tool: {
-    advisor: createAdvisorTool((client as unknown as { session: SessionClient }).session),
-  },
-});
+const AdvisorPlugin: PluginModule = {
+  id: "advisor",
+  server: async ({ client }) => ({
+    tool: {
+      advisor: createAdvisorTool((client as unknown as { session: SessionClient }).session),
+    },
+  }),
+};
 
 export default AdvisorPlugin;

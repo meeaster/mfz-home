@@ -4,3 +4,6 @@ strictDepBuilds: true
 allowBuilds:
   esbuild: true
   msgpackr-extract: true
+minimumReleaseAgeExclude:
+  - '@opencode-ai/plugin@1.17.18'
+  - '@opencode-ai/sdk@1.17.18'

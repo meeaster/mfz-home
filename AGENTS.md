@@ -23,13 +23,21 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 
 - `pnpm test` runs Vitest for `opencode/**/*.test.ts`.
 - `pnpm vitest run opencode/plugins/agent-task/logic.test.ts` runs the current focused test file.
+- This home has no `tsconfig.json` or build script; Vitest transpiles plugins but does not type-check them.
 - Use `pnpm`, not npm/yarn. Tool versions are managed by profile `mise.toml` files; base sets pnpm 11, personal overrides Node to 26.
+
+## OpenCode Plugins
+
+- Edit plugin source under `opencode/plugins/`, then apply with `mfz apply --target opencode --agent opencode`.
+- TUI slots mount only while their layout region is visible. For a wide runtime probe, use `script -qefc "stty cols 200 rows 50 && timeout 15s opencode --session <id>" /dev/null`; setting `COLUMNS` alone does not resize the PTY.
+- For advisor TUI diagnostics, launch with `OPENCODE_ADVISOR_DEBUG=1` and inspect `~/.opencode/logs/advisor-tui.log` for `view.mount` and pricing events.
+- When an OpenCode API behaves unexpectedly, check both `opencode --version` and the config-scoped `~/.config/opencode/package.json` `@opencode-ai/plugin` version.
 
 ## Repo Layout
 
 - `catalog/` contains registries for MCP servers, reference repositories, and skills.
 - `profiles/` contains the applied configuration model. Most configuration changes belong here.
-- `opencode/plugins/` contains TypeScript OpenCode plugins: `advisor`, `lapdog`, and `agent-task`.
+- `opencode/plugins/` contains TypeScript OpenCode plugins, including `advisor`, `advisor-tui`, `lapdog`, and `agent-task`.
 - `opencode/commands/` contains installed OpenCode slash commands (`apply-spec`, `rmslop`).
 - `opencode/agents/` contains OpenCode subagent definitions; `research` is readonly and documentation-focused.
 - `skills/active/` contains local active skills. External skill sources are catalogued in `catalog/skills.yml`.
