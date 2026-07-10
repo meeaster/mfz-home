@@ -142,6 +142,18 @@ function gpt56Tier(modelID: string | undefined): Gpt56Tier | undefined {
   return match?.[1] as Gpt56Tier | undefined;
 }
 
+function advisorUnavailable(executorModelID: string | undefined, advisorModelID: string): boolean {
+  const executorTier = gpt56Tier(executorModelID);
+  const advisorTier = gpt56Tier(advisorModelID);
+  return Boolean(executorTier && advisorTier && GPT56_TIERS[executorTier] >= GPT56_TIERS[advisorTier]);
+}
+
+export function advisorAvailabilityPrompt(executorModelID: string | undefined): string | undefined {
+  const advisor = resolveAdvisorModel();
+  if (!advisorUnavailable(executorModelID, advisor.modelID)) return undefined;
+  return `Do not call the advisor tool: your ${executorModelID} model is equal to or stronger than the configured advisor model ${advisor.modelID}, so it cannot provide a stronger review.`;
+}
+
 type PromptResult = {
   parts?: Array<Record<string, unknown>>;
 };
@@ -347,9 +359,10 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
         return `Error: could not read the session transcript (${String(history.error ?? "no data")}).`;
       }
 
-      const executorTier = gpt56Tier(history.data.find((message) => message.info?.id === ctx.messageID)?.info?.modelID);
+      const executorModelID = history.data.find((message) => message.info?.id === ctx.messageID)?.info?.modelID;
+      const executorTier = gpt56Tier(executorModelID);
       const advisorTier = gpt56Tier(model.modelID);
-      if (executorTier && advisorTier && GPT56_TIERS[executorTier] >= GPT56_TIERS[advisorTier]) {
+      if (advisorUnavailable(executorModelID, model.modelID)) {
         return `Skipped: the executor's GPT-5.6 ${executorTier} tier is equal to or stronger than the advisor's ${advisorTier} tier.`;
       }
 
@@ -435,6 +448,10 @@ const AdvisorPlugin: PluginModule = {
   server: async ({ client }) => ({
     tool: {
       advisor: createAdvisorTool((client as unknown as { session: SessionClient }).session),
+    },
+    "experimental.chat.system.transform": async (input, output) => {
+      const prompt = advisorAvailabilityPrompt(input.model.id);
+      if (prompt) output.system.push(prompt);
     },
   }),
 };

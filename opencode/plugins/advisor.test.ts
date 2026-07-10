@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import AdvisorPlugin, { extractUsage, resolveAdvisorPrompt, selectAdvisorMessages } from "./advisor.js";
+import AdvisorPlugin, { advisorAvailabilityPrompt, extractUsage, resolveAdvisorPrompt, selectAdvisorMessages } from "./advisor.js";
 
 afterEach(() => vi.unstubAllEnvs());
 
@@ -128,6 +128,30 @@ describe("extractUsage", () => {
 });
 
 describe("advisor", () => {
+  it("tells equal-or-stronger GPT-5.6 executors not to call the advisor", () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
+
+    expect(advisorAvailabilityPrompt("gpt-5.6-sol")).toContain("Do not call the advisor tool");
+    expect(advisorAvailabilityPrompt("gpt-5.6-luna")).toBeUndefined();
+  });
+
+  it("injects the availability instruction into the executor system prompt", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
+    const client = { session: {} };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client }): Promise<{
+        "experimental.chat.system.transform"(input: { model: { id: string } }, output: { system: string[] }): Promise<void>;
+      }>;
+    };
+    const hooks = await plugin.server({ client });
+    const system: string[] = [];
+
+    await hooks["experimental.chat.system.transform"]({ model: { id: "gpt-5.6-sol" } }, { system });
+
+    expect(system).toHaveLength(1);
+    expect(system[0]).toContain("Do not call the advisor tool");
+  });
+
   it.each(["gpt-5.6-terra", "gpt-5.6-sol", "gpt-5.6-sol-fast", "gpt-5.6-sol-pro"])(
     "skips the advisor when the executor tier is %s",
     async (modelID) => {

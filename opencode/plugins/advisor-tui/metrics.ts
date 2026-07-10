@@ -119,7 +119,13 @@ export function advisorMetrics(parts: readonly AdvisorToolPart[]): AdvisorMetric
 
 export function advisorCalls(parts: readonly AdvisorToolPart[]): AdvisorCall[] {
   return parts
-    .filter((part) => part.type === "tool" && part.tool === "advisor" && part.state?.status === "completed")
+    .filter(
+      (part) =>
+        part.type === "tool" &&
+        part.tool === "advisor" &&
+        part.state?.status === "completed" &&
+        part.state.metadata?.modelID !== undefined,
+    )
     .map((part) => {
       const metadata = part.state?.metadata;
       return {

@@ -11,13 +11,13 @@ describe("advisorMetrics", () => {
           tool: "advisor",
           state: {
             status: "completed",
-            metadata: { usage: { total: 100, input: 10, cacheRead: 80, cacheWrite: 10 } }
+            metadata: { modelID: "claude-opus-4-8", usage: { total: 100, input: 10, cacheRead: 80, cacheWrite: 10 } }
           }
         },
         {
           type: "tool",
           tool: "advisor",
-          state: { status: "completed", metadata: { usage: { input: 5, output: 3, reasoning: 2 } } }
+          state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { input: 5, output: 3, reasoning: 2 } } }
         },
         { type: "tool", tool: "advisor", state: { status: "error" } },
         { type: "tool", tool: "bash", state: { status: "completed" } }
@@ -35,8 +35,13 @@ describe("advisorMetrics", () => {
     });
   });
 
-  it("counts completed calls when usage is unavailable", () => {
-    expect(advisorMetrics([{ type: "tool", tool: "advisor", state: { status: "completed" } }])).toEqual({
+  it("counts completed executed calls when usage is unavailable", () => {
+    expect(
+      advisorMetrics([
+        { type: "tool", tool: "advisor", state: { status: "completed" } },
+        { type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8" } } },
+      ]),
+    ).toEqual({
       calls: 1,
       meteredCalls: 0,
       input: 0,
@@ -55,10 +60,10 @@ describe("advisorMetrics", () => {
     });
     expect(
       advisorHistory([
-        message("before", 1, [{ id: "before-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { usage: { total: 10 } } } }]),
+        message("before", 1, [{ id: "before-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { total: 10 } } } }]),
         message("summary", 2, [], { summary: true, finish: "stop" }),
-        message("after", 3, [{ id: "after-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { usage: { total: 20 } } } }]),
-        message("after", 3, [{ id: "after-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { usage: { total: 20 } } } }])
+        message("after", 3, [{ id: "after-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { total: 20 } } } }]),
+        message("after", 3, [{ id: "after-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { total: 20 } } } }])
       ])
     ).toMatchObject({ session: { calls: 2, meteredCalls: 2, total: 30 }, sinceCompaction: { calls: 1, meteredCalls: 1, total: 20 } });
   });
@@ -66,11 +71,11 @@ describe("advisorMetrics", () => {
   it("loads every history page and rejects a repeated cursor", async () => {
     const pages = [
       {
-        data: [{ info: { id: "new", role: "assistant", time: { created: 2 } }, parts: [{ id: "new-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { usage: { total: 20 } } } }] }],
+        data: [{ info: { id: "new", role: "assistant", time: { created: 2 } }, parts: [{ id: "new-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { total: 20 } } } }] }],
         response: { headers: { get: () => "older" } }
       },
       {
-        data: [{ info: { id: "old", role: "assistant", time: { created: 1 } }, parts: [{ id: "old-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { usage: { total: 10 } } } }] }],
+        data: [{ info: { id: "old", role: "assistant", time: { created: 1 } }, parts: [{ id: "old-part", type: "tool", tool: "advisor", state: { status: "completed", metadata: { modelID: "claude-opus-4-8", usage: { total: 10 } } } }] }],
         response: { headers: { get: () => null } }
       }
     ];
