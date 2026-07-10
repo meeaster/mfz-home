@@ -65,12 +65,18 @@ function label(model: AdvisorModel, catalog: Catalog): string | undefined {
 }
 
 export async function advisorCost(calls: readonly AdvisorCall[]): Promise<AdvisorCost> {
-  const catalog = await models();
+  let catalog: Catalog | undefined;
   let amount = 0;
   let pricedCalls = 0;
 
   for (const call of calls) {
+    if (typeof call.reportedCost === "number" && Number.isFinite(call.reportedCost)) {
+      amount += call.reportedCost;
+      pricedCalls += 1;
+      continue;
+    }
     if (!call.usage) continue;
+    catalog ??= await models();
     const model = findModel(catalog, call.model);
     const rates = model && ratesFor(model, call.model.variant, call.usage);
     if (!rates) continue;
@@ -79,6 +85,6 @@ export async function advisorCost(calls: readonly AdvisorCall[]): Promise<Adviso
   }
 
   const latest = [...calls].reverse().find((call) => call.model.modelID);
-  const latestModel = latest && label(latest.model, catalog);
+  const latestModel = latest && (catalog ? label(latest.model, catalog) : latest.label);
   return { amount, pricedCalls, totalCalls: calls.length, ...(latestModel ? { latestModel } : {}) };
 }
