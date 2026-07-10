@@ -128,6 +128,59 @@ describe("extractUsage", () => {
 });
 
 describe("advisor", () => {
+  it.each(["gpt-5.6-terra", "gpt-5.6-sol", "gpt-5.6-sol-fast", "gpt-5.6-sol-pro"])(
+    "skips the advisor when the executor tier is %s",
+    async (modelID) => {
+      vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
+      const create = vi.fn();
+      const prompt = vi.fn();
+      const messages = vi.fn().mockResolvedValue({
+        data: [
+          { info: { role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID } },
+        ],
+      });
+      const client = { session: { messages, create, prompt, delete: vi.fn() } };
+      const plugin = AdvisorPlugin as unknown as {
+        server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
+      };
+      const tools = await plugin.server({ client });
+
+      const result = await tools.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/tmp" });
+
+      expect(result).toBe(
+        `Skipped: the executor's GPT-5.6 ${modelID.replace(/^gpt-5\.6-/, "").replace(/-(fast|pro)$/, "")} tier is equal to or stronger than the advisor's terra tier.`,
+      );
+      expect(create).not.toHaveBeenCalled();
+      expect(prompt).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each(["gpt-5.6-luna", "gpt-5.6-codex"])("runs the advisor for executor model %s", async (modelID) => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
+    const create = vi.fn().mockResolvedValue({ data: { id: "advisor-session" } });
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    const messages = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: [
+          { info: { role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID } },
+        ],
+      })
+      .mockResolvedValueOnce({ data: [] });
+    const client = { session: { messages, create, prompt, delete: vi.fn().mockResolvedValue({}) } };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
+    };
+    const tools = await plugin.server({ client });
+
+    await tools.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/tmp", metadata: vi.fn() });
+
+    expect(create).toHaveBeenCalled();
+    expect(prompt).toHaveBeenCalled();
+  });
+
   it("returns child usage and cleans up its session", async () => {
     vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
     vi.stubEnv("OPENCODE_ADVISOR_PROMPT", "baseline");

@@ -115,6 +115,9 @@ type MessageEntry = {
     id?: string;
     parentID?: string;
     role?: Role;
+    providerID?: string;
+    modelID?: string;
+    variant?: string;
     summary?: boolean;
     finish?: string;
     error?: unknown;
@@ -129,6 +132,15 @@ type MessageEntry = {
   };
   parts?: Array<Record<string, unknown>>;
 };
+
+type Gpt56Tier = "luna" | "terra" | "sol";
+
+const GPT56_TIERS: Record<Gpt56Tier, number> = { luna: 0, terra: 1, sol: 2 };
+
+function gpt56Tier(modelID: string | undefined): Gpt56Tier | undefined {
+  const match = modelID?.match(/^gpt-5\.6-(luna|terra|sol)(?:-(?:fast|pro))?$/);
+  return match?.[1] as Gpt56Tier | undefined;
+}
 
 type PromptResult = {
   parts?: Array<Record<string, unknown>>;
@@ -318,6 +330,12 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
       });
       if (history.error || !history.data) {
         return `Error: could not read the session transcript (${String(history.error ?? "no data")}).`;
+      }
+
+      const executorTier = gpt56Tier(history.data.find((message) => message.info?.id === ctx.messageID)?.info?.modelID);
+      const advisorTier = gpt56Tier(model.modelID);
+      if (executorTier && advisorTier && GPT56_TIERS[executorTier] >= GPT56_TIERS[advisorTier]) {
+        return `Skipped: the executor's GPT-5.6 ${executorTier} tier is equal to or stronger than the advisor's ${advisorTier} tier.`;
       }
 
       const transcript = serializeTranscript(selectAdvisorMessages(history.data));
