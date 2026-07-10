@@ -43,11 +43,21 @@ The `advisor` tool is provided by the `advisor` OpenCode plugin
 (`opencode/plugins/advisor/server.ts`). Configure one or more concurrent,
 harness-qualified targets with
 `OPENCODE_ADVISOR_MODELS="opencode:provider/model@variant,claude-code:alias@effort"`.
-Native targets use a throwaway, tool-free OpenCode child session; Claude Code
-targets invoke its tool-free CLI and resume their in-memory continuation while
-the parent transcript has not compacted. Claude advisor sessions run from a
-dedicated local directory, so they do not enter the current project's Claude
-Code resume history. `OPENCODE_ADVISOR_MODEL="provider/model@variant"`
+Native targets use `OPENCODE_ADVISOR_NATIVE_MODE="continuation"` by default,
+retaining one tool-free child per parent and model while the OpenCode plugin
+process remains running and appending only new parent messages until the parent
+compacts. Set it to `"fresh"` for throwaway child sessions; use the two modes
+to compare cache reuse and review cost. Continuation keeps one child session
+per parent and target. Its restart state is stored under
+`~/.opencode/advisor/state/` and expires after 30 days of
+inactivity; after expiry, a new child receives the parent session's current
+compacted context. The old child remains visible in OpenCode but is no longer
+resumed.
+Claude Code targets invoke its tool-free CLI and resume their continuation from
+the same restart state while the parent transcript has not
+compacted. Both harnesses expire that state after 30 days of inactivity. Claude
+advisor sessions run from a dedicated local directory, so they do not enter the
+current project's Claude Code resume history. `OPENCODE_ADVISOR_MODEL="provider/model@variant"`
 remains the fallback when the plural setting is absent. The advisor should be
 at least as capable as your main model. Each call consumes advisor-model tokens
 on top of your own, so concentrate calls at decision points rather than every

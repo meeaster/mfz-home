@@ -1,5 +1,7 @@
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
+import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
@@ -256,13 +258,20 @@ function renderPart(part: Record<string, unknown>): string {
     if (part.synthetic === true || part.ignored === true) return "";
     return str(part.text)?.trim() ?? "";
   }
+  if (type === "reasoning") {
+    // Match OpenCode's cross-model replay: forward visible reasoning, never provider metadata or signatures.
+    const text = str(part.text)?.trim();
+    return text ? `[reasoning]\n${text}` : "";
+  }
   if (type === "tool") {
     const name = str(part.tool) ?? "tool";
     const state = (part.state ?? {}) as Record<string, unknown>;
     const status = str(state.status);
     const input = state.input !== undefined ? JSON.stringify(state.input) : "";
     if (status === "completed") {
-      return `[tool ${name}] input=${input}\n-> ${str(state.output)?.trim() ?? ""}`;
+      const time = state.time as { compacted?: unknown } | undefined;
+      const output = time?.compacted !== undefined ? "[Old tool result content cleared]" : (str(state.output)?.trim() ?? "");
+      return `[tool ${name}] input=${input}\n-> ${output}`;
     }
     if (status === "error") {
       return `[tool ${name}] input=${input}\n-> ERROR: ${str(state.error)?.trim() ?? ""}`;
@@ -413,11 +422,130 @@ type AdvisorResult = {
   metadata: Record<string, unknown>;
 };
 
-type ClaudeContinuation = {
+type AdvisorContinuation = {
   epoch: string;
   sessionID: string;
   cursor: string | undefined;
 };
+
+type NativeContinuation = AdvisorContinuation & {
+  childCursor: string | undefined;
+};
+
+type PersistedContinuation = {
+  version: 1;
+  parentSessionID: string;
+  target: string;
+  updatedAt: number;
+  continuation: AdvisorContinuation | NativeContinuation;
+};
+
+export interface ContinuationStore {
+  load(input: { directory: string; parentSessionID: string; target: AdvisorTarget }): Promise<AdvisorContinuation | NativeContinuation | undefined>;
+  save(input: {
+    directory: string;
+    parentSessionID: string;
+    target: AdvisorTarget;
+    continuation: AdvisorContinuation | NativeContinuation;
+  }): Promise<void>;
+  remove(input: { directory: string; parentSessionID: string; target: AdvisorTarget }): Promise<void>;
+  prune(directory: string | undefined): Promise<void>;
+}
+
+const CONTINUATION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+
+function continuationStatePath(root: string, directory: string, parentSessionID: string, target: AdvisorTarget): string {
+  const key = createHash("sha256").update(continuationKey(directory, parentSessionID, target)).digest("hex");
+  return join(root, `${key}.json`);
+}
+
+function validContinuation(value: unknown): value is AdvisorContinuation | NativeContinuation {
+  if (!value || typeof value !== "object") return false;
+  const record = value as Record<string, unknown>;
+  return (
+    typeof record.epoch === "string" &&
+    typeof record.sessionID === "string" &&
+    (record.cursor === undefined || typeof record.cursor === "string") &&
+    (record.childCursor === undefined || typeof record.childCursor === "string")
+  );
+}
+
+function parsePersistedContinuation(
+  value: unknown,
+  parentSessionID: string,
+  target: AdvisorTarget,
+): AdvisorContinuation | NativeContinuation | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  if (
+    record.version !== 1 ||
+    record.parentSessionID !== parentSessionID ||
+    record.target !== targetLabel(target) ||
+    typeof record.updatedAt !== "number" ||
+    Date.now() - record.updatedAt > CONTINUATION_TTL_MS ||
+    !validContinuation(record.continuation)
+  ) {
+    return undefined;
+  }
+  return record.continuation;
+}
+
+export function createFileContinuationStore(root = join(homedir(), ".opencode", "advisor", "state")): ContinuationStore {
+  return {
+    async load(input) {
+      const path = continuationStatePath(root, input.directory, input.parentSessionID, input.target);
+      try {
+        const parsed = JSON.parse(await readFile(path, "utf8"));
+        const continuation = parsePersistedContinuation(parsed, input.parentSessionID, input.target);
+        if (continuation) return continuation;
+      } catch {
+        // A missing or malformed record means this continuation starts fresh.
+      }
+      await rm(path, { force: true }).catch(() => undefined);
+      return undefined;
+    },
+    async save(input) {
+      const path = continuationStatePath(root, input.directory, input.parentSessionID, input.target);
+      const record: PersistedContinuation = {
+        version: 1,
+        parentSessionID: input.parentSessionID,
+        target: targetLabel(input.target),
+        updatedAt: Date.now(),
+        continuation: input.continuation,
+      };
+      try {
+        await mkdir(join(path, ".."), { recursive: true });
+        const temporary = `${path}.${randomUUID()}.tmp`;
+        await writeFile(temporary, `${JSON.stringify(record)}\n`, "utf8");
+        await rename(temporary, path);
+      } catch {
+        // Persistence must not hide valid advisor guidance.
+      }
+    },
+    async remove(input) {
+      await rm(continuationStatePath(root, input.directory, input.parentSessionID, input.target), { force: true }).catch(() => undefined);
+    },
+    async prune(directory) {
+      if (!directory) return;
+      try {
+        for (const file of await readdir(root, { withFileTypes: true })) {
+          if (!file.isFile() || !file.name.endsWith(".json")) continue;
+          const path = join(root, file.name);
+          try {
+            const parsed = JSON.parse(await readFile(path, "utf8")) as Partial<PersistedContinuation>;
+            if (typeof parsed.updatedAt !== "number" || Date.now() - parsed.updatedAt > CONTINUATION_TTL_MS) {
+              await rm(path, { force: true });
+            }
+          } catch {
+            await rm(path, { force: true });
+          }
+        }
+      } catch {
+        // State cleanup is best-effort.
+      }
+    },
+  };
+}
 
 export type ClaudeRunnerInput = {
   cwd: string;
@@ -445,8 +573,10 @@ type ClaudeOutput = {
   usage: ClaudeUsage;
 };
 
-const claudeContinuations = new Map<string, ClaudeContinuation>();
+const claudeContinuations = new Map<string, AdvisorContinuation>();
 const claudeContinuationLocks = new Map<string, Promise<void>>();
+const nativeContinuations = new Map<string, NativeContinuation>();
+const nativeContinuationLocks = new Map<string, Promise<void>>();
 const CLAUDE_ADVISOR_DIRECTORY = join(homedir(), ".mindframe-z", "claude-advisor");
 
 export function claudeAdvisorDirectory(): string {
@@ -588,7 +718,7 @@ function formatClaudeUsage(usage: ClaudeUsage): string {
   return details.length > 0 ? `Usage: ${details.join(", ")}` : "Usage: unavailable";
 }
 
-function continuationKey(directory: string, sessionID: string, target: ClaudeCodeAdvisorTarget): string {
+function continuationKey(directory: string, sessionID: string, target: AdvisorTarget): string {
   return JSON.stringify([directory, sessionID, targetLabel(target)]);
 }
 
@@ -638,7 +768,60 @@ function withoutAdvisorToolResults(messages: MessageEntry[]): MessageEntry[] {
   });
 }
 
-async function runOpenCodeAdvisor(
+export type NativeAdvisorMode = "fresh" | "continuation";
+
+export function resolveNativeAdvisorMode(mode = process.env.OPENCODE_ADVISOR_NATIVE_MODE ?? "continuation"): NativeAdvisorMode {
+  if (mode === "fresh" || mode === "continuation") return mode;
+  throw new Error(`Invalid OPENCODE_ADVISOR_NATIVE_MODE value "${mode}". Use fresh or continuation.`);
+}
+
+async function deleteAdvisorSession(client: SessionClient, sessionID: string, directory: string): Promise<void> {
+  try {
+    await client.delete({ path: { id: sessionID }, query: { directory } });
+  } catch {
+    // Cleanup is best-effort and must not hide valid advice.
+  }
+}
+
+async function restoreContinuation<T extends AdvisorContinuation | NativeContinuation>(
+  client: SessionClient,
+  store: ContinuationStore | undefined,
+  directory: string,
+  parentSessionID: string,
+  target: AdvisorTarget,
+): Promise<T | undefined> {
+  if (!store) return undefined;
+  const continuation = (await store.load({ directory, parentSessionID, target })) as T | undefined;
+  if (!continuation) return undefined;
+  if (target.harness === "claude-code") return continuation;
+  const child = await client.get({ path: { id: continuation.sessionID }, query: { directory } });
+  if (!child.error && child.data?.parentID === parentSessionID) return continuation;
+  await store.remove({ directory, parentSessionID, target });
+  return undefined;
+}
+
+async function usageSince(
+  client: SessionClient,
+  sessionID: string,
+  directory: string,
+  cursor: string | undefined,
+): Promise<{ usage: AdvisorUsage | undefined; cursor: string | undefined; readable: boolean }> {
+  try {
+    const childMessages = await client.messages({ path: { id: sessionID }, query: { directory } });
+    if (childMessages.error || !childMessages.data) return { usage: undefined, cursor, readable: false };
+    const cursorIndex = cursor ? childMessages.data.findIndex((message) => message.info?.id === cursor) : -1;
+    if (cursor && cursorIndex < 0) return { usage: undefined, cursor, readable: false };
+    return {
+      usage: extractUsage(cursor ? childMessages.data.slice(cursorIndex + 1) : childMessages.data),
+      cursor: latestMessageID(childMessages.data),
+      readable: true,
+    };
+  } catch {
+    return { usage: undefined, cursor, readable: false };
+  }
+}
+
+async function runFreshOpenCodeAdvisor(
   client: SessionClient,
   sessionID: string,
   directory: string,
@@ -675,13 +858,7 @@ async function runOpenCodeAdvisor(
     const advice = extractText(prompted.data);
     if (advice.length === 0) throw new Error(`the advisor returned no text (model ${target.providerID}/${label}).`);
 
-    let usage: AdvisorUsage | undefined;
-    try {
-      const childMessages = await client.messages({ path: { id: childID }, query: { directory } });
-      usage = childMessages.error || !childMessages.data ? undefined : extractUsage(childMessages.data);
-    } catch {
-      // Usage must not hide valid advice if the completed child disappears first.
-    }
+    const { usage } = await usageSince(client, childID, directory, undefined);
     const metadata = {
       providerID: target.providerID,
       modelID: target.modelID,
@@ -698,12 +875,119 @@ async function runOpenCodeAdvisor(
     };
   } finally {
     // Throwaway review session: best-effort cleanup, never fatal.
-    try {
-      await client.delete({ path: { id: childID }, query: { directory } });
-    } catch {
-      // ignore
-    }
+    await deleteAdvisorSession(client, childID, directory);
   }
+}
+
+async function runContinuedOpenCodeAdvisor(
+  client: SessionClient,
+  directory: string,
+  parentSessionID: string,
+  target: OpenCodeAdvisorTarget,
+  continuations: Map<string, NativeContinuation>,
+  locks: Map<string, Promise<void>>,
+  store?: ContinuationStore,
+): Promise<AdvisorResult> {
+  const prompt = resolveAdvisorPrompt(target.modelID);
+  const label = modelLabel(target);
+  const key = continuationKey(directory, parentSessionID, target);
+  return withContinuationLock(locks, key, async () => {
+    const refreshed = await client.messages({ path: { id: parentSessionID }, query: { directory } });
+    if (refreshed.error || !refreshed.data) {
+      throw new Error(`could not refresh the parent transcript (${String(refreshed.error ?? "no data")}).`);
+    }
+    const history = refreshed.data;
+    const context = selectAdvisorContext(history);
+    const previous =
+      continuations.get(key) ?? (await restoreContinuation<NativeContinuation>(client, store, directory, parentSessionID, target));
+    if (previous) continuations.set(key, previous);
+    const rotate = !previous || previous.epoch !== context.epoch;
+
+    let childID = previous?.sessionID;
+    let created = false;
+    if (rotate) {
+      const child = await client.create({
+        body: { parentID: parentSessionID, title: `advisor (${label})` },
+        query: { directory },
+      });
+      if (child.error || !child.data?.id) {
+        throw new Error(`could not open an advisor session (${String(child.error ?? "no id")}).`);
+      }
+      childID = child.data.id;
+      created = true;
+    }
+
+    const messages = rotate ? context.messages : messagesAfterCursor(history, previous!.cursor);
+    const transcript = serializeTranscript(rotate ? messages : withoutAdvisorToolResults(messages));
+    let submitted = false;
+    try {
+      if (transcript.length === 0) throw new Error("the transcript delta is empty; there is nothing to advise on yet.");
+      submitted = true;
+      const prompted = await client.prompt({
+        path: { id: childID! },
+        query: { directory },
+        body: {
+          model: { providerID: target.providerID, modelID: target.modelID },
+          ...(target.variant !== undefined ? { variant: target.variant } : {}),
+          system: prompt.system,
+          tools: CHILD_TOOL_OVERRIDES,
+          parts: [
+            {
+              type: "text",
+              text: rotate
+                ? `Here is the executor's compacted parent transcript. Advise.\n\n${transcript}`
+                : `Here are the parent transcript messages added since your previous review. Advise.\n\n${transcript}`,
+            },
+          ],
+        },
+      });
+      if (prompted.error) {
+        throw new Error(`the advisor model (${target.providerID}/${label}) failed: ${String(prompted.error)}`);
+      }
+      const advice = extractText(prompted.data);
+      if (advice.length === 0) throw new Error(`the advisor returned no text (model ${target.providerID}/${label}).`);
+
+      const usage = await usageSince(client, childID!, directory, rotate ? undefined : previous!.childCursor);
+      if (usage.readable) {
+        const continuation = {
+          epoch: context.epoch,
+          sessionID: childID!,
+          cursor: latestMessageID(history),
+          childCursor: usage.cursor,
+        };
+        continuations.set(key, continuation);
+        await store?.save({ directory, parentSessionID, target, continuation });
+        if (rotate && previous) await deleteAdvisorSession(client, previous.sessionID, directory);
+      } else {
+        continuations.delete(key);
+        await store?.remove({ directory, parentSessionID, target });
+        await deleteAdvisorSession(client, childID!, directory);
+        if (rotate && previous) await deleteAdvisorSession(client, previous.sessionID, directory);
+      }
+      const metadata = {
+        providerID: target.providerID,
+        modelID: target.modelID,
+        variant: target.variant,
+        promptVariant: prompt.variant,
+        usage: usage.usage,
+      };
+      return {
+        target,
+        label: targetLabel(target),
+        title: `Advisor (${label})`,
+        output: `${advice}\n\n${formatUsage(usage.usage)}`,
+        metadata,
+      };
+    } catch (error) {
+      if (created || submitted) {
+        continuations.delete(key);
+        await store?.remove({ directory, parentSessionID, target });
+        await deleteAdvisorSession(client, childID!, directory);
+        if (rotate && previous) await deleteAdvisorSession(client, previous.sessionID, directory);
+      }
+      throw error;
+    }
+  });
 }
 
 async function runClaudeCodeAdvisor(
@@ -712,8 +996,9 @@ async function runClaudeCodeAdvisor(
   parentSessionID: string,
   target: ClaudeCodeAdvisorTarget,
   runner: ClaudeRunner,
-  continuations: Map<string, ClaudeContinuation>,
+  continuations: Map<string, AdvisorContinuation>,
   locks: Map<string, Promise<void>>,
+  store?: ContinuationStore,
 ): Promise<AdvisorResult> {
   const prompt = resolveAdvisorPrompt(target.modelID);
   const key = continuationKey(directory, parentSessionID, target);
@@ -724,7 +1009,9 @@ async function runClaudeCodeAdvisor(
     }
     const history = refreshed.data;
     const context = selectAdvisorContext(history);
-    const previous = continuations.get(key);
+    const previous =
+      continuations.get(key) ?? (await restoreContinuation<AdvisorContinuation>(client, store, directory, parentSessionID, target));
+    if (previous) continuations.set(key, previous);
     const rotate = !previous || previous.epoch !== context.epoch;
     const messages = rotate ? context.messages : messagesAfterCursor(history, previous.cursor);
     const transcript = serializeTranscript(rotate ? messages : withoutAdvisorToolResults(messages));
@@ -742,7 +1029,9 @@ async function runClaudeCodeAdvisor(
       target.modelID,
     );
     // A failed command or malformed result leaves the prior cursor untouched.
-    continuations.set(key, { epoch: context.epoch, sessionID: output.sessionID, cursor: latestMessageID(history) });
+    const continuation = { epoch: context.epoch, sessionID: output.sessionID, cursor: latestMessageID(history) };
+    continuations.set(key, continuation);
+    await store?.save({ directory, parentSessionID, target, continuation });
 
     const label = `${targetLabel(target)} (${output.actualModel})`;
     return {
@@ -778,14 +1067,20 @@ export function createAdvisorTool(
   claudeRunner: ClaudeRunner = runClaude,
   continuations = claudeContinuations,
   continuationLocks = claudeContinuationLocks,
+  continuedNativeAdvisors = nativeContinuations,
+  nativeLocks = nativeContinuationLocks,
+  store?: ContinuationStore,
 ): ToolDefinition {
   return {
     description: ADVISOR_DESCRIPTION,
     args: {},
     async execute(_args, ctx) {
+      await store?.prune(ctx.directory);
       let targets: AdvisorTarget[];
+      let nativeMode: NativeAdvisorMode;
       try {
         targets = resolveAdvisorTargets();
+        nativeMode = resolveNativeAdvisorMode();
       } catch (error) {
         return `Error: ${errorText(error)}`;
       }
@@ -827,16 +1122,27 @@ export function createAdvisorTool(
       const settled = await Promise.allSettled(
         eligible.map((target) =>
           target.harness === "opencode"
-            ? runOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript)
+            ? nativeMode === "fresh"
+              ? runFreshOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript)
+              : runContinuedOpenCodeAdvisor(
+                  client,
+                  ctx.directory,
+                  ctx.sessionID,
+                  target,
+                   continuedNativeAdvisors,
+                   nativeLocks,
+                   store,
+                 )
             : runClaudeCodeAdvisor(
                 client,
                 ctx.directory,
                 ctx.sessionID,
                 target,
                 claudeRunner,
-                continuations,
-                continuationLocks,
-              ),
+                 continuations,
+                 continuationLocks,
+                 store,
+               ),
         ),
       );
       const successes = settled.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
@@ -877,15 +1183,27 @@ export function createAdvisorTool(
 
 const AdvisorPlugin: PluginModule = {
   id: "advisor",
-  server: async ({ client }) => ({
-    tool: {
-      advisor: createAdvisorTool((client as unknown as { session: SessionClient }).session),
-    },
-    "experimental.chat.system.transform": async (input, output) => {
-      const prompt = advisorAvailabilityPrompt(input.model.id);
-      if (prompt) output.system.push(prompt);
-    },
-  }),
+  server: async ({ client, directory }) => {
+    const store = createFileContinuationStore();
+    await store.prune(directory);
+    return {
+      tool: {
+        advisor: createAdvisorTool(
+          (client as unknown as { session: SessionClient }).session,
+          runClaude,
+          claudeContinuations,
+          claudeContinuationLocks,
+          nativeContinuations,
+          nativeContinuationLocks,
+          store,
+        ),
+      },
+      "experimental.chat.system.transform": async (input, output) => {
+        const prompt = advisorAvailabilityPrompt(input.model.id);
+        if (prompt) output.system.push(prompt);
+      },
+    };
+  },
 };
 
 export default AdvisorPlugin;
