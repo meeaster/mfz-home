@@ -4,3 +4,6 @@ websocat = "1"
 "npm:executor" = "1"
 usage = "3"
 "github:xdevplatform/xurl" = "1"
+
+[env]
+OPENCODE_ADVISOR_MODELS = "opencode:openai/gpt-5.6-sol@high,claude-code:opus@high"

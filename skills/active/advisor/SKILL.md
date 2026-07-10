@@ -39,14 +39,16 @@ Before calling advisor(), write one sentence stating what the task asks and your
 
 ## How it works here
 
-The `advisor` tool is provided by the `advisor` opencode plugin
-(`opencode/plugins/advisor.ts`). On each call it forwards this session's full
-transcript to a stronger model, which runs with no tools and returns advice
-only. Set the advisor model with `OPENCODE_ADVISOR_MODEL="provider/model"`, or
-`"provider/model@variant"` to pin a variant such as a reasoning-effort level
-(default `anthropic/claude-opus-4-8`). For example, `openai/gpt-5.5@high`
-selects GPT-5.5 at high reasoning effort (its variants are
-`none`/`low`/`medium`/`high`/`xhigh`). The advisor should be at least as capable
-as your main model. Each call re-reads the whole transcript, so it costs
-advisor-model tokens on top of your own — which is why the guidance above
-concentrates calls at decision points rather than every turn.
+The `advisor` tool is provided by the `advisor` OpenCode plugin
+(`opencode/plugins/advisor/server.ts`). Configure one or more concurrent,
+harness-qualified targets with
+`OPENCODE_ADVISOR_MODELS="opencode:provider/model@variant,claude-code:alias@effort"`.
+Native targets use a throwaway, tool-free OpenCode child session; Claude Code
+targets invoke its tool-free CLI and resume their in-memory continuation while
+the parent transcript has not compacted. Claude advisor sessions run from a
+dedicated local directory, so they do not enter the current project's Claude
+Code resume history. `OPENCODE_ADVISOR_MODEL="provider/model@variant"`
+remains the fallback when the plural setting is absent. The advisor should be
+at least as capable as your main model. Each call consumes advisor-model tokens
+on top of your own, so concentrate calls at decision points rather than every
+turn.

@@ -1,8 +1,66 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import AdvisorPlugin, { advisorAvailabilityPrompt, extractUsage, resolveAdvisorPrompt, selectAdvisorMessages } from "./server.js";
+import AdvisorPlugin, {
+  advisorAvailabilityPrompt,
+  buildClaudeArgs,
+  claudeAdvisorDirectory,
+  createAdvisorTool,
+  extractUsage,
+  resolveAdvisorPrompt,
+  resolveAdvisorTargets,
+  selectAdvisorMessages,
+} from "./server.js";
 
 afterEach(() => vi.unstubAllEnvs());
+beforeEach(() => vi.stubEnv("OPENCODE_ADVISOR_MODELS", ""));
+
+function claudeResult(
+  result = "Proceed.",
+  sessionID = "claude-session",
+  modelUsage: Record<string, { cacheReadInputTokens: number; cacheCreationInputTokens: number }> = {
+    "claude-fable-5": { cacheReadInputTokens: 120, cacheCreationInputTokens: 8 },
+  },
+): string {
+  return JSON.stringify({
+    result,
+    session_id: sessionID,
+    total_cost_usd: 0.0125,
+    modelUsage,
+  });
+}
+
+describe("resolveAdvisorTargets", () => {
+  it("parses harness-qualified plural targets and retains the legacy native fallback", () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "opencode:openai/gpt-5.6-sol@high,claude-code:fable@high");
+
+    expect(resolveAdvisorTargets()).toEqual([
+      { harness: "opencode", providerID: "openai", modelID: "gpt-5.6-sol", variant: "high" },
+      { harness: "claude-code", modelID: "fable", effort: "high" },
+    ]);
+
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "");
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra@xhigh");
+
+    expect(resolveAdvisorTargets()).toEqual([
+      { harness: "opencode", providerID: "openai", modelID: "gpt-5.6-terra", variant: "xhigh" },
+    ]);
+  });
+});
+
+describe("buildClaudeArgs", () => {
+  it("keeps the transcript off the Claude command line", () => {
+    const transcript = "x".repeat(512 * 1024);
+    const args = buildClaudeArgs({
+      cwd: "/workspace",
+      model: "fable",
+      effort: "high",
+      system: "Advise from stdin.",
+    });
+
+    expect(args).toEqual(expect.arrayContaining(["-p", "--input-format", "text", "--output-format", "json"]));
+    expect(args).not.toContain(transcript);
+  });
+});
 
 describe("resolveAdvisorPrompt", () => {
   it("selects the GPT-5.6 prompt automatically for GPT-5.6 advisors", () => {
@@ -133,6 +191,12 @@ describe("advisor", () => {
 
     expect(advisorAvailabilityPrompt("gpt-5.6-sol")).toContain("Do not call the advisor tool");
     expect(advisorAvailabilityPrompt("gpt-5.6-luna")).toBeUndefined();
+  });
+
+  it("keeps advisor available when a Claude Code target remains eligible", () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "opencode:openai/gpt-5.6-terra,claude-code:fable@high");
+
+    expect(advisorAvailabilityPrompt("gpt-5.6-sol")).toBeUndefined();
   });
 
   it("injects the availability instruction into the executor system prompt", async () => {
@@ -340,5 +404,241 @@ describe("advisor", () => {
 
     expect(result.output).toContain("Proceed.\n\nUsage: unavailable");
     expect(deleteSession).toHaveBeenCalled();
+  });
+
+  it("returns Claude advice when the concurrent native target fails", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "opencode:openai/gpt-5.6-sol@high,claude-code:fable@high");
+    const create = vi.fn().mockResolvedValue({ error: "native unavailable" });
+    const runner = vi.fn().mockResolvedValue(claudeResult("Claude proceed."));
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [
+          { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+        ],
+      }),
+      create,
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+
+    const result = await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(create).toHaveBeenCalledOnce();
+    expect(runner).toHaveBeenCalledWith(
+      expect.objectContaining({ cwd: claudeAdvisorDirectory(), model: "fable", effort: "high" }),
+    );
+    expect(runner.mock.calls[0]![0]).not.toHaveProperty("resume");
+    expect(result.output).toContain("## Advisor (claude-code:fable@high (claude-fable-5))");
+    expect(result.output).toContain("Claude proceed.");
+    expect(result.output).toContain("cache read 120 tokens");
+    expect(result.output).toContain("reported cost $0.012500");
+    expect(result.output).toContain("## Advisor failure (opencode:openai/gpt-5.6-sol@high)");
+    expect(result.output).toContain("Error: could not open an advisor session (native unavailable).");
+    expect(result.metadata.failures).toEqual([
+      { label: "opencode:openai/gpt-5.6-sol@high", error: "could not open an advisor session (native unavailable)." },
+    ]);
+  });
+
+  it("uses the configured Claude family instead of an earlier preflight modelUsage entry", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    const runner = vi.fn().mockResolvedValue(
+      claudeResult("Fable advice.", "claude-fable-session", {
+        "claude-haiku-4-5": { cacheReadInputTokens: 3, cacheCreationInputTokens: 1 },
+        "claude-fable-5": { cacheReadInputTokens: 120, cacheCreationInputTokens: 8 },
+      }),
+    );
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [{ info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] }],
+      }),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+
+    const result = await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(result.output).toContain("claude-code:fable@high (claude-fable-5)");
+    expect(result.output).toContain("cache read 120 tokens");
+    expect(result.output).not.toContain("claude-haiku-4-5");
+    expect(result.metadata.targets[0]).toMatchObject({ actualModel: "claude-fable-5", usage: { cacheRead: 120 } });
+  });
+
+  it("rejects Claude output without an actual model matching the configured target", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:opus@high");
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [{ info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] }],
+      }),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, vi.fn().mockResolvedValue(claudeResult()), new Map());
+
+    const result = await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(result).toContain('configured model "opus" in modelUsage (available: claude-fable-5)');
+  });
+
+  it("advances a Claude cursor only after successful output and omits prior advisor results from deltas", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    let messages: Array<{ info: { id: string; role: string; modelID?: string }; parts?: Array<Record<string, unknown>> }> = [
+      { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Initial context" }] },
+      { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+    ];
+    const runner = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("temporary Claude failure"))
+      .mockResolvedValue(claudeResult("Claude proceed.", "claude-1"));
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockImplementation(() => Promise.resolve({ data: messages })),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+    const context = { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() };
+
+    await (tool.execute as Function)({}, context);
+    await (tool.execute as Function)({}, context);
+    messages = [
+      ...messages,
+      {
+        info: { id: "prior-advisor", role: "assistant" },
+        parts: [{ type: "tool", tool: "advisor", state: { status: "completed", output: "Prior advisor result" } }],
+      },
+      { info: { id: "user-2", role: "user" }, parts: [{ type: "text", text: "New context" }] },
+    ];
+    await (tool.execute as Function)({}, context);
+
+    expect(runner.mock.calls[0]![0]).not.toHaveProperty("resume");
+    expect(runner.mock.calls[1]![0]).not.toHaveProperty("resume");
+    expect(runner).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({ resume: "claude-1", prompt: expect.stringContaining("New context") }),
+    );
+    expect(runner.mock.calls[2]![0].prompt).not.toContain("Initial context");
+    expect(runner.mock.calls[2]![0].prompt).not.toContain("Prior advisor result");
+  });
+
+  it("serializes concurrent Claude calls for the same parent session and target", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    let messages: Array<{ info: { id: string; role: string; modelID?: string }; parts?: Array<Record<string, unknown>> }> = [
+      { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Initial context" }] },
+      { info: { id: "tool-1", role: "assistant", modelID: "gpt-5.6-luna" } },
+    ];
+    let resolveFirst!: (value: string) => void;
+    const firstResponse = new Promise<string>((resolve) => {
+      resolveFirst = resolve;
+    });
+    const runner = vi
+      .fn()
+      .mockImplementationOnce(() => firstResponse)
+      .mockResolvedValueOnce(claudeResult("Second advice", "claude-2"));
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockImplementation(() => Promise.resolve({ data: messages })),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map(), new Map());
+    const first = (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() },
+    );
+    await vi.waitFor(() => expect(runner).toHaveBeenCalledTimes(1));
+
+    const second = (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-2", directory: "/workspace", metadata: vi.fn() },
+    );
+    await vi.waitFor(() => expect(client.messages).toHaveBeenCalledTimes(3));
+    expect(runner).toHaveBeenCalledTimes(1);
+
+    messages = [
+      ...messages,
+      { info: { id: "user-2", role: "user" }, parts: [{ type: "text", text: "Later context" }] },
+      { info: { id: "tool-2", role: "assistant", modelID: "gpt-5.6-luna" } },
+    ];
+
+    resolveFirst(claudeResult("First advice", "claude-1"));
+    await first;
+    await second;
+
+    expect(runner).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ resume: "claude-1", prompt: expect.stringContaining("Later context") }),
+    );
+  });
+
+  it("starts a fresh Claude session when the completed parent compaction epoch changes", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    let messages = [
+      { info: { id: "old", role: "user" }, parts: [{ type: "text", text: "Old raw context" }] },
+      { info: { id: "compaction-1", role: "user" }, parts: [{ type: "compaction" }] },
+      {
+        info: { id: "summary-1", role: "assistant", parentID: "compaction-1", summary: true, finish: "stop" },
+        parts: [{ type: "text", text: "First summary" }],
+      },
+      { info: { id: "recent-1", role: "user" }, parts: [{ type: "text", text: "First recent context" }] },
+      { info: { id: "tool-1", role: "assistant", modelID: "gpt-5.6-luna" } },
+    ];
+    const runner = vi
+      .fn()
+      .mockResolvedValueOnce(claudeResult("First advice", "claude-1"))
+      .mockResolvedValueOnce(claudeResult("Second advice", "claude-2"));
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockImplementation(() => Promise.resolve({ data: messages })),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+
+    await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() },
+    );
+    messages = [
+      ...messages,
+      { info: { id: "compaction-2", role: "user" }, parts: [{ type: "compaction" }] },
+      {
+        info: { id: "summary-2", role: "assistant", parentID: "compaction-2", summary: true, finish: "stop" },
+        parts: [{ type: "text", text: "Second summary" }],
+      },
+      { info: { id: "recent-2", role: "user" }, parts: [{ type: "text", text: "Second recent context" }] },
+      { info: { id: "tool-2", role: "assistant", modelID: "gpt-5.6-luna" } },
+    ];
+    await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-2", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(runner).toHaveBeenNthCalledWith(1, expect.objectContaining({ prompt: expect.stringContaining("First summary") }));
+    expect(runner).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ prompt: expect.stringContaining("Second summary") }),
+    );
+    expect(runner.mock.calls[1]![0]).not.toHaveProperty("resume");
+    expect(runner.mock.calls[1]![0].prompt).not.toContain("First summary");
   });
 });

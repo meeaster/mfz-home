@@ -1,3 +1,7 @@
+import { spawn } from "node:child_process";
+import { mkdirSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
 import process from "node:process";
 import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
 
@@ -10,9 +14,9 @@ import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
  * signal; context is supplied by us. This mirrors the empty-input design of the
  * native tool: the model decides WHEN, the harness supplies WHAT.
  *
- * Configure the advisor model with OPENCODE_ADVISOR_MODEL="provider/model" or
- * "provider/model@variant" to pin a variant such as a reasoning-effort level
- * (default: anthropic/claude-opus-4-8). Example: openai/gpt-5.5@high.
+ * Configure one or more advisor targets with
+ * OPENCODE_ADVISOR_MODELS="opencode:provider/model@variant,claude-code:alias@effort".
+ * OPENCODE_ADVISOR_MODEL remains the single native OpenCode fallback.
  */
 
 // Verbatim invocation guidance, reproduced from Claude Code's own `advisor`
@@ -75,8 +79,22 @@ const CHILD_TOOL_OVERRIDES: Record<string, boolean> = {
   delegate_general: false,
 };
 
-function resolveAdvisorModel(): { providerID: string; modelID: string; variant?: string } {
-  const raw = process.env.OPENCODE_ADVISOR_MODEL ?? "anthropic/claude-opus-4-8";
+type OpenCodeAdvisorTarget = {
+  harness: "opencode";
+  providerID: string;
+  modelID: string;
+  variant?: string;
+};
+
+type ClaudeCodeAdvisorTarget = {
+  harness: "claude-code";
+  modelID: string;
+  effort: string;
+};
+
+export type AdvisorTarget = OpenCodeAdvisorTarget | ClaudeCodeAdvisorTarget;
+
+function resolveOpenCodeAdvisorModel(raw: string): OpenCodeAdvisorTarget {
   const at = raw.indexOf("@");
   const variant = at >= 0 ? raw.slice(at + 1) || undefined : undefined;
   const modelPart = at >= 0 ? raw.slice(0, at) : raw;
@@ -85,11 +103,43 @@ function resolveAdvisorModel(): { providerID: string; modelID: string; variant?:
     slash <= 0
       ? { providerID: "anthropic", modelID: modelPart }
       : { providerID: modelPart.slice(0, slash), modelID: modelPart.slice(slash + 1) };
-  return variant ? { ...base, variant } : base;
+  return variant ? { harness: "opencode", ...base, variant } : { harness: "opencode", ...base };
+}
+
+function parseAdvisorTarget(raw: string): AdvisorTarget {
+  const separator = raw.indexOf(":");
+  const harness = raw.slice(0, separator);
+  const model = raw.slice(separator + 1);
+  if (separator <= 0 || model.length === 0) {
+    throw new Error(`Invalid advisor target "${raw}". Use opencode:provider/model@variant or claude-code:model@effort.`);
+  }
+  if (harness === "opencode") return resolveOpenCodeAdvisorModel(model);
+  if (harness === "claude-code") {
+    const at = model.indexOf("@");
+    const modelID = at >= 0 ? model.slice(0, at) : model;
+    const effort = at >= 0 ? model.slice(at + 1) : "";
+    if (modelID.length === 0 || effort.length === 0) {
+      throw new Error(`Invalid Claude Code advisor target "${raw}". Include both model and effort.`);
+    }
+    return { harness, modelID, effort };
+  }
+  throw new Error(`Unsupported advisor harness "${harness}". Use opencode or claude-code.`);
+}
+
+export function resolveAdvisorTargets(): AdvisorTarget[] {
+  const configured = process.env.OPENCODE_ADVISOR_MODELS?.trim();
+  if (configured) return configured.split(",").map((target) => parseAdvisorTarget(target.trim()));
+  return [resolveOpenCodeAdvisorModel(process.env.OPENCODE_ADVISOR_MODEL ?? "anthropic/claude-opus-4-8")];
 }
 
 function modelLabel(model: { modelID: string; variant?: string }): string {
   return model.variant ? `${model.modelID}@${model.variant}` : model.modelID;
+}
+
+function targetLabel(target: AdvisorTarget): string {
+  return target.harness === "opencode"
+    ? `opencode:${target.providerID}/${modelLabel(target)}`
+    : `claude-code:${target.modelID}@${target.effort}`;
 }
 
 type AdvisorPromptVariant = "baseline" | "gpt56";
@@ -149,8 +199,18 @@ function advisorUnavailable(executorModelID: string | undefined, advisorModelID:
 }
 
 export function advisorAvailabilityPrompt(executorModelID: string | undefined): string | undefined {
-  const advisor = resolveAdvisorModel();
-  if (!advisorUnavailable(executorModelID, advisor.modelID)) return undefined;
+  let targets: AdvisorTarget[];
+  try {
+    targets = resolveAdvisorTargets();
+  } catch {
+    return undefined;
+  }
+  const eligible = targets.some(
+    (target) => target.harness === "claude-code" || !advisorUnavailable(executorModelID, target.modelID),
+  );
+  if (eligible) return undefined;
+  const advisor = targets.find((target): target is OpenCodeAdvisorTarget => target.harness === "opencode");
+  if (!advisor) return undefined;
   return `Do not call the advisor tool: your ${executorModelID} model is equal to or stronger than the configured advisor model ${advisor.modelID}, so it cannot provide a stronger review.`;
 }
 
@@ -225,11 +285,16 @@ function serializeTranscript(messages: MessageEntry[]): string {
   return blocks.join("\n\n");
 }
 
-export function selectAdvisorMessages(messages: MessageEntry[]): MessageEntry[] {
+type CompletedCompaction = {
+  markerIndex: number;
+  summaryIndex: number;
+  markerID: string;
+  tailStartID: string | undefined;
+};
+
+function latestCompletedCompaction(messages: MessageEntry[]): CompletedCompaction | undefined {
   const markers = new Map<string, number>();
-  let latest:
-    | { markerIndex: number; summaryIndex: number; tailStartID: string | undefined }
-    | undefined;
+  let latest: CompletedCompaction | undefined;
 
   for (const [index, message] of messages.entries()) {
     if (message.info?.role === "user" && message.info.id && message.parts?.some((part) => part.type === "compaction")) {
@@ -247,20 +312,33 @@ export function selectAdvisorMessages(messages: MessageEntry[]): MessageEntry[] 
       const markerIndex = markers.get(message.info.parentID)!;
       const marker = messages[markerIndex]!;
       const tailStartID = str(marker.parts?.find((part) => part.type === "compaction")?.tail_start_id);
-      latest = { markerIndex, summaryIndex: index, tailStartID };
+      latest = { markerIndex, summaryIndex: index, markerID: message.info.parentID, tailStartID };
     }
   }
 
-  if (!latest) return messages;
+  return latest;
+}
+
+export function selectAdvisorContext(messages: MessageEntry[]): { messages: MessageEntry[]; epoch: string } {
+  const latest = latestCompletedCompaction(messages);
+
+  if (!latest) return { messages, epoch: "uncompacted" };
   const tailIndex = latest.tailStartID ? messages.findIndex((message) => message.info?.id === latest.tailStartID) : -1;
   if (tailIndex >= 0 && tailIndex < latest.markerIndex) {
-    return [
-      ...messages.slice(latest.markerIndex, latest.summaryIndex + 1),
-      ...messages.slice(tailIndex, latest.markerIndex),
-      ...messages.slice(latest.summaryIndex + 1),
-    ];
+    return {
+      messages: [
+        ...messages.slice(latest.markerIndex, latest.summaryIndex + 1),
+        ...messages.slice(tailIndex, latest.markerIndex),
+        ...messages.slice(latest.summaryIndex + 1),
+      ],
+      epoch: `compaction:${latest.markerID}`,
+    };
   }
-  return messages.slice(latest.summaryIndex);
+  return { messages: messages.slice(latest.summaryIndex), epoch: `compaction:${latest.markerID}` };
+}
+
+export function selectAdvisorMessages(messages: MessageEntry[]): MessageEntry[] {
+  return selectAdvisorContext(messages).messages;
 }
 
 function extractText(result: PromptResult | undefined): string {
@@ -327,23 +405,392 @@ function formatUsage(usage: AdvisorUsage | undefined): string {
   return `Usage: ${usage.total.toLocaleString()} tokens (input ${usage.input.toLocaleString()}, output ${usage.output.toLocaleString()}, reasoning ${usage.reasoning.toLocaleString()}, cache read ${usage.cacheRead.toLocaleString()}, cache write ${usage.cacheWrite.toLocaleString()}); reported cost $${usage.cost.toFixed(6)}`;
 }
 
-function createAdvisorTool(client: SessionClient): ToolDefinition {
+type AdvisorResult = {
+  target: AdvisorTarget;
+  label: string;
+  title: string;
+  output: string;
+  metadata: Record<string, unknown>;
+};
+
+type ClaudeContinuation = {
+  epoch: string;
+  sessionID: string;
+  cursor: string | undefined;
+};
+
+export type ClaudeRunnerInput = {
+  cwd: string;
+  prompt: string;
+  model: string;
+  effort: string;
+  system: string;
+  resume?: string;
+};
+
+export type ClaudeRunner = (input: ClaudeRunnerInput) => Promise<string>;
+
+type ClaudeUsage = {
+  input?: number;
+  output?: number;
+  cacheRead?: number;
+  cacheWrite?: number;
+  cost?: number;
+};
+
+type ClaudeOutput = {
+  advice: string;
+  sessionID: string;
+  actualModel: string;
+  usage: ClaudeUsage;
+};
+
+const claudeContinuations = new Map<string, ClaudeContinuation>();
+const claudeContinuationLocks = new Map<string, Promise<void>>();
+const CLAUDE_ADVISOR_DIRECTORY = join(homedir(), ".mindframe-z", "claude-advisor");
+
+export function claudeAdvisorDirectory(): string {
+  return CLAUDE_ADVISOR_DIRECTORY;
+}
+
+export function buildClaudeArgs(input: Omit<ClaudeRunnerInput, "prompt">): string[] {
+  return [
+    "-p",
+    "--input-format",
+    "text",
+    "--output-format",
+    "json",
+    "--model",
+    input.model,
+    "--effort",
+    input.effort,
+    "--tools",
+    "",
+    "--system-prompt",
+    input.system,
+    ...(input.resume ? ["--resume", input.resume] : []),
+  ];
+}
+
+async function runClaude(input: ClaudeRunnerInput): Promise<string> {
+  return new Promise((resolve, reject) => {
+    mkdirSync(input.cwd, { recursive: true });
+    const child = spawn("claude", buildClaudeArgs(input), { cwd: input.cwd, stdio: ["pipe", "pipe", "pipe"] });
+    const limit = 10 * 1024 * 1024;
+    let stdout = "";
+    let stderr = "";
+    let settled = false;
+    const finish = (error?: Error) => {
+      if (settled) return;
+      settled = true;
+      if (error) reject(error);
+      else resolve(stdout);
+    };
+    const append = (target: "stdout" | "stderr", chunk: Buffer) => {
+      if (settled) return;
+      if (target === "stdout") stdout += chunk.toString();
+      else stderr += chunk.toString();
+      if (Buffer.byteLength(stdout) + Buffer.byteLength(stderr) > limit) {
+        child.kill();
+        finish(new Error("Claude Code output exceeded 10 MiB."));
+      }
+    };
+
+    child.once("error", (error) => finish(error));
+    child.stdout.on("data", (chunk: Buffer) => append("stdout", chunk));
+    child.stderr.on("data", (chunk: Buffer) => append("stderr", chunk));
+    child.once("close", (code, signal) => {
+      if (code === 0) return finish();
+      finish(new Error(`Claude Code exited with ${signal ? `signal ${signal}` : `code ${code}`}: ${stderr.trim()}`));
+    });
+    child.stdin.once("error", (error) => finish(error));
+    child.stdin.end(input.prompt);
+  });
+}
+
+function availableNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
+function matchesClaudeModel(configuredModel: string, actualModel: string): boolean {
+  const alias = {
+    fable: "claude-fable-",
+    opus: "claude-opus-",
+    sonnet: "claude-sonnet-",
+  }[configuredModel];
+  return alias ? actualModel.startsWith(alias) : actualModel === configuredModel;
+}
+
+function parseClaudeOutput(stdout: string, configuredModel: string): ClaudeOutput {
+  let parsed: {
+    result?: unknown;
+    session_id?: unknown;
+    is_error?: unknown;
+    total_cost_usd?: unknown;
+    modelUsage?: unknown;
+  };
+  try {
+    parsed = JSON.parse(stdout) as typeof parsed;
+  } catch {
+    throw new Error("Claude Code returned invalid JSON.");
+  }
+  if (parsed.is_error === true) throw new Error("Claude Code reported an unsuccessful result.");
+
+  const advice = str(parsed.result)?.trim();
+  const sessionID = str(parsed.session_id);
+  if (!advice || !sessionID) throw new Error("Claude Code JSON must include non-empty result text and session_id.");
+  if (!parsed.modelUsage || typeof parsed.modelUsage !== "object" || Array.isArray(parsed.modelUsage)) {
+    throw new Error("Claude Code JSON must include modelUsage with the actual model.");
+  }
+
+  const modelUsage = parsed.modelUsage as Record<string, unknown>;
+  const entry = Object.entries(modelUsage).find(
+    ([model, usage]) =>
+      matchesClaudeModel(configuredModel, model) &&
+      typeof usage === "object" &&
+      usage !== null &&
+      !Array.isArray(usage),
+  );
+  if (!entry) {
+    throw new Error(
+      `Claude Code did not report configured model "${configuredModel}" in modelUsage (available: ${Object.keys(modelUsage).join(", ") || "none"}).`,
+    );
+  }
+
+  const [actualModel, rawUsage] = entry;
+  const usage = rawUsage as {
+    inputTokens?: unknown;
+    outputTokens?: unknown;
+    cacheReadInputTokens?: unknown;
+    cacheCreationInputTokens?: unknown;
+    costUSD?: unknown;
+  };
+  return {
+    advice,
+    sessionID,
+    actualModel,
+    usage: {
+      input: availableNumber(usage.inputTokens),
+      output: availableNumber(usage.outputTokens),
+      cacheRead: availableNumber(usage.cacheReadInputTokens),
+      cacheWrite: availableNumber(usage.cacheCreationInputTokens),
+      cost: availableNumber(usage.costUSD) ?? availableNumber(parsed.total_cost_usd),
+    },
+  };
+}
+
+function formatClaudeUsage(usage: ClaudeUsage): string {
+  const details = [
+    usage.cacheRead !== undefined ? `cache read ${usage.cacheRead.toLocaleString()} tokens` : undefined,
+    usage.cacheWrite !== undefined ? `cache write ${usage.cacheWrite.toLocaleString()} tokens` : undefined,
+    usage.cost !== undefined ? `reported cost $${usage.cost.toFixed(6)}` : undefined,
+  ].filter((detail): detail is string => detail !== undefined);
+  return details.length > 0 ? `Usage: ${details.join(", ")}` : "Usage: unavailable";
+}
+
+function continuationKey(directory: string, sessionID: string, target: ClaudeCodeAdvisorTarget): string {
+  return JSON.stringify([directory, sessionID, targetLabel(target)]);
+}
+
+async function withContinuationLock<T>(
+  locks: Map<string, Promise<void>>,
+  key: string,
+  operation: () => Promise<T>,
+): Promise<T> {
+  const previous = locks.get(key) ?? Promise.resolve();
+  let release!: () => void;
+  const completed = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  const current = previous.then(() => completed);
+  locks.set(key, current);
+  await previous;
+  try {
+    return await operation();
+  } finally {
+    release();
+    if (locks.get(key) === current) locks.delete(key);
+  }
+}
+
+function latestMessageID(messages: MessageEntry[]): string | undefined {
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const id = messages[index]?.info?.id;
+    if (id) return id;
+  }
+  return undefined;
+}
+
+function messagesAfterCursor(messages: MessageEntry[], cursor: string | undefined): MessageEntry[] {
+  if (!cursor) return messages;
+  const cursorIndex = messages.findIndex((message) => message.info?.id === cursor);
+  return cursorIndex >= 0 ? messages.slice(cursorIndex + 1) : messages;
+}
+
+function withoutAdvisorToolResults(messages: MessageEntry[]): MessageEntry[] {
+  return messages.map((message) => {
+    const parts = message.parts?.filter((part) => {
+      if (part.type !== "tool" || part.tool !== "advisor") return true;
+      const state = part.state as Record<string, unknown> | undefined;
+      return state?.status !== "completed" && state?.status !== "error";
+    });
+    return parts?.length === message.parts?.length ? message : { ...message, parts };
+  });
+}
+
+async function runOpenCodeAdvisor(
+  client: SessionClient,
+  sessionID: string,
+  directory: string,
+  target: OpenCodeAdvisorTarget,
+  transcript: string,
+): Promise<AdvisorResult> {
+  const prompt = resolveAdvisorPrompt(target.modelID);
+  const label = modelLabel(target);
+  const child = await client.create({
+    body: { parentID: sessionID, title: `advisor (${label})` },
+    query: { directory },
+  });
+  if (child.error || !child.data?.id) {
+    throw new Error(`could not open an advisor session (${String(child.error ?? "no id")}).`);
+  }
+  const childID = child.data.id;
+
+  try {
+    const prompted = await client.prompt({
+      path: { id: childID },
+      query: { directory },
+      body: {
+        model: { providerID: target.providerID, modelID: target.modelID },
+        ...(target.variant !== undefined ? { variant: target.variant } : {}),
+        system: prompt.system,
+        tools: CHILD_TOOL_OVERRIDES,
+        parts: [{ type: "text", text: `Here is the executor's full transcript. Advise.\n\n${transcript}` }],
+      },
+    });
+    if (prompted.error) {
+      throw new Error(`the advisor model (${target.providerID}/${label}) failed: ${String(prompted.error)}`);
+    }
+
+    const advice = extractText(prompted.data);
+    if (advice.length === 0) throw new Error(`the advisor returned no text (model ${target.providerID}/${label}).`);
+
+    let usage: AdvisorUsage | undefined;
+    try {
+      const childMessages = await client.messages({ path: { id: childID }, query: { directory } });
+      usage = childMessages.error || !childMessages.data ? undefined : extractUsage(childMessages.data);
+    } catch {
+      // Usage must not hide valid advice if the completed child disappears first.
+    }
+    const metadata = {
+      providerID: target.providerID,
+      modelID: target.modelID,
+      variant: target.variant,
+      promptVariant: prompt.variant,
+      usage,
+    };
+    return {
+      target,
+      label: targetLabel(target),
+      title: `Advisor (${label})`,
+      output: `${advice}\n\n${formatUsage(usage)}`,
+      metadata,
+    };
+  } finally {
+    // Throwaway review session: best-effort cleanup, never fatal.
+    try {
+      await client.delete({ path: { id: childID }, query: { directory } });
+    } catch {
+      // ignore
+    }
+  }
+}
+
+async function runClaudeCodeAdvisor(
+  client: SessionClient,
+  directory: string,
+  parentSessionID: string,
+  target: ClaudeCodeAdvisorTarget,
+  runner: ClaudeRunner,
+  continuations: Map<string, ClaudeContinuation>,
+  locks: Map<string, Promise<void>>,
+): Promise<AdvisorResult> {
+  const prompt = resolveAdvisorPrompt(target.modelID);
+  const key = continuationKey(directory, parentSessionID, target);
+  return withContinuationLock(locks, key, async () => {
+    const refreshed = await client.messages({ path: { id: parentSessionID }, query: { directory } });
+    if (refreshed.error || !refreshed.data) {
+      throw new Error(`could not refresh the parent transcript (${String(refreshed.error ?? "no data")}).`);
+    }
+    const history = refreshed.data;
+    const context = selectAdvisorContext(history);
+    const previous = continuations.get(key);
+    const rotate = !previous || previous.epoch !== context.epoch;
+    const messages = rotate ? context.messages : messagesAfterCursor(history, previous.cursor);
+    const transcript = serializeTranscript(rotate ? messages : withoutAdvisorToolResults(messages));
+    const output = parseClaudeOutput(
+      await runner({
+        cwd: claudeAdvisorDirectory(),
+        prompt: rotate
+          ? `Here is the executor's compacted parent transcript. Advise.\n\n${transcript}`
+          : `Here are the parent transcript messages added since your previous review. Advise.\n\n${transcript}`,
+        model: target.modelID,
+        effort: target.effort,
+        system: prompt.system,
+        ...(rotate ? {} : { resume: previous.sessionID }),
+      }),
+      target.modelID,
+    );
+    // A failed command or malformed result leaves the prior cursor untouched.
+    continuations.set(key, { epoch: context.epoch, sessionID: output.sessionID, cursor: latestMessageID(history) });
+
+    const label = `${targetLabel(target)} (${output.actualModel})`;
+    return {
+      target,
+      label,
+      title: `Advisor (${label})`,
+      output: `${output.advice}\n\n${formatClaudeUsage(output.usage)}`,
+      metadata: {
+        harness: target.harness,
+        providerID: "anthropic",
+        modelID: target.modelID,
+        effort: target.effort,
+        actualModel: output.actualModel,
+        sessionID: output.sessionID,
+        reportedCost: output.usage.cost,
+        usage: output.usage,
+        promptVariant: prompt.variant,
+      },
+    };
+  });
+}
+
+function unavailableMessage(executorModelID: string | undefined, target: OpenCodeAdvisorTarget): string {
+  return `Skipped: the executor's GPT-5.6 ${gpt56Tier(executorModelID)} tier is equal to or stronger than the advisor's ${gpt56Tier(target.modelID)} tier.`;
+}
+
+function errorText(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+export function createAdvisorTool(
+  client: SessionClient,
+  claudeRunner: ClaudeRunner = runClaude,
+  continuations = claudeContinuations,
+  continuationLocks = claudeContinuationLocks,
+): ToolDefinition {
   return {
     description: ADVISOR_DESCRIPTION,
     args: {},
     async execute(_args, ctx) {
-      const model = resolveAdvisorModel();
-      let prompt: { variant: AdvisorPromptVariant; system: string };
+      let targets: AdvisorTarget[];
       try {
-        prompt = resolveAdvisorPrompt(model.modelID);
+        targets = resolveAdvisorTargets();
       } catch (error) {
-        return `Error: ${error instanceof Error ? error.message : String(error)}`;
+        return `Error: ${errorText(error)}`;
       }
 
-      const session = await client.get({
-        path: { id: ctx.sessionID },
-        query: { directory: ctx.directory },
-      });
+      const session = await client.get({ path: { id: ctx.sessionID }, query: { directory: ctx.directory } });
       if (session.error || !session.data) {
         return `Error: could not read the current session (${String(session.error ?? "no data")}).`;
       }
@@ -358,87 +805,72 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
       if (history.error || !history.data) {
         return `Error: could not read the session transcript (${String(history.error ?? "no data")}).`;
       }
+      const messages = history.data;
 
-      const executorModelID = history.data.find((message) => message.info?.id === ctx.messageID)?.info?.modelID;
-      const executorTier = gpt56Tier(executorModelID);
-      const advisorTier = gpt56Tier(model.modelID);
-      if (advisorUnavailable(executorModelID, model.modelID)) {
-        return `Skipped: the executor's GPT-5.6 ${executorTier} tier is equal to or stronger than the advisor's ${advisorTier} tier.`;
+      const executorModelID = messages.find((message) => message.info?.id === ctx.messageID)?.info?.modelID;
+      const eligible = targets.filter(
+        (target) => target.harness === "claude-code" || !advisorUnavailable(executorModelID, target.modelID),
+      );
+      if (eligible.length === 0) {
+        const advisor = targets.find((target): target is OpenCodeAdvisorTarget => target.harness === "opencode");
+        return advisor
+          ? unavailableMessage(executorModelID, advisor)
+          : "Skipped: no configured advisor target is eligible.";
       }
 
-      const transcript = serializeTranscript(selectAdvisorMessages(history.data));
+      const context = selectAdvisorContext(messages);
+      const transcript = serializeTranscript(context.messages);
       if (transcript.length === 0) {
         return "Error: the transcript is empty; there is nothing to advise on yet.";
       }
 
-      const label = modelLabel(model);
-      const child = await client.create({
-        body: { parentID: ctx.sessionID, title: `advisor (${label})` },
-        query: { directory: ctx.directory },
-      });
-      if (child.error || !child.data?.id) {
-        return `Error: could not open an advisor session (${String(child.error ?? "no id")}).`;
+      const settled = await Promise.allSettled(
+        eligible.map((target) =>
+          target.harness === "opencode"
+            ? runOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript)
+            : runClaudeCodeAdvisor(
+                client,
+                ctx.directory,
+                ctx.sessionID,
+                target,
+                claudeRunner,
+                continuations,
+                continuationLocks,
+              ),
+        ),
+      );
+      const successes = settled.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+      const failures = settled.flatMap((result, index) =>
+        result.status === "rejected" ? [{ label: targetLabel(eligible[index]!), error: errorText(result.reason) }] : [],
+      );
+      if (successes.length === 0) {
+        if (targets.length === 1 && failures.length === 1) {
+          return `Error: ${failures[0]!.error}`;
+        }
+        return `Error: all advisor targets failed:\n${failures.map((failure) => `${failure.label}: ${failure.error}`).join("\n")}`;
       }
-      const childId = child.data.id;
 
-      try {
-        const prompted = await client.prompt({
-          path: { id: childId },
-          query: { directory: ctx.directory },
-          body: {
-            model: { providerID: model.providerID, modelID: model.modelID },
-            ...(model.variant !== undefined ? { variant: model.variant } : {}),
-            system: prompt.system,
-            tools: CHILD_TOOL_OVERRIDES,
-            parts: [
-              {
-                type: "text",
-                text: `Here is the executor's full transcript. Advise.\n\n${transcript}`,
-              },
-            ],
-          },
-        });
-        if (prompted.error) {
-          return `Error: the advisor model (${model.providerID}/${label}) failed: ${String(prompted.error)}`;
-        }
-
-        const advice = extractText(prompted.data);
-        if (advice.length === 0) {
-          return `Error: the advisor returned no text (model ${model.providerID}/${label}).`;
-        }
-
-        let usage: AdvisorUsage | undefined;
-        try {
-          const childMessages = await client.messages({
-            path: { id: childId },
-            query: { directory: ctx.directory },
-          });
-          usage = childMessages.error || !childMessages.data ? undefined : extractUsage(childMessages.data);
-        } catch {
-          // Usage must not hide valid advice if the completed child disappears first.
-        }
-        const meta = {
-          providerID: model.providerID,
-          modelID: model.modelID,
-          variant: model.variant,
-          promptVariant: prompt.variant,
-          usage,
-        };
-        ctx.metadata({ title: `advisor: ${label}`, metadata: meta });
-
-        return {
-          title: `Advisor (${label})`,
-          output: `${advice}\n\n${formatUsage(usage)}`,
-          metadata: meta,
-        };
-      } finally {
-        // Throwaway review session: best-effort cleanup, never fatal.
-        try {
-          await client.delete({ path: { id: childId }, query: { directory: ctx.directory } });
-        } catch {
-          // ignore
-        }
+      const legacySingleNative =
+        targets.length === 1 && successes.length === 1 && successes[0]!.target.harness === "opencode";
+      if (legacySingleNative) {
+        const result = successes[0]!;
+        ctx.metadata({ title: `advisor: ${modelLabel(result.target as OpenCodeAdvisorTarget)}`, metadata: result.metadata });
+        return { title: result.title, output: result.output, metadata: result.metadata };
       }
+
+      const metadata = {
+        targets: successes.map((result) => ({ label: result.label, ...result.metadata })),
+        ...(failures.length > 0 ? { failures } : {}),
+      };
+      ctx.metadata({ title: `advisor: ${successes.map((result) => result.label).join(", ")}`, metadata });
+      return {
+        title: successes.length === 1 ? successes[0]!.title : "Advisor",
+        output: [
+          ...successes.map((result) => `## ${result.title}\n\n${result.output}`),
+          ...failures.map((failure) => `## Advisor failure (${failure.label})\n\nError: ${failure.error}`),
+        ].join("\n\n"),
+        metadata,
+      };
     },
   };
 }
