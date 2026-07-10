@@ -1,0 +1,8 @@
+{
+  "name": "mindframe-z-delegate-general",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./server.ts"
+  }
+}

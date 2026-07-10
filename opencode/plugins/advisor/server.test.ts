@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import AdvisorPlugin, { advisorAvailabilityPrompt, extractUsage, resolveAdvisorPrompt, selectAdvisorMessages } from "./advisor.js";
+import AdvisorPlugin, { advisorAvailabilityPrompt, extractUsage, resolveAdvisorPrompt, selectAdvisorMessages } from "./server.js";
 
 afterEach(() => vi.unstubAllEnvs());
 

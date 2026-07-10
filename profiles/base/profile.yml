@@ -138,9 +138,9 @@ opencode:
         "*GH_TOKEN*": deny
   plugins:
     - advisor
-    - agent-task
+    - delegate-general
   tui_plugins:
-    - advisor-tui
+    - advisor
     - session-cost-tui
   commands:
     - apply-spec
@@ -173,7 +173,7 @@ pi:
       - npm:pi-web-access
       - npm:@ff-labs/pi-fff
       - npm:pi-interview
-    subagents:
+  subagent_config:
       agentOverrides:
         scout:
           model: openai-codex/gpt-5.4-mini

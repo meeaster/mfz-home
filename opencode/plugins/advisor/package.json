@@ -1,0 +1,9 @@
+{
+  "name": "mindframe-z-advisor",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./server.ts",
+    "./tui": "./tui/index.tsx"
+  }
+}

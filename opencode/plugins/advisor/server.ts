@@ -72,7 +72,7 @@ const CHILD_TOOL_OVERRIDES: Record<string, boolean> = {
   patch: false,
   bash: false,
   task: false,
-  agent_task: false,
+  delegate_general: false,
 };
 
 function resolveAdvisorModel(): { providerID: string; modelID: string; variant?: string } {
