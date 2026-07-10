@@ -162,6 +162,43 @@ codex:
   plugins:
     "github@openai-curated":
       enabled: true
+pi:
+  settings:
+    theme: dark
+    defaultProvider: openai-codex
+    defaultModel: gpt-5.5
+    defaultThinkingLevel: medium
+    packages:
+      - npm:pi-subagents
+      - npm:pi-web-access
+      - npm:@ff-labs/pi-fff
+      - npm:pi-interview
+    subagents:
+      agentOverrides:
+        scout:
+          model: openai-codex/gpt-5.4-mini
+          thinking: low
+        delegate:
+          model: openai-codex/gpt-5.4-mini
+          thinking: medium
+        researcher:
+          model: openai-codex/gpt-5.4-mini
+          thinking: medium
+        context-builder:
+          model: openai-codex/gpt-5.4
+          thinking: medium
+        planner:
+          model: openai-codex/gpt-5.5
+          thinking: high
+        worker:
+          model: openai-codex/gpt-5.5
+          thinking: medium
+        reviewer:
+          model: openai-codex/gpt-5.5
+          thinking: high
+        oracle:
+          model: openai-codex/gpt-5.5
+          thinking: high
 claude:
   settings:
     statusLine:
