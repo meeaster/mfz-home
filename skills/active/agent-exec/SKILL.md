@@ -41,9 +41,13 @@ For a request to use a named subagent available in the current environment, such
 
    Capture the final answer and the session/thread handle. Machine-readable CLI output may be an event stream rather than a single result object; extract the final assistant text and handle instead of treating the raw stream as the answer. Done when the result, handle, and continuation command are visible; keep raw event streams, logs, or exports as verification evidence rather than the default user-facing output.
 
-7. Report the result.
+7. Clean up disposable sessions.
 
-   Return the target agent's useful output, the captured handle, and the exact continuation command. Do not paste the full trace unless the user asked for it or the trace is needed to explain a failure. If the target made edits, report changed files and any verification it ran or skipped.
+   After capturing the required evidence, delete sessions created solely for a test or probe. Keep handles the user asked to continue or that are the requested deliverable. Use the harness's individual-session deletion mechanism when available; otherwise report the retained handle and why it could not be deleted. Done when every disposable handle captured in step 6 is deleted or reported as retained.
+
+8. Report the result.
+
+   Return the target agent's useful output, any retained handle, and its exact continuation command. For deleted test/probe sessions, report the cleanup instead. Do not paste the full trace unless the user asked for it or the trace is needed to explain a failure. If the target made edits, report changed files and any verification it ran or skipped.
 
 ## Nested Harness Caveats
 
@@ -121,6 +125,8 @@ claude -c -p "<context packet>" --output-format json --model <model>
 
 Add `--effort <level>` only when the selected Claude model supports it and the task warrants an explicit override. Omit `--model` only when intentionally using configured defaults. For read-only review, add `--permission-mode plan` or explicit denied tools if the local Claude configuration does not already prevent edits. Capture `session_id` from JSON output and check `modelUsage` for the actual model used; aliases, entitlements, or organization restrictions can substitute a different model, and JSON output may suppress the warning. Prefer `claude agents --json --all` for background status. Avoid parsing `claude logs` unless the user wants human-readable terminal output; it may contain TUI control sequences.
 
+Claude Code has no supported per-session deletion for ordinary foreground `-p` sessions; retain and report a disposable probe's `session_id`.
+
 ## OpenCode
 
 Inspect models and variants before selecting a non-default OpenCode model:
@@ -148,6 +154,8 @@ Omit `--model` and `--variant` when intentionally using configured defaults. Use
 Use default output when you only need the child agent's final answer; when stdout is not a TTY, OpenCode prints completed assistant text without the raw event stream. Use a unique `--title`, then recover the handle with `opencode session list --format json --max-count <n>` if the session ID is needed. Use `--format json` only when you need event-level data or guaranteed session ID capture from stdout.
 
 OpenCode `--format json` emits JSON events, not a single final result object. The useful answer is usually in the last assistant `text` event; return that concise text plus `sessionID`. If the caller needs the child answer itself to be JSON, say so in the context packet and validate or report if the final `text` is not JSON.
+
+Delete a disposable OpenCode test/probe session with `opencode session delete <sessionID>` after capturing its evidence.
 
 ## Codex
 
@@ -178,6 +186,8 @@ codex exec resume --json --last --model <model> -c model_reasoning_effort="<effo
 ```
 
 Omit `--model` or `-c model_reasoning_effort=...` only when intentionally using configured or persisted thread defaults. Capture `thread_id` from the `thread.started` JSON event. `codex exec` does not use `--ask-for-approval`; use sandbox choice as the main scripted safety control.
+
+Delete a disposable Codex test/probe thread with `codex delete <thread_id>` after capturing its evidence.
 
 ## Failure Handling
 
