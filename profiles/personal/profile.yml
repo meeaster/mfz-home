@@ -45,8 +45,8 @@ opencode:
         model: opencode/deepseek-v4-flash-free
         variant: max
       compaction:
-        model: openai/gpt-5.4-mini
-        variant: high
+        model: openai/gpt-5.6-terra
+        variant: medium
   agent_task:
     models:
       - name: gpt-5.4-mini
