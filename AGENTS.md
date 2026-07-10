@@ -23,7 +23,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 
 - `pnpm test` runs Vitest for `opencode/**/*.test.ts`.
 - `pnpm vitest run opencode/plugins/delegate-general/server.test.ts` runs the current focused test file.
-- This home has no `tsconfig.json` or build script; Vitest transpiles plugins but does not type-check them.
+- `pnpm typecheck` runs strict TypeScript checking for `opencode/**/*.ts(x)`.
 - Use `pnpm`, not npm/yarn. Tool versions are managed by profile `mise.toml` files; base sets pnpm 11, personal overrides Node to 26.
 
 ## OpenCode Plugins

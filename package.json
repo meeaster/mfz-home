@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "test": "vitest run opencode"
+    "test": "vitest run opencode",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@opentui/keymap": "0.4.3",
+    "@opentui/solid": "0.4.3",
     "@types/node": "24.13.2",
+    "solid-js": "1.9.10",
     "typescript": "6.0.3",
     "vitest": "4.1.9"
   },
