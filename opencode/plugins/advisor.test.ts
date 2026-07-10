@@ -140,7 +140,7 @@ describe("advisor", () => {
           { info: { id: "tool-call", role: "assistant", modelID } },
         ],
       });
-      const client = { session: { messages, create, prompt, delete: vi.fn() } };
+      const client = { session: { get: vi.fn().mockResolvedValue({ data: {} }), messages, create, prompt, delete: vi.fn() } };
       const plugin = AdvisorPlugin as unknown as {
         server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
       };
@@ -156,7 +156,7 @@ describe("advisor", () => {
     },
   );
 
-  it.each(["gpt-5.6-luna", "gpt-5.6-codex"])("runs the advisor for executor model %s", async (modelID) => {
+  it.each(["gpt-5.6-luna", "gpt-5.6-codex"])("runs the advisor for root executor model %s", async (modelID) => {
     vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
     const create = vi.fn().mockResolvedValue({ data: { id: "advisor-session" } });
     const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
@@ -169,7 +169,9 @@ describe("advisor", () => {
         ],
       })
       .mockResolvedValueOnce({ data: [] });
-    const client = { session: { messages, create, prompt, delete: vi.fn().mockResolvedValue({}) } };
+    const client = {
+      session: { get: vi.fn().mockResolvedValue({ data: {} }), messages, create, prompt, delete: vi.fn().mockResolvedValue({}) },
+    };
     const plugin = AdvisorPlugin as unknown as {
       server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
     };
@@ -179,6 +181,67 @@ describe("advisor", () => {
 
     expect(create).toHaveBeenCalled();
     expect(prompt).toHaveBeenCalled();
+  });
+
+  it("runs the advisor for a general child session", async () => {
+    const create = vi.fn().mockResolvedValue({ data: { id: "advisor-session" } });
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    const messages = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: [
+          { info: { role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+        ],
+      })
+      .mockResolvedValueOnce({ data: [] });
+    const client = {
+      session: {
+        get: vi.fn().mockResolvedValue({ data: { parentID: "parent" } }),
+        messages,
+        create,
+        prompt,
+        delete: vi.fn().mockResolvedValue({}),
+      },
+    };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
+    };
+    const tools = await plugin.server({ client });
+
+    await tools.tool.advisor.execute(
+      {},
+      { sessionID: "child", messageID: "tool-call", agent: "general", directory: "/tmp", metadata: vi.fn() },
+    );
+
+    expect(create).toHaveBeenCalled();
+    expect(prompt).toHaveBeenCalled();
+  });
+
+  it("rejects advisor calls from non-general child sessions", async () => {
+    const messages = vi.fn();
+    const create = vi.fn();
+    const prompt = vi.fn();
+    const client = {
+      session: {
+        get: vi.fn().mockResolvedValue({ data: { parentID: "parent" } }),
+        messages,
+        create,
+        prompt,
+        delete: vi.fn(),
+      },
+    };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
+    };
+    const tools = await plugin.server({ client });
+
+    const result = await tools.tool.advisor.execute({}, { sessionID: "child", agent: "explore", directory: "/tmp" });
+
+    expect(result).toBe("Skipped: advisor is available to subagents only when running as general.");
+    expect(messages).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+    expect(prompt).not.toHaveBeenCalled();
   });
 
   it("returns child usage and cleans up its session", async () => {
@@ -202,6 +265,7 @@ describe("advisor", () => {
       });
     const client = {
       session: {
+        get: vi.fn().mockResolvedValue({ data: {} }),
         messages,
         create: vi.fn().mockResolvedValue({ data: { id: "advisor-session" } }),
         prompt,
@@ -233,6 +297,7 @@ describe("advisor", () => {
     const deleteSession = vi.fn().mockResolvedValue({});
     const client = {
       session: {
+        get: vi.fn().mockResolvedValue({ data: {} }),
         messages: vi
           .fn()
           .mockResolvedValueOnce({ data: [{ info: { role: "user" }, parts: [{ type: "text", text: "Review this." }] }] })

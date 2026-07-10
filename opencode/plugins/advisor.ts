@@ -147,6 +147,10 @@ type PromptResult = {
 };
 
 type SessionClient = {
+  get(input: { path: { id: string }; query?: { directory?: string } }): Promise<{
+    data?: { parentID?: string };
+    error?: unknown;
+  }>;
   messages(input: {
     path: { id: string };
     query?: { directory?: string; limit?: number };
@@ -322,6 +326,17 @@ function createAdvisorTool(client: SessionClient): ToolDefinition {
         prompt = resolveAdvisorPrompt(model.modelID);
       } catch (error) {
         return `Error: ${error instanceof Error ? error.message : String(error)}`;
+      }
+
+      const session = await client.get({
+        path: { id: ctx.sessionID },
+        query: { directory: ctx.directory },
+      });
+      if (session.error || !session.data) {
+        return `Error: could not read the current session (${String(session.error ?? "no data")}).`;
+      }
+      if (session.data.parentID && ctx.agent !== "general") {
+        return "Skipped: advisor is available to subagents only when running as general.";
       }
 
       const history = await client.messages({
