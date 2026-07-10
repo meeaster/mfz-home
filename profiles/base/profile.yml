@@ -107,6 +107,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   pr-writer:
     agents: { opencode: true, claude-code: true, codex: true }
+  dataviz:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   context7:
     agents: { opencode: true, claude-code: true, codex: true }
