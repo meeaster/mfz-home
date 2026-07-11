@@ -1,0 +1,8 @@
+{
+  "name": "Codex composed skill probe",
+  "prompt": "$axis-codex-composition-outer Follow the skill exactly. Do not modify any other files.",
+  "judge": "The agent creates codex-composition-artifact.txt from the dependency result and reports the outer sentinel.",
+  "artifacts": [
+    "codex-composition-artifact.txt"
+  ]
+}

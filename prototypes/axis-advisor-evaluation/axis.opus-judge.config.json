@@ -1,0 +1,24 @@
+{
+  "scenarios": "./scenarios",
+  "agents": ["opencode"],
+  "judging": {
+    "agents": [
+      {
+        "agent": "claude-code",
+        "model": "opus",
+        "flags": {
+          "effort": "high"
+        }
+      }
+    ]
+  },
+  "settings": {
+    "concurrency": 1,
+    "limits": {
+      "scenario": {
+        "time_minutes": 2,
+        "tokens": 10000
+      }
+    }
+  }
+}

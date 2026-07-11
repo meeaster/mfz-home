@@ -1,0 +1,11 @@
+{
+  "name": "OpenCode skill bootstrap probe",
+  "prompt": "Invoke the /axis-skill-probe skill now. Reply with exactly the marker it instructs you to emit and nothing else.",
+  "judge": "The agent replies with the exact sentinel marker.",
+  "setup": [
+    {
+      "action": "run_script",
+      "command": "mkdir -p \"$HOME/.config/opencode/skills/axis-skill-probe\" && cp \"$AXIS_CONFIG_DIR/skill/SKILL.md\" \"$HOME/.config/opencode/skills/axis-skill-probe/SKILL.md\""
+    }
+  ]
+}

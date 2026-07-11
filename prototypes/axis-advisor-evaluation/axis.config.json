@@ -1,0 +1,18 @@
+{
+  "scenarios": "./scenarios",
+  "agents": [
+    {
+      "agent": "opencode",
+      "model": "opencode/deepseek-v4-flash-free"
+    }
+  ],
+  "settings": {
+    "concurrency": 1,
+    "limits": {
+      "scenario": {
+        "time_minutes": 2,
+        "tokens": 10000
+      }
+    }
+  }
+}

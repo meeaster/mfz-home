@@ -1,0 +1,27 @@
+{
+  "scenarios": ["./scenarios/codex-skill-composition.json"],
+  "agents": [
+    {
+      "agent": "codex",
+      "model": "gpt-5.6-terra",
+      "flags": {
+        "full-auto": true,
+        "skip-git-repo-check": true,
+        "config": "model_reasoning_effort=\"medium\""
+      }
+    }
+  ],
+  "skills": [
+    "./skill-codex-composition-outer",
+    "./skill-codex-composition-inner"
+  ],
+  "settings": {
+    "concurrency": 1,
+    "limits": {
+      "scenario": {
+        "time_minutes": 2,
+        "tokens": 10000
+      }
+    }
+  }
+}

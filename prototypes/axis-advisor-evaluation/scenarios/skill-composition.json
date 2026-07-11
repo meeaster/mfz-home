@@ -1,0 +1,18 @@
+{
+  "name": "OpenCode composed skill probe",
+  "prompt": "Invoke the /axis-composition-outer skill now and follow its instructions. Do not modify any other files.",
+  "judge": "The agent loads both skills, creates composition-artifact.txt from the dependency result, and reports the outer sentinel.",
+  "artifacts": [
+    "composition-artifact.txt"
+  ],
+  "setup": [
+    {
+      "action": "run_script",
+      "command": "mkdir -p .claude/skills/axis-composition-outer && cp \"$AXIS_CONFIG_DIR/skill-composition-outer/SKILL.md\" .claude/skills/axis-composition-outer/SKILL.md"
+    },
+    {
+      "action": "run_script",
+      "command": "mkdir -p \"$HOME/.config/opencode/skills/axis-composition-inner\" && cp \"$AXIS_CONFIG_DIR/skill-composition-inner/SKILL.md\" \"$HOME/.config/opencode/skills/axis-composition-inner/SKILL.md\""
+    }
+  ]
+}

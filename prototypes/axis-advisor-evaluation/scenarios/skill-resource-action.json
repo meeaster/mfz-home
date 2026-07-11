@@ -1,0 +1,14 @@
+{
+  "name": "OpenCode skill resource-action probe",
+  "prompt": "Invoke the /axis-resource-skill-probe skill now and follow its instructions. Do not modify any other files.",
+  "judge": "The agent creates axis-resource-artifact.txt with the exact expected marker and reports the resource-action sentinel.",
+  "artifacts": [
+    "axis-resource-artifact.txt"
+  ],
+  "setup": [
+    {
+      "action": "run_script",
+      "command": "mkdir -p \"$HOME/.config/opencode/skills/axis-resource-skill-probe\" && cp -R \"$AXIS_CONFIG_DIR/skill-resource/.\" \"$HOME/.config/opencode/skills/axis-resource-skill-probe\""
+    }
+  ]
+}

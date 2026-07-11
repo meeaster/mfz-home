@@ -1,0 +1,11 @@
+{
+  "name": "OpenCode project-local skill probe",
+  "prompt": "Invoke the /axis-project-skill-probe skill now. Reply with exactly the marker it instructs you to emit and nothing else.",
+  "judge": "The agent replies with the exact project-local sentinel marker.",
+  "setup": [
+    {
+      "action": "run_script",
+      "command": "mkdir -p .claude/skills/axis-project-skill-probe && cp \"$AXIS_CONFIG_DIR/skill-project/SKILL.md\" .claude/skills/axis-project-skill-probe/SKILL.md"
+    }
+  ]
+}
