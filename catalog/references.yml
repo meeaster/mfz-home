@@ -59,3 +59,15 @@ references:
   - name: sideshow
     url: https://github.com/modem-dev/sideshow.git
     description: "TypeScript live visual surface for terminal coding agents. Publishes browser-rendered surfaces for diagrams, UI sketches, markdown, diffs, terminal output, images, Mermaid, JSON, and code; see README.md and docs/connecting-agents.md for CLI, MCP, HTTP, and agent integration details."
+  - name: axis
+    url: https://github.com/netlify/axis.git
+    description: "TypeScript CLI for scenario-based evaluation of coding agents. Runs agents in isolated workspaces, captures transcripts, scores rubric checks, and supports OpenCode through its built-in ACP adapter."
+  - name: openwiki
+    url: https://github.com/langchain-ai/openwiki.git
+    description: "Agentic CLI for building and maintaining local personal and repository knowledge wikis from configured sources."
+  - name: deepagents
+    url: https://github.com/langchain-ai/deepagents.git
+    description: "Deep Agents framework for building agentic workflows with planning, subagents, filesystem access, and tool use."
+  - name: vercel-ai
+    url: https://github.com/vercel/ai.git
+    description: "Vercel AI SDK monorepo for building TypeScript AI applications, provider integrations, UI, and agent workflows."

@@ -16,9 +16,11 @@ Context7 steps:
 
 <!-- deepwiki -->
 
-Use DeepWiki for GitHub repository documentation, implementation details, and source-grounded questions. It works well when the user asks how a repository works internally, what a function/module does in source, how a project is structured, or when Context7 cannot find a good library match.
+For GitHub repository documentation, implementation details, and source-grounded questions, inspect a matching local reference clone first. Read `~/.mindframe-z/references.md` to find enabled references, then use the local source with file tools. Treat that checked-out source as authoritative for its snapshot.
 
-Prefer `ask_question` with the GitHub repo in `owner/repo` format and the user's full question. Use `read_wiki_structure` first when the available documentation topics would help narrow a broad repository question. Use `read_wiki_contents` when the user wants repository documentation rather than a targeted answer.
+Use DeepWiki only when no matching local clone exists, the local source does not answer the question, or the user explicitly requests DeepWiki. Treat DeepWiki as a secondary summary and verify version-sensitive or behavior-sensitive claims against local or upstream source before relying on them.
+
+When DeepWiki is appropriate, prefer `ask_question` with the GitHub repo in `owner/repo` format and the user's full question. Use `read_wiki_structure` first when the available documentation topics would help narrow a broad repository question. Use `read_wiki_contents` when the user wants repository documentation rather than a targeted answer.
 
 Do not use for: refactoring, writing scripts from scratch, debugging business logic, code review, or general programming concepts.
 
@@ -29,8 +31,8 @@ Do not use for: refactoring, writing scripts from scratch, debugging business lo
 Use MCP tools selectively and do not query multiple documentation MCPs in parallel unless the user explicitly asks for a comparison.
 
 - For library/framework/SDK/API/CLI usage, start with Context7 because it prioritizes official docs.
-- For GitHub repository internals, source structure, implementation details, or "how does this repo work" questions, use DeepWiki directly.
-- If Context7 has no good match or the result is thin, use DeepWiki as the fallback.
+- For GitHub repository internals, source structure, implementation details, or "how does this repo work" questions, inspect a matching local reference clone first. Use DeepWiki only as a fallback when no useful local source is available or when the user explicitly requests it.
+- If Context7 has no good match or the result is thin, use a matching local reference clone first for repository questions; otherwise use DeepWiki as a fallback.
 - For explicit comparisons or evaluations, query both tools with the same question and compare source quality, specificity, freshness, and usefulness.
 - Prefer MCP documentation tools over general web search for library and repository documentation.
 <!-- mcp-interactions -->

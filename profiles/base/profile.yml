@@ -129,6 +129,10 @@ opencode:
       websearch: true
     reference:
       opencode: https://github.com/anomalyco/opencode
+    agent:
+      explore:
+        model: openai/gpt-5.6-luna
+        variant: medium
     permission:
       read:
         "~/.aws/**": deny

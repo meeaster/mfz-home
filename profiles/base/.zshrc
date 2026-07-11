@@ -57,7 +57,7 @@ export PATH="$BUN_INSTALL/bin:$PATH"
 export BROWSER=wslview
 
 export PNPM_HOME="$HOME/.local/share/pnpm"
-path=("$PNPM_HOME" ${path:#$PNPM_HOME})
+path=("$PNPM_HOME/bin" "$PNPM_HOME" ${path:#$PNPM_HOME})
 
 # Safety wrappers and convenience aliases.
 alias ll="ls -la"
