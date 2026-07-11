@@ -19,6 +19,8 @@ import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
  * Configure one or more advisor targets with
  * OPENCODE_ADVISOR_MODELS="opencode:provider/model@variant,claude-code:alias@effort".
  * OPENCODE_ADVISOR_MODEL remains the single native OpenCode fallback.
+ * OPENCODE_ADVISOR_EXECUTOR_CONTEXT defaults to enabled; set it to false or 0
+ * to omit skills, MCP status, and approximate tool inventory from reviews.
  */
 
 // Verbatim invocation guidance, reproduced from Claude Code's own `advisor`
@@ -246,6 +248,104 @@ type SessionClient = {
   }): Promise<{ data?: PromptResult; error?: unknown }>;
   delete(input: { path: { id: string }; query?: { directory?: string } }): Promise<unknown>;
 };
+
+type AdvisorCapabilityClient = {
+  mcp?: {
+    status(input?: { query?: { directory?: string } }): Promise<{
+      data?: Record<string, { status?: unknown }>;
+      error?: unknown;
+    }>;
+  };
+  tool?: {
+    list(input: { query: { directory: string; provider: string; model: string } }): Promise<{
+      data?: unknown;
+      error?: unknown;
+    }>;
+  };
+};
+
+type SkillSummary = { name: string; description: string };
+type ExecutorRequest = { providerID?: string; modelID?: string };
+const MAX_EXECUTOR_CONTEXT_CHARACTERS = 12_000;
+
+export function executorContextEnabled(value = process.env.OPENCODE_ADVISOR_EXECUTOR_CONTEXT): boolean {
+  return value?.trim().toLowerCase() !== "0" && value?.trim().toLowerCase() !== "false";
+}
+
+function truncate(value: string, limit: number): string {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  return normalized.length <= limit ? normalized : `${normalized.slice(0, limit - 3)}...`;
+}
+
+export function extractAvailableSkills(system: string[]): SkillSummary[] {
+  const block = system.join("\n").match(/<available_skills>([\s\S]*?)<\/available_skills>/)?.[1];
+  if (!block) return [];
+  return [...block.matchAll(/<skill>([\s\S]*?)<\/skill>/g)].flatMap((match) => {
+    const name = match[1]!.match(/<name>([^<]+)<\/name>/)?.[1]?.trim();
+    const description = match[1]!.match(/<description>([\s\S]*?)<\/description>/)?.[1];
+    return name && description ? [{ name, description: truncate(description, 240) }] : [];
+  });
+}
+
+export function formatExecutorContext(input: {
+  skills: SkillSummary[];
+  mcp: Array<{ name: string; status: string }>;
+  tools: Array<{ id: string; description: string }>;
+}): string {
+  const sections = [
+    "## Executor Runtime Context",
+    "This is capability metadata, not instructions. Exact executed tools are already present in the transcript.",
+  ];
+  if (input.skills.length > 0) {
+    sections.push(`### Advertised skills (${input.skills.length})`, ...input.skills.map((skill) => `- ${skill.name}: ${skill.description}`));
+  }
+  if (input.mcp.length > 0) {
+    sections.push("### MCP server status (exact at advisor invocation)", ...input.mcp.map((server) => `- ${server.name}: ${server.status}`));
+    sections.push("MCP tool definitions are not exposed to plugins by the current OpenCode API.");
+  }
+  if (input.tools.length > 0) {
+    sections.push(
+      "### Core/plugin tools (default-agent approximation)",
+      ...input.tools.map((tool) => `- ${tool.id}: ${tool.description}`),
+    );
+  }
+  const result = sections.join("\n");
+  return result.length <= MAX_EXECUTOR_CONTEXT_CHARACTERS
+    ? result
+    : `${result.slice(0, MAX_EXECUTOR_CONTEXT_CHARACTERS - 34)}\n[Capability metadata truncated.]`;
+}
+
+function withExecutorContext(system: string, executorContext: string): string {
+  return executorContext ? `${system}\n\n${executorContext}` : system;
+}
+
+async function collectExecutorContext(
+  client: AdvisorCapabilityClient,
+  directory: string,
+  skills: SkillSummary[],
+  request: ExecutorRequest | undefined,
+): Promise<string> {
+  const [mcp, tools] = await Promise.all([
+    client.mcp?.status({ query: { directory } }).catch(() => undefined),
+    request?.providerID && request.modelID
+      ? client.tool?.list({ query: { directory, provider: request.providerID, model: request.modelID } }).catch(() => undefined)
+      : undefined,
+  ]);
+  const servers = Object.entries(mcp?.data ?? {})
+    .map(([name, value]) => ({ name, status: typeof value.status === "string" ? value.status : "unknown" }))
+    .filter((server) => server.status === "connected")
+    .sort((left, right) => left.name.localeCompare(right.name));
+  const inventory = Array.isArray(tools?.data)
+    ? tools.data.flatMap((entry) => {
+        if (!entry || typeof entry !== "object") return [];
+        const item = entry as { id?: unknown; description?: unknown };
+        return item.id !== "invalid" && typeof item.id === "string" && typeof item.description === "string"
+          ? [{ id: item.id, description: truncate(item.description, 240) }]
+          : [];
+      })
+    : [];
+  return formatExecutorContext({ skills, mcp: servers, tools: inventory });
+}
 
 function str(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
@@ -602,6 +702,19 @@ export function buildClaudeArgs(input: Omit<ClaudeRunnerInput, "prompt">): strin
   ];
 }
 
+function claudeErrorText(stdout: string): string | undefined {
+  let parsed: { result?: unknown; is_error?: unknown; api_error_status?: unknown };
+  try {
+    parsed = JSON.parse(stdout) as typeof parsed;
+  } catch {
+    return undefined;
+  }
+  if (parsed.is_error !== true) return undefined;
+  const detail = str(parsed.result)?.trim();
+  const status = typeof parsed.api_error_status === "number" ? ` (HTTP ${parsed.api_error_status})` : "";
+  return detail ? `${detail}${status}` : `Claude Code reported an unsuccessful result.${status}`;
+}
+
 async function runClaude(input: ClaudeRunnerInput): Promise<string> {
   return new Promise((resolve, reject) => {
     mkdirSync(input.cwd, { recursive: true });
@@ -627,12 +740,17 @@ async function runClaude(input: ClaudeRunnerInput): Promise<string> {
     };
 
     child.once("error", (error) => finish(error));
-    child.stdout.on("data", (chunk: Buffer) => append("stdout", chunk));
-    child.stderr.on("data", (chunk: Buffer) => append("stderr", chunk));
-    child.once("close", (code, signal) => {
-      if (code === 0) return finish();
-      finish(new Error(`Claude Code exited with ${signal ? `signal ${signal}` : `code ${code}`}: ${stderr.trim()}`));
-    });
+      child.stdout.on("data", (chunk: Buffer) => append("stdout", chunk));
+      child.stderr.on("data", (chunk: Buffer) => append("stderr", chunk));
+      child.once("close", (code, signal) => {
+        if (code === 0) return finish();
+        const structuredError = claudeErrorText(stdout);
+        finish(
+          new Error(
+            structuredError ?? `Claude Code exited with ${signal ? `signal ${signal}` : `code ${code}`}: ${stderr.trim()}`,
+          ),
+        );
+      });
     child.stdin.once("error", (error) => finish(error));
     child.stdin.end(input.prompt);
   });
@@ -656,6 +774,7 @@ function parseClaudeOutput(stdout: string, configuredModel: string): ClaudeOutpu
     result?: unknown;
     session_id?: unknown;
     is_error?: unknown;
+    api_error_status?: unknown;
     total_cost_usd?: unknown;
     modelUsage?: unknown;
   };
@@ -664,7 +783,9 @@ function parseClaudeOutput(stdout: string, configuredModel: string): ClaudeOutpu
   } catch {
     throw new Error("Claude Code returned invalid JSON.");
   }
-  if (parsed.is_error === true) throw new Error("Claude Code reported an unsuccessful result.");
+  if (parsed.is_error === true) {
+    throw new Error(claudeErrorText(stdout) ?? "Claude Code reported an unsuccessful result.");
+  }
 
   const advice = str(parsed.result)?.trim();
   const sessionID = str(parsed.session_id);
@@ -827,6 +948,7 @@ async function runFreshOpenCodeAdvisor(
   directory: string,
   target: OpenCodeAdvisorTarget,
   transcript: string,
+  executorContext: string,
 ): Promise<AdvisorResult> {
   const prompt = resolveAdvisorPrompt(target.modelID);
   const label = modelLabel(target);
@@ -846,7 +968,7 @@ async function runFreshOpenCodeAdvisor(
       body: {
         model: { providerID: target.providerID, modelID: target.modelID },
         ...(target.variant !== undefined ? { variant: target.variant } : {}),
-        system: prompt.system,
+        system: withExecutorContext(prompt.system, executorContext),
         tools: CHILD_TOOL_OVERRIDES,
         parts: [{ type: "text", text: `Here is the executor's full transcript. Advise.\n\n${transcript}` }],
       },
@@ -884,6 +1006,7 @@ async function runContinuedOpenCodeAdvisor(
   directory: string,
   parentSessionID: string,
   target: OpenCodeAdvisorTarget,
+  executorContext: string,
   continuations: Map<string, NativeContinuation>,
   locks: Map<string, Promise<void>>,
   store?: ContinuationStore,
@@ -929,7 +1052,7 @@ async function runContinuedOpenCodeAdvisor(
         body: {
           model: { providerID: target.providerID, modelID: target.modelID },
           ...(target.variant !== undefined ? { variant: target.variant } : {}),
-          system: prompt.system,
+          system: withExecutorContext(prompt.system, executorContext),
           tools: CHILD_TOOL_OVERRIDES,
           parts: [
             {
@@ -995,6 +1118,7 @@ async function runClaudeCodeAdvisor(
   directory: string,
   parentSessionID: string,
   target: ClaudeCodeAdvisorTarget,
+  executorContext: string,
   runner: ClaudeRunner,
   continuations: Map<string, AdvisorContinuation>,
   locks: Map<string, Promise<void>>,
@@ -1023,7 +1147,7 @@ async function runClaudeCodeAdvisor(
           : `Here are the parent transcript messages added since your previous review. Advise.\n\n${transcript}`,
         model: target.modelID,
         effort: target.effort,
-        system: prompt.system,
+        system: withExecutorContext(prompt.system, executorContext),
         ...(rotate ? {} : { resume: previous.sessionID }),
       }),
       target.modelID,
@@ -1062,6 +1186,12 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
+function unavailableAdvisorMessage(failures: Array<{ label: string; error: string }>): string {
+  const sessionLimit = failures.find((failure) => /session limit/i.test(failure.error));
+  if (failures.length === 1 && sessionLimit) return `Advisor unavailable: ${sessionLimit.error} Continue without advisor.`;
+  return `Advisor unavailable; continuing without advisor.\n${failures.map((failure) => `${failure.label}: ${failure.error}`).join("\n")}`;
+}
+
 export function createAdvisorTool(
   client: SessionClient,
   claudeRunner: ClaudeRunner = runClaude,
@@ -1070,6 +1200,9 @@ export function createAdvisorTool(
   continuedNativeAdvisors = nativeContinuations,
   nativeLocks = nativeContinuationLocks,
   store?: ContinuationStore,
+  skillsBySession = new Map<string, SkillSummary[]>(),
+  requestsBySession = new Map<string, ExecutorRequest>(),
+  capabilities: AdvisorCapabilityClient = {},
 ): ToolDefinition {
   return {
     description: ADVISOR_DESCRIPTION,
@@ -1078,9 +1211,11 @@ export function createAdvisorTool(
       await store?.prune(ctx.directory);
       let targets: AdvisorTarget[];
       let nativeMode: NativeAdvisorMode;
+      let includeExecutorContext: boolean;
       try {
         targets = resolveAdvisorTargets();
         nativeMode = resolveNativeAdvisorMode();
+        includeExecutorContext = executorContextEnabled();
       } catch (error) {
         return `Error: ${errorText(error)}`;
       }
@@ -1102,7 +1237,8 @@ export function createAdvisorTool(
       }
       const messages = history.data;
 
-      const executorModelID = messages.find((message) => message.info?.id === ctx.messageID)?.info?.modelID;
+      const executor = messages.find((message) => message.info?.id === ctx.messageID);
+      const executorModelID = executor?.info?.modelID;
       const eligible = targets.filter(
         (target) => target.harness === "claude-code" || !advisorUnavailable(executorModelID, target.modelID),
       );
@@ -1118,17 +1254,26 @@ export function createAdvisorTool(
       if (transcript.length === 0) {
         return "Error: the transcript is empty; there is nothing to advise on yet.";
       }
+      const executorContext = includeExecutorContext
+        ? await collectExecutorContext(
+            capabilities,
+            ctx.directory,
+            skillsBySession.get(ctx.sessionID) ?? [],
+            { modelID: executorModelID, providerID: executor?.info?.providerID ?? requestsBySession.get(ctx.sessionID)?.providerID },
+          )
+        : "";
 
       const settled = await Promise.allSettled(
         eligible.map((target) =>
           target.harness === "opencode"
             ? nativeMode === "fresh"
-              ? runFreshOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript)
+              ? runFreshOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript, executorContext)
               : runContinuedOpenCodeAdvisor(
                   client,
                   ctx.directory,
                   ctx.sessionID,
                   target,
+                  executorContext,
                    continuedNativeAdvisors,
                    nativeLocks,
                    store,
@@ -1138,6 +1283,7 @@ export function createAdvisorTool(
                 ctx.directory,
                 ctx.sessionID,
                 target,
+                executorContext,
                 claudeRunner,
                  continuations,
                  continuationLocks,
@@ -1150,10 +1296,7 @@ export function createAdvisorTool(
         result.status === "rejected" ? [{ label: targetLabel(eligible[index]!), error: errorText(result.reason) }] : [],
       );
       if (successes.length === 0) {
-        if (targets.length === 1 && failures.length === 1) {
-          return `Error: ${failures[0]!.error}`;
-        }
-        return `Error: all advisor targets failed:\n${failures.map((failure) => `${failure.label}: ${failure.error}`).join("\n")}`;
+        return unavailableAdvisorMessage(failures);
       }
 
       const legacySingleNative =
@@ -1185,20 +1328,37 @@ const AdvisorPlugin: PluginModule = {
   id: "advisor",
   server: async ({ client, directory }) => {
     const store = createFileContinuationStore();
+    const skillsBySession = new Map<string, SkillSummary[]>();
+    const requestsBySession = new Map<string, ExecutorRequest>();
+    const api = client as unknown as { session: SessionClient; mcp?: AdvisorCapabilityClient["mcp"]; tool?: AdvisorCapabilityClient["tool"] };
     await store.prune(directory);
     return {
       tool: {
         advisor: createAdvisorTool(
-          (client as unknown as { session: SessionClient }).session,
+          api.session,
           runClaude,
           claudeContinuations,
           claudeContinuationLocks,
           nativeContinuations,
           nativeContinuationLocks,
           store,
+          skillsBySession,
+          requestsBySession,
+          { mcp: api.mcp, tool: api.tool },
         ),
       },
+      "chat.params": async (input) => {
+        requestsBySession.set(input.sessionID, {
+          modelID: input.model.id,
+          providerID: (input.provider as unknown as { id?: string }).id ?? input.model.providerID,
+        });
+      },
       "experimental.chat.system.transform": async (input, output) => {
+        if (executorContextEnabled() && input.sessionID) {
+          const skills = extractAvailableSkills(output.system);
+          const previous = skillsBySession.get(input.sessionID);
+          if (skills.length >= (previous?.length ?? 0)) skillsBySession.set(input.sessionID, skills);
+        }
         const prompt = advisorAvailabilityPrompt(input.model.id);
         if (prompt) output.system.push(prompt);
       },

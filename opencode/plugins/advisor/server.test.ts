@@ -9,7 +9,10 @@ import AdvisorPlugin, {
   claudeAdvisorDirectory,
   createFileContinuationStore,
   createAdvisorTool,
+  executorContextEnabled,
+  extractAvailableSkills,
   extractUsage,
+  formatExecutorContext,
   resolveNativeAdvisorMode,
   resolveAdvisorPrompt,
   resolveAdvisorTargets,
@@ -144,6 +147,40 @@ describe("resolveAdvisorPrompt", () => {
   });
 });
 
+describe("extractAvailableSkills", () => {
+  it("keeps only advertised skill names and bounded descriptions", () => {
+    const skills = extractAvailableSkills([
+      "unrelated prompt text",
+      "<available_skills><skill><name>review</name><description>Review code changes carefully.</description><location>/skills/review/SKILL.md</location></skill></available_skills>",
+    ]);
+
+    expect(skills).toEqual([{ name: "review", description: "Review code changes carefully." }]);
+  });
+
+  it("returns no skills when the prompt has no available-skills block", () => {
+    expect(extractAvailableSkills(["ordinary system prompt"])).toEqual([]);
+  });
+
+  it("bounds the rendered capability block", () => {
+    const context = formatExecutorContext({
+      skills: Array.from({ length: 100 }, (_, index) => ({ name: `skill-${index}`, description: "x".repeat(240) })),
+      mcp: [],
+      tools: [],
+    });
+
+    expect(context.length).toBeLessThanOrEqual(12_000);
+    expect(context).toContain("[Capability metadata truncated.]");
+  });
+});
+
+describe("executorContextEnabled", () => {
+  it("defaults to enabled and accepts explicit false values", () => {
+    expect(executorContextEnabled(undefined)).toBe(true);
+    expect(executorContextEnabled("false")).toBe(false);
+    expect(executorContextEnabled("0")).toBe(false);
+  });
+});
+
 describe("selectAdvisorMessages", () => {
   it("keeps all messages when the session has not compacted", () => {
     const messages = [{ info: { role: "user" }, parts: [{ type: "text", text: "Keep this." }] }];
@@ -240,6 +277,198 @@ describe("extractUsage", () => {
 });
 
 describe("advisor", () => {
+  it("skips capability collection when executor context is disabled", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_EXECUTOR_CONTEXT", "false");
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    const capabilities = {
+      mcp: { status: vi.fn() },
+      tool: { list: vi.fn() },
+    };
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+        Promise.resolve({
+          data: path.id === "parent" ? [{ info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Review." }] }] : [],
+        }),
+      ),
+      create: vi.fn().mockResolvedValue({ data: { id: "advisor-session" } }),
+      prompt,
+      delete: vi.fn().mockResolvedValue({}),
+    };
+    const tool = createAdvisorTool(
+      client,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      new Map([["parent", [{ name: "review", description: "Review changes." }]]]),
+      new Map([["parent", { providerID: "openai" }]]),
+      capabilities,
+    );
+
+    await (tool.execute as Function)({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() });
+
+    expect(capabilities.mcp.status).not.toHaveBeenCalled();
+    expect(capabilities.tool.list).not.toHaveBeenCalled();
+    expect(prompt.mock.calls[0]![0].body.system).not.toContain("Executor Runtime Context");
+  });
+
+  it("refreshes connected MCP servers on every advisor call", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
+    vi.stubEnv("OPENCODE_ADVISOR_NATIVE_MODE", "continuation");
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    let parentMessages = [
+      { info: { id: "tool-1", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "First review." }] },
+    ];
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+        Promise.resolve({ data: path.id === "parent" ? parentMessages : [] }),
+      ),
+      create: vi.fn().mockResolvedValue({ data: { id: "advisor-session" } }),
+      prompt,
+      delete: vi.fn().mockResolvedValue({}),
+    };
+    const mcpStatus = vi
+      .fn()
+      .mockResolvedValueOnce({ data: { docs: { status: "connected" } } })
+      .mockResolvedValueOnce({ data: { docs: { status: "disabled" } } });
+    const tool = createAdvisorTool(
+      client,
+      undefined,
+      new Map(),
+      new Map(),
+      new Map(),
+      new Map(),
+      undefined,
+      new Map(),
+      new Map([["parent", { providerID: "openai" }]]),
+      { mcp: { status: mcpStatus } },
+    );
+
+    await (tool.execute as Function)({}, { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() });
+    parentMessages = [
+      ...parentMessages,
+      { info: { id: "tool-2", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Second review." }] },
+    ];
+    await (tool.execute as Function)({}, { sessionID: "parent", messageID: "tool-2", directory: "/workspace", metadata: vi.fn() });
+
+    expect(mcpStatus).toHaveBeenCalledTimes(2);
+    expect(prompt.mock.calls[0]![0].body.system).toContain("- docs: connected");
+    expect(prompt.mock.calls[1]![0].body.system).not.toContain("- docs:");
+  });
+
+  it("forwards structured executor capabilities without retaining the raw system prompt", async () => {
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    const parentMessages = [
+      {
+        info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" },
+        parts: [{ type: "text", text: "Please review the approach." }],
+      },
+    ];
+    const client = {
+      session: {
+        get: vi.fn().mockResolvedValue({ data: {} }),
+        messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "parent" ? parentMessages : [] }),
+        ),
+        create: vi.fn().mockResolvedValue({ data: { id: "advisor-session" } }),
+        prompt,
+        delete: vi.fn().mockResolvedValue({}),
+      },
+      mcp: {
+        status: vi.fn().mockResolvedValue({
+          data: { docs: { status: "connected" }, disabled: { status: "disabled" } },
+        }),
+      },
+      tool: {
+        list: vi.fn().mockResolvedValue({
+          data: [
+            { id: "invalid", description: "Do not use." },
+            { id: "read", description: "Read a local file." },
+          ],
+        }),
+      },
+    };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client; directory: string }): Promise<{
+        tool: Record<string, { execute: Function }>;
+        "chat.params"(input: { sessionID: string; model: { id: string; providerID: string }; provider: { id: string } }): Promise<void>;
+        "experimental.chat.system.transform"(
+          input: { sessionID: string; model: { id: string } },
+          output: { system: string[] },
+        ): Promise<void>;
+      }>;
+    };
+    const hooks = await plugin.server({ client, directory: "/workspace" });
+
+    await hooks["chat.params"]({
+      sessionID: "parent",
+      model: { id: "gpt-5.6-luna", providerID: "openai" },
+      provider: { id: "openai" },
+    });
+    await hooks["experimental.chat.system.transform"](
+      { sessionID: "parent", model: { id: "gpt-5.6-luna" } },
+      {
+        system: [
+          "<available_skills><skill><name>review</name><description>Review changes before commit.</description></skill></available_skills>",
+        ],
+      },
+    );
+    await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() });
+
+    expect(prompt).toHaveBeenCalledWith(
+      expect.objectContaining({
+        body: expect.objectContaining({
+          system: expect.stringContaining("- review: Review changes before commit."),
+        }),
+      }),
+    );
+    const system = prompt.mock.calls[0]![0].body.system;
+    expect(system).toContain("- docs: connected");
+    expect(system).toContain("- read: Read a local file.");
+    expect(system).not.toContain("disabled: disabled");
+    expect(system).not.toContain("invalid: Do not use.");
+    expect(system).not.toContain("<available_skills>");
+  });
+
+  it("retains prototype-backed SDK session methods", async () => {
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    class PrototypeSession {
+      get(_input: unknown) {
+        return Promise.resolve({ data: {} });
+      }
+      messages(input: { path: { id: string } }) {
+        return Promise.resolve({
+          data:
+            input.path.id === "parent"
+              ? [{ info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Review." }] }]
+              : [],
+        });
+      }
+      create(_input: unknown) {
+        return Promise.resolve({ data: { id: "advisor-session" } });
+      }
+      prompt(input: unknown) {
+        return prompt(input);
+      }
+      delete(_input: unknown) {
+        return Promise.resolve({});
+      }
+    }
+    const client = { session: new PrototypeSession() };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: typeof client; directory: string }): Promise<{ tool: Record<string, { execute: Function }> }>;
+    };
+    const hooks = await plugin.server({ client, directory: "/workspace" });
+
+    await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() });
+
+    expect(prompt).toHaveBeenCalledOnce();
+  });
+
   it("tells equal-or-stronger GPT-5.6 executors not to call the advisor", () => {
     vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-terra");
 
@@ -961,6 +1190,80 @@ describe("advisor", () => {
     expect(result.metadata.failures).toEqual([
       { label: "opencode:openai/gpt-5.6-sol@high", error: "could not open an advisor session (native unavailable)." },
     ]);
+  });
+
+  it("continues without Claude when the session limit is reached", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    const runner = vi.fn().mockResolvedValue(
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        api_error_status: 429,
+        result: "You've hit your session limit · resets 5pm (America/Chicago)",
+        session_id: "claude-session",
+      }),
+    );
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [
+          { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+        ],
+      }),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+
+    const result = await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(result).toContain("Advisor unavailable:");
+    expect(result).toContain("You've hit your session limit · resets 5pm (America/Chicago) (HTTP 429)");
+    expect(result).toContain("Continue without advisor.");
+    expect(result).not.toMatch(/^Error:/);
+  });
+
+  it("reports every unavailable target without stopping the executor", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "opencode:openai/gpt-5.6-sol@high,claude-code:fable@high");
+    const runner = vi.fn().mockResolvedValue(
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        api_error_status: 429,
+        result: "You've hit your session limit · resets 5pm (America/Chicago)",
+        session_id: "claude-session",
+      }),
+    );
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [
+          { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+        ],
+      }),
+      create: vi.fn().mockResolvedValue({ error: "native unavailable" }),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createAdvisorTool(client, runner, new Map());
+
+    const result = await (tool.execute as Function)(
+      {},
+      { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() },
+    );
+
+    expect(result).toContain("Advisor unavailable; continuing without advisor.");
+    expect(result).toContain("opencode:openai/gpt-5.6-sol@high: could not open an advisor session (native unavailable).");
+    expect(result).toContain("claude-code:fable@high: You've hit your session limit · resets 5pm (America/Chicago) (HTTP 429)");
+    expect(result).not.toMatch(/^Error:/);
   });
 
   it("uses the configured Claude family instead of an earlier preflight modelUsage entry", async () => {
