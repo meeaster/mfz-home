@@ -42,6 +42,41 @@ skills:
     skill: domain-modeling
     description: >
       Actively build and sharpen the project's domain model as you design.
+  - name: ce-brainstorm
+    source: git
+    repo: https://github.com/EveryInc/compound-engineering-plugin
+    skill: ce-brainstorm
+    description: >
+      Clarify a feature or problem through grounded, one-question-at-a-time exploration and
+      produce a requirements-only plan for downstream implementation planning.
+  - name: ce-plan
+    source: git
+    repo: https://github.com/EveryInc/compound-engineering-plugin
+    skill: ce-plan
+    description: >
+      Enrich requirements into an implementation-ready plan with decisions, work units, risks,
+      dependencies, and test scenarios.
+  - name: ce-doc-review
+    source: git
+    repo: https://github.com/EveryInc/compound-engineering-plugin
+    skill: ce-doc-review
+    description: >
+      Review requirements and implementation plans for coherence, feasibility, scope, design,
+      and other context-sensitive gaps.
+  - name: ce-pov
+    source: git
+    repo: https://github.com/EveryInc/compound-engineering-plugin
+    skill: ce-pov
+    description: >
+      Evaluate an external technology, library, pattern, or workflow against the current project
+      and return a grounded adoption verdict.
+  - name: ce-compound
+    source: git
+    repo: https://github.com/EveryInc/compound-engineering-plugin
+    skill: ce-compound
+    description: >
+      Capture reusable lessons from solved problems, architecture decisions, tooling choices, and
+      project vocabulary for future agent sessions.
   - name: home-assistant-best-practices
     source: git
     repo: https://github.com/homeassistant-ai/skills

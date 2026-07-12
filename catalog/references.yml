@@ -5,6 +5,9 @@ references:
   - name: openspec
     url: https://github.com/Fission-AI/OpenSpec.git
     description: "TypeScript spec-driven development framework (npm @fission-ai/openspec) for collaboratively authoring software specifications, change proposals, and implementation plans. Defines spec schema, CLI commands (/opsx:propose, /opsx:apply), and workflow conventions for spec-first development under openspec/changes/."
+  - name: compound-engineering-plugin
+    url: https://github.com/EveryInc/compound-engineering-plugin.git
+    description: "Cross-harness plugin for compound engineering workflows, including planning, implementation, review, and reusable command- and skill-based development artifacts."
   - name: mise
     url: https://github.com/jdx/mise.git
     description: "Rust-based CLI (github.com/jdx/mise) combining dev tool version management, per-project environment variables, and task running into a single mise.toml. Installs and switches between hundreds of tools (node, python, terraform, etc.) without shims."

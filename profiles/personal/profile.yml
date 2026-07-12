@@ -13,11 +13,22 @@ agents: [opencode, claude-code, codex, pi]
 references:
   - axis
   - clack
+  - compound-engineering-plugin
   - openwiki
   - deepagents
   - vercel-ai
   - ha-mcp
 skills:
+  ce-brainstorm:
+    agents: { opencode: true, claude-code: true, codex: true }
+  ce-plan:
+    agents: { opencode: true, claude-code: true, codex: true }
+  ce-doc-review:
+    agents: { opencode: true, claude-code: true, codex: true }
+  ce-pov:
+    agents: { opencode: true, claude-code: true, codex: true }
+  ce-compound:
+    agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
