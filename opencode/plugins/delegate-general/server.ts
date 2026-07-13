@@ -21,6 +21,7 @@ export type PermissionRule = {
 export type AllowedModel = {
   id: string;
   variants: string[];
+  description?: string;
 };
 
 export type DelegateGeneralConfig = {
@@ -71,7 +72,9 @@ export function resolveCallableAgent(list: AgentInfo[], name: string): Result<Ag
 
 export function modelCatalogDescription(models: AllowedModel[]): string {
   if (models.length === 0) return "No models are configured.";
-  return models.map((model) => `${model.id} (${model.variants.join(", ")})`).join("; ");
+  return models
+    .map((model) => `${model.id} (${model.variants.join(", ")})${model.description ? `: ${model.description}` : ""}`)
+    .join("; ");
 }
 
 export function validateModelSelection(
@@ -133,7 +136,12 @@ export function buildChildSessionPermissions(input: {
       permission: toolName,
       pattern: "*",
       action: "allow" as const
-    }))
+    })),
+    {
+      permission: "delegate_general",
+      pattern: "*",
+      action: "deny"
+    }
   ];
 }
 
@@ -145,13 +153,15 @@ export function buildToolOverrides(input: {
     todowrite: false,
     todoread: false,
     ...(input.allowTask ? {} : { task: false }),
-    ...Object.fromEntries((input.primaryTools ?? []).map((toolName) => [toolName, false]))
+    ...Object.fromEntries((input.primaryTools ?? []).map((toolName) => [toolName, false])),
+    delegate_general: false
   };
 }
 
 const modelEntrySchema = z.object({
   id: z.string().min(1),
-  variants: z.array(z.string().min(1)).min(1)
+  variants: z.array(z.string().min(1)).min(1),
+  description: z.string().min(1).optional()
 });
 
 const delegateGeneralConfigSchema = z.object({
@@ -165,7 +175,7 @@ export function parseDelegateGeneralConfig(input: unknown): DelegateGeneralConfi
   return {
     models: parsed.data.models.flatMap((item) => {
       const model = modelEntrySchema.safeParse(item);
-      return model.success ? [{ id: model.data.id, variants: model.data.variants }] : [];
+      return model.success ? [model.data] : [];
     })
   };
 }
@@ -341,10 +351,16 @@ export async function createDelegateGeneralTool(input: {
       prompt: tool.schema
         .string()
         .describe("Detailed general-purpose task prompt; prefer a better-fitting specialized subagent when available"),
-      model: tool.schema.string().describe(`Exact allowlisted model ID. Choices: ${catalog}`),
+      model: tool.schema
+        .string()
+        .describe(
+          `Exact allowlisted model ID. Choices: ${catalog}. Choose the smallest capable allowlisted model for the task; use a higher-capability model only when ambiguity or stakes justify it.`
+        ),
       variant: tool.schema
         .string()
-        .describe("Required reasoning level supported by the selected model"),
+        .describe(
+          "Required reasoning level supported by the selected model. low: bounded or straightforward work; medium: normal multi-step reasoning; high: difficult reasoning or review; xhigh: deep research or long-running work; max: quality-first work requiring extra exploration and verification."
+        ),
       task_id: tool.schema
         .string()
         .optional()

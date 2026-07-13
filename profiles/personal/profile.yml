@@ -18,17 +18,12 @@ references:
   - deepagents
   - vercel-ai
   - ha-mcp
+extra_folders:
+  - path: /tmp/compound-engineering
+    description: Compound Engineering temporary scratch files for brainstorm grounding and repository profiles
+  - path: /home/mark/.mindframe-z/stores/mindframe-z-specs
+    description: Standalone OpenSpec store for Mindframe-Z change proposals, specifications, and task ledgers — needed when planning or implementing canonical home workspace changes
 skills:
-  ce-brainstorm:
-    agents: { opencode: true, claude-code: true, codex: true }
-  ce-plan:
-    agents: { opencode: true, claude-code: true, codex: true }
-  ce-doc-review:
-    agents: { opencode: true, claude-code: true, codex: true }
-  ce-pov:
-    agents: { opencode: true, claude-code: true, codex: true }
-  ce-compound:
-    agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
@@ -65,7 +60,12 @@ opencode:
         variant: medium
   delegate_general:
     models:
+      - id: openai/gpt-5.6-luna
+        variants: [low, medium, high, xhigh, max]
+        description: Fast, cost-efficient model for extraction, retrieval, summaries, mechanical checks, and lightweight agents; normally use low or medium for bounded non-coding work, high or xhigh as coding tradeoffs, and max only for quality-first Luna runs when the measured gain justifies the cost.
       - id: openai/gpt-5.6-terra
-        variants: [none, low, medium, high, xhigh]
+        variants: [low, medium, high, xhigh]
+        description: Balanced model for everyday interactive and agentic work; normally use medium reasoning, or high for difficult bounded tasks.
       - id: openai/gpt-5.6-sol
-        variants: [none, low, medium, high, xhigh]
+        variants: [low, medium, high, xhigh]
+        description: Frontier model for ambiguous synthesis, difficult reasoning, long-horizon work, and high-stakes review; normally use medium or higher reasoning.

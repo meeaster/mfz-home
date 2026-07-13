@@ -37,7 +37,7 @@ Also call advisor:
 - When stuck -- errors recurring, approach not converging, results that don't fit.
 - When considering a change of approach.
 
-On tasks longer than a few steps, call advisor at least once before committing to an approach and once before declaring done. On short reactive tasks where the next action is dictated by tool output you just read, you don't need to keep calling -- the advisor adds most of its value on the first call, before the approach crystallizes.
+On tasks longer than a few steps, call advisor periodically at meaningful checkpoints: after a major implementation unit or test gate, before broad or irreversible changes, and before declaring done. Treat blocking checkpoint advice as a gate: resolve it or reconcile the conflict before continuing. On short reactive tasks where the next action is dictated by tool output you just read, you don't need to keep calling -- the advisor adds most of its value on the first call, before the approach crystallizes.
 
 Give the advice serious weight. If you follow a step and it fails empirically, or you have primary-source evidence that contradicts a specific claim (the file says X, the paper states Y), adapt. A passing self-test is not evidence the advice is wrong -- it's evidence your test doesn't check what the advice is checking.
 

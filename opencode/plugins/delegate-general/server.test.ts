@@ -25,8 +25,21 @@ import plugin, {
 } from "./server.js";
 
 const models = [
-  { id: "openai/gpt-5.6-terra", variants: ["none", "low", "medium", "high", "xhigh"] },
-  { id: "openai/gpt-5.6-sol", variants: ["none", "low", "medium", "high", "xhigh"] }
+  {
+    id: "openai/gpt-5.6-luna",
+    variants: ["low", "medium", "high", "xhigh", "max"],
+    description: "cost-efficient model"
+  },
+  {
+    id: "openai/gpt-5.6-terra",
+    variants: ["low", "medium", "high", "xhigh"],
+    description: "balanced model"
+  },
+  {
+    id: "openai/gpt-5.6-sol",
+    variants: ["low", "medium", "high", "xhigh"],
+    description: "frontier model"
+  }
 ];
 
 describe("agent selection", () => {
@@ -41,31 +54,46 @@ describe("agent selection", () => {
 describe("model catalog", () => {
   it("renders direct IDs and supported reasoning levels", () => {
     expect(modelCatalogDescription(models)).toBe(
-      "openai/gpt-5.6-terra (none, low, medium, high, xhigh); openai/gpt-5.6-sol (none, low, medium, high, xhigh)"
+      "openai/gpt-5.6-luna (low, medium, high, xhigh, max): cost-efficient model; openai/gpt-5.6-terra (low, medium, high, xhigh): balanced model; openai/gpt-5.6-sol (low, medium, high, xhigh): frontier model"
     );
   });
 
   it("requires an exact allowlisted model and reasoning level", () => {
+    expect(validateModelSelection(models, "openai/gpt-5.6-luna", "max").ok).toBe(true);
     expect(validateModelSelection(models, "openai/gpt-5.6-sol", "high").ok).toBe(true);
     expect(validateModelSelection(models, "opencode-go/glm-5.2", "high")).toMatchObject({ ok: false });
+    expect(validateModelSelection(models, "openai/gpt-5.6-luna", "none")).toMatchObject({ ok: false });
+    expect(validateModelSelection(models, "openai/gpt-5.6-terra", "none")).toMatchObject({ ok: false });
+    expect(validateModelSelection(models, "openai/gpt-5.6-sol", "none")).toMatchObject({ ok: false });
+    expect(validateModelSelection(models, "openai/gpt-5.6-terra", "max")).toMatchObject({ ok: false });
     expect(validateModelSelection(models, "openai/gpt-5.6-sol", "max")).toMatchObject({ ok: false });
+  });
+
+  it("preserves optional model descriptions from configuration", () => {
+    expect(parseDelegateGeneralConfig({ models })).toEqual({ models });
+    expect(parseDelegateGeneralConfig({ models: [{ id: "openai/gpt-5.6-terra", variants: ["low"] }] })).toEqual({
+      models: [{ id: "openai/gpt-5.6-terra", variants: ["low"] }]
+    });
   });
 });
 
 describe("delegation helpers", () => {
   it("keeps the existing child permission policy", () => {
     expect(
-      buildChildSessionPermissions({ allowTask: false, primaryTools: ["question"] })
+      buildChildSessionPermissions({ allowTask: false, primaryTools: ["question", "delegate_general"] })
     ).toEqual([
       { permission: "todowrite", pattern: "*", action: "deny" },
       { permission: "todoread", pattern: "*", action: "deny" },
       { permission: "task", pattern: "*", action: "deny" },
-      { permission: "question", pattern: "*", action: "allow" }
+      { permission: "question", pattern: "*", action: "allow" },
+      { permission: "delegate_general", pattern: "*", action: "allow" },
+      { permission: "delegate_general", pattern: "*", action: "deny" }
     ]);
-    expect(buildToolOverrides({ allowTask: false, primaryTools: ["question"] })).toEqual({
+    expect(buildToolOverrides({ allowTask: false, primaryTools: ["question", "delegate_general"] })).toEqual({
       todowrite: false,
       todoread: false,
       task: false,
+      delegate_general: false,
       question: false
     });
   });

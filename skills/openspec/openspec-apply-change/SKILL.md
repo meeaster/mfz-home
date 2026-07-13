@@ -1,15 +1,25 @@
 ---
 name: openspec-apply-change
 description: Implement tasks from an OpenSpec change. Use when the user wants to start implementing, continue implementation, or work through tasks.
+allowed-tools: Bash(openspec:*)
 license: MIT
 compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.4.0"
+  generatedBy: "1.6.0"
 ---
 
 Implement tasks from an OpenSpec change.
+
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+
+**Store and implementation workspace:** A standalone store is the planning root, not the code
+workspace. Keep source edits in the current code repository and use the selected store for OpenSpec
+artifacts and task state. An explicit `--store` flag changes where OpenSpec commands act; it does not
+change the coordinator's working directory. If the current directory is the store itself, or more
+than one code repository is a plausible target, ask the user to select the implementation workspace
+before editing. A workset can identify candidate repositories but does not authorize edits.
 
 **Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
@@ -29,9 +39,9 @@ Implement tasks from an OpenSpec change.
    openspec status --change "<name>" --json
    ```
    Parse the JSON to understand:
-   - `schemaName`: The workflow being used (e.g., "spec-driven")
-   - `planningHome`, `changeRoot`, and `actionContext`: planning scope and edit constraints
-   - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
+    - `schemaName`: The workflow being used (e.g., "spec-driven")
+    - `planningHome`, `changeRoot`, and `actionContext`: planning scope and workspace-selection constraints
+    - Which artifact contains the tasks (typically "tasks" for spec-driven, check status for others)
 
 3. **Get apply instructions**
 
@@ -52,6 +62,10 @@ Implement tasks from an OpenSpec change.
 
    **Workspace guard:** If status JSON reports `actionContext.mode: "workspace-planning"` and `allowedEditRoots` is empty, explain that full workspace apply is not supported in this slice. Treat linked repos and folders as read-only context, ask the user to select an affected area through an explicit implementation workflow, and STOP before editing files.
 
+   Do not treat a selected store's `allowedEditRoots` as the implementation workspace. OpenSpec
+   resolves the planning root separately from the current code repository; preserve this distinction
+   while reading artifacts and editing source.
+
 4. **Read context files**
 
    Read every file path listed under `contextFiles` from the apply instructions output.
@@ -66,10 +80,13 @@ Implement tasks from an OpenSpec change.
    - Progress: "N/M tasks complete"
    - Remaining tasks overview
    - Dynamic instruction from CLI
+   - Implementation workspace and OpenSpec planning root
 
 6. **Implement tasks (loop until done or blocked)**
 
-   For each pending task:
+   Keep source edits in the selected implementation workspace and task-artifact edits in the OpenSpec
+   planning root. For each pending task:
+
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
@@ -150,6 +167,8 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
+- Keep source edits in the implementation workspace and OpenSpec artifact edits in the planning root
+- Do not infer an implementation workspace from a selected store; ask when the target is ambiguous
 
 **Fluid Workflow Integration**
 

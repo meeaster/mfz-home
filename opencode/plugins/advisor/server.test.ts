@@ -277,6 +277,14 @@ describe("extractUsage", () => {
 });
 
 describe("advisor", () => {
+  it("guides periodic reviews during long implementations", () => {
+    const tool = createAdvisorTool({} as Parameters<typeof createAdvisorTool>[0]);
+
+    expect(tool.description).toContain("periodically at meaningful checkpoints");
+    expect(tool.description).toContain("after a major implementation unit or test gate");
+    expect(tool.description).toContain("Treat blocking checkpoint advice as a gate");
+  });
+
   it("skips capability collection when executor context is disabled", async () => {
     vi.stubEnv("OPENCODE_ADVISOR_EXECUTOR_CONTEXT", "false");
     const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });

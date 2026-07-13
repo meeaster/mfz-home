@@ -61,11 +61,17 @@ skills:
   openspec-propose:
     agents: { opencode: true, claude-code: true, codex: true }
     toggleable: false
+  openspec-update-change:
+    agents: { opencode: true, claude-code: true, codex: true }
+    toggleable: false
   openspec-sync-specs:
     agents: { opencode: true, claude-code: true, codex: true }
     toggleable: false
   openspec-verify-change:
     agents: { opencode: true, claude-code: true, codex: true }
+    toggleable: false
+  openspec-orchestrate:
+    agents: { opencode: true, claude-code: false, codex: false }
     toggleable: false
   skill-writer:
     agents: { opencode: false, claude-code: false, codex: false }

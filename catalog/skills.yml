@@ -208,6 +208,11 @@ skills:
     description: >
       Propose a new change with all artifacts generated in one step. Use when quickly describing what to build and
       getting a complete proposal with design, specs, and tasks ready for implementation.
+  - name: openspec-update-change
+    source: local
+    skill: openspec-update-change
+    description: >
+      Revise an OpenSpec change's existing planning artifacts and keep them coherent without editing implementation code.
   - name: openspec-sync-specs
     source: local
     skill: openspec-sync-specs
@@ -220,6 +225,11 @@ skills:
     description: >
       Verify a change is ready for implementation. Use when checking if all required artifacts are complete and the
       change can proceed to implementation.
+  - name: openspec-orchestrate
+    source: local
+    skill: openspec-orchestrate
+    description: >
+      Plan and coordinate an OpenSpec implementation as a standalone, plan-first workflow.
   - name: pr-writer
     source: local
     skill: pr-writer
