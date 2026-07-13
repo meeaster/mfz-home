@@ -44,8 +44,6 @@ claude:
     permissions:
       defaultMode: auto
 opencode:
-  plugins:
-    - codex-identity
   config:
     permission:
       read:
