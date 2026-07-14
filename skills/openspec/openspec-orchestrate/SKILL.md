@@ -156,8 +156,8 @@ Copy each `contextFiles` path verbatim into the delegate prompt. Before calling 
 compare the complete delegated path list with the Apply output and confirm that no path is missing,
 added, or changed. Stop with an incomplete preparation report if the lists differ.
 
-Use this prompt shape. Fill in concrete paths and identifiers from the Apply preparation output;
-do not replace the required fields with a short summary.
+Use this prompt verbatim except for replacing its angle-bracket placeholders with concrete values
+from the Apply preparation output. Do not compress, summarize, rename, reorder, or omit its fields.
 
 ```text
 Perform a READ-ONLY OpenSpec orchestration-planning pass.
@@ -215,6 +215,10 @@ every delegated implementation group must use `openai/gpt-5.6-luna` at `xhigh`.
 
 Required output:
 
+0. Context-read attestation
+   - State `Read all <N> context paths` with the exact count supplied in this prompt.
+   - List any unreadable path instead and return an incomplete planning report.
+
 1. Contract summary
    - Restate requested behavior and boundaries from the OpenSpec artifacts.
    - State explicit non-goals and operator-gated actions.
@@ -236,7 +240,7 @@ Required output:
     - likely files to create or modify, with exact proposed write paths;
     - explicit write ownership, including generated outputs written by any proposed gate, or an
       explicit coordinator-owned designation for those outputs;
-   - explicit out-of-scope files;
+   - explicit out-of-scope files; include this field even for a no-write verification group;
    - relevant repository patterns and semantic seams;
    - dependencies and blocked-by relationships;
    - focused verification commands and pass gates;
@@ -264,6 +268,9 @@ Required output:
      * mandatory split or handoff: roughly 480k-540k;
      * rough payload/context conversion: payload divided by 2.4-2.7;
      * more than roughly 35 candidate read files is a caution signal.
+    - Report every payload estimate in characters. If token equivalents are useful, label them
+      separately and derive them from the character estimate; never substitute token counts for the
+      character-based calibration bands.
     - For each proposed worker, distinguish unique reads from reads likely to be repeated across
       fresh sessions. Report total planned worker payload and the duplicated cross-group payload.
     - Count the complete OpenSpec context read set in every worker's payload. Those repeated reads
@@ -315,12 +322,13 @@ It must identify shared semantic contracts even when files look separate. It mus
 read-only context path from a writable implementation path and call out external stores, generated
 files, migrations, and real-home operations.
 
-**Completion criterion:** one planning result exists from the requested model, states that every
-context path was read, contains a one-to-one mapping for every pending task found in the task
-artifact, names its execution mode and waves, defines fresh-session model routing, candidate read
-and exact proposed write sets, shared-file ownership, repeated-read payload, context-budget
-tradeoffs, focused gates, and every unresolved boundary. If any field is missing, stop and report
-the incomplete plan instead of implementing from inference.
+**Completion criterion:** one planning result exists from the requested model, attests `Read all
+<N> context paths` with the supplied count, contains a one-to-one mapping for every pending task
+found in the task artifact, names its execution mode and waves, defines fresh-session model routing,
+candidate read and exact proposed write sets, gives every group an explicit out-of-scope field,
+reports payloads in characters, and covers shared-file ownership, repeated-read payload,
+context-budget tradeoffs, focused gates, and every unresolved boundary. If any field is missing,
+stop and report the incomplete plan instead of implementing from inference.
 
 ## 3. Validate And Announce The Plan
 
