@@ -1,2 +1,4 @@
 node_modules/
 .vitest/
+__pycache__/
+*.pyc
