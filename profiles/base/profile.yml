@@ -160,6 +160,17 @@ opencode:
     - rmslop
   agents:
     - research
+  delegate_general:
+    models:
+      - id: openai/gpt-5.6-luna
+        variants: [low, medium, high, xhigh, max]
+        description: Fast, cost-efficient model for extraction, retrieval, summaries, mechanical checks, and lightweight agents; normally use low or medium for bounded non-coding work, high or xhigh as coding tradeoffs, and max only for quality-first Luna runs when the measured gain justifies the cost.
+      - id: openai/gpt-5.6-terra
+        variants: [low, medium, high, xhigh]
+        description: Balanced model for everyday interactive and agentic work; normally use medium reasoning, or high for difficult bounded tasks.
+      - id: openai/gpt-5.6-sol
+        variants: [low, medium, high, xhigh]
+        description: Frontier model for ambiguous synthesis, difficult reasoning, long-horizon work, and high-stakes review; normally use medium or higher reasoning.
 codex:
   config:
     tui:
@@ -222,6 +233,13 @@ claude:
     attribution:
       commit: ""
       pr: ""
+    hooks:
+      SessionStart:
+        - hooks:
+            - command: bash '/home/mark/.claude/hooks/herdr-agent-state.sh' session
+              timeout: 10
+              type: command
+          matcher: "*"
 
 extra_folders:
   - path: ~/.mindframe-z
