@@ -17,10 +17,17 @@ uv tool install datacurve-pier
 Confirm the host OpenCode credential and model:
 
 ```bash
-opencode auth list
 opencode --version
+opencode auth list
 opencode models openai --verbose
 ```
+
+OpenCode `1.17.20` or newer is required. Each run must pin the container to
+the same version reported by the local CLI; do not rely on Pier's cached
+`@latest` agent layer.
+
+OpenCode `1.17.20+` sends the required Codex-compatible identity headers
+natively, so no separate identity plugin is needed.
 
 The existing OAuth credential is stored at:
 
@@ -61,18 +68,25 @@ export PIER_SITECUSTOMIZE="$HOME/.mindframe-z/homes/personal/tools/deepswe/pier-
 
 ## Common Variables
 
+Run the version check before constructing any Pier command, then use that exact
+version for every test run:
+
+```bash
+export OPENCODE_VERSION="$(opencode --version)"
+printf 'Using OpenCode %s\n' "$OPENCODE_VERSION"
+```
+
 Choose one task directory. This example is intentionally bounded:
 
 ```bash
 export DEEPSWE=~/code/deep-swe
 export TASK="$DEEPSWE/tasks/anko-default-function-arguments"
 export JOBS="$DEEPSWE/jobs"
-export OPENCODE_VERSION="$(opencode --version)"
 ```
 
-Pinning `OPENCODE_VERSION` keeps both sides of a comparison on the same
-OpenCode release. Remove the `version` agent kwarg only when testing the latest
-container-installed OpenCode.
+Pinning the captured `OPENCODE_VERSION` keeps every comparison run on the same
+OpenCode release and avoids stale Pier `@latest` layers. Always pass
+`--agent-kwarg "version=$OPENCODE_VERSION"`.
 
 ## Cost Estimates
 
@@ -110,12 +124,10 @@ Pricing can change as the live catalog changes.
 
 ## Advisor Enabled
 
-This mounts both local plugins:
+This mounts the local advisor plugin:
 
 - `advisor` provides the `advisor()` tool and uses `gpt-5.6-sol@high` as the
   stronger reviewer.
-- `codex-identity` adds the OpenAI Codex-compatible `originator` and
-  `User-Agent` headers. It does not provide credentials; `auth.json` does that.
 
 The extra URL-shaped provider options are allowlist hints for Pier. OAuth-backed
 OpenAI requests use `chatgpt.com` and may refresh through `auth.openai.com`,
@@ -134,20 +146,22 @@ pier run \
   --model openai/gpt-5.6-luna \
   --agent-kwarg "version=$OPENCODE_VERSION" \
   --agent-kwarg variant=xhigh \
-  --agent-kwarg 'opencode_config={"plugin":["file:///tmp/mindframe-advisor/server.ts","file:///tmp/codex-identity/server.ts"],"provider":{"openai":{"options":{"url":"https://chatgpt.com","api_url":"https://auth.openai.com"},"models":{"gpt-5.6-sol":{}}}}}' \
+  --agent-kwarg 'opencode_config={"plugin":["file:///tmp/mindframe-advisor/server.ts"],"provider":{"openai":{"options":{"url":"https://chatgpt.com","api_url":"https://auth.openai.com"},"models":{"gpt-5.6-sol":{}}}}}' \
   --agent-env OPENCODE_ADVISOR_MODE=on \
   --agent-env OPENCODE_ADVISOR_MODELS=opencode:openai/gpt-5.6-sol@high \
   --mounts-json '[
     {"type":"bind","source":"/home/mark/.config/opencode/plugins/mindframe-z/advisor","target":"/tmp/mindframe-advisor","read_only":true},
-    {"type":"bind","source":"/home/mark/.config/opencode/plugins/mindframe-z/codex-identity","target":"/tmp/codex-identity","read_only":true},
     {"type":"bind","source":"/home/mark/.local/share/opencode/auth.json","target":"/root/.local/share/opencode/auth.json","read_only":true}
   ]'
 ```
 
 `OPENCODE_ADVISOR_MODE=on` uses the active advisor policy. Set it to `auto` to
-run the admission-policy comparison. A successful run may make zero or
-multiple advisor calls in either mode. Check the raw event stream rather than
-assuming that loading the plugin means it was invoked.
+run the admission-policy comparison. Set it to `manual` to suppress automatic
+advisor calls while keeping explicit `/consult-advisor` available. A successful
+run may make zero or multiple advisor calls in `on` or `auto`; manual mode
+should make none unless the executor explicitly requests a consultation. Check
+the raw event stream rather than assuming that loading the plugin means it was
+invoked.
 
 For the comparison, change only this setting:
 
@@ -155,10 +169,16 @@ For the comparison, change only this setting:
 --agent-env OPENCODE_ADVISOR_MODE=auto
 ```
 
+For the manual comparison:
+
+```text
+--agent-env OPENCODE_ADVISOR_MODE=manual
+```
+
 ## Advisor Disabled
 
-Use the same task, model, effort, auth, Codex identity plugin, and network
-hints. Omit only the advisor plugin and advisor environment variable:
+Use the same task, model, effort, auth, OpenCode version, and network hints.
+Omit only the advisor plugin and advisor environment variable:
 
 ```bash
 PYTHONPATH="$PIER_SITECUSTOMIZE" \
@@ -173,14 +193,13 @@ pier run \
   --model openai/gpt-5.6-luna \
   --agent-kwarg "version=$OPENCODE_VERSION" \
   --agent-kwarg variant=xhigh \
-  --agent-kwarg 'opencode_config={"plugin":["file:///tmp/codex-identity/server.ts"],"provider":{"openai":{"options":{"url":"https://chatgpt.com","api_url":"https://auth.openai.com"},"models":{"gpt-5.6-sol":{}}}}}' \
+  --agent-kwarg 'opencode_config={"provider":{"openai":{"options":{"url":"https://chatgpt.com","api_url":"https://auth.openai.com"},"models":{"gpt-5.6-sol":{}}}}}' \
   --mounts-json '[
-    {"type":"bind","source":"/home/mark/.config/opencode/plugins/mindframe-z/codex-identity","target":"/tmp/codex-identity","read_only":true},
     {"type":"bind","source":"/home/mark/.local/share/opencode/auth.json","target":"/root/.local/share/opencode/auth.json","read_only":true}
   ]'
 ```
 
-Run the two variants with different job names and keep every other setting
+Run each advisor mode with a different job name and keep every other setting
 identical. Parallel runs reduce wall-clock time but can increase provider rate
 limiting and make latency comparisons less useful.
 

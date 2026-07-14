@@ -152,7 +152,6 @@ opencode:
   plugins:
     - advisor
     - delegate-general
-    - codex-identity
   tui_plugins:
     - advisor
     - session-cost-tui
