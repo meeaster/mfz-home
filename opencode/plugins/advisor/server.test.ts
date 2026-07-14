@@ -4,6 +4,15 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 
 import AdvisorPlugin, {
+  ACTIVE_POLICY,
+  ADVISOR_DESCRIPTION,
+  ADVISOR_COMMANDS,
+  ADVISOR_COMMAND_CONFIRMATIONS,
+  ADVISOR_COMMAND_INVALID,
+  AUTO_ADMISSION_POLICY,
+  AUTO_FOLLOWUP_POLICY,
+  MANUAL_POLICY,
+  advisorExecutorPolicy,
   advisorAvailabilityPrompt,
   buildClaudeArgs,
   claudeAdvisorDirectory,
@@ -17,7 +26,9 @@ import AdvisorPlugin, {
   resolveAdvisorPrompt,
   resolveAdvisorTargets,
   selectAdvisorMessages,
+  updateAdvisorMode,
 } from "./server.js";
+import { createFileAdvisorContinuationStore, createFileAdvisorModeStore } from "./state.js";
 
 afterEach(() => vi.unstubAllEnvs());
 beforeEach(() => {
@@ -277,12 +288,117 @@ describe("extractUsage", () => {
 });
 
 describe("advisor", () => {
-  it("guides periodic reviews during long implementations", () => {
+  it("keeps the static tool description neutral and the active policy exact", () => {
     const tool = createAdvisorTool({} as Parameters<typeof createAdvisorTool>[0]);
 
-    expect(tool.description).toContain("periodically at meaningful checkpoints");
-    expect(tool.description).toContain("after a major implementation unit or test gate");
-    expect(tool.description).toContain("Treat blocking checkpoint advice as a gate");
+    expect(tool.description).toBe(ADVISOR_DESCRIPTION);
+    expect(ACTIVE_POLICY).toContain("periodically at meaningful checkpoints");
+    expect(ACTIVE_POLICY).toContain("after a major implementation unit or test gate");
+    expect(ACTIVE_POLICY).toContain("Treat blocking checkpoint advice as a gate");
+    expect(AUTO_ADMISSION_POLICY).toContain("Do not call advisor for casual conversation");
+    expect(AUTO_ADMISSION_POLICY).toContain("authored skills or prompts");
+    expect(AUTO_ADMISSION_POLICY).toContain("Treat pending context size as a cost signal");
+    expect(AUTO_FOLLOWUP_POLICY).toContain("meaningful new work");
+    expect(AUTO_FOLLOWUP_POLICY).toContain("substantive deliverable");
+    expect(AUTO_FOLLOWUP_POLICY).toContain("Treat pending context size as a cost signal");
+    expect(MANUAL_POLICY).toBe(
+      "Advisor mode is manual. Do not invoke the advisor tool automatically. Use /consult-advisor when an explicit review is wanted.",
+    );
+    expect(ADVISOR_COMMAND_CONFIRMATIONS).toEqual({
+      manual: "Advisor mode set to manual.",
+      auto: "Advisor mode set to auto.",
+      on: "Advisor mode set to on.",
+    });
+    expect(ADVISOR_COMMAND_INVALID).toBe("Advisor mode must be one of: manual, auto, on.");
+    expect(ADVISOR_COMMANDS).toMatchObject({
+      advisor: { description: "Set the session advisor mode" },
+      "consult-advisor": { description: "Consult the stronger advisor about the current task" },
+    });
+  });
+
+  it("bundles advisor slash commands through the plugin config hook", async () => {
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: object; directory: string }): Promise<{
+        config(config: { command?: Record<string, { template: string; description?: string }> }): Promise<void>;
+      }>;
+    };
+    const hooks = await plugin.server({ client: {}, directory: "/workspace" });
+    const config: { command: Record<string, { template: string; description?: string }> } = {
+      command: { existing: { template: "Keep me" } },
+    };
+
+    await hooks.config(config);
+
+    expect(config.command).toMatchObject({
+      existing: { template: "Keep me" },
+      advisor: { description: "Set the session advisor mode" },
+      "consult-advisor": { description: "Consult the stronger advisor about the current task" },
+    });
+    expect(config.command["consult-advisor"]?.template).toContain("Do not perform substantive work first.");
+  });
+
+  it("keeps manual mode from adding automatic review guidance", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-manual-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      const client = { messages: vi.fn() };
+      const continuationStore = createFileAdvisorContinuationStore(root);
+
+      await expect(
+        advisorExecutorPolicy({
+          modeStore,
+          continuationStore,
+          client,
+          directory: "/workspace",
+          sessionID: "parent",
+        }),
+      ).resolves.toEqual({ mode: "manual", policy: MANUAL_POLICY });
+      expect(client.messages).not.toHaveBeenCalled();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("selects cold, active, and manual executor policies from durable state", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-policy-"));
+    try {
+      vi.stubEnv("OPENCODE_ADVISOR_MODE", "auto");
+      vi.stubEnv("OPENCODE_ADVISOR_MODEL", "test/model");
+      const modeStore = createFileAdvisorModeStore(root);
+      const continuationStore = createFileAdvisorContinuationStore(root);
+      const client = {
+        messages: vi.fn().mockResolvedValue({ data: [{ info: { id: "message", role: "user" }, parts: [{ type: "text", text: "Work" }] }] }),
+      };
+      const input = { modeStore, continuationStore, client, directory: "/workspace", sessionID: "parent" };
+
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "auto", policy: AUTO_ADMISSION_POLICY });
+      await continuationStore.save({ directory: "/workspace", parentSessionID: "parent", target: "opencode:test/model", continuation: { epoch: "uncompacted", sessionID: "child", cursor: "message" } });
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "auto", policy: AUTO_FOLLOWUP_POLICY });
+      vi.stubEnv("OPENCODE_ADVISOR_MODEL", "other/model");
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "auto", policy: AUTO_ADMISSION_POLICY });
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "on" });
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "on", policy: ACTIVE_POLICY });
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "manual", policy: MANUAL_POLICY });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("persists valid command modes and leaves state unchanged for invalid values", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-command-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const input = { modeStore, directory: "/workspace", sessionID: "parent", arguments: "on" };
+
+      await expect(updateAdvisorMode(input)).resolves.toBe("Advisor mode set to on.");
+      await expect(modeStore.load(input)).resolves.toBe("on");
+      await expect(updateAdvisorMode({ ...input, arguments: "unsupported" })).resolves.toBe(ADVISOR_COMMAND_INVALID);
+      await expect(modeStore.load(input)).resolves.toBe("on");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("skips capability collection when executor context is disabled", async () => {
@@ -740,7 +856,7 @@ describe("advisor", () => {
     expect(transcript).toContain("secret-command");
   });
 
-  it("forwards visible reasoning without provider metadata", async () => {
+  it("omits GPT-5.6 reasoning while forwarding visible context", async () => {
     const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
     const client = {
       get: vi.fn().mockResolvedValue({ data: {} }),
@@ -753,6 +869,7 @@ describe("advisor", () => {
               parts: [
                 { type: "reasoning", text: "The current approach needs a focused test.", metadata: { openai: { opaque: "secret" } } },
                 { type: "reasoning", text: "   ", metadata: { openai: { opaque: "also-secret" } } },
+                { type: "text", text: "Visible context" },
               ],
             },
           ],
@@ -770,7 +887,8 @@ describe("advisor", () => {
     );
 
     const transcript = prompt.mock.calls[0]![0].body.parts[0]!.text;
-    expect(transcript).toContain("[reasoning]\nThe current approach needs a focused test.");
+    expect(transcript).toContain("Visible context");
+    expect(transcript).not.toContain("The current approach needs a focused test.");
     expect(transcript).not.toContain("secret");
   });
 

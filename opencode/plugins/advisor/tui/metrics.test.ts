@@ -4,6 +4,7 @@ import {
   advisorCalls,
   advisorHistory,
   advisorMetricGroups,
+  advisorPanelRows,
   advisorMetrics,
   createRefreshScheduler,
   loadAdvisorHistory,
@@ -290,4 +291,33 @@ describe("advisorMetrics", () => {
       )
     ).rejects.toThrow("repeated session-history cursor");
   });
+});
+
+describe("advisor panel rows", () => {
+  it("renders every synchronization state without implying provider cache behavior", () => {
+    expect(
+      advisorPanelRows([
+        { target: "target-a", state: "cold", estimatedTokens: 100 },
+        { target: "target-b", state: "synchronized", estimatedTokens: 0 },
+        { target: "target-c", state: "pending", estimatedTokens: 12 },
+        { target: "target-d", state: "reset", estimatedTokens: 500 },
+      ]),
+    ).toEqual([
+      "target-a",
+      "cold · ~100 tokens",
+      "target-b",
+      "synchronized · ~0 tokens",
+      "target-c",
+      "pending · ~12 tokens",
+      "target-d",
+      "reset · ~500 tokens",
+    ]);
+  });
+
+  it("keeps long target identities and status values on separate compact lines", () => {
+    expect(
+      advisorPanelRows([{ target: "opencode:openai/gpt-5.6-sol@high", state: "pending", estimatedTokens: 247 }]),
+    ).toEqual(["gpt-5.6-sol @ high", "pending · ~247 tokens"]);
+  });
+
 });

@@ -19,12 +19,17 @@ export type AdvisorTargetMetadata = {
   actualModel?: string;
   effort?: string;
   reportedCost?: number;
+  contextEpoch?: string;
+  transcriptEstimate?: number;
   usage?: AdvisorUsage;
 } & AdvisorModel;
 
 export type AdvisorToolMetadata = {
   usage?: AdvisorUsage;
   targets?: readonly AdvisorTargetMetadata[];
+  mode?: "manual" | "auto" | "on";
+  contextEpoch?: string;
+  transcriptEstimate?: number;
 } & AdvisorModel;
 
 export type AdvisorToolPart = {
@@ -33,6 +38,7 @@ export type AdvisorToolPart = {
   tool?: string;
   state?: {
     status?: string;
+    time?: { start?: number; end?: number };
     metadata?: AdvisorToolMetadata;
   };
 };
@@ -77,6 +83,29 @@ export type AdvisorMetricGroup = {
   calls: readonly AdvisorCall[];
   metrics: AdvisorMetrics;
 };
+
+export type AdvisorSyncDisplayRow = {
+  target: string;
+  state: "cold" | "synchronized" | "pending" | "reset";
+  estimatedTokens: number;
+};
+
+const compactSyncTokens = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+
+function compactTargetLabel(target: string): string {
+  const slash = target.lastIndexOf("/");
+  const colon = target.indexOf(":");
+  const start = slash >= 0 ? slash + 1 : colon >= 0 ? colon + 1 : 0;
+  const model = target.slice(start);
+  return model.replace("@", " @ ");
+}
+
+export function advisorPanelRows(rows: readonly AdvisorSyncDisplayRow[]): string[] {
+  return rows.flatMap((row) => [
+    compactTargetLabel(row.target),
+    `${row.state} · ~${compactSyncTokens.format(row.estimatedTokens)} tokens`,
+  ]);
+}
 
 export type AdvisorHistory = {
   session: AdvisorMetrics;
@@ -202,13 +231,15 @@ export function advisorMetricGroups(parts: readonly AdvisorToolPart[]): AdvisorM
     calls.push(call);
     grouped.set(call.key, calls);
   }
-  return [...grouped].map(([key, calls]) => ({
-    key,
-    harness: calls[0]!.harness,
-    label: calls[0]!.label,
-    calls,
-    metrics: advisorMetricsFor(calls),
-  }));
+  return [...grouped].map(([key, groupedCalls]) => {
+    return {
+      key,
+      harness: groupedCalls[0]!.harness,
+      label: groupedCalls[0]!.label,
+      calls: groupedCalls,
+      metrics: advisorMetricsFor(groupedCalls),
+    };
+  });
 }
 
 function targetDetails(input: AdvisorTargetMetadata): Pick<AdvisorCall, "harness" | "key" | "label" | "model" | "reportedCost"> | undefined {
@@ -370,7 +401,7 @@ export async function loadAdvisorHistory(
   client: SessionMessagesClient,
   sessionID: string,
   options: HistoryLoadOptions = {}
-): Promise<AdvisorHistory & { complete: boolean; loadedMessages: number }> {
+): Promise<AdvisorHistory & { complete: boolean; loadedMessages: number; messages: readonly AdvisorMessage[] }> {
   const messages: AdvisorMessage[] = [];
   const cursors = new Set<string>();
   let before: string | undefined;
@@ -395,9 +426,9 @@ export async function loadAdvisorHistory(
       itemCount: page.data?.length ?? 0,
       hasNext: next !== undefined
     });
-    if (!next) return { ...advisorHistory(messages), complete: true, loadedMessages: messages.length };
+    if (!next) return { ...advisorHistory(messages), complete: true, loadedMessages: messages.length, messages };
     if (options.maxPages !== undefined && pageNumber >= options.maxPages)
-      return { ...advisorHistory(messages), complete: false, loadedMessages: messages.length };
+      return { ...advisorHistory(messages), complete: false, loadedMessages: messages.length, messages };
     if (cursors.has(next)) throw new Error("OpenCode returned a repeated session-history cursor");
     cursors.add(next);
     before = next;

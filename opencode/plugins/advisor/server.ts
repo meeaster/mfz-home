@@ -1,17 +1,49 @@
 import { spawn } from "node:child_process";
 import { mkdirSync } from "node:fs";
-import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
-import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
 import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
+import {
+  advisorAvailabilityPrompt,
+  advisorUnavailable,
+  gpt56Tier,
+  modelLabel,
+  resolveAdvisorTargets,
+  targetLabel,
+  type AdvisorTarget,
+  type ClaudeCodeAdvisorTarget,
+  type OpenCodeAdvisorTarget,
+} from "./targets.js";
+import {
+  latestMessageID,
+  planAdvisorTranscript,
+  selectAdvisorContext,
+  type MessageEntry,
+  type TranscriptPlan,
+} from "./transcript.js";
+import {
+  createFileAdvisorContinuationStore,
+  createFileAdvisorModeStore,
+  type AdvisorMode,
+  type AdvisorModeStore,
+  type AdvisorContinuation,
+  type AdvisorContinuationStore,
+} from "./state.js";
+
+export {
+  advisorAvailabilityPrompt,
+  resolveAdvisorTargets,
+  type AdvisorTarget,
+  type ClaudeCodeAdvisorTarget,
+  type OpenCodeAdvisorTarget,
+} from "./targets.js";
 
 /**
  * Advisor plugin — a client-side port of Anthropic's server-side `advisor` tool.
  *
  * The executor (the agent running the session) calls `advisor()` with no
- * arguments. We forward the full transcript of the current session to a
+ * arguments. We forward the available transcript of the current session to a
  * stronger advisor model and return its guidance. Timing is the executor's
  * signal; context is supplied by us. This mirrors the empty-input design of the
  * native tool: the model decides WHEN, the harness supplies WHAT.
@@ -19,16 +51,16 @@ import type { PluginModule, ToolDefinition } from "@opencode-ai/plugin";
  * Configure one or more advisor targets with
  * OPENCODE_ADVISOR_MODELS="opencode:provider/model@variant,claude-code:alias@effort".
  * OPENCODE_ADVISOR_MODEL remains the single native OpenCode fallback.
+ * OPENCODE_ADVISOR_MODE selects the default session mode (on by default): manual, auto, or on.
  * OPENCODE_ADVISOR_EXECUTOR_CONTEXT defaults to enabled; set it to false or 0
  * to omit skills, MCP status, and approximate tool inventory from reviews.
  */
 
-// Verbatim invocation guidance, reproduced from Claude Code's own `advisor`
-// tool description. Kept identical on purpose: this is the always-loaded text
-// that drives the executor to call the tool at the right moments.
-const ADVISOR_DESCRIPTION = `Consult a stronger reviewer who sees your full conversation transcript.
+// Canonical invocation guidance, adapted from Claude Code's own `advisor` tool
+// description for the transcript actually available to this plugin.
+export const ACTIVE_POLICY = `Consult a stronger reviewer who sees your available conversation transcript.
 
-No parameters. When you call advisor(), your entire history -- task, every tool call and result, your reasoning -- is automatically forwarded. The advisor sees exactly what you've done.
+No parameters. When you call advisor(), the available history -- task, visible messages, every tool call and result, and supported reasoning summaries -- is automatically forwarded. GPT-5.6 executor reasoning summaries are omitted. The advisor sees the evidence available to the harness.
 
 Call advisor BEFORE substantive work -- before writing, before committing to an interpretation, before building on an assumption. If the task requires orientation first (finding files, fetching a source, seeing what's there), do that, then call advisor. Orientation is not substantive work. Writing, editing, and declaring an answer are.
 
@@ -45,11 +77,31 @@ If you've already retrieved data pointing one way and the advisor points another
 
 Before calling advisor(), write one sentence stating what the task asks and your initial read. The advisor reads your transcript; a one-line framing gives it something to respond to.`;
 
+export const ADVISOR_DESCRIPTION = `Consult a stronger reviewer who sees your available conversation transcript.
+
+No parameters. The executor supplies the available transcript automatically. Follow the session advisor policy in the system prompt when deciding whether to invoke this tool.`;
+
+export const AUTO_ADMISSION_POLICY = `Advisor mode is auto. Decide whether to consult based on the workload, not merely because the task begins or ends.
+
+Do not call advisor for casual conversation, orientation, code reading or search, simple read-only CLI commands, git status/diff/log inspection, routine commits of already-reviewed work, or obvious mechanical edits.
+
+Call advisor before committing to an approach when the task involves nontrivial implementation or refactoring, behavioral changes, architecture or design decisions, authored skills or prompts, specifications, reports requiring judgment, or consequential operations. Also call when uncertainty, conflicting evidence, repeated failure, or a change of direction makes independent review valuable.
+
+Treat pending context size as a cost signal, not an invocation trigger: a small delta does not create review value, and a large delta does not prohibit a consequential review.`;
+
+export const AUTO_FOLLOWUP_POLICY = `Advisor mode is auto and an advisor has already reviewed an earlier point in this task. Do not call again for routine activity or small mechanical edits. Call only when meaningful new work, a new decision, material evidence, repeated failure, or a change of direction makes another independent review valuable. Request a final review only when a substantive deliverable changed since the previous review.
+
+Treat pending context size as a cost signal, not an invocation trigger: a small delta does not create review value, and a large delta does not prohibit a consequential review.`;
+
+export const MANUAL_POLICY = `Advisor mode is manual. Do not invoke the advisor tool automatically. Use /consult-advisor when an explicit review is wanted.`;
+
+export const ACTIVE_POLICY_MARKER = "advisor-active-policy";
+
 // The advisor's own review instructions. Anthropic's server-side advisor prompt
 // is not exposed, so this is ours. It encodes the reviewer role we observed:
 // prioritize the one load-bearing issue, confirm-and-proceed when sound, never
 // rewrite, stay concrete.
-const ADVISOR_SYSTEM_BASELINE = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's full transcript -- its task, every tool call and result, and its reasoning so far.
+const ADVISOR_SYSTEM_BASELINE = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's available transcript -- its task, visible messages, every tool call and result, and any included reasoning summaries. GPT-5.6 executor reasoning summaries may be omitted; reason from the evidence provided.
 
 Give strategic guidance, not a rewrite. Your job is to catch what the executor is about to get wrong before it commits, or to confirm it is on track and should proceed.
 
@@ -60,7 +112,7 @@ Give strategic guidance, not a rewrite. Your job is to catch what the executor i
 - You have no tools and cannot act. Reason only from the transcript you were given; do not ask the executor to run things for you.
 - Be concise. A few tight paragraphs beat a long list.`;
 
-const ADVISOR_SYSTEM_GPT56 = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's full transcript -- its task, every tool call and result, and its reasoning so far.
+const ADVISOR_SYSTEM_GPT56 = `You are the advisor: a stronger reviewer model consulted mid-task by a capable but faster executor model. You have just been handed the executor's available transcript -- its task, visible messages, every tool call and result, and any included reasoning summaries. GPT-5.6 executor reasoning summaries may be omitted; reason from the evidence provided.
 
 Give strategic guidance, not a rewrite. Your job is to catch what the executor is about to get wrong before it commits, or to confirm it is on track and should proceed.
 
@@ -83,69 +135,6 @@ const CHILD_TOOL_OVERRIDES: Record<string, boolean> = {
   delegate_general: false,
 };
 
-type OpenCodeAdvisorTarget = {
-  harness: "opencode";
-  providerID: string;
-  modelID: string;
-  variant?: string;
-};
-
-type ClaudeCodeAdvisorTarget = {
-  harness: "claude-code";
-  modelID: string;
-  effort: string;
-};
-
-export type AdvisorTarget = OpenCodeAdvisorTarget | ClaudeCodeAdvisorTarget;
-
-function resolveOpenCodeAdvisorModel(raw: string): OpenCodeAdvisorTarget {
-  const at = raw.indexOf("@");
-  const variant = at >= 0 ? raw.slice(at + 1) || undefined : undefined;
-  const modelPart = at >= 0 ? raw.slice(0, at) : raw;
-  const slash = modelPart.indexOf("/");
-  const base =
-    slash <= 0
-      ? { providerID: "anthropic", modelID: modelPart }
-      : { providerID: modelPart.slice(0, slash), modelID: modelPart.slice(slash + 1) };
-  return variant ? { harness: "opencode", ...base, variant } : { harness: "opencode", ...base };
-}
-
-function parseAdvisorTarget(raw: string): AdvisorTarget {
-  const separator = raw.indexOf(":");
-  const harness = raw.slice(0, separator);
-  const model = raw.slice(separator + 1);
-  if (separator <= 0 || model.length === 0) {
-    throw new Error(`Invalid advisor target "${raw}". Use opencode:provider/model@variant or claude-code:model@effort.`);
-  }
-  if (harness === "opencode") return resolveOpenCodeAdvisorModel(model);
-  if (harness === "claude-code") {
-    const at = model.indexOf("@");
-    const modelID = at >= 0 ? model.slice(0, at) : model;
-    const effort = at >= 0 ? model.slice(at + 1) : "";
-    if (modelID.length === 0 || effort.length === 0) {
-      throw new Error(`Invalid Claude Code advisor target "${raw}". Include both model and effort.`);
-    }
-    return { harness, modelID, effort };
-  }
-  throw new Error(`Unsupported advisor harness "${harness}". Use opencode or claude-code.`);
-}
-
-export function resolveAdvisorTargets(): AdvisorTarget[] {
-  const configured = process.env.OPENCODE_ADVISOR_MODELS?.trim();
-  if (configured) return configured.split(",").map((target) => parseAdvisorTarget(target.trim()));
-  return [resolveOpenCodeAdvisorModel(process.env.OPENCODE_ADVISOR_MODEL ?? "anthropic/claude-opus-4-8")];
-}
-
-function modelLabel(model: { modelID: string; variant?: string }): string {
-  return model.variant ? `${model.modelID}@${model.variant}` : model.modelID;
-}
-
-function targetLabel(target: AdvisorTarget): string {
-  return target.harness === "opencode"
-    ? `opencode:${target.providerID}/${modelLabel(target)}`
-    : `claude-code:${target.modelID}@${target.effort}`;
-}
-
 type AdvisorPromptVariant = "baseline" | "gpt56";
 
 export function resolveAdvisorPrompt(
@@ -160,62 +149,6 @@ export function resolveAdvisorPrompt(
       : { variant: "baseline", system: ADVISOR_SYSTEM_BASELINE };
   }
   throw new Error(`Invalid OPENCODE_ADVISOR_PROMPT value "${mode}". Use auto, baseline, or gpt56.`);
-}
-
-type Role = "user" | "assistant" | string;
-
-type MessageEntry = {
-  info?: {
-    id?: string;
-    parentID?: string;
-    role?: Role;
-    providerID?: string;
-    modelID?: string;
-    variant?: string;
-    summary?: boolean;
-    finish?: string;
-    error?: unknown;
-    cost?: number;
-    tokens?: {
-      total?: number;
-      input?: number;
-      output?: number;
-      reasoning?: number;
-      cache?: { read?: number; write?: number };
-    };
-  };
-  parts?: Array<Record<string, unknown>>;
-};
-
-type Gpt56Tier = "luna" | "terra" | "sol";
-
-const GPT56_TIERS: Record<Gpt56Tier, number> = { luna: 0, terra: 1, sol: 2 };
-
-function gpt56Tier(modelID: string | undefined): Gpt56Tier | undefined {
-  const match = modelID?.match(/^gpt-5\.6-(luna|terra|sol)(?:-(?:fast|pro))?$/);
-  return match?.[1] as Gpt56Tier | undefined;
-}
-
-function advisorUnavailable(executorModelID: string | undefined, advisorModelID: string): boolean {
-  const executorTier = gpt56Tier(executorModelID);
-  const advisorTier = gpt56Tier(advisorModelID);
-  return Boolean(executorTier && advisorTier && GPT56_TIERS[executorTier] >= GPT56_TIERS[advisorTier]);
-}
-
-export function advisorAvailabilityPrompt(executorModelID: string | undefined): string | undefined {
-  let targets: AdvisorTarget[];
-  try {
-    targets = resolveAdvisorTargets();
-  } catch {
-    return undefined;
-  }
-  const eligible = targets.some(
-    (target) => target.harness === "claude-code" || !advisorUnavailable(executorModelID, target.modelID),
-  );
-  if (eligible) return undefined;
-  const advisor = targets.find((target): target is OpenCodeAdvisorTarget => target.harness === "opencode");
-  if (!advisor) return undefined;
-  return `Do not call the advisor tool: your ${executorModelID} model is equal to or stronger than the configured advisor model ${advisor.modelID}, so it cannot provide a stronger review.`;
 }
 
 type PromptResult = {
@@ -351,101 +284,6 @@ function str(value: unknown): string | undefined {
   return typeof value === "string" ? value : undefined;
 }
 
-/** Render one transcript part into a plain-text line, or "" to skip it. */
-function renderPart(part: Record<string, unknown>): string {
-  const type = str(part.type);
-  if (type === "text") {
-    if (part.synthetic === true || part.ignored === true) return "";
-    return str(part.text)?.trim() ?? "";
-  }
-  if (type === "reasoning") {
-    // Match OpenCode's cross-model replay: forward visible reasoning, never provider metadata or signatures.
-    const text = str(part.text)?.trim();
-    return text ? `[reasoning]\n${text}` : "";
-  }
-  if (type === "tool") {
-    const name = str(part.tool) ?? "tool";
-    const state = (part.state ?? {}) as Record<string, unknown>;
-    const status = str(state.status);
-    const input = state.input !== undefined ? JSON.stringify(state.input) : "";
-    if (status === "completed") {
-      const time = state.time as { compacted?: unknown } | undefined;
-      const output = time?.compacted !== undefined ? "[Old tool result content cleared]" : (str(state.output)?.trim() ?? "");
-      return `[tool ${name}] input=${input}\n-> ${output}`;
-    }
-    if (status === "error") {
-      return `[tool ${name}] input=${input}\n-> ERROR: ${str(state.error)?.trim() ?? ""}`;
-    }
-    return `[tool ${name}] (${status ?? "pending"})`;
-  }
-  return "";
-}
-
-function serializeTranscript(messages: MessageEntry[]): string {
-  const blocks: string[] = [];
-  for (const message of messages) {
-    const role = message.info?.role ?? "unknown";
-    const rendered = (message.parts ?? [])
-      .map(renderPart)
-      .filter((line) => line.length > 0)
-      .join("\n");
-    if (rendered.length > 0) blocks.push(`## ${role}\n${rendered}`);
-  }
-  return blocks.join("\n\n");
-}
-
-type CompletedCompaction = {
-  markerIndex: number;
-  summaryIndex: number;
-  markerID: string;
-  tailStartID: string | undefined;
-};
-
-function latestCompletedCompaction(messages: MessageEntry[]): CompletedCompaction | undefined {
-  const markers = new Map<string, number>();
-  let latest: CompletedCompaction | undefined;
-
-  for (const [index, message] of messages.entries()) {
-    if (message.info?.role === "user" && message.info.id && message.parts?.some((part) => part.type === "compaction")) {
-      markers.set(message.info.id, index);
-      continue;
-    }
-    if (
-      message.info?.role === "assistant" &&
-      message.info.summary &&
-      message.info.finish &&
-      !message.info.error &&
-      message.info.parentID &&
-      markers.has(message.info.parentID)
-    ) {
-      const markerIndex = markers.get(message.info.parentID)!;
-      const marker = messages[markerIndex]!;
-      const tailStartID = str(marker.parts?.find((part) => part.type === "compaction")?.tail_start_id);
-      latest = { markerIndex, summaryIndex: index, markerID: message.info.parentID, tailStartID };
-    }
-  }
-
-  return latest;
-}
-
-export function selectAdvisorContext(messages: MessageEntry[]): { messages: MessageEntry[]; epoch: string } {
-  const latest = latestCompletedCompaction(messages);
-
-  if (!latest) return { messages, epoch: "uncompacted" };
-  const tailIndex = latest.tailStartID ? messages.findIndex((message) => message.info?.id === latest.tailStartID) : -1;
-  if (tailIndex >= 0 && tailIndex < latest.markerIndex) {
-    return {
-      messages: [
-        ...messages.slice(latest.markerIndex, latest.summaryIndex + 1),
-        ...messages.slice(tailIndex, latest.markerIndex),
-        ...messages.slice(latest.summaryIndex + 1),
-      ],
-      epoch: `compaction:${latest.markerID}`,
-    };
-  }
-  return { messages: messages.slice(latest.summaryIndex), epoch: `compaction:${latest.markerID}` };
-}
-
 export function selectAdvisorMessages(messages: MessageEntry[]): MessageEntry[] {
   return selectAdvisorContext(messages).messages;
 }
@@ -522,22 +360,8 @@ type AdvisorResult = {
   metadata: Record<string, unknown>;
 };
 
-type AdvisorContinuation = {
-  epoch: string;
-  sessionID: string;
-  cursor: string | undefined;
-};
-
 type NativeContinuation = AdvisorContinuation & {
   childCursor: string | undefined;
-};
-
-type PersistedContinuation = {
-  version: 1;
-  parentSessionID: string;
-  target: string;
-  updatedAt: number;
-  continuation: AdvisorContinuation | NativeContinuation;
 };
 
 export interface ContinuationStore {
@@ -552,98 +376,90 @@ export interface ContinuationStore {
   prune(directory: string | undefined): Promise<void>;
 }
 
-const CONTINUATION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+export type { AdvisorMode } from "./state.js";
 
-function continuationStatePath(root: string, directory: string, parentSessionID: string, target: AdvisorTarget): string {
-  const key = createHash("sha256").update(continuationKey(directory, parentSessionID, target)).digest("hex");
-  return join(root, `${key}.json`);
+export async function advisorMode(
+  store: AdvisorModeStore,
+  input: { directory: string; sessionID: string },
+): Promise<AdvisorMode> {
+  return store.load(input);
 }
 
-function validContinuation(value: unknown): value is AdvisorContinuation | NativeContinuation {
-  if (!value || typeof value !== "object") return false;
-  const record = value as Record<string, unknown>;
-  return (
-    typeof record.epoch === "string" &&
-    typeof record.sessionID === "string" &&
-    (record.cursor === undefined || typeof record.cursor === "string") &&
-    (record.childCursor === undefined || typeof record.childCursor === "string")
-  );
-}
+type PolicySessionClient = Pick<SessionClient, "messages">;
 
-function parsePersistedContinuation(
-  value: unknown,
-  parentSessionID: string,
-  target: AdvisorTarget,
-): AdvisorContinuation | NativeContinuation | undefined {
-  if (!value || typeof value !== "object") return undefined;
-  const record = value as Record<string, unknown>;
-  if (
-    record.version !== 1 ||
-    record.parentSessionID !== parentSessionID ||
-    record.target !== targetLabel(target) ||
-    typeof record.updatedAt !== "number" ||
-    Date.now() - record.updatedAt > CONTINUATION_TTL_MS ||
-    !validContinuation(record.continuation)
-  ) {
-    return undefined;
+export async function advisorExecutorPolicy(input: {
+  modeStore: AdvisorModeStore;
+  continuationStore: AdvisorContinuationStore;
+  client: PolicySessionClient;
+  directory: string;
+  sessionID: string;
+}): Promise<{ mode: AdvisorMode; policy: string }> {
+  const mode = await input.modeStore.load({ directory: input.directory, sessionID: input.sessionID });
+  if (mode === "manual") return { mode, policy: MANUAL_POLICY };
+  if (mode === "on") return { mode, policy: ACTIVE_POLICY };
+
+  try {
+    const [history, records] = await Promise.all([
+      input.client.messages({ path: { id: input.sessionID }, query: { directory: input.directory } }),
+      input.continuationStore.list({ directory: input.directory, parentSessionID: input.sessionID }),
+    ]);
+    if (!history.error && history.data) {
+      const epoch = selectAdvisorContext(history.data).epoch;
+      const configuredTargets = new Set(resolveAdvisorTargets().map(targetLabel));
+      if (records.some((record) => configuredTargets.has(record.target) && record.continuation.epoch === epoch)) {
+        return { mode, policy: AUTO_FOLLOWUP_POLICY };
+      }
+    }
+  } catch {
+    // A missing transcript leaves auto mode at its admission policy.
   }
-  return record.continuation;
+  return { mode, policy: AUTO_ADMISSION_POLICY };
+}
+
+export const ADVISOR_COMMAND_CONFIRMATIONS: Record<AdvisorMode, string> = {
+  manual: "Advisor mode set to manual.",
+  auto: "Advisor mode set to auto.",
+  on: "Advisor mode set to on.",
+};
+
+export const ADVISOR_COMMAND_INVALID = "Advisor mode must be one of: manual, auto, on.";
+
+export const ADVISOR_COMMANDS: Record<string, { description: string; template: string }> = {
+  advisor: {
+    description: "Set the session advisor mode",
+    template:
+      'Set the advisor mode for this session to "$ARGUMENTS". Return only the command confirmation or validation message, and do not invoke advisor.',
+  },
+  "consult-advisor": {
+    description: "Consult the stronger advisor about the current task",
+    template:
+      "Consult the stronger advisor now about the current task. Before calling it, state one sentence describing the task and your initial read. Do not perform substantive work first. Use its guidance to continue.\n\nAdditional focus:\n$ARGUMENTS",
+  },
+};
+
+function parseAdvisorMode(value: string): AdvisorMode | undefined {
+  return value === "manual" || value === "auto" || value === "on" ? value : undefined;
+}
+
+export async function updateAdvisorMode(input: {
+  modeStore: AdvisorModeStore;
+  directory: string;
+  sessionID: string;
+  arguments: string;
+}): Promise<string> {
+  const mode = parseAdvisorMode(input.arguments.trim());
+  if (!mode) return ADVISOR_COMMAND_INVALID;
+  await input.modeStore.save({ directory: input.directory, sessionID: input.sessionID, mode });
+  return ADVISOR_COMMAND_CONFIRMATIONS[mode];
 }
 
 export function createFileContinuationStore(root = join(homedir(), ".opencode", "advisor", "state")): ContinuationStore {
+  const state = createFileAdvisorContinuationStore(root);
   return {
-    async load(input) {
-      const path = continuationStatePath(root, input.directory, input.parentSessionID, input.target);
-      try {
-        const parsed = JSON.parse(await readFile(path, "utf8"));
-        const continuation = parsePersistedContinuation(parsed, input.parentSessionID, input.target);
-        if (continuation) return continuation;
-      } catch {
-        // A missing or malformed record means this continuation starts fresh.
-      }
-      await rm(path, { force: true }).catch(() => undefined);
-      return undefined;
-    },
-    async save(input) {
-      const path = continuationStatePath(root, input.directory, input.parentSessionID, input.target);
-      const record: PersistedContinuation = {
-        version: 1,
-        parentSessionID: input.parentSessionID,
-        target: targetLabel(input.target),
-        updatedAt: Date.now(),
-        continuation: input.continuation,
-      };
-      try {
-        await mkdir(join(path, ".."), { recursive: true });
-        const temporary = `${path}.${randomUUID()}.tmp`;
-        await writeFile(temporary, `${JSON.stringify(record)}\n`, "utf8");
-        await rename(temporary, path);
-      } catch {
-        // Persistence must not hide valid advisor guidance.
-      }
-    },
-    async remove(input) {
-      await rm(continuationStatePath(root, input.directory, input.parentSessionID, input.target), { force: true }).catch(() => undefined);
-    },
-    async prune(directory) {
-      if (!directory) return;
-      try {
-        for (const file of await readdir(root, { withFileTypes: true })) {
-          if (!file.isFile() || !file.name.endsWith(".json")) continue;
-          const path = join(root, file.name);
-          try {
-            const parsed = JSON.parse(await readFile(path, "utf8")) as Partial<PersistedContinuation>;
-            if (typeof parsed.updatedAt !== "number" || Date.now() - parsed.updatedAt > CONTINUATION_TTL_MS) {
-              await rm(path, { force: true });
-            }
-          } catch {
-            await rm(path, { force: true });
-          }
-        }
-      } catch {
-        // State cleanup is best-effort.
-      }
-    },
+    load: (input) => state.load({ directory: input.directory, parentSessionID: input.parentSessionID, target: targetLabel(input.target) }),
+    save: (input) => state.save({ directory: input.directory, parentSessionID: input.parentSessionID, target: targetLabel(input.target), continuation: input.continuation }),
+    remove: (input) => state.remove({ directory: input.directory, parentSessionID: input.parentSessionID, target: targetLabel(input.target) }),
+    prune: state.prune,
   };
 }
 
@@ -864,31 +680,6 @@ async function withContinuationLock<T>(
   }
 }
 
-function latestMessageID(messages: MessageEntry[]): string | undefined {
-  for (let index = messages.length - 1; index >= 0; index -= 1) {
-    const id = messages[index]?.info?.id;
-    if (id) return id;
-  }
-  return undefined;
-}
-
-function messagesAfterCursor(messages: MessageEntry[], cursor: string | undefined): MessageEntry[] {
-  if (!cursor) return messages;
-  const cursorIndex = messages.findIndex((message) => message.info?.id === cursor);
-  return cursorIndex >= 0 ? messages.slice(cursorIndex + 1) : messages;
-}
-
-function withoutAdvisorToolResults(messages: MessageEntry[]): MessageEntry[] {
-  return messages.map((message) => {
-    const parts = message.parts?.filter((part) => {
-      if (part.type !== "tool" || part.tool !== "advisor") return true;
-      const state = part.state as Record<string, unknown> | undefined;
-      return state?.status !== "completed" && state?.status !== "error";
-    });
-    return parts?.length === message.parts?.length ? message : { ...message, parts };
-  });
-}
-
 export type NativeAdvisorMode = "fresh" | "continuation";
 
 export function resolveNativeAdvisorMode(mode = process.env.OPENCODE_ADVISOR_NATIVE_MODE ?? "continuation"): NativeAdvisorMode {
@@ -947,7 +738,7 @@ async function runFreshOpenCodeAdvisor(
   sessionID: string,
   directory: string,
   target: OpenCodeAdvisorTarget,
-  transcript: string,
+  plan: TranscriptPlan,
   executorContext: string,
 ): Promise<AdvisorResult> {
   const prompt = resolveAdvisorPrompt(target.modelID);
@@ -970,7 +761,7 @@ async function runFreshOpenCodeAdvisor(
         ...(target.variant !== undefined ? { variant: target.variant } : {}),
         system: withExecutorContext(prompt.system, executorContext),
         tools: CHILD_TOOL_OVERRIDES,
-        parts: [{ type: "text", text: `Here is the executor's full transcript. Advise.\n\n${transcript}` }],
+         parts: [{ type: "text", text: `Here is the executor's available transcript. Advise.\n\n${plan.transcript}` }],
       },
     });
     if (prompted.error) {
@@ -986,6 +777,8 @@ async function runFreshOpenCodeAdvisor(
       modelID: target.modelID,
       variant: target.variant,
       promptVariant: prompt.variant,
+      contextEpoch: plan.epoch,
+      transcriptEstimate: plan.estimatedTokens,
       usage,
     };
     return {
@@ -1020,11 +813,11 @@ async function runContinuedOpenCodeAdvisor(
       throw new Error(`could not refresh the parent transcript (${String(refreshed.error ?? "no data")}).`);
     }
     const history = refreshed.data;
-    const context = selectAdvisorContext(history);
     const previous =
       continuations.get(key) ?? (await restoreContinuation<NativeContinuation>(client, store, directory, parentSessionID, target));
     if (previous) continuations.set(key, previous);
-    const rotate = !previous || previous.epoch !== context.epoch;
+    const plan = planAdvisorTranscript(history, previous);
+    const rotate = plan.rotate;
 
     let childID = previous?.sessionID;
     let created = false;
@@ -1040,11 +833,9 @@ async function runContinuedOpenCodeAdvisor(
       created = true;
     }
 
-    const messages = rotate ? context.messages : messagesAfterCursor(history, previous!.cursor);
-    const transcript = serializeTranscript(rotate ? messages : withoutAdvisorToolResults(messages));
     let submitted = false;
     try {
-      if (transcript.length === 0) throw new Error("the transcript delta is empty; there is nothing to advise on yet.");
+      if (plan.transcript.length === 0) throw new Error("the transcript delta is empty; there is nothing to advise on yet.");
       submitted = true;
       const prompted = await client.prompt({
         path: { id: childID! },
@@ -1058,8 +849,8 @@ async function runContinuedOpenCodeAdvisor(
             {
               type: "text",
               text: rotate
-                ? `Here is the executor's compacted parent transcript. Advise.\n\n${transcript}`
-                : `Here are the parent transcript messages added since your previous review. Advise.\n\n${transcript}`,
+                  ? `Here is the executor's available compacted parent transcript. Advise.\n\n${plan.transcript}`
+                 : `Here are the parent transcript messages added since your previous review. Advise.\n\n${plan.transcript}`,
             },
           ],
         },
@@ -1073,9 +864,9 @@ async function runContinuedOpenCodeAdvisor(
       const usage = await usageSince(client, childID!, directory, rotate ? undefined : previous!.childCursor);
       if (usage.readable) {
         const continuation = {
-          epoch: context.epoch,
-          sessionID: childID!,
-          cursor: latestMessageID(history),
+           epoch: plan.epoch,
+           sessionID: childID!,
+           cursor: plan.cursor,
           childCursor: usage.cursor,
         };
         continuations.set(key, continuation);
@@ -1092,6 +883,8 @@ async function runContinuedOpenCodeAdvisor(
         modelID: target.modelID,
         variant: target.variant,
         promptVariant: prompt.variant,
+        contextEpoch: plan.epoch,
+        transcriptEstimate: plan.estimatedTokens,
         usage: usage.usage,
       };
       return {
@@ -1132,28 +925,26 @@ async function runClaudeCodeAdvisor(
       throw new Error(`could not refresh the parent transcript (${String(refreshed.error ?? "no data")}).`);
     }
     const history = refreshed.data;
-    const context = selectAdvisorContext(history);
     const previous =
       continuations.get(key) ?? (await restoreContinuation<AdvisorContinuation>(client, store, directory, parentSessionID, target));
     if (previous) continuations.set(key, previous);
-    const rotate = !previous || previous.epoch !== context.epoch;
-    const messages = rotate ? context.messages : messagesAfterCursor(history, previous.cursor);
-    const transcript = serializeTranscript(rotate ? messages : withoutAdvisorToolResults(messages));
+    const plan = planAdvisorTranscript(history, previous);
+    const rotate = plan.rotate;
     const output = parseClaudeOutput(
       await runner({
         cwd: claudeAdvisorDirectory(),
         prompt: rotate
-          ? `Here is the executor's compacted parent transcript. Advise.\n\n${transcript}`
-          : `Here are the parent transcript messages added since your previous review. Advise.\n\n${transcript}`,
+          ? `Here is the executor's available compacted parent transcript. Advise.\n\n${plan.transcript}`
+          : `Here are the parent transcript messages added since your previous review. Advise.\n\n${plan.transcript}`,
         model: target.modelID,
         effort: target.effort,
         system: withExecutorContext(prompt.system, executorContext),
-        ...(rotate ? {} : { resume: previous.sessionID }),
+        ...(rotate ? {} : { resume: previous!.sessionID }),
       }),
       target.modelID,
     );
     // A failed command or malformed result leaves the prior cursor untouched.
-    const continuation = { epoch: context.epoch, sessionID: output.sessionID, cursor: latestMessageID(history) };
+    const continuation = { epoch: plan.epoch, sessionID: output.sessionID, cursor: plan.cursor };
     continuations.set(key, continuation);
     await store?.save({ directory, parentSessionID, target, continuation });
 
@@ -1172,8 +963,10 @@ async function runClaudeCodeAdvisor(
         sessionID: output.sessionID,
         reportedCost: output.usage.cost,
         usage: output.usage,
-        promptVariant: prompt.variant,
-      },
+         promptVariant: prompt.variant,
+         contextEpoch: plan.epoch,
+         transcriptEstimate: plan.estimatedTokens,
+       },
     };
   });
 }
@@ -1203,11 +996,13 @@ export function createAdvisorTool(
   skillsBySession = new Map<string, SkillSummary[]>(),
   requestsBySession = new Map<string, ExecutorRequest>(),
   capabilities: AdvisorCapabilityClient = {},
+  modeStore: AdvisorModeStore = createFileAdvisorModeStore(),
 ): ToolDefinition {
   return {
     description: ADVISOR_DESCRIPTION,
     args: {},
     async execute(_args, ctx) {
+      const mode = await modeStore.load({ directory: ctx.directory, sessionID: ctx.sessionID });
       await store?.prune(ctx.directory);
       let targets: AdvisorTarget[];
       let nativeMode: NativeAdvisorMode;
@@ -1249,9 +1044,8 @@ export function createAdvisorTool(
           : "Skipped: no configured advisor target is eligible.";
       }
 
-      const context = selectAdvisorContext(messages);
-      const transcript = serializeTranscript(context.messages);
-      if (transcript.length === 0) {
+      const plan = planAdvisorTranscript(messages, undefined);
+      if (plan.transcript.length === 0) {
         return "Error: the transcript is empty; there is nothing to advise on yet.";
       }
       const executorContext = includeExecutorContext
@@ -1267,7 +1061,7 @@ export function createAdvisorTool(
         eligible.map((target) =>
           target.harness === "opencode"
             ? nativeMode === "fresh"
-              ? runFreshOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, transcript, executorContext)
+               ? runFreshOpenCodeAdvisor(client, ctx.sessionID, ctx.directory, target, plan, executorContext)
               : runContinuedOpenCodeAdvisor(
                   client,
                   ctx.directory,
@@ -1292,6 +1086,7 @@ export function createAdvisorTool(
         ),
       );
       const successes = settled.flatMap((result) => (result.status === "fulfilled" ? [result.value] : []));
+      for (const result of successes) result.metadata = { mode, ...result.metadata };
       const failures = settled.flatMap((result, index) =>
         result.status === "rejected" ? [{ label: targetLabel(eligible[index]!), error: errorText(result.reason) }] : [],
       );
@@ -1308,6 +1103,7 @@ export function createAdvisorTool(
       }
 
       const metadata = {
+        mode,
         targets: successes.map((result) => ({ label: result.label, ...result.metadata })),
         ...(failures.length > 0 ? { failures } : {}),
       };
@@ -1328,6 +1124,7 @@ const AdvisorPlugin: PluginModule = {
   id: "advisor",
   server: async ({ client, directory }) => {
     const store = createFileContinuationStore();
+    const modeStore = createFileAdvisorModeStore();
     const skillsBySession = new Map<string, SkillSummary[]>();
     const requestsBySession = new Map<string, ExecutorRequest>();
     const api = client as unknown as { session: SessionClient; mcp?: AdvisorCapabilityClient["mcp"]; tool?: AdvisorCapabilityClient["tool"] };
@@ -1345,7 +1142,11 @@ const AdvisorPlugin: PluginModule = {
           skillsBySession,
           requestsBySession,
           { mcp: api.mcp, tool: api.tool },
+          modeStore,
         ),
+      },
+      config: async (config) => {
+        config.command = { ...config.command, ...ADVISOR_COMMANDS };
       },
       "chat.params": async (input) => {
         requestsBySession.set(input.sessionID, {
@@ -1353,14 +1154,31 @@ const AdvisorPlugin: PluginModule = {
           providerID: (input.provider as unknown as { id?: string }).id ?? input.model.providerID,
         });
       },
+      "command.execute.before": async (input, output) => {
+        if (input.command !== "advisor" && input.command !== "/advisor") return;
+        output.parts = [{ type: "text", text: await updateAdvisorMode({ modeStore, directory, sessionID: input.sessionID, arguments: input.arguments }) } as never];
+      },
       "experimental.chat.system.transform": async (input, output) => {
         if (executorContextEnabled() && input.sessionID) {
           const skills = extractAvailableSkills(output.system);
           const previous = skillsBySession.get(input.sessionID);
           if (skills.length >= (previous?.length ?? 0)) skillsBySession.set(input.sessionID, skills);
         }
-        const prompt = advisorAvailabilityPrompt(input.model.id);
-        if (prompt) output.system.push(prompt);
+        if (input.sessionID) {
+          const policy = await advisorExecutorPolicy({
+            modeStore,
+            continuationStore: createFileAdvisorContinuationStore(),
+            client: api.session,
+            directory,
+            sessionID: input.sessionID,
+          });
+          output.system.push(policy.policy);
+          const prompt = policy.mode === "manual" ? undefined : advisorAvailabilityPrompt(input.model.id);
+          if (prompt) output.system.push(prompt);
+        } else {
+          const prompt = advisorAvailabilityPrompt(input.model.id);
+          if (prompt) output.system.push(prompt);
+        }
       },
     };
   },

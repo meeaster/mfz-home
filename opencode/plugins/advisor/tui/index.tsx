@@ -5,6 +5,7 @@ import { createEffect, createMemo, createSignal, For, onCleanup, onMount, Show }
 import { advisorDebug, advisorDebugEnabled } from "./debug.js";
 import {
   advisorMetricGroups,
+  advisorPanelRows,
   createRefreshScheduler,
   dedupeAdvisorParts,
   loadAdvisorHistory,
@@ -15,10 +16,30 @@ import {
   type SessionMessagesClient,
 } from "./metrics.js";
 import { advisorCost, type AdvisorCost } from "./pricing.js";
+import { resolveAdvisorTargets, targetLabel } from "../targets.js";
+import {
+  advisorSynchronizationState,
+  createFileAdvisorContinuationStore,
+  createFileAdvisorModeStore,
+  type AdvisorMode,
+  type AdvisorSynchronizationState,
+} from "../state.js";
+import { planAdvisorTranscript, type MessageEntry } from "../transcript.js";
 
 let invocation = 0;
 
 const compactTokens = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
+
+type AdvisorSyncRow = {
+  target: string;
+  state: AdvisorSynchronizationState;
+  estimatedTokens: number;
+};
+
+type AdvisorSessionState = {
+  mode: AdvisorMode;
+  rows: AdvisorSyncRow[];
+};
 
 function Metrics(props: { group: AdvisorMetricGroup; cost?: AdvisorCost; muted: TuiPluginApi["theme"]["current"]["textMuted"] }) {
   const metrics = () => props.group.metrics;
@@ -76,6 +97,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   const parts = createMemo(() => dedupeAdvisorParts([...parentParts(), ...descendantParts()]));
   const groups = createMemo(() => advisorMetricGroups(parts()));
   const [costs, setCosts] = createSignal<Record<string, AdvisorCost>>({});
+  const [sync, setSync] = createSignal<AdvisorSessionState>({ mode: "auto", rows: [] });
   let active = true;
   const descendants = createRefreshScheduler(async () => {
     try {
@@ -86,10 +108,42 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
     }
   });
   const refreshDescendants = () => descendants.schedule();
+  const synchronization = createRefreshScheduler(async () => {
+    try {
+      const modeStore = createFileAdvisorModeStore();
+      const continuationStore = createFileAdvisorContinuationStore();
+      const directory = props.api.state.path.directory;
+      const mode = await modeStore.load({ directory, sessionID: props.sessionID });
+      const records = await continuationStore.list({ directory, parentSessionID: props.sessionID });
+      let messages = props.api.state.session.messages(props.sessionID).map((message) => ({
+        info: message,
+        parts: props.api.state.part(message.id) as unknown as Array<Record<string, unknown>>,
+      })) as unknown as MessageEntry[];
+      const localIDs = new Set(messages.flatMap((message) => (message.info?.id ? [message.info.id] : [])));
+      if (records.some((record) => record.continuation.cursor && !localIDs.has(record.continuation.cursor))) {
+        const history = await loadAdvisorHistory(props.api.client as SessionMessagesClient, props.sessionID);
+        messages = history.messages as unknown as MessageEntry[];
+      }
+      const rows = resolveAdvisorTargets().map((target) => {
+        const record = records.find((candidate) => candidate.target === targetLabel(target));
+        const plan = planAdvisorTranscript(messages, record?.continuation);
+        return {
+          target: targetLabel(target),
+          state: advisorSynchronizationState(plan, record?.continuation),
+          estimatedTokens: plan.estimatedTokens,
+        };
+      });
+      setSync({ mode, rows });
+    } catch (error) {
+      advisorDebug("synchronization.error", { sessionID: props.sessionID, error: String(error) });
+    }
+  });
+  const refreshSynchronization = () => synchronization.schedule();
 
   createEffect(() => {
     props.api.state.session.messages(props.sessionID);
     refreshDescendants();
+    refreshSynchronization();
   });
 
   createEffect(() => {
@@ -131,26 +185,33 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
     const stopSessionCreated = props.api.event.on("session.created", refreshDescendants);
     const stopMessageUpdates = props.api.event.on("message.updated", refreshDescendants);
     const stopPartUpdates = props.api.event.on("message.part.updated", refreshDescendants);
+    const stopMessageSync = props.api.event.on("message.updated", refreshSynchronization);
+    const stopPartSync = props.api.event.on("message.part.updated", refreshSynchronization);
     onCleanup(() => {
       stopSessionUpdates();
       stopSessionCreated();
       stopMessageUpdates();
       stopPartUpdates();
+      stopMessageSync();
+      stopPartSync();
       active = false;
       descendants.dispose();
+      synchronization.dispose();
       advisorDebug("view.unmount", { id, sessionID });
     });
   });
 
   return (
-    <Show when={groups().length > 0}>
-      <box>
-        <text fg={theme().text}>
-          <b>Advisor</b> (loaded)
-        </text>
+    <box>
+      <text fg={theme().text}>
+        <b>Advisor</b> · {sync().mode}
+      </text>
+      <For each={advisorPanelRows(sync().rows)}>{(row) => <text fg={theme().textMuted}>{row}</text>}</For>
+      <Show when={groups().length > 0}>
+        <box height={1} />
         <For each={groups()}>{(group) => <Metrics group={group} cost={costs()[group.key]} muted={theme().textMuted} />}</For>
-      </box>
-    </Show>
+      </Show>
+    </box>
   );
 }
 
