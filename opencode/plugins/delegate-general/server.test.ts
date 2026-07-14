@@ -221,4 +221,67 @@ describe("delegate-general plugin", () => {
     expect(hooks.tool?.delegate_general).toBeDefined();
     expect(hooks.tool?.agent_task).toBeUndefined();
   });
+
+  it("returns the delegated child session metadata", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "delegate-general-result-"));
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(directory, "xdg");
+    await mkdir(path.join(directory, ".opencode"), { recursive: true });
+    await writeFile(path.join(directory, DELEGATE_GENERAL_CONFIG_RELATIVE_PATH), JSON.stringify({ models }));
+
+    try {
+      const definition = await createDelegateGeneralTool({
+        directory,
+        client: {
+          app: {
+            agents: async () => ({ data: [{ name: "general", mode: "subagent" }] })
+          },
+          config: {
+            get: async () => ({ data: {} })
+          },
+          session: {
+            create: async () => ({ data: { id: "ses_child" } }),
+            prompt: async () => ({ data: { parts: [{ type: "text", text: "complete" }] } })
+          }
+        }
+      });
+
+      await expect(
+        definition.execute(
+          {
+            description: "Delegate work",
+            prompt: "Complete the work.",
+            model: "openai/gpt-5.6-terra",
+            variant: "medium"
+          },
+          {
+            sessionID: "ses_parent",
+            directory,
+            ask: async () => {},
+            metadata: () => {}
+          } as never
+        )
+      ).resolves.toEqual({
+        title: "Delegate work",
+        output: formatDelegatedResult({
+          sessionId: "ses_child",
+          text: "complete",
+          model: "openai/gpt-5.6-terra",
+          variant: "medium"
+        }),
+        metadata: {
+          sessionId: "ses_child",
+          agent: "general",
+          model: "openai/gpt-5.6-terra",
+          variant: "medium"
+        }
+      });
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
+  });
 });

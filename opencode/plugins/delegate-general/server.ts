@@ -469,17 +469,16 @@ export async function createDelegateGeneralTool(input: {
         model: modelArg.value,
         variant: variantArg.value
       });
-      ctx.metadata({
+      return {
         title: args.description,
+        output,
         metadata: {
           sessionId,
           agent: "general",
           model: modelArg.value,
-          variant: variantArg.value,
-          output
+          variant: variantArg.value
         }
-      });
-      return output;
+      };
     }
   });
 }
