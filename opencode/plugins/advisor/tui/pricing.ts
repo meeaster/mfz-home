@@ -5,12 +5,12 @@ type Rates = {
   output?: number;
   cache_read?: number;
   cache_write?: number;
+  tiers?: Array<{ tier?: { type?: string; size?: number }; input?: number; output?: number; cache_read?: number; cache_write?: number }>;
 };
 
 type Model = {
   name?: string;
   cost?: Rates;
-  tiers?: Array<{ tier?: { type?: string; size?: number }; input?: number; output?: number; cache_read?: number; cache_write?: number }>;
   experimental?: { modes?: Record<string, { cost?: Rates }> };
 };
 
@@ -44,7 +44,7 @@ function findModel(catalog: Catalog, model: AdvisorModel): Model | undefined {
 
 function ratesFor(model: Model, variant: string | undefined, usage: AdvisorUsage): Rates | undefined {
   const promptTokens = number(usage.input) + number(usage.cacheRead) + number(usage.cacheWrite);
-  const tier = model.tiers?.find((entry) => entry.tier?.type === "context" && promptTokens > number(entry.tier.size));
+  const tier = model.cost?.tiers?.find((entry) => entry.tier?.type === "context" && promptTokens > number(entry.tier.size));
   if (tier) return tier;
   return model.experimental?.modes?.[variant ?? ""]?.cost ?? model.cost;
 }

@@ -18,8 +18,13 @@ describe("advisorCost", () => {
               "gpt-test": { name: "GPT Test", cost: { input: 1, output: 2, cache_read: 3, cache_write: 4 } },
               "gpt-tier": {
                 name: "GPT Tier",
-                cost: { input: 1, output: 2, cache_read: 3, cache_write: 4 },
-                tiers: [{ tier: { type: "context", size: 1_000_000 }, input: 2, output: 4, cache_read: 6, cache_write: 8 }]
+                cost: {
+                  input: 1,
+                  output: 2,
+                  cache_read: 3,
+                  cache_write: 4,
+                  tiers: [{ tier: { type: "context", size: 1_000_000 }, input: 2, output: 4, cache_read: 6, cache_write: 8 }]
+                }
               }
             }
           }

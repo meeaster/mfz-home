@@ -2,11 +2,16 @@
 import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui";
 import { createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
-type Rates = { input?: number; output?: number; cache_read?: number; cache_write?: number };
+type Rates = {
+  input?: number;
+  output?: number;
+  cache_read?: number;
+  cache_write?: number;
+  tiers?: Array<{ tier?: { type?: string; size?: number }; input?: number; output?: number; cache_read?: number; cache_write?: number }>;
+};
 type Model = {
   name?: string;
   cost?: Rates;
-  tiers?: Array<{ tier?: { type?: string; size?: number }; input?: number; output?: number; cache_read?: number; cache_write?: number }>;
   experimental?: { modes?: Record<string, { cost?: Rates }> };
 };
 type Catalog = Record<string, { models?: Record<string, Model> }>;
@@ -39,7 +44,7 @@ function models(): Promise<Catalog> {
 
 function ratesFor(model: Model, variant: string | undefined, tokens: AssistantMessage["tokens"]): Rates | undefined {
   const prompt = tokens.input + tokens.cache.read + tokens.cache.write;
-  const tier = model.tiers?.find((entry) => entry.tier?.type === "context" && prompt > (entry.tier?.size ?? 0));
+  const tier = model.cost?.tiers?.find((entry) => entry.tier?.type === "context" && prompt > (entry.tier?.size ?? 0));
   return tier ?? model.experimental?.modes?.[variant ?? ""]?.cost ?? model.cost;
 }
 
