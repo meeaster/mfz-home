@@ -21,13 +21,13 @@ git log $BASE..HEAD --oneline
 git diff $BASE...HEAD
 ```
 
-For an existing PR, also read its current text: `gh pr view <N> --json number,title,body,url,baseRefName,headRefName`. If on `main`/`master`, create a feature branch first.
+For an existing PR, also read its current text: `gh pr view <N> --json number,title,body,url,baseRefName,headRefName`. Reconcile every claim against the latest full branch diff: add, remove, or rewrite description content until it represents the branch as it exists now. If on `main`/`master`, create a feature branch first.
 
 ### 2. Draft title and body in chat
 
-Write the title and body following the doctrine below, sized to the change. Present both to the user.
+Write the title and body following the doctrine below, sized to the change. For an existing PR with new branch changes, also draft a follow-up comment summarizing what changed since the previous pushed state. Present every proposed artifact to the user.
 
-**Done when:** a reviewer could read the title alone and know what the whole branch does, and the body names the change and its effect.
+**Done when:** a reviewer could read the title alone and know what the whole branch does, the body explains the branch's current state, and any follow-up comment tells returning reviewers what changed since their previous review.
 
 ### 3. Refine with the user
 
@@ -35,7 +35,7 @@ Let the user react; rewrite in chat. Stay here until approved — do not touch `
 
 ### 4. Push with gh
 
-Create a draft PR, or update an existing one:
+Create a draft PR, or update an existing one. After updating an existing PR for new branch changes, post the approved follow-up comment:
 
 ```bash
 gh pr create --draft --title "<title>" --body "$(cat <<'EOF'
@@ -45,6 +45,11 @@ EOF
 
 gh api -X PATCH repos/{owner}/{repo}/pulls/<N> -f title='<title>' -f body="$(cat <<'EOF'
 <body>
+EOF
+)"
+
+gh pr comment <N> --body "$(cat <<'EOF'
+<follow-up comment>
 EOF
 )"
 ```
@@ -61,23 +66,48 @@ Format: `<STORY-KEY>: <subject>` — prefix the Jira story key when the work has
 
 ## Reader-first doctrine
 
-The body addresses a **reviewer**. It never narrates its own creation or the instructions you were given.
+The body addresses a **reviewer** and describes the branch's current state as a coherent change. It never narrates its own creation, the instructions you were given, or how the branch evolved.
 
 **Put in:**
-- *What* changed and its effect — high level, the shape before the detail.
-- *Why* — the reason behind non-obvious decisions, tradeoffs, risk, or migration concerns.
+- A short opening summary of the outcome and its effect.
+- The context: why the change is needed, what came before, and any constraints or tradeoffs that shaped it.
+- High-level bullets describing the behavioral or architectural changes.
 
 **Form:**
-- Prose for the *what* and *why*.
-- Bullets for enumerating discrete changes or affected areas.
-- The smallest structure that makes review easier — no mandated sections.
+- Start with the summary as prose, with no `Summary` heading.
+- Follow with `## Context` in prose.
+- Follow with `## What's changed` and high-level bullets.
+- Size each part to the change, but keep all three parts distinct.
 
 **Keep out** (the AI tells):
-- No `Summary` / `Changes` / `Test Plan` template, no empty headings, no placeholders.
+- No `Summary` or `Test Plan` headings, empty headings, or placeholders.
 - No test criteria or "how it was tested" section, and no `tests were not run` — that is an instruction you were given leaking into the artifact, not content for the reviewer.
 - No pasted command transcripts, CI logs, copied commit log, or file-by-file narration.
+- No iteration history: superseded approaches, earlier branch states, review-fix chronology, or phrases such as `now also` and `follow-up change`.
 - No process words: `this PR updates`, `decision model`, `runtime guidance`, `validation results`.
 - No customer/org names, emails, secrets, or PII. No agent trace links.
+
+## Follow-up comments
+
+The description is the **snapshot**; comments are the **timeline**. When more changes are pushed to a branch that already has a PR, update the description to the new current state and add a new comment that preserves the review history.
+
+- Summarize the delta since the previous pushed state or review round, not the whole PR.
+- Name what was added, removed, or changed and what reviewers should revisit.
+- Connect the update to review feedback when that context helps the reviewer.
+- Keep earlier comments intact; each new comment records another reviewable update.
+- Omit commit lists, file-by-file narration, command output, and routine implementation detail.
+
+Example:
+
+```markdown
+Updated the account-reactivation flow based on review feedback:
+
+- Preserved the `next` URL across reactivation instead of dropping it.
+- Moved the inactive-user check into the shared login guard so GET and POST cannot diverge.
+- Removed the route-specific fallback that is no longer needed.
+
+The shared guard and redirect behavior are the main areas to revisit.
+```
 
 ## Optional reviewer aids
 
@@ -92,9 +122,16 @@ Add only when they cut the reviewer's reconstruction work, with one sentence say
 ## Default body shape
 
 ```markdown
-<What changed and what effect it has.>
+<One or two sentences summarizing the outcome and its effect.>
 
-<Why this approach — tradeoff, risk, migration, or review focus — when not obvious from the diff.>
+## Context
+
+<Why the change is needed, what came before, and the constraints or tradeoffs that shaped it.>
+
+## What's changed
+
+- <High-level behavioral or architectural change.>
+- <Another distinct change or affected area.>
 ```
 
 Example (bug fix):
@@ -102,7 +139,15 @@ Example (bug fix):
 ```markdown
 Inactive authenticated users now go through account reactivation before the login view honors a `next` URL.
 
-The GET login path previously redirected authenticated users without checking `is_active`, which could bounce an inactive user between `/auth/login/` and a protected view. The POST path already handled this; this applies the same guard to GET, with a regression test covering the loop.
+## Context
+
+The GET login path redirected authenticated users without checking `is_active`, which could bounce an inactive user between `/auth/login/` and a protected view. The POST path already enforced reactivation, so the two login paths behaved differently.
+
+## What's changed
+
+- Applies the existing account-reactivation guard to GET login requests.
+- Preserves the requested `next` URL until the user can continue safely.
+- Covers the inactive-user redirect loop with a regression test.
 ```
 
 ## Issue references
