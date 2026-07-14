@@ -17,6 +17,7 @@ references:
   - dd-apm-test-agent
   - sideshow
   - codex
+  - deep-swe
 thread:
   destinations:
     - name: testing

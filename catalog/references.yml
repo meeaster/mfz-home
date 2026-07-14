@@ -74,3 +74,6 @@ references:
   - name: vercel-ai
     url: https://github.com/vercel/ai.git
     description: "Vercel AI SDK monorepo for building TypeScript AI applications, provider integrations, UI, and agent workflows."
+  - name: deep-swe
+    url: https://github.com/datacurve-ai/deep-swe.git
+    description: "Benchmark for measuring frontier coding agents on original, long-horizon software engineering tasks drawn from active open-source repositories."
