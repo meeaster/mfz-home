@@ -46,7 +46,7 @@ The system SHALL retain actual uncached input, cache-read, cache-write, output, 
 - **THEN** usage and continuation state remain attributable to each target rather than being merged into an indistinguishable total
 
 ### Requirement: TUI state before first invocation
-The advisor TUI SHALL render for an enabled plugin even when the current session has no completed advisor calls and SHALL show the configured mode, synchronization state, and estimated pending input.
+The advisor TUI SHALL render for an enabled plugin even when the current session has no completed advisor calls and SHALL show the effective session mode, global default, synchronization state, and estimated pending input. It SHALL distinguish the current and default values when they differ and mark both when they coincide.
 
 #### Scenario: Auto session has no advisor history
 - **WHEN** the sidebar is visible for a new auto-mode session
@@ -55,6 +55,14 @@ The advisor TUI SHALL render for an enabled plugin even when the current session
 #### Scenario: Advisor is manual
 - **WHEN** the sidebar is visible for a manual-mode session
 - **THEN** the panel shows manual mode and the pending estimate without implying that content will be sent automatically
+
+#### Scenario: Session mode differs from default
+- **WHEN** the sidebar is visible for a session whose explicit mode differs from the global default
+- **THEN** the panel identifies both the effective session mode and the different default
+
+#### Scenario: Session mode matches default
+- **WHEN** the mode picker is visible and the effective session mode matches the global default
+- **THEN** the same option carries both current and default markers
 
 ### Requirement: TUI historical and current metrics
 The advisor TUI SHALL show per-target call counts and cumulative actual usage and cost, the latest call's uncached and cached usage, and the estimated new input pending since that target's latest synchronized cursor.

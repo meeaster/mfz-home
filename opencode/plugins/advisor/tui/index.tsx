@@ -20,13 +20,22 @@ import { resolveAdvisorTargets, targetLabel } from "../targets.js";
 import {
   advisorSynchronizationState,
   createFileAdvisorContinuationStore,
+  createFileAdvisorSettingsStore,
   createFileAdvisorModeStore,
+  resolveAdvisorMode,
   type AdvisorMode,
   type AdvisorSynchronizationState,
 } from "../state.js";
 import { planAdvisorTranscript, type MessageEntry } from "../transcript.js";
+import {
+  advisorModePickerOptions,
+  createAdvisorModePickerActions,
+  createAdvisorModePickerBindingController,
+  type AdvisorModePickerInitial,
+} from "./mode-picker.js";
 
 let invocation = 0;
+const [modeRevision, setModeRevision] = createSignal(0);
 
 const compactTokens = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
@@ -38,8 +47,72 @@ type AdvisorSyncRow = {
 
 type AdvisorSessionState = {
   mode: AdvisorMode;
+  defaultMode: AdvisorMode;
+  explicit: boolean;
   rows: AdvisorSyncRow[];
 };
+
+function notifyModeChanged(): void {
+  setModeRevision((value) => value + 1);
+}
+
+function activeSessionID(api: TuiPluginApi): string | undefined {
+  const route = api.route.current;
+  return route.name === "session" && route.params && typeof route.params.sessionID === "string"
+    ? route.params.sessionID
+    : undefined;
+}
+
+function AdvisorModePicker(props: {
+  api: TuiPluginApi;
+  sessionID: string;
+  modeStore: ReturnType<typeof createFileAdvisorModeStore>;
+  settingsStore: ReturnType<typeof createFileAdvisorSettingsStore>;
+  initial: AdvisorModePickerInitial;
+  onDefaultAction: (action: (() => Promise<void>) | undefined) => void;
+}) {
+  const [current, setCurrent] = createSignal(props.initial.mode);
+  const [defaultMode, setDefaultMode] = createSignal(props.initial.defaultMode);
+
+  const actions = createAdvisorModePickerActions({
+    initial: props.initial,
+    saveSession: (mode) => props.modeStore.save({ directory: props.api.state.path.directory, sessionID: props.sessionID, mode }),
+    saveDefault: (mode) => props.settingsStore.save(mode),
+    onCurrentChange: (mode) => setCurrent(mode),
+    onDefaultChange: (mode) => setDefaultMode(mode),
+    onChanged: notifyModeChanged,
+    onClose: () => props.api.ui.dialog.clear(),
+  });
+
+  props.onDefaultAction(async () => {
+    try {
+      await actions.setDefault();
+      props.api.ui.toast({ title: "Advisor", message: `Global default set to ${actions.highlighted()}.`, variant: "success" });
+    } catch (error) {
+      props.api.ui.toast({ title: "Advisor", message: `Could not save global default: ${String(error)}`, variant: "error" });
+    }
+  });
+
+  onCleanup(() => props.onDefaultAction(undefined));
+
+  return (
+    <props.api.ui.DialogSelect
+      title="Advisor mode"
+      options={advisorModePickerOptions(current(), defaultMode())}
+      current={current()}
+      onMove={(option) => actions.move(option.value)}
+      onSelect={async (option) => {
+        try {
+          await actions.select(option.value);
+          props.api.ui.toast({ title: "Advisor", message: `Session mode set to ${option.value}.`, variant: "success" });
+        } catch (error) {
+          props.api.ui.toast({ title: "Advisor", message: `Could not save session mode: ${String(error)}`, variant: "error" });
+        }
+      }}
+      skipFilter
+    />
+  );
+}
 
 function Metrics(props: { group: AdvisorMetricGroup; cost?: AdvisorCost; muted: TuiPluginApi["theme"]["current"]["textMuted"] }) {
   const metrics = () => props.group.metrics;
@@ -97,7 +170,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   const parts = createMemo(() => dedupeAdvisorParts([...parentParts(), ...descendantParts()]));
   const groups = createMemo(() => advisorMetricGroups(parts()));
   const [costs, setCosts] = createSignal<Record<string, AdvisorCost>>({});
-  const [sync, setSync] = createSignal<AdvisorSessionState>({ mode: "auto", rows: [] });
+  const [sync, setSync] = createSignal<AdvisorSessionState>({ mode: "on", defaultMode: "on", explicit: false, rows: [] });
   let active = true;
   const descendants = createRefreshScheduler(async () => {
     try {
@@ -111,9 +184,11 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   const synchronization = createRefreshScheduler(async () => {
     try {
       const modeStore = createFileAdvisorModeStore();
+      const settingsStore = createFileAdvisorSettingsStore();
       const continuationStore = createFileAdvisorContinuationStore();
       const directory = props.api.state.path.directory;
-      const mode = await modeStore.load({ directory, sessionID: props.sessionID });
+      modeRevision();
+      const resolution = await resolveAdvisorMode({ modeStore, settingsStore, directory, sessionID: props.sessionID });
       const records = await continuationStore.list({ directory, parentSessionID: props.sessionID });
       let messages = props.api.state.session.messages(props.sessionID).map((message) => ({
         info: message,
@@ -133,7 +208,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
           estimatedTokens: plan.estimatedTokens,
         };
       });
-      setSync({ mode, rows });
+      setSync({ mode: resolution.mode, defaultMode: resolution.defaultMode, explicit: resolution.explicit, rows });
     } catch (error) {
       advisorDebug("synchronization.error", { sessionID: props.sessionID, error: String(error) });
     }
@@ -142,6 +217,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
 
   createEffect(() => {
     props.api.state.session.messages(props.sessionID);
+    modeRevision();
     refreshDescendants();
     refreshSynchronization();
   });
@@ -217,6 +293,70 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
 
 const tui: TuiPlugin = async (api) => {
   advisorDebug("plugin.load", { appVersion: api.app.version, stateReady: api.state.ready });
+  const modeStore = createFileAdvisorModeStore();
+  const settingsStore = createFileAdvisorSettingsStore();
+  let activeDefaultAction: (() => Promise<void>) | undefined;
+  const pickerBindings = createAdvisorModePickerBindingController(
+    (layer) => api.keymap.registerLayer(layer),
+    () => activeDefaultAction?.(),
+  );
+
+  const openModePicker = async () => {
+    const sessionID = activeSessionID(api);
+    if (!sessionID) {
+      api.ui.toast({ title: "Advisor", message: "Open an advisor session first.", variant: "info" });
+      return;
+    }
+
+    const initial = await resolveAdvisorMode({
+      modeStore,
+      settingsStore,
+      directory: api.state.path.directory,
+      sessionID,
+    });
+    const close = () => {
+      pickerBindings.close();
+      activeDefaultAction = undefined;
+      notifyModeChanged();
+    };
+
+    api.ui.dialog.replace(
+      () => (
+        <AdvisorModePicker
+          api={api}
+          sessionID={sessionID}
+          modeStore={modeStore}
+          settingsStore={settingsStore}
+          initial={initial}
+          onDefaultAction={(action) => (activeDefaultAction = action)}
+        />
+      ),
+      close,
+    );
+    pickerBindings.open();
+  };
+
+  const unregisterKeymap = api.keymap.registerLayer({
+    commands: [
+      {
+        namespace: "palette",
+        name: "advisor.mode.change",
+        title: "Advisor: Change mode",
+        desc: "Choose the current session mode or global default",
+        category: "Advisor",
+        run: () => void openModePicker(),
+      },
+    ],
+    bindings: [
+      { key: "<leader>v", cmd: "advisor.mode.change", desc: "Advisor: Change mode" },
+    ],
+  });
+  api.lifecycle.onDispose(() => {
+    pickerBindings.close();
+    unregisterKeymap();
+    activeDefaultAction = undefined;
+  });
+
   api.slots.register({
     order: 300,
     slots: {

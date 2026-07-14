@@ -64,6 +64,7 @@ export type AdvisorMetrics = {
   cacheRead: number;
   cacheWrite: number;
   total: number;
+  cost?: number;
   cacheRate?: number;
 };
 
@@ -182,6 +183,10 @@ function number(value: number | undefined): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
+function optionalNumber(value: number | undefined): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+}
+
 export function advisorMetrics(parts: readonly AdvisorToolPart[]): AdvisorMetrics {
   return advisorMetricsFor(advisorCalls(parts));
 }
@@ -190,6 +195,7 @@ function advisorMetricsFor(calls: readonly AdvisorCall[]): AdvisorMetrics {
   let callCount = 0;
   let meteredCalls = 0;
   let total = 0;
+  let cost: number | undefined;
   let input = 0;
   let output = 0;
   let reasoning = 0;
@@ -200,6 +206,8 @@ function advisorMetricsFor(calls: readonly AdvisorCall[]): AdvisorMetrics {
     callCount += 1;
 
     const usage = call.usage;
+    const callCost = optionalNumber(call.reportedCost ?? usage?.cost);
+    if (callCost !== undefined) cost = (cost ?? 0) + callCost;
     if (!usage) continue;
     if (typeof usage.total === "number" && Number.isFinite(usage.total)) meteredCalls += 1;
     input += number(usage.input);
@@ -220,6 +228,7 @@ function advisorMetricsFor(calls: readonly AdvisorCall[]): AdvisorMetrics {
     cacheRead,
     cacheWrite,
     total,
+    ...(cost !== undefined ? { cost } : {}),
     ...(prompt > 0 ? { cacheRate: cacheRead / prompt } : {})
   };
 }

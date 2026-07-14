@@ -8,7 +8,7 @@ Invocation guidance was duplicated in the static advisor tool description and th
 
 **Goals:**
 
-- Give users durable, session-scoped `manual`, `auto`, and `on` controls.
+- Give users durable, session-scoped `manual`, `auto`, and `on` controls plus a durable global default.
 - Preserve the current ported Claude Code invocation behavior as the standard active policy, while accurately describing the available transcript.
 - Let auto mode activate at any point based on semantic review value and estimated synchronization cost.
 - Make mode, continuation synchronization, pending transcript size, actual cache behavior, and cost visible before and after calls.
@@ -22,6 +22,7 @@ Invocation guidance was duplicated in the static advisor tool description and th
 - Summarize or truncate arbitrary transcript content to reduce cost; GPT-5.6 executor reasoning summaries are intentionally omitted based on session evidence.
 - Introduce configurable stale-token thresholds or a hard per-session call budget in the first version.
 - Change advisor model selection, multi-target fan-out, or subagent eligibility rules.
+- Add project-specific defaults or a UI action that clears an existing session override in the first version.
 
 ## Decisions
 
@@ -53,13 +54,31 @@ Alternative: append overrides while leaving the mandatory tool description uncha
 
 Use versioned advisor-owned files under `~/.opencode/advisor/state/`, following the existing atomic-write and expiry pattern. Keep mode state keyed by parent directory and session, and retain continuation state keyed by directory, session, and target. Extend persisted continuation records only with fields needed to report synchronization; do not store transcript bodies. A shared state module will provide parsing, hashing, atomic writes, and read models usable by both server and TUI entrypoints.
 
+Continuation coordination uses process-independent contender directories with a short owner lease, recorded PID/token ownership, and a bakery-style choosing phase followed by a ticket ordered by `(ticket, token)`. The named continuation transaction holds that lock across durable reload, transcript planning, remote child creation/resume and prompt execution, durable commit/removal, and cleanup. A live owner is not lease-stolen and contenders wait for it without a fixed operation timeout, so a normal long model call does not look like lock failure. An incomplete owner record is provisional only until its lease expires, a crashed owner's unique stale contender can be recovered without reusing its pathname, and an old owner cannot release a successor's lock. A late completion from an older context epoch therefore cannot replace a newer compaction continuation, and error cleanup uses the same expected-record fence so it cannot remove newer state or a shared child. Unlocked reads leave malformed or missing records for explicit pruning rather than destructively cleaning a path that may be concurrently replaced. Persistence reports committed, conflict, and unavailable outcomes separately; unavailable storage never masquerades as a competing winner or discards a locally advanced continuation.
+
 Session metadata was considered because it is naturally session-scoped and visible to clients. It is rejected as the primary store because OpenCode's session metadata update replaces the complete metadata record, creating a race with unrelated plugin metadata. An in-memory map was rejected because resumed sessions would silently lose explicit mode choices.
+
+### Keep the global default separate from expiring session state
+
+Persist a machine-wide advisor default in advisor-owned runtime settings outside the expiring session and continuation records. Resolve the effective mode in this order: an explicit session mode, the UI-selected global default, `OPENCODE_ADVISOR_MODE`, then `on`. Changing the global default therefore affects sessions without an explicit mode while preserving existing session overrides.
+
+The TUI must not edit rendered OpenCode or Mindframe-Z profile configuration. The environment variable remains a deployment-level fallback, while the runtime settings file records the interactive user preference. The first version does not expose a reset-to-default action; once a session receives an explicit mode, the user may set it to the same value as the default but it remains an override.
+
+Alternative: store the global default as a non-expiring record in the session-state directory. Rejected because preference lifetime and pruning rules would become coupled to ephemeral continuation data. Alternative: rewrite `OPENCODE_ADVISOR_MODE` or rendered configuration. Rejected because a process cannot durably change its inherited environment and rendered files are not the source of truth.
+
+### Open a focused mode picker from the TUI
+
+Register a TUI keymap command, initially bound to `<leader>v`, that opens an advisor mode picker for the active session. The picker highlights the selected mode and independently marks the current effective session mode and global default. Enter saves the highlighted mode as the current session override and closes the picker. `D` saves it as the global default and keeps the picker open, allowing `D` followed by Enter to set both quickly. Escape closes without further changes. If both values match, show both markers on the same option.
+
+Expose the action in the command palette as `Advisor: Change mode` as a discoverable fallback. Persist through the same shared state/settings boundary used by the server, update the local TUI state immediately, and show concise confirmation feedback. A mode change affects system-policy selection on subsequent turns; it does not alter the policy already supplied to a running response or cancel an advisor invocation already in progress.
+
+Alternative: cycle modes directly from the shortcut. Rejected because an accidental extra keypress changes policy without a confirmation surface. Alternative: use a binary enable/disable switch. Rejected because it hides the meaningful `auto` mode and conflates `manual` with complete tool removal.
 
 ### Register a command and enforce mode in the tool
 
-Have the advisor plugin inject both `advisor` and `consult-advisor` through its config hook, avoiding a separately registered command file. The plugin's `command.execute.before` hook validates `/advisor` arguments and updates state. The resulting mode command prompt is replaced with a concise confirmation or validation message; OpenCode still performs the normal command model turn because its command hook has no direct-response path. `/consult-advisor` uses its bundled prompt template to request an immediate advisor call.
+Have the advisor plugin inject only `consult-advisor` through its config hook; TUI controls are the sole mode configuration surface. The plugin's `command.execute.before` hook marks an explicit `/consult-advisor` request for one manual-mode tool call. A clear natural-language request to consult, ask, use, or call the advisor marks the same one-shot allowance, making manual mode usable through speech-to-text. The command uses its bundled prompt template to request an immediate advisor call.
 
-Manual mode leaves the advisor tool available for the explicit `/consult-advisor` command while its injected policy suppresses automatic calls. Auto transitions to its follow-up policy when a successful first call saves a current-epoch continuation.
+Manual mode injects discouraging guidance and rejects unsolicited advisor calls at the tool boundary. The allowance stays bound to the requesting user message and its direct assistant response; negated or explanatory mentions do not authorize a call. Auto transitions to its follow-up policy when a successful first call saves a current-epoch continuation.
 
 ### Share transcript planning between execution and estimation
 
@@ -90,13 +109,15 @@ Auto guidance explicitly weighs semantic value against estimated pending input. 
 - [Moving static guidance changes model behavior] -> Preserve the canonical invocation behavior, add focused prompt-selection tests, and compare invocation behavior against recorded sessions.
 - [Multiple targets diverge] -> Keep continuation cursors and pending estimates target-specific and never infer parent state from aggregate metrics.
 - [Shared files become malformed or stale] -> Use versioned validation, atomic replacement, best-effort cleanup, and the existing inactivity expiry policy.
+- [Global preference is mistaken for generated configuration] -> Keep it in advisor-owned runtime settings, preserve environment/profile fallback precedence, and never mutate rendered configuration.
+- [A mode changes during a running response] -> Define picker changes as applying to subsequent policy construction and do not imply cancellation of in-flight work.
 - [Auto policy remains subjective] -> Instrument observable inputs and evaluate real sessions before adding thresholds or further modes.
 
 ## Migration Plan
 
 1. Introduce shared state and transcript-planning modules while retaining current invocation behavior.
 2. Add mode selection, command registration, policy injection, and manual-mode guidance with `on` as the default.
-3. Extend TUI rendering and metadata without removing existing historical metrics.
+3. Extend TUI rendering, keyboard interaction, global-default settings, and metadata without removing existing historical metrics.
 4. Run focused and full tests, apply the home configuration, and verify a fresh OpenCode process loads the command and plugin behavior.
 5. Roll back by disabling the command and restoring the always-active standard policy; versioned state files can remain harmlessly unused or be pruned by normal expiry.
 

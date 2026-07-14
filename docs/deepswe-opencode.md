@@ -157,11 +157,11 @@ pier run \
 
 `OPENCODE_ADVISOR_MODE=on` uses the active advisor policy. Set it to `auto` to
 run the admission-policy comparison. Set it to `manual` to suppress automatic
-advisor calls while keeping explicit `/consult-advisor` available. A successful
-run may make zero or multiple advisor calls in `on` or `auto`; manual mode
-should make none unless the executor explicitly requests a consultation. Check
-the raw event stream rather than assuming that loading the plugin means it was
-invoked.
+advisor calls while keeping explicit `/consult-advisor` and clear natural-language
+requests such as "consult the advisor" available. A successful run may make zero
+or multiple advisor calls in `on` or `auto`; unsolicited manual-mode tool calls
+are denied. Check the raw event stream rather than assuming that loading the
+plugin means it was invoked.
 
 For the comparison, change only this setting:
 

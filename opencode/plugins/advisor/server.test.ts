@@ -7,10 +7,9 @@ import AdvisorPlugin, {
   ACTIVE_POLICY,
   ADVISOR_DESCRIPTION,
   ADVISOR_COMMANDS,
-  ADVISOR_COMMAND_CONFIRMATIONS,
-  ADVISOR_COMMAND_INVALID,
   AUTO_ADMISSION_POLICY,
   AUTO_FOLLOWUP_POLICY,
+  MANUAL_BLOCKED_MESSAGE,
   MANUAL_POLICY,
   advisorExecutorPolicy,
   advisorAvailabilityPrompt,
@@ -26,15 +25,81 @@ import AdvisorPlugin, {
   resolveAdvisorPrompt,
   resolveAdvisorTargets,
   selectAdvisorMessages,
-  updateAdvisorMode,
+  type AdvisorToolDependencies,
+  type ClaudeRunner,
+  type ContinuationStore,
 } from "./server.js";
-import { createFileAdvisorContinuationStore, createFileAdvisorModeStore } from "./state.js";
+import {
+  createFileAdvisorContinuationStore,
+  createFileAdvisorModeStore,
+  createFileAdvisorSettingsStore,
+  type AdvisorContinuationTransaction,
+} from "./state.js";
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(async () => {
+  vi.unstubAllEnvs();
+  await rm(join(tmpdir(), "advisor-plugin-settings.json"), { force: true });
+  await rm(join(tmpdir(), "advisor-plugin-state"), { recursive: true, force: true });
+});
 beforeEach(() => {
   vi.stubEnv("OPENCODE_ADVISOR_MODELS", "");
   vi.stubEnv("OPENCODE_ADVISOR_NATIVE_MODE", "fresh");
+  vi.stubEnv("OPENCODE_ADVISOR_SETTINGS_PATH", join(tmpdir(), "advisor-plugin-settings.json"));
+  vi.stubEnv("OPENCODE_ADVISOR_STATE_ROOT", join(tmpdir(), "advisor-plugin-state"));
 });
+
+function createEnabledAdvisorTool(
+  client: AdvisorToolDependencies["client"],
+  claudeRunner?: ClaudeRunner,
+  continuations = new Map(),
+  continuationLocks = new Map(),
+  continuedNativeAdvisors = new Map(),
+  nativeLocks = new Map(),
+  store?: ContinuationStore,
+  skillsBySession = new Map<string, { name: string; description: string }[]>(),
+  requestsBySession = new Map<string, { providerID?: string; modelID?: string }>(),
+  capabilities: AdvisorToolDependencies["capabilities"] = {},
+  modeStore: AdvisorToolDependencies["modeStore"] = {
+    loadOverride: async () => undefined,
+    load: async () => "on",
+    save: async () => undefined,
+    prune: async () => undefined,
+  },
+  settingsStore: AdvisorToolDependencies["settingsStore"] = { load: async () => "on", save: async () => undefined },
+  manualAdvisorRequests: AdvisorToolDependencies["manualAdvisorRequests"] = new Map(),
+): ReturnType<typeof createAdvisorTool> {
+  return createAdvisorTool({
+    client,
+    continuation: {
+      store,
+      native: { continuations: continuedNativeAdvisors, locks: nativeLocks },
+      claude: { continuations, locks: continuationLocks, runner: claudeRunner ?? (async () => "") },
+    },
+    skillsBySession,
+    requestsBySession,
+    capabilities,
+    modeStore,
+    settingsStore,
+    manualAdvisorRequests,
+  });
+}
+
+async function allowManualAdvisorCall(hooks: unknown, sessionID: string): Promise<void> {
+  const typed = hooks as {
+    "command.execute.before"?: (
+      input: { command: string; sessionID: string; arguments: string },
+      output: { parts: unknown[] },
+    ) => Promise<void>;
+    "chat.message"?: (input: { sessionID: string; messageID?: string }, output: { message: { id: string; role: "user" }; parts: [] }) => Promise<void>;
+  };
+  const hook = typed["command.execute.before"];
+  if (!hook) throw new Error("advisor command hook is not registered");
+  await hook({ command: "consult-advisor", sessionID, arguments: "" }, { parts: [] });
+  await typed["chat.message"]?.(
+    { sessionID, messageID: "command-user" },
+    { message: { id: "command-user", role: "user" }, parts: [] },
+  );
+}
 
 describe("file continuation store", () => {
   it("restores current state and prunes state inactive for 30 days", async () => {
@@ -301,22 +366,14 @@ describe("advisor", () => {
     expect(AUTO_FOLLOWUP_POLICY).toContain("meaningful new work");
     expect(AUTO_FOLLOWUP_POLICY).toContain("substantive deliverable");
     expect(AUTO_FOLLOWUP_POLICY).toContain("Treat pending context size as a cost signal");
-    expect(MANUAL_POLICY).toBe(
-      "Advisor mode is manual. Do not invoke the advisor tool automatically. Use /consult-advisor when an explicit review is wanted.",
-    );
-    expect(ADVISOR_COMMAND_CONFIRMATIONS).toEqual({
-      manual: "Advisor mode set to manual.",
-      auto: "Advisor mode set to auto.",
-      on: "Advisor mode set to on.",
-    });
-    expect(ADVISOR_COMMAND_INVALID).toBe("Advisor mode must be one of: manual, auto, on.");
+    expect(MANUAL_POLICY).toContain("explicitly asks to consult, ask, use, or call the advisor");
+    expect(MANUAL_POLICY).toContain("passing, explanatory, or negated mention");
     expect(ADVISOR_COMMANDS).toMatchObject({
-      advisor: { description: "Set the session advisor mode" },
       "consult-advisor": { description: "Consult the stronger advisor about the current task" },
     });
   });
 
-  it("bundles advisor slash commands through the plugin config hook", async () => {
+  it("bundles the explicit advisor command through the plugin config hook", async () => {
     const plugin = AdvisorPlugin as unknown as {
       server(input: { client: object; directory: string }): Promise<{
         config(config: { command?: Record<string, { template: string; description?: string }> }): Promise<void>;
@@ -331,7 +388,6 @@ describe("advisor", () => {
 
     expect(config.command).toMatchObject({
       existing: { template: "Keep me" },
-      advisor: { description: "Set the session advisor mode" },
       "consult-advisor": { description: "Consult the stronger advisor about the current task" },
     });
     expect(config.command["consult-advisor"]?.template).toContain("Do not perform substantive work first.");
@@ -357,6 +413,142 @@ describe("advisor", () => {
       expect(client.messages).not.toHaveBeenCalled();
     } finally {
       await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("denies model-initiated advisor calls in manual mode", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-manual-gate-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      const client = {
+        get: vi.fn().mockResolvedValue({ data: {} }),
+        messages: vi.fn().mockResolvedValue({
+          data: [{ info: { id: "tool-call", parentID: "other-user", role: "assistant" }, parts: [] }],
+        }),
+        create: vi.fn(),
+      } as unknown as AdvisorToolDependencies["client"];
+      const tool = createAdvisorTool({ client, modeStore, settingsStore });
+
+      await expect(
+        (tool.execute as Function)({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() }),
+      ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
+      expect(client.get).not.toHaveBeenCalled();
+      expect(client.messages).not.toHaveBeenCalled();
+      expect(client.create).not.toHaveBeenCalled();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("allows one advisor call after an explicit manual request", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-manual-request-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      const client = {
+        get: vi.fn().mockResolvedValue({ data: {} }),
+        messages: vi.fn().mockResolvedValue({
+          data: [
+            { info: { id: "user-message", role: "user" }, parts: [{ type: "text", text: "Review" }] },
+            { info: { id: "tool-call", parentID: "user-message", role: "assistant" }, parts: [{ type: "text", text: "Review" }] },
+          ],
+        }),
+        create: vi.fn().mockResolvedValue({ error: "stop" }),
+      } as unknown as AdvisorToolDependencies["client"];
+      const requests = new Map([["parent", { userMessageID: "user-message" }]]);
+      const tool = createAdvisorTool({ client, modeStore, settingsStore, manualAdvisorRequests: requests });
+      const context = { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() };
+
+      await expect((tool.execute as Function)({}, context)).resolves.toContain("Advisor unavailable");
+      await expect((tool.execute as Function)({}, context)).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
+      expect(client.get).toHaveBeenCalledOnce();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("binds manual authorization to explicit command and natural-language turns", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "manual");
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
+    const modeStore = createFileAdvisorModeStore();
+    await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+    const prompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } });
+    const session = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({
+        data: [
+          { info: { id: "command-user", role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+          { info: { id: "assistant-command", parentID: "command-user", role: "assistant", modelID: "gpt-5.6-luna" } },
+        ],
+      }),
+      create: vi.fn().mockResolvedValue({ data: { id: "advisor-child" } }),
+      prompt,
+      delete: vi.fn().mockResolvedValue({}),
+    };
+    const plugin = AdvisorPlugin as unknown as {
+      server(input: { client: { session: typeof session }; directory: string }): Promise<{
+        tool: Record<string, { execute: Function }>;
+        "command.execute.before": Function;
+        "chat.message": Function;
+      }>;
+    };
+    const hooks = await plugin.server({ client: { session }, directory: "/workspace" });
+
+    await hooks["command.execute.before"]({ command: "consult-advisor", sessionID: "parent", arguments: "" }, { parts: [] });
+    await hooks["chat.message"](
+      { sessionID: "parent", messageID: "command-user" },
+      { message: { id: "command-user", role: "user" }, parts: [] },
+    );
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "assistant-command", directory: "/workspace", metadata: vi.fn() });
+    expect(prompt).toHaveBeenCalledOnce();
+    await expect(
+      hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "assistant-command", directory: "/workspace", metadata: vi.fn() }),
+    ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
+
+    await hooks["command.execute.before"]({ command: "consult-advisor", sessionID: "parent", arguments: "" }, { parts: [] });
+    await hooks["chat.message"](
+      { sessionID: "parent", messageID: "command-user-2" },
+      { message: { id: "command-user-2", role: "user" }, parts: [] },
+    );
+    await hooks["chat.message"](
+      { sessionID: "parent", messageID: "unrelated-user" },
+      { message: { id: "unrelated-user", role: "user" }, parts: [] },
+    );
+    await expect(
+      hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "assistant-command-2", directory: "/workspace", metadata: vi.fn() }),
+    ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
+    expect(prompt).toHaveBeenCalledOnce();
+
+    session.messages.mockResolvedValue({
+      data: [
+        { info: { id: "spoken-request", role: "user" }, parts: [{ type: "text", text: "Can you CONSULT the advisor about this?" }] },
+        { info: { id: "assistant-spoken", parentID: "spoken-request", role: "assistant", modelID: "gpt-5.6-luna" } },
+      ],
+    });
+    await hooks["chat.message"](
+      { sessionID: "parent", messageID: "spoken-request" },
+      { message: { id: "spoken-request", role: "user" }, parts: [{ type: "text", text: "Can you CONSULT the advisor about this?" }] },
+    );
+    await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "assistant-spoken", directory: "/workspace", metadata: vi.fn() });
+    expect(prompt).toHaveBeenCalledTimes(2);
+
+    for (const text of [
+      "Don't consult the advisor.",
+      "Explain how to consult the advisor.",
+      'Document the phrase "consult the advisor".',
+      "Should we consult the advisor?",
+    ]) {
+      await hooks["chat.message"](
+        { sessionID: "parent", messageID: `rejected-${text}` },
+        { message: { id: `rejected-${text}`, role: "user" }, parts: [{ type: "text", text }] },
+      );
+      await expect(
+        hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "assistant-rejected", directory: "/workspace", metadata: vi.fn() }),
+      ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
     }
   });
 
@@ -386,16 +578,59 @@ describe("advisor", () => {
     }
   });
 
-  it("persists valid command modes and leaves state unchanged for invalid values", async () => {
-    const root = await mkdtemp(join(tmpdir(), "advisor-command-"));
+  it("applies a changed global default to inherited sessions without overriding explicit modes", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "on");
+    const root = await mkdtemp(join(tmpdir(), "advisor-policy-default-"));
     try {
       const modeStore = createFileAdvisorModeStore(root);
-      const input = { modeStore, directory: "/workspace", sessionID: "parent", arguments: "on" };
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      const continuationStore = createFileAdvisorContinuationStore(root);
+      const client = { messages: vi.fn().mockResolvedValue({ data: [] }) };
+      const input = {
+        modeStore,
+        settingsStore,
+        continuationStore,
+        client,
+        directory: "/workspace",
+        sessionID: "parent",
+      };
 
-      await expect(updateAdvisorMode(input)).resolves.toBe("Advisor mode set to on.");
-      await expect(modeStore.load(input)).resolves.toBe("on");
-      await expect(updateAdvisorMode({ ...input, arguments: "unsupported" })).resolves.toBe(ADVISOR_COMMAND_INVALID);
-      await expect(modeStore.load(input)).resolves.toBe("on");
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "on", policy: ACTIVE_POLICY });
+      await settingsStore.save("manual");
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "manual", policy: MANUAL_POLICY });
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "auto" });
+      await settingsStore.save("on");
+      await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "auto", policy: AUTO_ADMISSION_POLICY });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("returns admission guidance after a continuation becomes stale from compaction", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "auto");
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "test/model");
+    const root = await mkdtemp(join(tmpdir(), "advisor-policy-reset-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const continuationStore = createFileAdvisorContinuationStore(root);
+      await continuationStore.save({
+        directory: "/workspace",
+        parentSessionID: "parent",
+        target: "opencode:test/model",
+        continuation: { epoch: "compaction:old", sessionID: "child", cursor: "old" },
+      });
+      const client = {
+        messages: vi.fn().mockResolvedValue({
+          data: [
+            { info: { id: "marker-new", role: "user" }, parts: [{ type: "compaction" }] },
+            { info: { id: "summary-new", parentID: "marker-new", role: "assistant", summary: true, finish: "stop" }, parts: [{ type: "text", text: "New summary" }] },
+          ],
+        }),
+      };
+
+      await expect(
+        advisorExecutorPolicy({ modeStore, continuationStore, client, directory: "/workspace", sessionID: "parent" }),
+      ).resolves.toEqual({ mode: "auto", policy: AUTO_ADMISSION_POLICY });
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -409,7 +644,9 @@ describe("advisor", () => {
       tool: { list: vi.fn() },
     };
     const client = {
-      get: vi.fn().mockResolvedValue({ data: {} }),
+         get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+           Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+         ),
       messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
         Promise.resolve({
           data: path.id === "parent" ? [{ info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Review." }] }] : [],
@@ -419,7 +656,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(
+    const tool = createEnabledAdvisorTool(
       client,
       undefined,
       undefined,
@@ -447,7 +684,9 @@ describe("advisor", () => {
       { info: { id: "tool-1", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "First review." }] },
     ];
     const client = {
-      get: vi.fn().mockResolvedValue({ data: {} }),
+         get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+           Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+         ),
       messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
         Promise.resolve({ data: path.id === "parent" ? parentMessages : [] }),
       ),
@@ -459,7 +698,7 @@ describe("advisor", () => {
       .fn()
       .mockResolvedValueOnce({ data: { docs: { status: "connected" } } })
       .mockResolvedValueOnce({ data: { docs: { status: "disabled" } } });
-    const tool = createAdvisorTool(
+    const tool = createEnabledAdvisorTool(
       client,
       undefined,
       new Map(),
@@ -541,6 +780,7 @@ describe("advisor", () => {
         ],
       },
     );
+    await allowManualAdvisorCall(hooks, "parent");
     await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() });
 
     expect(prompt).toHaveBeenCalledWith(
@@ -588,6 +828,7 @@ describe("advisor", () => {
     };
     const hooks = await plugin.server({ client, directory: "/workspace" });
 
+    await allowManualAdvisorCall(hooks, "parent");
     await hooks.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() });
 
     expect(prompt).toHaveBeenCalledOnce();
@@ -638,10 +879,11 @@ describe("advisor", () => {
       const client = { session: { get: vi.fn().mockResolvedValue({ data: {} }), messages, create, prompt, delete: vi.fn() } };
       const plugin = AdvisorPlugin as unknown as {
         server(input: { client: typeof client }): Promise<{ tool: Record<string, { execute: Function }> }>;
-      };
-      const tools = await plugin.server({ client });
+    };
+    const tools = await plugin.server({ client });
 
-      const result = await tools.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/tmp" });
+    await allowManualAdvisorCall(tools, "parent");
+    const result = await tools.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/tmp" });
 
       expect(result).toBe(
         `Skipped: the executor's GPT-5.6 ${modelID.replace(/^gpt-5\.6-/, "").replace(/-(fast|pro)$/, "")} tier is equal to or stronger than the advisor's terra tier.`,
@@ -672,6 +914,7 @@ describe("advisor", () => {
     };
     const tools = await plugin.server({ client });
 
+    await allowManualAdvisorCall(tools, "parent");
     await tools.tool.advisor.execute({}, { sessionID: "parent", messageID: "tool-call", directory: "/tmp", metadata: vi.fn() });
 
     expect(create).toHaveBeenCalled();
@@ -692,7 +935,9 @@ describe("advisor", () => {
       .mockResolvedValueOnce({ data: [] });
     const client = {
       session: {
-        get: vi.fn().mockResolvedValue({ data: { parentID: "parent" } }),
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+        ),
         messages,
         create,
         prompt,
@@ -704,6 +949,7 @@ describe("advisor", () => {
     };
     const tools = await plugin.server({ client });
 
+    await allowManualAdvisorCall(tools, "child");
     await tools.tool.advisor.execute(
       {},
       { sessionID: "child", messageID: "tool-call", agent: "general", directory: "/tmp", metadata: vi.fn() },
@@ -731,6 +977,7 @@ describe("advisor", () => {
     };
     const tools = await plugin.server({ client });
 
+    await allowManualAdvisorCall(tools, "child");
     const result = await tools.tool.advisor.execute({}, { sessionID: "child", agent: "explore", directory: "/tmp" });
 
     expect(result).toBe("Skipped: advisor is available to subagents only when running as general.");
@@ -773,6 +1020,7 @@ describe("advisor", () => {
     const tools = await plugin.server({ client });
     const metadata = vi.fn();
 
+    await allowManualAdvisorCall(tools, "parent");
     const result = await tools.tool.advisor.execute({}, { sessionID: "parent", directory: "/tmp", metadata });
 
     expect(result.output).toContain("Usage: 16 tokens");
@@ -807,6 +1055,7 @@ describe("advisor", () => {
     };
     const tools = await plugin.server({ client });
 
+    await allowManualAdvisorCall(tools, "parent");
     const result = await tools.tool.advisor.execute({}, { sessionID: "parent", directory: "/tmp", metadata: vi.fn() });
 
     expect(result.output).toContain("Proceed.\n\nUsage: unavailable");
@@ -843,7 +1092,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
 
     await (tool.execute as Function)(
       {},
@@ -879,7 +1128,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
 
     await (tool.execute as Function)(
       {},
@@ -923,7 +1172,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     const first = await (tool.execute as Function)({}, context);
@@ -943,6 +1192,64 @@ describe("advisor", () => {
     expect(first.metadata.usage).toMatchObject({ input: 10, total: 16 });
     expect(second.metadata.usage).toMatchObject({ input: 11, total: 16 });
     expect(client.delete).not.toHaveBeenCalled();
+  });
+
+  it("does not pretend an unavailable continuation save is locally resumable", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
+    vi.stubEnv("OPENCODE_ADVISOR_NATIVE_MODE", "continuation");
+    const target = resolveAdvisorTargets()[0]!;
+    const previous = { epoch: "uncompacted", sessionID: "shared-child", cursor: "old-tool", childCursor: "old-response" };
+    let durable: typeof previous | undefined = previous;
+    const seenPrevious: Array<typeof previous | undefined> = [];
+    const store: ContinuationStore = {
+      load: async () => durable,
+      save: async () => ({ status: "unavailable", error: new Error("disk full") }),
+      remove: async () => ({ status: "unavailable", error: new Error("disk full") }),
+      prune: async () => undefined,
+      transaction: async (_input, operation) => {
+        const current = durable;
+        seenPrevious.push(current);
+        return operation({
+          previous: current,
+          reload: async () => ({ status: "available", ...(durable ? { continuation: durable } : {}) }),
+          save: async () => ({ status: "unavailable", error: new Error("disk full") }),
+          remove: async () => {
+            durable = undefined;
+            return { status: "removed" };
+          },
+        });
+      },
+    };
+    const parentMessages = [
+      { info: { id: "old-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Initial context" }] },
+      { info: { id: "tool-1", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "New context" }] },
+    ];
+    const client = {
+      get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+        Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+      ),
+      messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+        Promise.resolve({
+          data: path.id === "parent"
+            ? parentMessages
+            : [{ info: { id: `${path.id}-response`, role: "assistant", tokens: { total: 4, input: 2, output: 2 } } }],
+        }),
+      ),
+      create: vi.fn().mockResolvedValue({ data: { id: "new-child" } }),
+      prompt: vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } }),
+      delete: vi.fn().mockResolvedValue({}),
+    };
+    const native = new Map();
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), native, new Map(), store);
+    const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
+
+    const first = await (tool.execute as Function)({}, context);
+    const second = await (tool.execute as Function)({}, context);
+
+    expect(first.metadata.continuationStatus).toBe("unavailable");
+    expect(second.metadata.continuationStatus).toBe("unavailable");
+    expect(native).toHaveLength(0);
+    expect(seenPrevious).toEqual([previous, undefined]);
   });
 
   it("restores a native advisor child after a plugin restart", async () => {
@@ -974,13 +1281,13 @@ describe("advisor", () => {
       const store = createFileContinuationStore(root);
       const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
-      await (createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
+      await (createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
       parentMessages = [
         ...parentMessages,
         { info: { id: "user-2", role: "user" }, parts: [{ type: "text", text: "New context" }] },
         { info: { id: "tool-2", role: "assistant", modelID: "gpt-5.6-luna" } },
       ];
-      await (createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)(
+      await (createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)(
         {},
         { ...context, messageID: "tool-2" },
       );
@@ -1026,7 +1333,7 @@ describe("advisor", () => {
         prompt: vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } }),
         delete: vi.fn(),
       };
-      await (createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)(
+      await (createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map(), store).execute as Function)(
         {},
         { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() },
       );
@@ -1069,7 +1376,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const first = (tool.execute as Function)(
       {},
       { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() },
@@ -1120,7 +1427,7 @@ describe("advisor", () => {
       prompt: vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } }),
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     await (tool.execute as Function)({}, context);
@@ -1133,6 +1440,131 @@ describe("advisor", () => {
 
     expect(create).toHaveBeenCalledTimes(2);
     expect(client.delete).toHaveBeenCalledWith({ path: { id: "advisor-1" }, query: { directory: "/workspace" } });
+  });
+
+  it("does not let an older process overwrite a newer compaction continuation", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
+    vi.stubEnv("OPENCODE_ADVISOR_NATIVE_MODE", "continuation");
+    const root = await mkdtemp(join(tmpdir(), "advisor-cross-process-race-"));
+    try {
+      let releaseOld!: (value: { data: { parts: Array<{ type: "text"; text: string }> } }) => void;
+      const oldPrompt = vi.fn().mockImplementation(
+        () =>
+          new Promise<{ data: { parts: Array<{ type: "text"; text: string }> } }>((resolve) => {
+            releaseOld = resolve;
+          }),
+      );
+      const newPrompt = vi.fn().mockResolvedValue({ data: { parts: [{ type: "text" as const, text: "New advice." }] } });
+      const oldMessages = [
+        { info: { id: "old-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Old context" }] },
+      ];
+      const newMessages = [
+        { info: { id: "marker-new", role: "user" }, parts: [{ type: "compaction" }] },
+        { info: { id: "summary-new", parentID: "marker-new", role: "assistant", summary: true, finish: "stop" }, parts: [{ type: "text", text: "New summary" }] },
+        { info: { id: "new-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "New context" }] },
+      ];
+      const makeClient = (
+        parentMessages: typeof oldMessages | typeof newMessages,
+        childID: string,
+        prompt: (...args: unknown[]) => Promise<{ data: { parts: Array<{ type: "text"; text: string }> } }>,
+      ) => ({
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+        ),
+        messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({
+            data: path.id === "parent"
+              ? parentMessages
+              : [{ info: { id: `${childID}-response`, role: "assistant", tokens: { total: 8, input: 4, output: 2, reasoning: 2, cache: { read: 0, write: 0 } } } }],
+          }),
+        ),
+        create: vi.fn().mockResolvedValue({ data: { id: childID } }),
+        prompt,
+        delete: vi.fn().mockResolvedValue({}),
+      });
+      const oldClient = makeClient(oldMessages, "old-child", oldPrompt);
+      const newClient = makeClient(newMessages, "new-child", newPrompt);
+      const store = createFileContinuationStore(root);
+    const oldTool = createEnabledAdvisorTool(oldClient, undefined, new Map(), new Map(), new Map(), new Map(), store);
+    const newTool = createEnabledAdvisorTool(newClient, undefined, new Map(), new Map(), new Map(), new Map(), store);
+
+      const oldRun = (oldTool.execute as Function)(
+        {},
+        { sessionID: "parent", messageID: "old-tool", directory: "/workspace", metadata: vi.fn() },
+      );
+      await vi.waitFor(() => expect(oldPrompt).toHaveBeenCalledOnce());
+      const newRun = (newTool.execute as Function)(
+        {},
+        { sessionID: "parent", messageID: "new-tool", directory: "/workspace", metadata: vi.fn() },
+      );
+      releaseOld({ data: { parts: [{ type: "text", text: "Old advice." }] } });
+      await oldRun;
+      await newRun;
+
+      const stateStore = createFileAdvisorContinuationStore(root);
+      await expect(stateStore.load({ directory: "/workspace", parentSessionID: "parent", target: "opencode:openai/gpt-5.6-sol" })).resolves.toMatchObject({
+        epoch: "compaction:marker-new",
+        sessionID: "new-child",
+      });
+      expect(newClient.delete).toHaveBeenCalledWith({ path: { id: "old-child" }, query: { directory: "/workspace" } });
+      expect(oldClient.delete).not.toHaveBeenCalled();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("keeps the winner child when a rotated cross-epoch loser fails", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODEL", "openai/gpt-5.6-sol");
+    vi.stubEnv("OPENCODE_ADVISOR_NATIVE_MODE", "continuation");
+    const root = await mkdtemp(join(tmpdir(), "advisor-shared-child-race-"));
+    try {
+      const durable = createFileContinuationStore(root);
+      const target = resolveAdvisorTargets()[0]!;
+      const previous = { epoch: "uncompacted", sessionID: "shared-child", cursor: "old-tool", childCursor: "old-response" };
+      const winner = { epoch: "compaction:new", sessionID: "winner-child", cursor: "new-tool", childCursor: "winner-response" };
+      await durable.save({ directory: "/workspace", parentSessionID: "parent", target, continuation: winner });
+      const store: ContinuationStore = {
+        load: durable.load,
+        save: durable.save,
+        remove: durable.remove,
+        prune: durable.prune,
+        transaction: async (_input, operation) =>
+          operation({
+            previous,
+            reload: async () => ({ status: "available", continuation: winner }),
+            save: async () => ({ status: "conflict", current: winner }),
+            remove: async () => ({ status: "conflict", current: winner }),
+          }),
+      };
+      const parentMessages = [
+        { info: { id: "marker-new", role: "user" }, parts: [{ type: "compaction" }] },
+        { info: { id: "summary-new", parentID: "marker-new", role: "assistant", summary: true, finish: "stop" }, parts: [{ type: "text", text: "New summary" }] },
+        { info: { id: "new-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "New context" }] },
+      ];
+      const loserClient = {
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "parent" ? {} : { parentID: "parent" } }),
+        ),
+        messages: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "parent" ? parentMessages : [] }),
+        ),
+        create: vi.fn().mockResolvedValue({ data: { id: "loser-child" } }),
+        prompt: vi.fn().mockResolvedValue({ error: "rotated loser failure" }),
+        delete: vi.fn().mockResolvedValue({}),
+      };
+      const loserTool = createEnabledAdvisorTool(loserClient, undefined, new Map(), new Map(), new Map(), new Map(), store);
+
+      await expect((loserTool.execute as Function)(
+        {},
+        { sessionID: "parent", messageID: "new-tool", directory: "/workspace", metadata: vi.fn() },
+      )).resolves.toContain("rotated loser failure");
+
+      await expect(durable.load({ directory: "/workspace", parentSessionID: "parent", target })).resolves.toEqual(winner);
+      expect(loserClient.delete).toHaveBeenCalledWith({ path: { id: "loser-child" }, query: { directory: "/workspace" } });
+      expect(loserClient.delete).not.toHaveBeenCalledWith({ path: { id: "shared-child" }, query: { directory: "/workspace" } });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("evicts a failed continued native advisor before retrying its delta", async () => {
@@ -1156,7 +1588,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     await expect((tool.execute as Function)({}, context)).resolves.toContain("temporary failure");
@@ -1186,7 +1618,7 @@ describe("advisor", () => {
       prompt,
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     await (tool.execute as Function)({}, context);
@@ -1223,7 +1655,7 @@ describe("advisor", () => {
       prompt: vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } }),
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     const first = await (tool.execute as Function)({}, context);
@@ -1264,7 +1696,7 @@ describe("advisor", () => {
       prompt: vi.fn().mockResolvedValue({ data: { parts: [{ type: "text", text: "Proceed." }] } }),
       delete: vi.fn().mockResolvedValue({}),
     };
-    const tool = createAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, undefined, new Map(), new Map(), new Map(), new Map());
     const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
     await (tool.execute as Function)({}, context);
@@ -1277,6 +1709,58 @@ describe("advisor", () => {
 
     expect(second.output).toContain("Usage: unavailable");
     expect(client.delete).toHaveBeenCalledWith({ path: { id: "advisor-1" }, query: { directory: "/workspace" } });
+  });
+
+  it("starts fresh on the next locked transaction after unavailable continuation persistence", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "claude-code:fable@high");
+    const previous = { epoch: "uncompacted", sessionID: "claude-old", cursor: "old-tool" };
+    const persistenceError = new Error("state unavailable");
+    let transactionCount = 0;
+    const store: ContinuationStore = {
+      load: vi.fn().mockResolvedValue(previous),
+      save: vi.fn(),
+      remove: vi.fn(),
+      prune: vi.fn().mockResolvedValue(undefined),
+      transaction: async (_input, operation) => {
+        transactionCount += 1;
+        const state: AdvisorContinuationTransaction = {
+          previous,
+          reload: async () => ({ status: "unavailable", error: persistenceError }),
+          save: async ({ continuation }) =>
+            transactionCount === 1
+              ? { status: "unavailable", error: persistenceError }
+              : { status: "committed", continuation },
+          remove: async () => ({ status: "unavailable", error: persistenceError }),
+        };
+        return operation(state);
+      },
+    };
+    const runner = vi
+      .fn()
+      .mockResolvedValueOnce(claudeResult("First advice", "claude-1"))
+      .mockResolvedValueOnce(claudeResult("Second advice", "claude-2"));
+    const messages = [
+      { info: { id: "old-user", role: "user" }, parts: [{ type: "text", text: "Initial context" }] },
+      { info: { id: "old-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Old turn" }] },
+      { info: { id: "new-user", role: "user" }, parts: [{ type: "text", text: "New context" }] },
+      { info: { id: "new-tool", role: "assistant", modelID: "gpt-5.6-luna" }, parts: [{ type: "text", text: "Current turn" }] },
+    ];
+    const client = {
+      get: vi.fn().mockResolvedValue({ data: {} }),
+      messages: vi.fn().mockResolvedValue({ data: messages }),
+      create: vi.fn(),
+      prompt: vi.fn(),
+      delete: vi.fn(),
+    };
+    const tool = createEnabledAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store);
+    const context = { sessionID: "parent", messageID: "new-tool", directory: "/workspace", metadata: vi.fn() };
+
+    await expect((tool.execute as Function)({}, context)).resolves.toMatchObject({ output: expect.stringContaining("First advice") });
+    await expect((tool.execute as Function)({}, context)).resolves.toMatchObject({ output: expect.stringContaining("Second advice") });
+
+    expect(runner).toHaveBeenNthCalledWith(1, expect.objectContaining({ resume: "claude-old" }));
+    expect(runner.mock.calls[1]![0]).not.toHaveProperty("resume");
+    expect(transactionCount).toBe(2);
   });
 
   it("returns Claude advice when the concurrent native target fails", async () => {
@@ -1295,7 +1779,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
 
     const result = await (tool.execute as Function)(
       {},
@@ -1316,6 +1800,54 @@ describe("advisor", () => {
     expect(result.metadata.failures).toEqual([
       { label: "opencode:openai/gpt-5.6-sol@high", error: "could not open an advisor session (native unavailable)." },
     ]);
+  });
+
+  it("retains successful Claude activation when a native target fails", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODELS", "opencode:openai/gpt-5.6-sol@high,claude-code:fable@high");
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "auto");
+    const root = await mkdtemp(join(tmpdir(), "advisor-partial-activation-"));
+    try {
+      const runner = vi.fn().mockResolvedValue(claudeResult("Claude proceed.", "claude-session"));
+      const store = createFileContinuationStore(root);
+      const stateStore = createFileAdvisorContinuationStore(root);
+      const client = {
+        get: vi.fn().mockResolvedValue({ data: {} }),
+        messages: vi.fn().mockResolvedValue({
+          data: [
+            { info: { id: "user-1", role: "user" }, parts: [{ type: "text", text: "Review this." }] },
+            { info: { id: "tool-call", role: "assistant", modelID: "gpt-5.6-luna" } },
+          ],
+        }),
+        create: vi.fn().mockResolvedValue({ error: "native unavailable" }),
+        prompt: vi.fn(),
+        delete: vi.fn(),
+      };
+    const tool = createEnabledAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store);
+
+      const result = await (tool.execute as Function)(
+        {},
+        { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() },
+      );
+
+      expect(result.output).toContain("Claude proceed.");
+      await expect(stateStore.list({ directory: "/workspace", parentSessionID: "parent" })).resolves.toMatchObject([
+        {
+          target: "claude-code:fable@high",
+          continuation: { epoch: "uncompacted", sessionID: "claude-session", cursor: "tool-call" },
+        },
+      ]);
+      await expect(
+        advisorExecutorPolicy({
+          modeStore: createFileAdvisorModeStore(root),
+          continuationStore: stateStore,
+          client,
+          directory: "/workspace",
+          sessionID: "parent",
+        }),
+      ).resolves.toEqual({ mode: "auto", policy: AUTO_FOLLOWUP_POLICY });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
   });
 
   it("continues without Claude when the session limit is reached", async () => {
@@ -1342,7 +1874,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
 
     const result = await (tool.execute as Function)(
       {},
@@ -1379,7 +1911,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
 
     const result = await (tool.execute as Function)(
       {},
@@ -1409,7 +1941,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
 
     const result = await (tool.execute as Function)(
       {},
@@ -1433,7 +1965,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, vi.fn().mockResolvedValue(claudeResult()), new Map());
+    const tool = createEnabledAdvisorTool(client, vi.fn().mockResolvedValue(claudeResult()), new Map());
 
     const result = await (tool.execute as Function)(
       {},
@@ -1460,7 +1992,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
     const context = { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() };
 
     await (tool.execute as Function)({}, context);
@@ -1504,12 +2036,12 @@ describe("advisor", () => {
       const store = createFileContinuationStore(root);
       const context = { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() };
 
-      await (createAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
+    await (createEnabledAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
       messages = [
         ...messages,
         { info: { id: "user-2", role: "user" }, parts: [{ type: "text", text: "New context" }] },
       ];
-      await (createAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
+    await (createEnabledAdvisorTool(client, runner, new Map(), new Map(), new Map(), new Map(), store).execute as Function)({}, context);
 
       expect(runner).toHaveBeenNthCalledWith(2, expect.objectContaining({ resume: "claude-1", prompt: expect.stringContaining("New context") }));
       expect(runner.mock.calls[1]![0].prompt).not.toContain("Initial context");
@@ -1539,7 +2071,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map(), new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map(), new Map());
     const first = (tool.execute as Function)(
       {},
       { sessionID: "parent", messageID: "tool-1", directory: "/workspace", metadata: vi.fn() },
@@ -1592,7 +2124,7 @@ describe("advisor", () => {
       prompt: vi.fn(),
       delete: vi.fn(),
     };
-    const tool = createAdvisorTool(client, runner, new Map());
+    const tool = createEnabledAdvisorTool(client, runner, new Map());
 
     await (tool.execute as Function)(
       {},

@@ -1,12 +1,14 @@
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readdir, readFile, rename, rm, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import process from "node:process";
 
 export const ADVISOR_STATE_ROOT = join(homedir(), ".opencode", "advisor", "state");
+export const ADVISOR_SETTINGS_PATH = join(homedir(), ".opencode", "advisor", "settings.json");
 export const ADVISOR_STATE_VERSION = 2;
 export const ADVISOR_STATE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const ADVISOR_LOCK_LEASE_MS = 30_000;
 
 export type AdvisorMode = "manual" | "auto" | "on";
 
@@ -32,6 +34,13 @@ export type AdvisorModeRecord = {
   updatedAt: number;
 };
 
+export type AdvisorSettingsRecord = {
+  kind: "settings";
+  version: 1;
+  defaultMode: AdvisorMode;
+  updatedAt: number;
+};
+
 export type AdvisorContinuationRecord = {
   kind: "continuation";
   version: 2;
@@ -42,7 +51,7 @@ export type AdvisorContinuationRecord = {
   continuation: AdvisorContinuation;
 };
 
-export type AdvisorStateRecord = AdvisorModeRecord | AdvisorContinuationRecord;
+export type AdvisorStateRecord = AdvisorModeRecord | AdvisorContinuationRecord | AdvisorSettingsRecord;
 
 export type AdvisorSynchronizationState = "cold" | "synchronized" | "pending" | "reset";
 
@@ -138,24 +147,29 @@ async function atomicWrite(path: string, value: AdvisorStateRecord): Promise<voi
 }
 
 export interface AdvisorModeStore {
+  loadOverride(input: { directory: string; sessionID: string }): Promise<AdvisorMode | undefined>;
   load(input: { directory: string; sessionID: string }): Promise<AdvisorMode>;
   save(input: { directory: string; sessionID: string; mode: AdvisorMode }): Promise<void>;
   prune(directory?: string): Promise<void>;
 }
 
-export function createFileAdvisorModeStore(root = ADVISOR_STATE_ROOT): AdvisorModeStore {
-  const fallbackMode = defaultAdvisorMode();
+export function createFileAdvisorModeStore(
+  root = process.env.OPENCODE_ADVISOR_STATE_ROOT ?? ADVISOR_STATE_ROOT,
+): AdvisorModeStore {
+  const loadOverride = async (input: { directory: string; sessionID: string }): Promise<AdvisorMode | undefined> => {
+    const path = modePath(root, input.directory, input.sessionID);
+    try {
+      const mode = parseMode(JSON.parse(await readFile(path, "utf8")), input.directory, input.sessionID);
+      if (mode) return mode;
+    } catch {
+      // A missing or malformed mode starts at the configured default.
+    }
+    return undefined;
+  };
   return {
+    loadOverride,
     async load(input) {
-      const path = modePath(root, input.directory, input.sessionID);
-      try {
-        const mode = parseMode(JSON.parse(await readFile(path, "utf8")), input.directory, input.sessionID);
-        if (mode) return mode;
-      } catch {
-        // A missing or malformed mode starts at the configured default.
-      }
-      await rm(path, { force: true }).catch(() => undefined);
-      return fallbackMode;
+      return (await loadOverride(input)) ?? defaultAdvisorMode();
     },
     async save(input) {
       const record: AdvisorModeRecord = {
@@ -166,11 +180,7 @@ export function createFileAdvisorModeStore(root = ADVISOR_STATE_ROOT): AdvisorMo
         mode: input.mode,
         updatedAt: Date.now(),
       };
-      try {
-        await atomicWrite(modePath(root, input.directory, input.sessionID), record);
-      } catch {
-        // A state write must not prevent the command from completing.
-      }
+      await atomicWrite(modePath(root, input.directory, input.sessionID), record);
     },
     async prune(directory) {
       if (!directory) return;
@@ -179,55 +189,392 @@ export function createFileAdvisorModeStore(root = ADVISOR_STATE_ROOT): AdvisorMo
   };
 }
 
+export interface AdvisorSettingsStore {
+  load(): Promise<AdvisorMode | undefined>;
+  save(mode: AdvisorMode): Promise<void>;
+}
+
+function parseSettings(value: unknown): AdvisorMode | undefined {
+  if (!value || typeof value !== "object") return undefined;
+  const record = value as Record<string, unknown>;
+  const mode = parseModeValue(record.defaultMode);
+  if (
+    record.kind !== "settings" ||
+    record.version !== 1 ||
+    typeof record.updatedAt !== "number" ||
+    !mode
+  ) {
+    return undefined;
+  }
+  return mode;
+}
+
+export function createFileAdvisorSettingsStore(
+  path = process.env.OPENCODE_ADVISOR_SETTINGS_PATH ?? ADVISOR_SETTINGS_PATH,
+): AdvisorSettingsStore {
+  return {
+    async load() {
+      try {
+        const mode = parseSettings(JSON.parse(await readFile(path, "utf8")));
+        if (mode) return mode;
+      } catch {
+        // A missing or malformed settings record means no UI-selected default.
+      }
+      return undefined;
+    },
+    async save(mode) {
+      const record: AdvisorSettingsRecord = {
+        kind: "settings",
+        version: 1,
+        defaultMode: mode,
+        updatedAt: Date.now(),
+      };
+      await atomicWrite(path, record);
+    },
+  };
+}
+
+export type AdvisorModeResolution = {
+  mode: AdvisorMode;
+  defaultMode: AdvisorMode;
+  explicit: boolean;
+};
+
+export async function resolveAdvisorMode(input: {
+  modeStore: AdvisorModeStore;
+  settingsStore?: AdvisorSettingsStore;
+  directory: string;
+  sessionID: string;
+}): Promise<AdvisorModeResolution> {
+  const [explicit, uiDefault] = await Promise.all([
+    input.modeStore.loadOverride({ directory: input.directory, sessionID: input.sessionID }),
+    input.settingsStore?.load(),
+  ]);
+  const defaultMode = uiDefault ?? defaultAdvisorMode();
+  return {
+    mode: explicit ?? defaultMode,
+    defaultMode,
+    explicit: explicit !== undefined,
+  };
+}
+
 export interface AdvisorContinuationStore {
   load(input: { directory: string; parentSessionID: string; target: string }): Promise<AdvisorContinuation | undefined>;
-  save(input: { directory: string; parentSessionID: string; target: string; continuation: AdvisorContinuation }): Promise<void>;
-  remove(input: { directory: string; parentSessionID: string; target: string }): Promise<void>;
+  save(input: {
+    directory: string;
+    parentSessionID: string;
+    target: string;
+    continuation: AdvisorContinuation;
+    expected?: AdvisorContinuation | null;
+  }): Promise<AdvisorContinuationSaveResult>;
+  remove(input: {
+    directory: string;
+    parentSessionID: string;
+    target: string;
+    expected?: AdvisorContinuation | null;
+  }): Promise<AdvisorContinuationRemoveResult>;
+  transaction<T>(
+    input: { directory: string; parentSessionID: string; target: string },
+    operation: (transaction: AdvisorContinuationTransaction) => Promise<T>,
+  ): Promise<T>;
   list(input: { directory: string; parentSessionID: string }): Promise<AdvisorContinuationRecord[]>;
   prune(directory?: string): Promise<void>;
 }
 
-export function createFileAdvisorContinuationStore(root = ADVISOR_STATE_ROOT): AdvisorContinuationStore {
-  return {
-    async load(input) {
-      for (const path of [
-        continuationPath(root, input.directory, input.parentSessionID, input.target),
-        legacyContinuationPath(root, input.directory, input.parentSessionID, input.target),
-      ]) {
-        try {
-          const continuation = parseContinuation(
-            JSON.parse(await readFile(path, "utf8")),
-            input.directory,
-            input.parentSessionID,
-            input.target,
-          );
-          if (continuation) return continuation;
-        } catch {
-          // A missing or malformed record means this continuation starts fresh.
-        }
-        await rm(path, { force: true }).catch(() => undefined);
-      }
-      return undefined;
-    },
-    async save(input) {
-      const record: AdvisorContinuationRecord = {
-        kind: "continuation",
-        version: ADVISOR_STATE_VERSION,
-        directory: input.directory,
-        parentSessionID: input.parentSessionID,
-        target: input.target,
-        updatedAt: Date.now(),
-        continuation: input.continuation,
-      };
+export type AdvisorContinuationSaveResult =
+  | { status: "committed"; continuation: AdvisorContinuation }
+  | { status: "conflict"; current?: AdvisorContinuation }
+  | { status: "unavailable"; error: unknown };
+
+export type AdvisorContinuationRemoveResult =
+  | { status: "removed" }
+  | { status: "conflict"; current?: AdvisorContinuation }
+  | { status: "unavailable"; error: unknown };
+
+export type AdvisorContinuationReadResult =
+  | { status: "available"; continuation?: AdvisorContinuation }
+  | { status: "unavailable"; error: unknown };
+
+export type AdvisorContinuationTransaction = {
+  readonly previous?: AdvisorContinuation;
+  reload(): Promise<AdvisorContinuationReadResult>;
+  save(input: {
+    continuation: AdvisorContinuation;
+    expected?: AdvisorContinuation | null;
+  }): Promise<AdvisorContinuationSaveResult>;
+  remove(input?: { expected?: AdvisorContinuation | null }): Promise<AdvisorContinuationRemoveResult>;
+};
+
+function sameContinuation(left: AdvisorContinuation | undefined, right: AdvisorContinuation | undefined): boolean {
+  return (
+    left?.epoch === right?.epoch &&
+    left?.sessionID === right?.sessionID &&
+    left?.cursor === right?.cursor &&
+    left?.childCursor === right?.childCursor
+  );
+}
+
+type AdvisorLockRecord = {
+  pid: number;
+  token: string;
+  choosing: boolean;
+  ticket?: number;
+};
+
+async function writeAdvisorLockRecord(path: string, record: AdvisorLockRecord): Promise<string> {
+  const value = JSON.stringify(record);
+  const temporary = `${path}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporary, value, "utf8");
+    await rename(temporary, path);
+  } finally {
+    await rm(temporary, { force: true }).catch(() => undefined);
+  }
+  return value;
+}
+
+export async function withContinuationFileLock<T>(path: string, operation: () => Promise<T>): Promise<T> {
+  const parent = join(path, "..");
+  const lockPrefix = `${path}.lock-`;
+  const lockPrefixName = lockPrefix.slice(parent.length + 1);
+  const ownerToken = randomUUID();
+  const lockPath = `${lockPrefix}${ownerToken}`;
+  const ownerPath = join(lockPath, "owner");
+  await mkdir(parent, { recursive: true });
+
+  let acquired = false;
+  let ownerRecord: string | undefined;
+
+  const readContenders = async (): Promise<Array<{ path: string; token: string; record?: AdvisorLockRecord }>> => {
+    const contenders: Array<{ path: string; token: string; record?: AdvisorLockRecord }> = [];
+    for (const entry of await readdir(parent, { withFileTypes: true })) {
+      if (!entry.name.startsWith(lockPrefixName)) continue;
+      const contender = join(parent, entry.name);
+      const lock = await stat(contender).catch(() => undefined);
+      if (!lock?.isDirectory()) continue;
+      const token = entry.name.slice(lockPrefixName.length);
+      let record: AdvisorLockRecord | undefined;
       try {
-        await atomicWrite(continuationPath(root, input.directory, input.parentSessionID, input.target), record);
+        const parsed = JSON.parse(await readFile(join(contender, "owner"), "utf8")) as {
+          pid?: unknown;
+          token?: unknown;
+          choosing?: unknown;
+          ticket?: unknown;
+        };
+        if (
+          typeof parsed.pid === "number" &&
+          Number.isInteger(parsed.pid) &&
+          parsed.pid > 0 &&
+          parsed.token === token &&
+          typeof parsed.choosing === "boolean" &&
+          (parsed.choosing || (typeof parsed.ticket === "number" && Number.isSafeInteger(parsed.ticket) && parsed.ticket > 0))
+        ) {
+          record = parsed as AdvisorLockRecord;
+        }
       } catch {
-        // A state write must not hide valid advisor guidance.
+        // A missing or malformed owner record is provisional until its lease expires.
+      }
+
+      let ownerAlive = false;
+      if (record) {
+        try {
+          process.kill(record.pid, 0);
+          ownerAlive = true;
+        } catch (ownerError) {
+          ownerAlive = (ownerError as NodeJS.ErrnoException).code === "EPERM";
+        }
+      }
+      if (!ownerAlive && Date.now() - lock.mtimeMs > ADVISOR_LOCK_LEASE_MS) {
+        await rm(contender, { recursive: true, force: true }).catch(() => undefined);
+        continue;
+      }
+      contenders.push({ path: contender, token, record });
+    }
+    return contenders;
+  };
+
+  try {
+    while (!acquired) {
+      try {
+        await mkdir(lockPath);
+        acquired = true;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+        await new Promise((resolve) => setTimeout(resolve, 5));
+      }
+    }
+    await writeAdvisorLockRecord(ownerPath, { pid: process.pid, token: ownerToken, choosing: true });
+    const choosing = await readContenders();
+    const maxTicket = Math.max(
+      0,
+      ...choosing.flatMap((contender) =>
+        contender.record?.choosing === false && contender.record.ticket !== undefined ? [contender.record.ticket] : [],
+      ),
+    );
+    const ticket = maxTicket + 1;
+    ownerRecord = await writeAdvisorLockRecord(ownerPath, { pid: process.pid, token: ownerToken, choosing: false, ticket });
+
+    while (true) {
+      const contenders = await readContenders();
+      const blocked = contenders.some((contender) => {
+        if (contender.path === lockPath) return false;
+        if (!contender.record || contender.record.choosing || contender.record.ticket === undefined) return true;
+        return contender.record.ticket < ticket || (contender.record.ticket === ticket && contender.token < ownerToken);
+      });
+      if (!blocked) break;
+      await new Promise((resolve) => setTimeout(resolve, 5));
+    }
+
+    return await operation();
+  } finally {
+    if (acquired) {
+      try {
+        const owner = await readFile(ownerPath, "utf8").catch(() => undefined);
+        if (ownerRecord === undefined || owner === ownerRecord) {
+          await rm(lockPath, { recursive: true, force: true });
+        }
+      } catch {
+        // Release is best-effort. Never turn a completed advisor operation into a failure.
+      }
+    }
+  }
+}
+
+export function createFileAdvisorContinuationStore(
+  root = process.env.OPENCODE_ADVISOR_STATE_ROOT ?? ADVISOR_STATE_ROOT,
+): AdvisorContinuationStore {
+  const readForPersistence = async (
+    input: { directory: string; parentSessionID: string; target: string },
+  ): Promise<AdvisorContinuationReadResult> => {
+    for (const path of [
+      continuationPath(root, input.directory, input.parentSessionID, input.target),
+      legacyContinuationPath(root, input.directory, input.parentSessionID, input.target),
+    ]) {
+      let raw: string;
+      try {
+        raw = await readFile(path, "utf8");
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") return { status: "unavailable", error };
+        continue;
+      }
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(raw);
+      } catch {
+        continue;
+      }
+      const continuation = parseContinuation(parsed, input.directory, input.parentSessionID, input.target);
+      if (continuation) return { status: "available", continuation };
+    }
+    return { status: "available" };
+  };
+
+  const load = async (input: { directory: string; parentSessionID: string; target: string }) => {
+    for (const path of [
+      continuationPath(root, input.directory, input.parentSessionID, input.target),
+      legacyContinuationPath(root, input.directory, input.parentSessionID, input.target),
+    ]) {
+      try {
+        const continuation = parseContinuation(
+          JSON.parse(await readFile(path, "utf8")),
+          input.directory,
+          input.parentSessionID,
+          input.target,
+        );
+        if (continuation) return continuation;
+      } catch {
+        // A missing or malformed record means this continuation starts fresh.
+      }
+    }
+    return undefined;
+  };
+
+  const saveUnlocked = async (input: {
+    directory: string;
+    parentSessionID: string;
+    target: string;
+    continuation: AdvisorContinuation;
+    expected?: AdvisorContinuation | null;
+  }): Promise<AdvisorContinuationSaveResult> => {
+    const current = await readForPersistence(input);
+    if (current.status === "unavailable") return current;
+    if (input.expected !== undefined && !sameContinuation(current.continuation, input.expected ?? undefined)) {
+      return { status: "conflict", ...(current.continuation ? { current: current.continuation } : {}) };
+    }
+    const record: AdvisorContinuationRecord = {
+      kind: "continuation",
+      version: ADVISOR_STATE_VERSION,
+      directory: input.directory,
+      parentSessionID: input.parentSessionID,
+      target: input.target,
+      updatedAt: Date.now(),
+      continuation: input.continuation,
+    };
+    try {
+      await atomicWrite(continuationPath(root, input.directory, input.parentSessionID, input.target), record);
+      return { status: "committed", continuation: input.continuation };
+    } catch (error) {
+      return { status: "unavailable", error };
+    }
+  };
+
+  const removeUnlocked = async (input: {
+    directory: string;
+    parentSessionID: string;
+    target: string;
+    expected?: AdvisorContinuation | null;
+  }): Promise<AdvisorContinuationRemoveResult> => {
+    const current = await readForPersistence(input);
+    if (current.status === "unavailable") return current;
+    if (input.expected !== undefined && !sameContinuation(current.continuation, input.expected ?? undefined)) {
+      return { status: "conflict", ...(current.continuation ? { current: current.continuation } : {}) };
+    }
+    try {
+      await rm(continuationPath(root, input.directory, input.parentSessionID, input.target), { force: true });
+      await rm(legacyContinuationPath(root, input.directory, input.parentSessionID, input.target), { force: true });
+      return { status: "removed" };
+    } catch (error) {
+      return { status: "unavailable", error };
+    }
+  };
+
+  return {
+    load,
+    async save(input) {
+      const path = continuationPath(root, input.directory, input.parentSessionID, input.target);
+      try {
+        return await withContinuationFileLock(path, () => saveUnlocked(input));
+      } catch (error) {
+        return { status: "unavailable", error };
       }
     },
     async remove(input) {
-      await rm(continuationPath(root, input.directory, input.parentSessionID, input.target), { force: true }).catch(() => undefined);
-      await rm(legacyContinuationPath(root, input.directory, input.parentSessionID, input.target), { force: true }).catch(() => undefined);
+      const path = continuationPath(root, input.directory, input.parentSessionID, input.target);
+      try {
+        return await withContinuationFileLock(path, () => removeUnlocked(input));
+      } catch (error) {
+        return { status: "unavailable", error };
+      }
+    },
+    transaction(input, operation) {
+      const path = continuationPath(root, input.directory, input.parentSessionID, input.target);
+      return withContinuationFileLock(path, async () => {
+        const initial = await readForPersistence(input);
+        if (initial.status === "unavailable") throw initial.error;
+        const transaction: AdvisorContinuationTransaction = {
+          previous: initial.continuation,
+          async reload() {
+            return readForPersistence(input);
+          },
+          save(next) {
+            return saveUnlocked({ ...input, ...next });
+          },
+          remove(next = {}) {
+            return removeUnlocked({ ...input, ...next });
+          },
+        };
+        return operation(transaction);
+      });
     },
     async list(input) {
       const records: AdvisorContinuationRecord[] = [];
@@ -262,29 +609,51 @@ export function createFileAdvisorContinuationStore(root = ADVISOR_STATE_ROOT): A
   };
 }
 
+function shouldPruneStateRecord(raw: string): boolean {
+  let parsed: Record<string, unknown>;
+  try {
+    const value = JSON.parse(raw) as unknown;
+    if (!value || typeof value !== "object") return true;
+    parsed = value as Record<string, unknown>;
+  } catch {
+    return true;
+  }
+
+  if (parseSettings(parsed) !== undefined) return false;
+  const legacyContinuation =
+    parsed.version === 1 &&
+    typeof parsed.parentSessionID === "string" &&
+    typeof parsed.target === "string" &&
+    validContinuation(parsed.continuation);
+  const currentContinuation = parsed.version === ADVISOR_STATE_VERSION && parsed.kind === "continuation";
+  const currentMode = parsed.version === 1 && parsed.kind === "mode";
+  return (
+    (!legacyContinuation && !currentContinuation && !currentMode) ||
+    typeof parsed.updatedAt !== "number" ||
+    Date.now() - parsed.updatedAt > ADVISOR_STATE_TTL_MS
+  );
+}
+
 async function pruneStateDirectory(root: string, _directory?: string): Promise<void> {
   try {
     for (const file of await readdir(root, { withFileTypes: true })) {
       if (!file.isFile() || !file.name.endsWith(".json")) continue;
       const path = join(root, file.name);
       try {
-        const parsed = JSON.parse(await readFile(path, "utf8")) as Record<string, unknown>;
-        const legacyContinuation =
-          parsed.version === 1 &&
-          typeof parsed.parentSessionID === "string" &&
-          typeof parsed.target === "string" &&
-          validContinuation(parsed.continuation);
-        const currentContinuation = parsed.version === ADVISOR_STATE_VERSION && parsed.kind === "continuation";
-        const currentMode = parsed.version === 1 && parsed.kind === "mode";
-        if (
-          (!legacyContinuation && !currentContinuation && !currentMode) ||
-          typeof parsed.updatedAt !== "number" ||
-          Date.now() - parsed.updatedAt > ADVISOR_STATE_TTL_MS
-        ) {
+        const candidate = await readFile(path, "utf8");
+        if (!shouldPruneStateRecord(candidate)) continue;
+        await withContinuationFileLock(path, async () => {
+          let current: string;
+          try {
+            current = await readFile(path, "utf8");
+          } catch {
+            return;
+          }
+          if (current !== candidate || !shouldPruneStateRecord(current)) return;
           await rm(path, { force: true });
-        }
+        });
       } catch {
-        await rm(path, { force: true });
+        // State cleanup is best-effort; a replacement or storage failure wins.
       }
     }
   } catch {

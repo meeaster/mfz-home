@@ -13,6 +13,19 @@ import {
 } from "./metrics.js";
 
 describe("advisorMetrics", () => {
+  it("renders a zero-call session without fabricated usage", () => {
+    expect(advisorMetrics([])).toEqual({
+      calls: 0,
+      meteredCalls: 0,
+      input: 0,
+      output: 0,
+      reasoning: 0,
+      cacheRead: 0,
+      cacheWrite: 0,
+      total: 0,
+    });
+  });
+
   it("counts completed advisor calls and aggregates their token metrics", () => {
     expect(
       advisorMetrics([
@@ -45,6 +58,21 @@ describe("advisorMetrics", () => {
     });
   });
 
+  it("reports a metered cache miss with a zero cache-hit rate", () => {
+    expect(
+      advisorMetrics([
+        {
+          type: "tool",
+          tool: "advisor",
+          state: {
+            status: "completed",
+            metadata: { modelID: "claude-opus-4-8", usage: { total: 100, input: 100, cacheRead: 0 } },
+          },
+        },
+      ]),
+    ).toMatchObject({ calls: 1, meteredCalls: 1, input: 100, cacheRead: 0, total: 100, cacheRate: 0 });
+  });
+
   it("counts completed executed calls when usage is unavailable", () => {
     expect(
       advisorMetrics([
@@ -58,8 +86,8 @@ describe("advisorMetrics", () => {
       output: 0,
       reasoning: 0,
       cacheRead: 0,
-      cacheWrite: 0,
-      total: 0
+       cacheWrite: 0,
+       total: 0,
     });
   });
 
@@ -119,6 +147,7 @@ describe("advisorMetrics", () => {
       cacheRead: 120,
       cacheWrite: 8,
       total: 10,
+      cost: 0.354,
       cacheRate: 120 / 130,
     });
     expect(advisorMetricGroups(parts)).toMatchObject([

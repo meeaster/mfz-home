@@ -1,6 +1,6 @@
 ## Runtime Baseline
 
-These observations were captured after `mfz apply --target all --agent all`. The CLI reported `1.17.18` for the first fresh probe and self-updated to `1.17.19` before the later TUI probe; the behavior below was observed on both plugin loads.
+These observations were captured after `mfz apply --target all --agent all`. Earlier probes used CLI versions `1.17.18` and `1.17.19`; the current fresh probe used CLI `1.17.20` with the rendered advisor plugin.
 
 | Session shape | Advisor behavior | Observed evidence |
 | --- | --- | --- |
@@ -12,4 +12,18 @@ These observations were captured after `mfz apply --target all --agent all`. The
 
 The runtime sample is evidence for behavior and observability, not a quality judgment about whether the advisor changed a substantive engineering decision.
 
-An initially-complex session and a separately controlled advice-impact comparison were not captured in this probe; those remain evaluation follow-ups rather than claims supported by this baseline.
+The current probe additionally verified the `<leader>v` picker and the `Advisor: Change mode` palette action in a 200x50 PTY. `D` persisted `auto` while leaving the picker open, Enter persisted the session override and closed it, Escape closed without a further change, and a restart showed the resulting values in the sidebar. The global default was restored to `on` after the probe.
+
+The context-reset probe then used the session summarize API to create a real compaction marker and summary. A fresh 200x50 TUI process rendered `auto · default on`, `reset · ~603 tokens`, and retained the completed advisor metrics (`Input: 17.5K`, `22.5K cached`, `Output: 74`, `Reasoning: 237`, and `$0.108`). Debug logging recorded plugin load, view mount, history loading, pricing refresh, and view unmount for the reset session.
+
+## Controlled Comparison
+
+These read-only sessions were captured on 2026-07-14. No session edited repository files or ran a mutating command.
+
+| Session shape | Mode | Advisor call and pending estimate | Actual usage and timing | Next action after advice |
+| --- | --- | --- | --- | --- |
+| Routine mode inspection | `auto` with an explicit session override | No advisor call; local pending estimate `~4,432` tokens. | No provider usage or call timing. | Executor summarized the configured modes directly. |
+| Initially complex architecture review | `on` | One call; estimated pending input `61,736` tokens. | `51.9s`; input `79,660`, cache-read `3,584`, output `214`, reasoning `2,003`, total `85,461`, cost `$0`. | Yes. The executor recorded the advisor's proposed deterministic continuation-race validation as its next follow-up. |
+| Late-emerging continuation risk | `auto` with an explicit session override and no continuation | No advisor call; local pending estimate `~23,019` tokens. | No provider usage or call timing. | No advisor advice changed the action; the executor independently identified the same race and proposed the same test. |
+
+The no-call rows are intentional observations of workload triage. Local estimates came from the shared transcript planner; provider usage and timing exist only for completed calls. The comparison does not establish that advice improved the engineering outcome; it records whether the next action visibly followed an advisor response.
