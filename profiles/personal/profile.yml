@@ -53,8 +53,14 @@ opencode:
       bash:
         "*": allow
     agent:
+      explore:
+        model: openai/gpt-5.6-luna
+        variant: medium
       compaction:
         model: openai/gpt-5.6-terra
+        variant: medium
+      research:
+        model: openai/gpt-5.6-luna
         variant: medium
   delegate_general:
     models:
