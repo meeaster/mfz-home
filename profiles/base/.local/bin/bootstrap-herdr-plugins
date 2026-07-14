@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ensure_plugin() {
+  local source="$1"
+  local plugin_id="$2"
+  local ref="$3"
+
+  if ! herdr plugin list --plugin "$plugin_id" --json |
+    grep -Eq "\"resolved_commit\"[[:space:]]*:[[:space:]]*\"$ref\""; then
+    herdr plugin install "$source" --ref "$ref" --yes
+  fi
+}
+
+ensure_plugin \
+  "smarzban/herdr-file-viewer" \
+  "herdr-file-viewer" \
+  "1d4a790e9cb88b63db7e88b3ddb82a03ab59751a"
+
+ensure_plugin \
+  "persiyanov/herdr-reviewr" \
+  "persiyanov.reviewr" \
+  "86763235815b5f22e89211903677568a550fb273"

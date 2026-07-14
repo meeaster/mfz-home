@@ -7,6 +7,7 @@ aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.15"
 gh = "2"
+herdr = { version = "0", postinstall = 'bash "$HOME/.local/bin/bootstrap-herdr-plugins"' }
 jq = "1"
 pipx = "1"
 pre-commit = "4"
@@ -31,6 +32,9 @@ yamllint = "1"
 "github:Infisical/agent-vault" = "0"
 "github:kitlangton/ghui" = "0"
 "npm:agent-browser" = "0"
+"github:dandavison/delta" = "0"
+"github:charmbracelet/glow" = "2"
+bat = "0"
 
 [settings]
 minimum_release_age = "3d"
