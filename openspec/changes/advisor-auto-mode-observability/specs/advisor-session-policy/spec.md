@@ -1,7 +1,7 @@
 ## ADDED Requirements
 
 ### Requirement: Session-scoped advisor mode
-The system SHALL maintain an advisor mode of `manual`, `auto`, or `on` for each OpenCode session, SHALL persist explicit mode changes across plugin restarts, and SHALL use the global advisor default for sessions without an explicit mode. Persisted legacy `off` values SHALL be interpreted as `manual`.
+The system SHALL maintain an advisor mode of `manual`, `auto`, or `on` for each OpenCode session, SHALL persist explicit mode changes across plugin restarts, and SHALL use the effective mode of the nearest ancestor session for subagent sessions. Sessions without an explicit mode in their ancestor chain SHALL use the global advisor default. Persisted legacy `off` values SHALL be interpreted as `manual`.
 
 #### Scenario: New session uses on mode
 - **WHEN** a session has no persisted advisor mode, no UI-selected global default exists, and `OPENCODE_ADVISOR_MODE` is unset
@@ -11,9 +11,9 @@ The system SHALL maintain an advisor mode of `manual`, `auto`, or `on` for each 
 - **WHEN** a user changes a session's advisor mode and the advisor plugin restarts
 - **THEN** the system restores that mode for the same session
 
-#### Scenario: Sessions remain independent
-- **WHEN** a user changes the advisor mode in one session
-- **THEN** the system does not change the mode of another parent or subagent session
+#### Scenario: Subagents inherit parent mode
+- **WHEN** a user changes the advisor mode in a parent session
+- **THEN** subagent sessions use that effective mode for subsequent turns
 
 ### Requirement: Global advisor default
 The system SHALL persist a machine-wide global advisor default of `manual`, `auto`, or `on` in advisor-owned runtime settings, SHALL apply it to sessions without an explicit mode, and SHALL resolve an absent UI-selected default from `OPENCODE_ADVISOR_MODE` and then `on`. The system SHALL NOT modify rendered OpenCode or Mindframe-Z profile configuration when the global default changes.

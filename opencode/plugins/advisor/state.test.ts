@@ -10,6 +10,7 @@ import {
   createFileAdvisorModeStore,
   createFileAdvisorSettingsStore,
   defaultAdvisorMode,
+  resolveInheritedAdvisorMode,
   resolveAdvisorMode,
   withContinuationFileLock,
 } from "./state.js";
@@ -110,6 +111,46 @@ describe("advisor state", () => {
     } finally {
       await rm(root, { recursive: true, force: true });
       vi.unstubAllEnvs();
+    }
+  });
+
+  it("inherits the nearest ancestor mode and ignores child overrides", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-inherited-mode-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      await modeStore.save({ directory: "/workspace", sessionID: "root", mode: "on" });
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      await modeStore.save({ directory: "/workspace", sessionID: "child", mode: "auto" });
+      const parents: Record<string, string | undefined> = {
+        child: "parent",
+        parent: "root",
+        "default-child": "unconfigured-parent",
+        "unconfigured-parent": "root",
+        root: undefined,
+      };
+
+      await expect(
+        resolveInheritedAdvisorMode({
+          modeStore,
+          settingsStore,
+          directory: "/workspace",
+          sessionID: "child",
+          parentID: async (sessionID) => parents[sessionID],
+        }),
+      ).resolves.toMatchObject({ mode: "manual", defaultMode: "on", explicit: true });
+
+      await expect(
+        resolveInheritedAdvisorMode({
+          modeStore,
+          settingsStore,
+          directory: "/workspace",
+          sessionID: "default-child",
+          parentID: async (sessionID) => parents[sessionID],
+        }),
+      ).resolves.toMatchObject({ mode: "on", modeSessionID: "unconfigured-parent", explicit: true });
+    } finally {
+      await rm(root, { recursive: true, force: true });
     }
   });
 

@@ -238,6 +238,7 @@ export type AdvisorModeResolution = {
   mode: AdvisorMode;
   defaultMode: AdvisorMode;
   explicit: boolean;
+  modeSessionID: string;
 };
 
 export async function resolveAdvisorMode(input: {
@@ -255,7 +256,49 @@ export async function resolveAdvisorMode(input: {
     mode: explicit ?? defaultMode,
     defaultMode,
     explicit: explicit !== undefined,
+    modeSessionID: input.sessionID,
   };
+}
+
+export async function resolveInheritedAdvisorMode(input: {
+  modeStore: AdvisorModeStore;
+  settingsStore?: AdvisorSettingsStore;
+  directory: string;
+  sessionID: string;
+  parentID: (sessionID: string) => Promise<string | undefined>;
+}): Promise<AdvisorModeResolution> {
+  const defaultMode = (await input.settingsStore?.load()) ?? defaultAdvisorMode();
+  let sessionID = input.sessionID;
+  let first = true;
+  let modeSessionID = input.sessionID;
+  const visited = new Set<string>();
+
+  while (!visited.has(sessionID)) {
+    visited.add(sessionID);
+    const parentID = await input.parentID(sessionID);
+    if (parentID) {
+      if (visited.has(parentID)) return { mode: defaultMode, defaultMode, explicit: false, modeSessionID };
+      sessionID = parentID;
+      first = false;
+      if (modeSessionID === input.sessionID) modeSessionID = sessionID;
+      const explicit = await input.modeStore.loadOverride({ directory: input.directory, sessionID });
+      if (explicit) return { mode: explicit, defaultMode, explicit: true, modeSessionID };
+      continue;
+    }
+
+    const explicit = await input.modeStore.loadOverride({
+      directory: input.directory,
+      sessionID: first ? input.sessionID : sessionID,
+    });
+    return {
+      mode: explicit ?? defaultMode,
+      defaultMode,
+      explicit: explicit !== undefined,
+      modeSessionID,
+    };
+  }
+
+  return { mode: defaultMode, defaultMode, explicit: false, modeSessionID };
 }
 
 export interface AdvisorContinuationStore {

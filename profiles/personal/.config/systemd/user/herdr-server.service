@@ -1,0 +1,16 @@
+[Unit]
+Description=Herdr server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mark
+Environment=HOME=/home/mark
+Environment=XDG_CONFIG_HOME=/home/mark/.config
+Environment=PATH=/home/mark/.local/bin:/home/mark/.local/share/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/home/mark/.local/bin/herdr server
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=default.target

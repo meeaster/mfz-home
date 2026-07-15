@@ -7,6 +7,7 @@ references:
   - openspec
   - mise
   - hunk
+  - herdr
   - vercel-skills
   - agent-vault
   - ponytail
@@ -47,6 +48,8 @@ skills:
   agent-sessions:
     agents: { opencode: true, claude-code: true, codex: true }
   agent-exec:
+    agents: { opencode: true, claude-code: true, codex: true }
+  herdr:
     agents: { opencode: true, claude-code: true, codex: true }
   threads:
     agents: { opencode: true, claude-code: true, codex: true }

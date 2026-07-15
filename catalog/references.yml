@@ -14,6 +14,9 @@ references:
   - name: hunk
     url: https://github.com/modem-dev/hunk.git
     description: "TypeScript terminal diff viewer (npm hunkdiff) for browsing agent-authored changesets. Multi-file diff review TUI with sidebar navigation, inline AI annotations, split/stack layouts, watch mode, and Git/Jujutsu/raw patch support. Entrypoint: bin/hunk.cjs."
+  - name: herdr
+    url: https://github.com/ogulcancelik/herdr.git
+    description: "Rust terminal multiplexer for AI agents with live pane views, detachable sessions, a socket API, and plugin support."
   - name: vercel-skills
     url: https://github.com/vercel-labs/skills.git
     description: "TypeScript CLI for the open ecosystem manager of AI coding agent skills. Installs, lists, finds, updates, and removes reusable SKILL.md instruction sets across 50+ agents (OpenCode, Claude Code, Codex, Cursor, etc.) from Git repos or local paths, with project-level or global scoping."

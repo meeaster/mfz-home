@@ -34,6 +34,7 @@ import {
   type AdvisorContinuationRemoveResult,
   type AdvisorContinuationSaveResult,
   type AdvisorContinuationTransaction,
+  resolveInheritedAdvisorMode,
   resolveAdvisorMode,
 } from "./state.js";
 
@@ -403,7 +404,27 @@ export async function advisorMode(
   return (await resolveAdvisorMode({ modeStore: store, settingsStore, ...input })).mode;
 }
 
-type PolicySessionClient = Pick<SessionClient, "messages">;
+type PolicySessionClient = Pick<SessionClient, "messages"> & Partial<Pick<SessionClient, "get">>;
+
+async function inheritedAdvisorMode(input: {
+  modeStore: AdvisorModeStore;
+  settingsStore?: AdvisorSettingsStore;
+  client: PolicySessionClient;
+  directory: string;
+  sessionID: string;
+}): Promise<Awaited<ReturnType<typeof resolveAdvisorMode>>> {
+  return resolveInheritedAdvisorMode({
+    modeStore: input.modeStore,
+    settingsStore: input.settingsStore,
+    directory: input.directory,
+    sessionID: input.sessionID,
+    parentID: async (sessionID) => {
+      if (!input.client.get) return undefined;
+      const result = await input.client.get({ path: { id: sessionID }, query: { directory: input.directory } });
+      return result.data?.parentID;
+    },
+  });
+}
 
 export async function advisorExecutorPolicy(input: {
   modeStore: AdvisorModeStore;
@@ -413,14 +434,7 @@ export async function advisorExecutorPolicy(input: {
   directory: string;
   sessionID: string;
 }): Promise<{ mode: AdvisorMode; policy: string }> {
-  const mode = (
-    await resolveAdvisorMode({
-      modeStore: input.modeStore,
-      settingsStore: input.settingsStore,
-      directory: input.directory,
-      sessionID: input.sessionID,
-    })
-  ).mode;
+  const mode = (await inheritedAdvisorMode(input)).mode;
   if (mode === "manual") return { mode, policy: MANUAL_POLICY };
   if (mode === "on") return { mode, policy: ACTIVE_POLICY };
 
@@ -1293,17 +1307,6 @@ export function createAdvisorTool(input: AdvisorToolDependencies): ToolDefinitio
     description: ADVISOR_DESCRIPTION,
     args: {},
     async execute(_args, ctx) {
-      const mode = (
-        await resolveAdvisorMode({
-          modeStore,
-          settingsStore,
-          directory: ctx.directory,
-          sessionID: ctx.sessionID,
-        })
-      ).mode;
-      if (mode === "manual" && !manualAdvisorRequests.has(ctx.sessionID)) {
-        return MANUAL_BLOCKED_MESSAGE;
-      }
       await input.continuation?.store?.prune(ctx.directory);
       let targets: AdvisorTarget[];
       let nativeMode: NativeAdvisorMode;
@@ -1319,6 +1322,22 @@ export function createAdvisorTool(input: AdvisorToolDependencies): ToolDefinitio
       const session = await input.client.get({ path: { id: ctx.sessionID }, query: { directory: ctx.directory } });
       if (session.error || !session.data) {
         return `Error: could not read the current session (${String(session.error ?? "no data")}).`;
+      }
+      const mode = (
+        await resolveInheritedAdvisorMode({
+          modeStore,
+          settingsStore,
+          directory: ctx.directory,
+          sessionID: ctx.sessionID,
+          parentID: async (sessionID) => {
+            if (sessionID === ctx.sessionID) return session.data?.parentID;
+            const parent = await input.client.get({ path: { id: sessionID }, query: { directory: ctx.directory } });
+            return parent.data?.parentID;
+          },
+        })
+      ).mode;
+      if (mode === "manual" && !manualAdvisorRequests.has(ctx.sessionID)) {
+        return MANUAL_BLOCKED_MESSAGE;
       }
       if (session.data.parentID && ctx.agent !== "general") {
         return "Skipped: advisor is available to subagents only when running as general.";
@@ -1455,7 +1474,7 @@ const AdvisorPlugin: PluginModule = {
       "command.execute.before": async (input) => {
         if (input.command === "consult-advisor" || input.command === "/consult-advisor") {
           const mode = (
-            await resolveAdvisorMode({ modeStore, settingsStore, directory, sessionID: input.sessionID })
+            await inheritedAdvisorMode({ modeStore, settingsStore, client: api.session, directory, sessionID: input.sessionID })
           ).mode;
           if (mode === "manual") {
             manualAdvisorRequests.set(input.sessionID, {});
@@ -1472,7 +1491,7 @@ const AdvisorPlugin: PluginModule = {
         const request = manualAdvisorRequests.get(input.sessionID);
         if (!request) {
           const mode = (
-            await resolveAdvisorMode({ modeStore, settingsStore, directory, sessionID: input.sessionID })
+            await inheritedAdvisorMode({ modeStore, settingsStore, client: api.session, directory, sessionID: input.sessionID })
           ).mode;
           if (mode === "manual" && explicitlyRequestsAdvisor(output.parts)) {
             manualAdvisorRequests.set(input.sessionID, { userMessageID: messageID });

@@ -124,6 +124,13 @@ skills:
     description: >
       Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
       continue a session from one of those harnesses; or inspect a harness's available models or variants.
+  - name: herdr
+    source: git
+    repo: https://github.com/ogulcancelik/herdr
+    skill: herdr
+    description: >
+      Control Herdr from inside a Herdr-managed agent pane: inspect and coordinate panes, run commands without stealing
+      focus, read output, wait for work to finish, and start helper agents.
   - name: threads
     source: local
     skill: threads

@@ -22,7 +22,7 @@ import {
   createFileAdvisorContinuationStore,
   createFileAdvisorSettingsStore,
   createFileAdvisorModeStore,
-  resolveAdvisorMode,
+  resolveInheritedAdvisorMode,
   type AdvisorMode,
   type AdvisorSynchronizationState,
 } from "../state.js";
@@ -63,9 +63,39 @@ function activeSessionID(api: TuiPluginApi): string | undefined {
     : undefined;
 }
 
+type AdvisorSessionClient = {
+  session: {
+    get(input: { path: { id: string }; query?: { directory?: string } }): Promise<{
+      data?: { parentID?: string };
+    }>;
+  };
+};
+
+function sessionAdvisorMode(
+  api: TuiPluginApi,
+  modeStore: ReturnType<typeof createFileAdvisorModeStore>,
+  settingsStore: ReturnType<typeof createFileAdvisorSettingsStore>,
+  sessionID: string,
+) {
+  const client = api.client as unknown as AdvisorSessionClient;
+  return resolveInheritedAdvisorMode({
+    modeStore,
+    settingsStore,
+    directory: api.state.path.directory,
+    sessionID,
+    parentID: async (currentSessionID) => {
+      const result = await client.session.get({
+        path: { id: currentSessionID },
+        query: { directory: api.state.path.directory },
+      });
+      return result.data?.parentID;
+    },
+  });
+}
+
 function AdvisorModePicker(props: {
   api: TuiPluginApi;
-  sessionID: string;
+  modeSessionID: string;
   modeStore: ReturnType<typeof createFileAdvisorModeStore>;
   settingsStore: ReturnType<typeof createFileAdvisorSettingsStore>;
   initial: AdvisorModePickerInitial;
@@ -76,7 +106,7 @@ function AdvisorModePicker(props: {
 
   const actions = createAdvisorModePickerActions({
     initial: props.initial,
-    saveSession: (mode) => props.modeStore.save({ directory: props.api.state.path.directory, sessionID: props.sessionID, mode }),
+    saveSession: (mode) => props.modeStore.save({ directory: props.api.state.path.directory, sessionID: props.modeSessionID, mode }),
     saveDefault: (mode) => props.settingsStore.save(mode),
     onCurrentChange: (mode) => setCurrent(mode),
     onDefaultChange: (mode) => setDefaultMode(mode),
@@ -188,7 +218,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
       const continuationStore = createFileAdvisorContinuationStore();
       const directory = props.api.state.path.directory;
       modeRevision();
-      const resolution = await resolveAdvisorMode({ modeStore, settingsStore, directory, sessionID: props.sessionID });
+      const resolution = await sessionAdvisorMode(props.api, modeStore, settingsStore, props.sessionID);
       const records = await continuationStore.list({ directory, parentSessionID: props.sessionID });
       let messages = props.api.state.session.messages(props.sessionID).map((message) => ({
         info: message,
@@ -308,12 +338,7 @@ const tui: TuiPlugin = async (api) => {
       return;
     }
 
-    const initial = await resolveAdvisorMode({
-      modeStore,
-      settingsStore,
-      directory: api.state.path.directory,
-      sessionID,
-    });
+    const initial = await sessionAdvisorMode(api, modeStore, settingsStore, sessionID);
     const close = () => {
       pickerBindings.close();
       activeDefaultAction = undefined;
@@ -324,7 +349,7 @@ const tui: TuiPlugin = async (api) => {
       () => (
         <AdvisorModePicker
           api={api}
-          sessionID={sessionID}
+          modeSessionID={initial.modeSessionID}
           modeStore={modeStore}
           settingsStore={settingsStore}
           initial={initial}

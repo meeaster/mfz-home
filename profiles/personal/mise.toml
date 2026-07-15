@@ -6,5 +6,6 @@ usage = "3"
 "github:xdevplatform/xurl" = "1"
 
 [env]
-OPENCODE_ADVISOR_MODELS = "opencode:openai/gpt-5.6-sol@high"
+OPENCODE_ADVISOR_MODE = "auto"
+OPENCODE_ADVISOR_MODELS = "opencode:openai/gpt-5.6-terra@high"
 # OPENCODE_ADVISOR_MODELS = "opencode:openai/gpt-5.6-sol@high,claude-code:opus@high"

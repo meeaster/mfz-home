@@ -27,7 +27,7 @@ For a request to use a named subagent available in the current environment, such
 
 3. Choose fresh or continuation.
 
-   Prefer explicit handles over "latest". Continue only when the user asks to continue/resume or gives a handle. Avoid `latest`/`--continue` when parallel runs may exist. Done when the exact continuation command or fresh-run command is chosen.
+   Prefer explicit handles over "latest". Continue only when the user asks to continue/resume or gives a handle. Avoid `latest`/`--continue` when parallel runs may exist. When the user requests an isolated, clean-room, disposable, or configuration-free local run, follow [ISOLATION.md](ISOLATION.md) before launching. Done when the exact continuation command or fresh-run command, including any required isolation environment, is chosen.
 
 4. Choose the model and effort.
 
@@ -52,8 +52,8 @@ For a request to use a named subagent available in the current environment, such
 ## Nested Harness Caveats
 
 - A parent harness may block child CLI execution through its own permission system. If the child command is denied before it runs, report the blocked command and required permission instead of implying the target harness failed.
-- A child harness launched from a sandboxed parent may not have the same writable home, state, cache, auth, or network access as an interactive shell. If startup fails on log/state/cache paths, retry once with explicit writable temp locations such as `HOME=/tmp/<tool>-home` and `XDG_DATA_HOME=/tmp/<tool>-data` when that is safe for the task.
-- Preserve any required environment prefixes in the continuation command. A session created with temp home/data directories may not be resumable from the default environment.
+- A child harness launched from a sandboxed parent may not have the same writable home, state, cache, auth, or network access as an interactive shell. Treat an incidental temp-directory retry as a clean-room run and follow [ISOLATION.md](ISOLATION.md), rather than redirecting only one state path and accidentally mixing environments.
+- Preserve the complete isolation environment in the continuation command. A handle created under a clean root belongs to that root and may resolve to a different or missing session under the default environment.
 - Do not treat a captured handle as a successful answer. A session/thread can be created before the child model returns any assistant message; inspect the child output or export before reporting success.
 
 ## Context Packet
@@ -94,6 +94,8 @@ Packet rules:
 
 ## Claude Code
 
+For a local clean-room run, follow the isolation branch in [claude-code.md](claude-code.md) in addition to the command guidance below.
+
 Select model and effort before running. Use `--model <alias-or-full-name>` for explicit model selection. Useful aliases include `default`, `best`, `fable` for hardest long-running work, `opus` for complex reasoning, `sonnet` for daily coding, `haiku` for simple/cheap work, `sonnet[1m]` or `opus[1m]` for long context, and `opusplan` for Opus planning plus Sonnet execution. Use `--effort <level>` with `low`, `medium`, `high`, `xhigh`, `max`, or `ultracode` when supported. Prefer the model's default effort for normal delegated work, `high` or `xhigh` for difficult implementation/review/debugging, `ultracode` for substantive Claude Code workflow orchestration, and `max` only when the user asks for the strongest pass or the task clearly warrants the cost.
 
 Do not disable tools with `--tools ""` during normal delegation; that prevents Claude Code from loading configured tools and skills such as `claude-code-docs`. Only restrict tools when the user explicitly asks for a tool-free run or when the safety posture requires it. For `haiku` and other simple/cheap Claude runs, omit `--effort` unless the user explicitly asks for it or local docs confirm the chosen model supports the requested effort.
@@ -129,6 +131,8 @@ Claude Code has no supported per-session deletion for ordinary foreground `-p` s
 
 ## OpenCode
 
+For a local clean-room run, follow the isolation branch in [opencode.md](opencode.md) in addition to the command guidance below.
+
 Inspect models and variants before selecting a non-default OpenCode model:
 
 ```bash
@@ -158,6 +162,8 @@ OpenCode `--format json` emits JSON events, not a single final result object. Th
 Delete a disposable OpenCode test/probe session with `opencode session delete <sessionID>` after capturing its evidence.
 
 ## Codex
+
+For a local clean-room run, follow the isolation branch in [codex.md](codex.md) in addition to the command guidance below.
 
 Select model and reasoning effort before running. Use `--model <model>` for explicit model selection; start with the current strongest recommended Codex model, currently `gpt-5.5`, for most Codex work and a faster mini model, currently `gpt-5.4-mini`, for lower-cost lighter subagent work. Use `codex debug models` when you need the current model catalog. Use `-c model_reasoning_effort="<effort>"` for effort when the chosen model supports it. Prefer `medium` for normal delegated work, `high` for complex implementation/review/debugging, and `low` when the task is straightforward and speed matters most.
 

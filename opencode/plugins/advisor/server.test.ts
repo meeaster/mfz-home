@@ -434,7 +434,7 @@ describe("advisor", () => {
       await expect(
         (tool.execute as Function)({}, { sessionID: "parent", messageID: "tool-call", directory: "/workspace", metadata: vi.fn() }),
       ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
-      expect(client.get).not.toHaveBeenCalled();
+      expect(client.get).toHaveBeenCalledOnce();
       expect(client.messages).not.toHaveBeenCalled();
       expect(client.create).not.toHaveBeenCalled();
     } finally {
@@ -464,7 +464,7 @@ describe("advisor", () => {
 
       await expect((tool.execute as Function)({}, context)).resolves.toContain("Advisor unavailable");
       await expect((tool.execute as Function)({}, context)).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
-      expect(client.get).toHaveBeenCalledOnce();
+      expect(client.get).toHaveBeenCalledTimes(2);
     } finally {
       await rm(root, { recursive: true, force: true });
     }
@@ -560,6 +560,9 @@ describe("advisor", () => {
       const modeStore = createFileAdvisorModeStore(root);
       const continuationStore = createFileAdvisorContinuationStore(root);
       const client = {
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "child" ? { parentID: "parent" } : {} }),
+        ),
         messages: vi.fn().mockResolvedValue({ data: [{ info: { id: "message", role: "user" }, parts: [{ type: "text", text: "Work" }] }] }),
       };
       const input = { modeStore, continuationStore, client, directory: "/workspace", sessionID: "parent" };
@@ -601,6 +604,63 @@ describe("advisor", () => {
       await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "auto" });
       await settingsStore.save("on");
       await expect(advisorExecutorPolicy(input)).resolves.toEqual({ mode: "auto", policy: AUTO_ADMISSION_POLICY });
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("uses the parent mode for child policy and ignores a child override", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-policy-parent-mode-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      const continuationStore = createFileAdvisorContinuationStore(root);
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      await modeStore.save({ directory: "/workspace", sessionID: "child", mode: "on" });
+      const client = {
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "child" ? { parentID: "parent" } : {} }),
+        ),
+        messages: vi.fn(),
+      };
+
+      await expect(
+        advisorExecutorPolicy({
+          modeStore,
+          settingsStore,
+          continuationStore,
+          client,
+          directory: "/workspace",
+          sessionID: "child",
+        }),
+      ).resolves.toEqual({ mode: "manual", policy: MANUAL_POLICY });
+      expect(client.messages).not.toHaveBeenCalled();
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("enforces the parent manual mode at the child tool boundary", async () => {
+    const root = await mkdtemp(join(tmpdir(), "advisor-tool-parent-mode-"));
+    try {
+      const modeStore = createFileAdvisorModeStore(root);
+      const settingsStore = createFileAdvisorSettingsStore(join(root, "settings.json"));
+      await modeStore.save({ directory: "/workspace", sessionID: "parent", mode: "manual" });
+      await modeStore.save({ directory: "/workspace", sessionID: "child", mode: "on" });
+      const client = {
+        get: vi.fn().mockImplementation(({ path }: { path: { id: string } }) =>
+          Promise.resolve({ data: path.id === "child" ? { parentID: "parent" } : {} }),
+        ),
+        messages: vi.fn(),
+        create: vi.fn(),
+      } as unknown as AdvisorToolDependencies["client"];
+      const tool = createAdvisorTool({ client, modeStore, settingsStore });
+
+      await expect(
+        (tool.execute as Function)({}, { sessionID: "child", agent: "general", directory: "/workspace", metadata: vi.fn() }),
+      ).resolves.toBe(MANUAL_BLOCKED_MESSAGE);
+      expect(client.messages).not.toHaveBeenCalled();
+      expect(client.create).not.toHaveBeenCalled();
     } finally {
       await rm(root, { recursive: true, force: true });
     }
