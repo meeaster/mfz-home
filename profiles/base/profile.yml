@@ -79,8 +79,6 @@ skills:
   openspec-orchestrate:
     agents: { opencode: true, claude-code: false, codex: false }
     toggleable: false
-  skill-writer:
-    agents: { opencode: false, claude-code: false, codex: false }
   writing-great-skills:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-patterns:
