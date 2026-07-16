@@ -7,14 +7,14 @@ description: Draft, refine, and sync Jira stories as local markdown, then push t
 
 Author Jira stories that read like a short human narrative — **reader-first**: why the work exists, what changes, and the context a future reader needs. You draft in a local markdown file, refine it with the user, and only push to Jira once they approve.
 
-The skill is portable: it owns *what the story says* and *how it syncs*, not where the repo lives. It operates on the artifact file you point it at, or creates one under `.claude/artifacts/jira/`.
+The skill is portable: it owns *what the story says* and *how it syncs*, not where the repo lives. It operates on the artifact file you point it at, or creates one under `~/.claude/artifacts/jira/`.
 
 ## Process
 
 ### 1. Resolve the artifact
 
-- **New story** — create `.claude/artifacts/jira/DRAFT-<type>-<slug>.jira.md` with front matter (see below) and an empty `issue_key`.
-- **Existing story** — if given an issue key, find its file under `.claude/artifacts/jira/`. If none exists, fetch the issue (`getJiraIssue`) and write a local artifact from it before editing.
+- **New story** — create `~/.claude/artifacts/jira/DRAFT-<type>-<slug>.jira.md` with front matter (see below) and an empty `issue_key`.
+- **Existing story** — if given an issue key, find its file under `~/.claude/artifacts/jira/`. If none exists, fetch the issue (`getJiraIssue`) and write a local artifact from it before editing.
 
 ### 2. Draft the body in the file
 

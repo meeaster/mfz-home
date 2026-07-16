@@ -7,14 +7,14 @@ description: Draft, refine, and sync Confluence pages as local markdown, then pu
 
 Author Confluence pages that read **reader-first** for an audience who wasn't in the room — a teammate finding this page later. You draft in a local markdown file, refine it with the user, and push to Confluence only through an explicit **gate** they re-open for every write. This avoids the failure where the MCP pushes a page before the user has approved what it will write — including the trap where one approval is read as license to keep pushing.
 
-The skill is portable: it owns *what the page says* and *how it syncs*, not where the repo lives. It operates on the artifact file you point it at, or creates one under `.claude/artifacts/confluence/`.
+The skill is portable: it owns *what the page says* and *how it syncs*, not where the repo lives. It operates on the artifact file you point it at, or creates one under `~/.claude/artifacts/confluence/`.
 
 ## Process
 
 ### 1. Resolve the artifact
 
-- **New page** — create `.claude/artifacts/confluence/DRAFT-<slug>.confluence.md` with front matter (see below) and an empty `page_id`. Resolve `cloud_id` now rather than leaving it silently empty; if you can't yet, tell the user it stays empty until first publish.
-- **Existing page** — if given a page id or title, find its file under `.claude/artifacts/confluence/`. If none exists, fetch the page (`getConfluencePage`) and write a local artifact from it before editing.
+- **New page** — create `~/.claude/artifacts/confluence/DRAFT-<slug>.confluence.md` with front matter (see below) and an empty `page_id`. Resolve `cloud_id` now rather than leaving it silently empty; if you can't yet, tell the user it stays empty until first publish.
+- **Existing page** — if given a page id or title, find its file under `~/.claude/artifacts/confluence/`. If none exists, fetch the page (`getConfluencePage`) and write a local artifact from it before editing.
 
 ### 2. Draft the body in the file
 
