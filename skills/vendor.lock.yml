@@ -1,0 +1,64 @@
+skills:
+  grilling:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 5ce6cb948ee858ef5467f1ec691ae0818e6b964a7082762fa1dfa6d7451db3c5
+  hunk-review:
+    commit: 2458366fbf028759ac7ca7da729f4f6089e22b02
+    digest: c67fad8eef6fda4dab6b4d7460ab01213eca1389586b45bad270efe2f08f68b0
+  improve-codebase-architecture:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 259c47fd519dce98e1c98ad589ba24bafefa8df09b083366b477e5c088e4555a
+  grill-with-docs:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 52a2e30968c0cbd03bd6d0a0f44ae4b21de5abc9d95d3ad25e4d409a7042e0ab
+  qmd:
+    commit: e428df76bc0274d9e93eb7ca3e95673315c42e90
+    digest: 8e7a8a28a3f3e7dc39d82155f41384776b67987f7a137f758cfa37cf2b575e66
+  handoff:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 5ac919162943138a308b13dc92da9da097d9df204df44552fb3930c50c16d1ba
+  improve:
+    commit: 03369ee6d7cafbfcecc4346539b05b3dc0a603bb
+    digest: 681ddb43767a0985d697ee9753379c7f1a7b32a29b05c3939a277d2441eaf590
+  thermo-nuclear-code-quality-review:
+    commit: 3fe2823ce17c1656c222d4b7c59d3f82fbf20143
+    digest: 1fc3a63663c52fb194eb8da65f1631742b712e3bfbb96d08a319d2c0a9a33e0b
+  skill-writer:
+    commit: 412f2368ee3ec90ce042826b57533f080d531aaf
+    digest: 075ff5fbff596d7d4a41c66351c80effa22535d8aea2715bdbb08a63354d716f
+  grill-me:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: bec152d2fbe46fc089394618c0601deccfa80c050da3c936b13a263a3da9796c
+  domain-modeling:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: f5fed75030c66626cb4725e80261497b35910cd58706383849093b22ac5d3f21
+  home-assistant-best-practices:
+    commit: 5c023edf38677ef7484aa8b0cc621bedcfcfcdae
+    digest: ad2444283aa48a8e4dd4d86151322853b7776366ed38aad7e867b1e0ade0a258
+  writing-great-skills:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 3512574755c7fd0bbb3a6a99b0443296e579fb8d5fa25914d04cd4e2ce480fd4
+  herdr:
+    commit: 6e4768a7ccb172b96c30eabe745747fbde31f777
+    digest: a6f57c7a491975606487d30135eb233bdeaf65ae9a751f6239ef28cc4713c9e4
+  openai-docs:
+    commit: 49f948faa9258a0c61caceaf225e179651397431
+    digest: d41587eb5078a178987ab2a69d0037643066907068c2b6552bba0039d6dde1c3
+  prototype:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: f9890c39a63d298e758f2087efc39febe78fd004638d0fca8dcd6dc1009d859f
+  agent-browser:
+    commit: e40e62d7c8378549646c9a36615c0a960a1378e8
+    digest: 6365f048dec42c62a703fad9f5cb6ab1ccb3a8b6da00a67b2645700ea1cdf320
+  to-spec:
+    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
+    digest: 714d10e50281927854f739efa2a023271f702ca7a4c57600a5a0f9abde56aab7
+  impeccable:
+    commit: 8259c28209b92792005cec14dad573df39f68eaf
+    digest: fb9089b0aa30e688f09fa3b4205536901da9c146e0d891faf4d72c26095ba803
+  visual-explainer:
+    commit: 528b71feb85dab5d92b82c3554880826f50a75da
+    digest: ee391ff9c3630bcd9621d252ce06f5a66012ffbacb77bc25c7a946d12632d468
+  skill-creator:
+    commit: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
+    digest: 5ad0868be528859ba96a52cb368f0ced16605d5a9ed433a811d8c6d1fd5b2c4f

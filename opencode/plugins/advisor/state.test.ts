@@ -60,6 +60,7 @@ describe("advisor state", () => {
   });
 
   it("rejects malformed and expired mode records", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "on");
     const root = await mkdtemp(join(tmpdir(), "advisor-mode-invalid-"));
     try {
       const store = createFileAdvisorModeStore(root);
@@ -74,6 +75,7 @@ describe("advisor state", () => {
       await expect(store.load(input)).resolves.toBe("on");
     } finally {
       await rm(root, { recursive: true, force: true });
+      vi.unstubAllEnvs();
     }
   });
 
@@ -115,6 +117,7 @@ describe("advisor state", () => {
   });
 
   it("inherits the nearest ancestor mode and ignores child overrides", async () => {
+    vi.stubEnv("OPENCODE_ADVISOR_MODE", "on");
     const root = await mkdtemp(join(tmpdir(), "advisor-inherited-mode-"));
     try {
       const modeStore = createFileAdvisorModeStore(root);
@@ -151,6 +154,7 @@ describe("advisor state", () => {
       ).resolves.toMatchObject({ mode: "on", modeSessionID: "unconfigured-parent", explicit: true });
     } finally {
       await rm(root, { recursive: true, force: true });
+      vi.unstubAllEnvs();
     }
   });
 

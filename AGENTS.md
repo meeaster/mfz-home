@@ -59,9 +59,8 @@ managed by `mfz apply` and rewritten on every run.
 - Before configuring anything here (profiles, catalog entries, skills, MCP,
   instructions, dotfiles), run `mfz guide`; before adding or changing skills,
   run `mfz guide skills`.
-- Edit source files in this repo, then run `mfz apply --target all --agent all`
-  (plus `mfz skills sync` when skills changed).
+- Edit source files in this repo, then run `mfz apply --target all --agent all`.
 - Never edit rendered output (`~/.mindframe-z/configs/` or globally linked
-  tool config). If rendered files were already edited, run `mfz sync` to
-  promote the edits back.
+  tool config). Use `mfz sync` only to promote unmanaged configuration keys;
+  skill source changes belong in the home and require `mfz apply`.
 <!-- mfz:home-guidance:end -->

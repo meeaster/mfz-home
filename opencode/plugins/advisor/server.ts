@@ -88,15 +88,21 @@ export const ADVISOR_DESCRIPTION = `Consult a stronger reviewer who sees your av
 
 No parameters. The executor supplies the available transcript automatically. Follow the session advisor policy in the system prompt when deciding whether to invoke this tool.`;
 
+const AUTO_REVIEW_CYCLE_POLICY = `Nontrivial review or audit findings create a review cycle: call advisor after orientation and before triaging findings or making fixes. When that cycle produces substantive changes, make the result durable, run relevant verification, then call advisor again before declaring the pass complete. Resolve blocking advice or reconcile the conflict before continuing.`;
+
 export const AUTO_ADMISSION_POLICY = `Advisor mode is auto. Decide whether to consult based on the workload, not merely because the task begins or ends.
 
 Do not call advisor for casual conversation, orientation, code reading or search, simple read-only CLI commands, git status/diff/log inspection, routine commits of already-reviewed work, or obvious mechanical edits.
 
 Call advisor before committing to an approach when the task involves nontrivial implementation or refactoring, behavioral changes, architecture or design decisions, authored skills or prompts, specifications, reports requiring judgment, or consequential operations. Also call when uncertainty, conflicting evidence, repeated failure, or a change of direction makes independent review valuable.
 
+${AUTO_REVIEW_CYCLE_POLICY}
+
 Treat pending context size as a cost signal, not an invocation trigger: a small delta does not create review value, and a large delta does not prohibit a consequential review.`;
 
 export const AUTO_FOLLOWUP_POLICY = `Advisor mode is auto and an advisor has already reviewed an earlier point in this task. Do not call again for routine activity or small mechanical edits. Call only when meaningful new work, a new decision, material evidence, repeated failure, or a change of direction makes another independent review valuable. Request a final review only when a substantive deliverable changed since the previous review.
+
+${AUTO_REVIEW_CYCLE_POLICY}
 
 Treat pending context size as a cost signal, not an invocation trigger: a small delta does not create review value, and a large delta does not prohibit a consequential review.`;
 

@@ -373,6 +373,17 @@ describe("advisor", () => {
     });
   });
 
+  it("makes review-and-fix a two-call auto branch without collapsing auto into on", () => {
+    for (const policy of [AUTO_ADMISSION_POLICY, AUTO_FOLLOWUP_POLICY]) {
+      expect(policy).toContain("Nontrivial review or audit findings create a review cycle");
+      expect(policy).toContain("before triaging findings or making fixes");
+      expect(policy).toContain("When that cycle produces substantive changes");
+      expect(policy).toContain("call advisor again before declaring the pass complete");
+      expect(policy).toContain("blocking advice or reconcile the conflict before continuing");
+      expect(policy).not.toContain("call advisor at two checkpoints");
+    }
+  });
+
   it("bundles the explicit advisor command through the plugin config hook", async () => {
     const plugin = AdvisorPlugin as unknown as {
       server(input: { client: object; directory: string }): Promise<{

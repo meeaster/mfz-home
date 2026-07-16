@@ -41,6 +41,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   quality-garden:
     agents: { opencode: true, claude-code: true, codex: true }
+  closure-review:
+    agents: { opencode: true, claude-code: true, codex: true }
   impeccable:
     agents: { opencode: false, claude-code: false, codex: false }
   mise:
@@ -104,10 +106,6 @@ skills:
   improve:
     agents: { opencode: true, claude-code: true, codex: true }
   claude-code-docs:
-    agents: { opencode: true, claude-code: true, codex: true }
-  build-mcp-server:
-    agents: { opencode: true, claude-code: true, codex: true }
-  xlsx:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-creator:
     agents: { opencode: false, claude-code: false, codex: false }
