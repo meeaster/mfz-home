@@ -15,7 +15,7 @@ Mindframe-Z's MCP routing through Executor has moved from prototype to a real, a
 - Finish the code-review remediation: convert routing to a required discriminated union, fix OAuth reconciliation convergence (replace-not-merge semantics where needed, tighten durable-state detection, wire removal through MCP cleanup), stop secret leakage in snapshots, make dry-run diff off stored digests and share planning logic with live apply, and reorder apply so Executor reconciliation can't partially mutate state ahead of a later failure.
 - Work is filed in the OpenSpec change `add-executor-mcp-routing` (proposal/design/specs/tasks) — resume there.
 - Run the still-open live verifications: browser OAuth accept/cancel against a real provider, refresh-token lifecycle across repeated `apply`, missing-scope reconnect blocking, and full three-harness (OpenCode, Claude Code, Codex) smoke tasks through the Executor bridge.
-- Once OAuth path is trusted, extend migration to the deferred credentialed/local servers (Exa, Exa Research, Home Assistant) and confirm actual upstream tool invocation (not just connection) for stdio servers kept on Executor (Pine Script, QMD).
+- Once the OAuth path is trusted, extend migration to the deferred credentialed/local servers (Exa, Exa Research, Home Assistant) and confirm actual upstream tool invocation (not just connection) for stdio servers kept on Executor (Pine Script, QMD).
 
 ## Open Questions
 - Does browser OAuth acceptance/cancellation work end-to-end against a real provider (dynamic registration, start, completion)?
