@@ -117,17 +117,15 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   context7:
-    agents: { opencode: true, claude-code: true, codex: true }
+    route: executor
   qmd:
-    agents: { opencode: false, claude-code: true, codex: false }
+    agents: { enabled: [claude-code], disabled: [opencode, codex] }
   fff:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: [opencode, claude-code, codex]
   deepwiki:
-    agents: { opencode: true, claude-code: true, codex: true }
+    route: executor
   openai-docs:
-    agents: { opencode: false, claude-code: true, codex: false }
-  exa:
-    agents: { claude-code: true }
+    agents: { enabled: [claude-code], disabled: [opencode, codex] }
 opencode:
   config:
     lsp: true

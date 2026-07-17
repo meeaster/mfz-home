@@ -28,17 +28,13 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   homeassistant:
-    agents: { opencode: false, claude-code: true, codex: false }
+    agents: { enabled: [claude-code], disabled: [opencode, codex] }
   openai-docs:
-    agents: { opencode: false, claude-code: true, codex: false }
-  pinescript-docs:
-    agents: { opencode: false, claude-code: true, codex: false }
+    route: executor
   aws-knowledge:
-    agents: { opencode: false, claude-code: true, codex: false }
+    route: executor
   x-docs:
-    agents: { opencode: false, claude-code: true, codex: false }
-  exa-research:
-    agents: { opencode: false, claude-code: true, codex: false }
+    route: executor
 claude:
   settings:
     permissions:

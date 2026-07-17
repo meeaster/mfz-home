@@ -14,7 +14,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - Claude Code settings: add keys under `claude.settings` in a profile. Example: `claude.settings.permissions.defaultMode: auto` becomes a Claude Code user setting after `mfz apply`.
 - OpenCode settings: edit `opencode.config` in profiles. Local plugins/commands/agents are selected by `opencode.plugins`, `opencode.commands`, and `opencode.agents`.
 - Codex settings: edit `codex.config` in profiles.
-- MCP servers: define server connection details in `catalog/mcp.yml`, then enable per agent in profile `mcp.<name>.agents`.
+- MCP servers: define connection details in `catalog/mcp.yml`, then select direct routing with `mcp.<name>.agents: [opencode, claude-code, codex]` or grouped `enabled`/`disabled` arrays, or shared Executor routing with `mcp.<name>.route: executor`. Omitting `route` defaults to direct. Claude Code cannot be declared in a direct `disabled` group. Executor entries are always-configured profile-owned inventory shared by OpenCode, Claude Code, and Codex; they have no per-agent toggle.
 - Skills: register source metadata in `catalog/skills.yml`, then enable per agent in profile `skills.<name>.agents`.
 - Reference repos: register in `catalog/references.yml`, then include names in profile `references`.
 - Dotfiles/tooling: edit files under `profiles/base/` or `profiles/personal/`; apply with `mfz apply`.
@@ -25,6 +25,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - `pnpm vitest run opencode/plugins/delegate-general/server.test.ts` runs the current focused test file.
 - `pnpm typecheck` runs strict TypeScript checking for `opencode/**/*.ts(x)`.
 - Use `pnpm`, not npm/yarn. Tool versions are managed by profile `mise.toml` files; base sets pnpm 11, personal overrides Node to 26.
+- The Executor rollout is applied in the personal profile. Isolated three-harness anonymous smoke and browser OAuth acceptance, refresh, and cancellation remain pending live validation; route declarations and generated bridges must not be treated as that acceptance.
 
 ## OpenCode Plugins
 
