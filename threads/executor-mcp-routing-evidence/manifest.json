@@ -1,0 +1,36 @@
+{
+  "slug": "executor-mcp-routing-evidence",
+  "charter": "Evidence, decisions, implementation, and remaining verification for routing Mindframe-Z MCP services through Executor.",
+  "destination": "home",
+  "created_at": "2026-07-17T23:11:03.602Z",
+  "sessions": [
+    {
+      "id": "ses_09d2e782fffedYt0lhjlKyy3w3",
+      "source": "opencode",
+      "title": "OpenSpec executor replacing MCP servers",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 329,
+      "last_message_id": "msg_f68379950001B8Yb2t8aoK4FQR",
+      "last_activity_at": "2026-07-15T23:58:22.032Z"
+    },
+    {
+      "id": "ses_093f30d9cffeFGSQx0k3ZIuwSP",
+      "source": "opencode",
+      "title": "Executor Production Analysis: Config, Topology, and Reconciliation Semantics for Mindframe-Z MCP Routing",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 41,
+      "last_message_id": "msg_f6c6df9f0001Qfj0kzQUijYTAm",
+      "last_activity_at": "2026-07-16T19:36:14.576Z"
+    },
+    {
+      "id": "ses_093f4a973ffex1eaAA1LwTTqFM",
+      "source": "opencode",
+      "title": "Routing Mindframe-Z MCP Services through Executor",
+      "extracted_by": "claude-code:claude-sonnet-5@low",
+      "message_count": 529,
+      "last_message_id": "msg_f7195094e001FAiePowNt6QCfH",
+      "last_activity_at": "2026-07-17T19:37:00.494Z"
+    }
+  ],
+  "synthesis": {}
+}
