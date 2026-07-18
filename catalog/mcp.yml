@@ -35,12 +35,12 @@ servers:
     description: Jira MCP server.
     type: remote
     transport: http
-    url: https://mcp.atlassian.com/v1/mcp
+    url: https://mcp.atlassian.com/v1/mcp/authv2
   confluence:
     description: Confluence MCP server.
     type: remote
     transport: http
-    url: https://mcp.atlassian.com/v1/mcp
+    url: https://mcp.atlassian.com/v1/mcp/authv2
   datadog:
     description: Datadog MCP server.
     type: remote

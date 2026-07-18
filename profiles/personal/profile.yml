@@ -29,12 +29,6 @@ skills:
 mcp:
   homeassistant:
     agents: { enabled: [claude-code], disabled: [opencode, codex] }
-  openai-docs:
-    route: executor
-  aws-knowledge:
-    route: executor
-  x-docs:
-    route: executor
 claude:
   settings:
     permissions:

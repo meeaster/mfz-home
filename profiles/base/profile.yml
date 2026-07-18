@@ -118,14 +118,16 @@ skills:
 mcp:
   context7:
     route: executor
-  qmd:
-    agents: { enabled: [claude-code], disabled: [opencode, codex] }
   fff:
     agents: [opencode, claude-code, codex]
   deepwiki:
     route: executor
   openai-docs:
-    agents: { enabled: [claude-code], disabled: [opencode, codex] }
+    route: executor
+  aws-knowledge:
+    route: executor
+  x-docs:
+    route: executor
 opencode:
   config:
     lsp: true

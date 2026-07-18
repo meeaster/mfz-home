@@ -1,7 +1,6 @@
 [tools]
 node = "26"
 websocat = "1"
-"npm:executor" = "1.5.33"
 usage = "3"
 "github:xdevplatform/xurl" = "1"
 

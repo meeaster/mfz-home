@@ -34,6 +34,14 @@ Once approved, run the **drift check** before writing to Jira. Then:
 
 Write the current timestamp to `last_synced`. Report the issue URL.
 
+## Sprint placement
+
+- Jira Sprint is the Agile custom field `customfield_10020`, not a normal option field.
+- When the sprint ID is known, set it as `customfield_10020: [{"id": "<sprint-id>"}]` on create or update.
+- To discover a populated future sprint without knowing an issue key, query `project = <KEY> AND sprint in futureSprints()`. Inspect each result's `customfield_10020` entries and choose the future sprint with the earliest `startDate`.
+- Empty future sprints do not appear in issue search. Do not guess or use the active sprint; ask for the sprint ID/name or use an available board sprint-list endpoint.
+- After setting a sprint, re-fetch the issue and confirm the Sprint field by ID and name.
+
 ## Reader-first doctrine
 
 The story addresses a **reader** — a teammate, or future-you rediscovering why this work happened. It never narrates its own creation.
