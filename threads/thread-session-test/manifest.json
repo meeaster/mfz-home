@@ -7,11 +7,11 @@
     {
       "id": "ses_083a8bfccffef1h5FLxzgobmMO",
       "source": "opencode",
-      "title": "Model Defaults, Configuration, And Ingestion Test",
+      "title": "Current thread default models",
       "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
-      "message_count": 48,
-      "last_message_id": "msg_f7c66fc51001pORKsRsqn4en6m",
-      "last_activity_at": "2026-07-19T22:02:31.889Z"
+      "message_count": 100,
+      "last_message_id": "msg_f7c7b07310018vWVa8a5ZIPQ25",
+      "last_activity_at": "2026-07-19T22:24:25.393Z"
     }
   ],
   "synthesis": {}
