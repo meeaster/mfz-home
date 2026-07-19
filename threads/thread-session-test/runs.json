@@ -97,31 +97,51 @@
           "role": "gather",
           "harness": "opencode",
           "model": "openai/gpt-5.6-luna",
-          "duration_ms": 232462,
           "cost_usd": 0,
           "input_tokens": 21682,
           "output_tokens": 5025,
-          "reasoning_tokens": 1084
+          "reasoning_tokens": 1084,
+          "duration_ms": 232462
         },
         {
           "role": "synthesize",
           "harness": "opencode",
           "model": "openai/gpt-5.6-terra",
-          "duration_ms": 71634,
           "cost_usd": 0,
           "input_tokens": 10013,
           "output_tokens": 2620,
-          "reasoning_tokens": 524
+          "reasoning_tokens": 524,
+          "duration_ms": 71634
         },
         {
           "role": "digest",
           "harness": "opencode",
           "model": "openai/gpt-5.6-terra",
-          "duration_ms": 51279,
           "cost_usd": 0,
           "input_tokens": 15080,
           "output_tokens": 1322,
-          "reasoning_tokens": 878
+          "reasoning_tokens": 878,
+          "duration_ms": 51279
+        }
+      ],
+      "total_cost_usd": 0
+    },
+    {
+      "id": "run-1784501253053",
+      "thread": "thread-session-test",
+      "started_at": "2026-07-19T22:47:33.053Z",
+      "finished_at": "2026-07-19T22:48:08.452Z",
+      "sessions": [],
+      "dispatches": [
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-sol",
+          "duration_ms": 35326,
+          "cost_usd": 0,
+          "input_tokens": 11225,
+          "output_tokens": 666,
+          "reasoning_tokens": 345
         }
       ],
       "total_cost_usd": 0
