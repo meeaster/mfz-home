@@ -1,0 +1,18 @@
+{
+  "slug": "openwiki-voice-notes-test",
+  "charter": "Evaluate OpenWiki integration for voice-note ingestion, cleanup, retrieval, and durable personal knowledge workflows.",
+  "destination": "home",
+  "created_at": "2026-07-19T22:54:58.387Z",
+  "sessions": [
+    {
+      "id": "ses_089b2a218ffeDckwSQfHEgnZ14",
+      "source": "opencode",
+      "title": "OpenWiki Integration Investigation",
+      "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
+      "message_count": 624,
+      "last_message_id": "msg_f7c516d4500163iUtTCo0cIxem",
+      "last_activity_at": "2026-07-19T21:38:59.013Z"
+    }
+  ],
+  "synthesis": {}
+}
