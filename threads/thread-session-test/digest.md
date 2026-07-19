@@ -1,36 +1,72 @@
 # Digest — thread-session-test
 
 ## Current State
-Personal model defaults are configured and validated, and the personal-only `current_session_id` tool successfully returns the invoking OpenCode session ID. Ingestion of `ses_083a8bfccffef1h5FLxzgobmMO` completed locally in 6 minutes 50 seconds and produced commit `a3fdff1`, but the automatic push was rejected because the remote had newer commits. OpenCode and Claude Code version pins were upgraded; a direct Docker build verified installation, while the forced hash-labeled tools build and post-upgrade binary verification remained in progress.
+Personal model defaults are configured and validated, and the personal-only `current_session_id` tool returns the invoking OpenCode session ID. The first ingestion completed locally in 6 minutes 50 seconds, producing commit `a3fdff1`, but its automatic push was rejected because the remote had newer commits. A second no-push ingestion completed in 5 minutes 25 seconds. OpenCode and Claude Code tool-image pins were upgraded and the rebuilt image passed thread tests, diff checks, and in-container version checks.
 
 ## Components
-- **Model defaults** — Personal defaults for discovery, gathering, synthesis, and digestion · configured and validated.
+- **Model defaults** — Personal defaults for discovery, gathering, synthesis, and digestion · configured with the initially selected tiering; later recommendations have not been applied.
 - **Session-ID tool** — Personal OpenCode plugin exposing `current_session_id` · implemented and verified.
-- **Thread ingestion** — Ingestion of the source OpenCode session into `thread-session-test` · completed and committed locally, but not pushed.
-- **Harness upgrade** — OpenCode and Claude Code tool-image versions · pins updated and direct installation verified, with final binary verification pending.
-- **Cross-cutting** — Configuration changes must pass typechecking, diff checks, profile application, and fresh runtime probes; remote history must not be rewritten to resolve push conflicts.
+- **Thread ingestion** — Ingestion of the source OpenCode session into `thread-session-test` · completed locally twice; the first resulting commit remains unpushed.
+- **Harness upgrade** — OpenCode and Claude Code tool-image versions · upgraded and validated.
+- **Cross-cutting** — Configuration changes require typechecking, diff checks, profile application, and fresh runtime probes; remote history must not be rewritten to resolve push conflicts.
 
 ## Direction
-Complete the forced tools build and verify the upgraded OpenCode and Claude Code binaries. Reconcile the newer remote commits before pushing without rewriting history, and diagnose why gathering repeatedly restarted before producing output.
+Reconcile the newer remote commits before pushing without rewriting history. If ingestion performance remains a priority, tighten the gather query flow and decide whether to apply the recommended Luna medium gather and Terra high digest tiers.
 
 ## Open Questions
-- What caused the repeated gather starts before output was produced?
+None.
 
 ## Key Decisions
-- Use `opencode:openai/gpt-5.6-luna@medium` for discovery, `opencode:openai/gpt-5.6-luna@low` for gathering, `opencode:openai/gpt-5.6-terra@medium` for synthesis, and `opencode:openai/gpt-5.6-sol@high` for digestion.
+- Use Luna medium for discovery, Luna low for gathering, Terra medium for synthesis, and Sol high for digestion; the user selected this configuration over the considered Terra high digest alternative.
 - Provide session-ID lookup through a personal-only OpenCode plugin whose `current_session_id` tool returns the invocation context's session ID without API calls or persisted state.
 - Use `opencode:ses_083a8bfccffef1h5FLxzgobmMO` as the ingestion source for `thread-session-test`.
 - Do not force-push or rewrite remote history after a push rejection caused by newer remote commits.
-- Pin OpenCode to `1.18.3` and Claude Code to `2.1.215` in `Dockerfile.tools`.
+- Upgrade both thread-container harnesses to OpenCode `1.18.3` and Claude Code `2.1.215`.
 
 ## Intent
-The user wanted the first model configuration applied, a simple way to retrieve the current OpenCode session ID, and a test of ingesting that session into durable thread state. After ingestion, they wanted to understand its runtime and API-priced cost, explain the long gather phase, and upgrade both harnesses.
+The user wanted the first model configuration applied, a simple way to retrieve the current OpenCode session ID, and a test of ingesting that session into durable thread state. They also wanted runtime and API-pricing evidence, an explanation of gather latency, and both harnesses kept current.
 
 ## Vision
-A validated personal OpenCode setup in which session identity can be retrieved directly, sessions can be ingested into durable thread state, ingestion performance and cost are understandable, and the supporting harnesses remain current.
+A validated personal OpenCode setup in which session identity can be retrieved directly, sessions can be ingested into durable thread state, ingestion performance and cost are understandable, and supporting harnesses remain current.
 
 ## Perspective
-The user preferred the first model configuration and a narrowly scoped, personal-only session-ID tool. Their attention then shifted toward operational confidence: verifying that ingestion completed, understanding its time and cost, investigating unexpected gather latency, and keeping both coding harnesses updated without risking remote history.
+The user preferred a narrowly scoped, personal-only session-ID tool and the initially proposed model configuration. Their focus shifted toward operational evidence and quality: measuring repeat ingestion performance, understanding the gather trace, and reconsidering model tiers based on observed behavior rather than assumption.
 
 ## Sources
+- OpenAI guide — https://developers.openai.com/api/docs/guides/latest-model.md
+- OpenAI's current pricing documentation# Digest — thread-session-test
+
+## Current State
+Personal model defaults are configured and validated, and the personal-only `current_session_id` tool returns the invoking OpenCode session ID. The first ingestion completed locally in 6 minutes 50 seconds, producing commit `a3fdff1`, but its automatic push was rejected because the remote had newer commits. A second no-push ingestion completed in 5 minutes 25 seconds; its faster gather stage cannot yet be attributed to the harness upgrade from one run. OpenCode and Claude Code tool-image pins were upgraded and the rebuilt image passed thread tests, diff checks, and in-container version checks.
+
+## Components
+- **Model defaults** — Personal defaults for discovery, gathering, synthesis, and digestion · configured with the selected tiering; later recommendations have not been applied.
+- **Session-ID tool** — Personal OpenCode plugin exposing `current_session_id` · implemented and verified.
+- **Thread ingestion** — Ingestion into `thread-session-test` · completed twice locally; the first resulting commit remains unpushed.
+- **Harness upgrade** — OpenCode and Claude Code tool-image versions · upgraded and validated.
+- **Cross-cutting** — Configuration changes require typechecking, diff checks, profile application, and fresh runtime probes; remote history was not rewritten after the push conflict.
+
+## Direction
+Reconcile the newer remote commits before pushing without rewriting history. Run additional comparable ingestions before attributing performance changes to the harness upgrade, and decide whether to apply the recommended Luna medium gather and Terra high digest tiers.
+
+## Open Questions
 None.
+
+## Key Decisions
+- Use Luna medium for discovery, Luna low for gathering, Terra medium for synthesis, and Sol high for digestion; the user selected this configuration over the considered Terra high digest alternative.
+- Provide session-ID lookup through a personal-only OpenCode plugin whose `current_session_id` tool returns the invocation context's session ID without API calls or persisted state.
+- Use `opencode:ses_083a8bfccffef1h5FLxzgobmMO` as the ingestion source for `thread-session-test`.
+- Upgrade both thread-container harnesses to OpenCode `1.18.3` and Claude Code `2.1.215`.
+
+## Intent
+The user wanted the first model configuration applied, a simple way to retrieve the current OpenCode session ID, and a test of ingesting that session into durable thread state. They also wanted runtime and API-pricing evidence, an explanation of gather latency, and both harnesses kept current.
+
+## Vision
+A validated personal OpenCode setup in which session identity can be retrieved directly, sessions can be ingested into durable thread state, ingestion performance and cost are understandable, and supporting harnesses remain current.
+
+## Perspective
+The user preferred a narrowly scoped, personal-only session-ID tool and the initially proposed model configuration. Their focus shifted toward operational evidence and quality: measuring repeat ingestion performance, understanding gather latency, and reconsidering model tiers based on observed behavior rather than assumption.
+
+## Sources
+- OpenAI guide — https://developers.openai.com/api/docs/guides/latest-model.md
+- OpenAI's current pricing documentation
