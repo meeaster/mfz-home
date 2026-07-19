@@ -1,0 +1,46 @@
+{
+  "runs": [
+    {
+      "id": "run-1784498555748",
+      "thread": "thread-session-test",
+      "started_at": "2026-07-19T22:02:35.748Z",
+      "finished_at": "2026-07-19T22:09:26.007Z",
+      "sessions": [
+        "opencode:ses_083a8bfccffef1h5FLxzgobmMO"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-luna",
+          "duration_ms": 330354,
+          "cost_usd": 0,
+          "input_tokens": 14114,
+          "output_tokens": 2782,
+          "reasoning_tokens": 125
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-terra",
+          "duration_ms": 51130,
+          "cost_usd": 0,
+          "input_tokens": 9709,
+          "output_tokens": 1804,
+          "reasoning_tokens": 334
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-sol",
+          "duration_ms": 31490,
+          "cost_usd": 0,
+          "input_tokens": 10361,
+          "output_tokens": 541,
+          "reasoning_tokens": 643
+        }
+      ],
+      "total_cost_usd": 0
+    }
+  ]
+}
