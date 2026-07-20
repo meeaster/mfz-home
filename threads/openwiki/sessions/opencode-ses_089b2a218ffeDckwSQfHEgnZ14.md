@@ -1,90 +1,76 @@
-# Session ses_089b2a218ffeDckwSQfHEgnZ14 — OpenWiki Investigation and Prototypes
+# Session ses_089b2a218ffeDckwSQfHEgnZ14 — OpenWiki Architecture And Prototype
 
 ## Thread Relevance
 
-Belongs: this session investigated, configured, tested, and defined an operating model for OpenWiki as a knowledge synthesis and retrieval layer.
+This session investigated OpenWiki's role in voice-note synthesis and retrieval, then developed and validated a separate Core, Personal, and Work wiki architecture with Git-gated ingestion and supervised agent actions.
 
 ## Gaps
 
-The dossier does not provide exact OpenCode turn ranges, complete configuration file paths, or the full contents of prototype reports and handoffs.
+The dossier does not provide the original transcript, exact phase turn ranges, implementation status after the requested thread refresh, or resolutions for the remaining prototype risks.
 
 ## Phases
 
-- [2026-07-18 17:36 → 17:42] OpenWiki fit investigation — assessed its architecture and fit alongside the voice-note system. (parts prt_f764de...–prt_f764fa...)
-- [2026-07-18 17:43 → 17:52] Authentication, configuration, and installation — configured OAuth, Mise, and release-age exceptions. (parts prt_f76537...–prt_f765c1...)
-- [2026-07-18 17:55 → 18:17] Prototype handoff and initial execution — established isolated testing constraints and repaired installation/provider defects. (parts prt_f765f1...–prt_f767374...)
-- [2026-07-18 18:17 → 18:57] Layered voice-note prototype — compared source views and clarified OpenWiki's synthesis role. (parts prt_f767231...–prt_f7697c...)
-- [2026-07-18 19:32 → 20:12] Input and model comparisons — tested raw, cleaned, and summary inputs and refined the evaluation goal. (parts prt_f76b714...–prt_f76dc000...)
-- [2026-07-18 20:33 → 2026-07-19 08:29] Raw-first Sol replacement prototype — shifted to raw-first ingestion and designed gated larger-scale tests. (parts prt_f76ef5...–prt_f797e6...)
-- [2026-07-19 18:14 → 20:42] Full-corpus reliability, federation, and portability tests — completed content, source-policy, terminology, and failure-mode evaluations. (parts prt_f7b95d...–prt_f7c1d60...)
-- [2026-07-19 21:33 → 21:38] Git-gated operating model — narrowed operational controls to a Git acceptance boundary. (parts prt_f7c4bec...–prt_f7c517...)
-- [2026-07-20 04:50 → 04:51] Thread ingestion — created the broad OpenWiki thread and invoked session ingestion. (parts prt_f7ddc635...–prt_f7ddd3...)
+- [2026-07-18 17:36 → 2026-07-19 18:13] OpenWiki exploration and voice-note prototyping — evaluated OpenWiki, voice-note processing, cleanup, model behavior, retrieval, provenance, and raw-first synthesis. (prt_f764d5e5c0011nk22w6ciT5Px4 → prt_f7b95a532001AkIWMKOt2WZNMk)
+- [2026-07-19 21:33 → 2026-07-20 04:50] Reliability concerns and right-sized architecture — reconsidered transactional safeguards around Git, ingested the session into a thread, and committed related work. (prt_f7c4bec02001y02SQmrh28tV1G → prt_f7ddc2cfe001SXp8lRRlOqo34M)
+- [2026-07-20 07:01 → 2026-07-20 08:41] Connectors, source topology, and Personal/Core/Work design — defined source policies, separate wiki roles, session processing, workstreams, and external projections. (prt_f7e541aa4001YzHlR0GU59bcNW → prt_f7eb04550001FUSwOu2ViY02MO)
+- [2026-07-20 08:47 → 2026-07-20 14:02] Architecture handoff and synthetic prototype — produced architecture materials, ran synthetic topology and workflow tests, and documented residual risks. (prt_f7eb597240010t5L9hfkfNK72y → prt_f7fd5d33f001Psx3xqnHlUXck5)
+- [2026-07-20 14:03 → 2026-07-20 15:16] Artifact packaging, failure retries, and thread refresh — moved prototype evidence, reran failed scenarios successfully, and requested a thread refresh. (prt_f7fd70a2c001aMc6rV7xI3uD7z → prt_f80199d35001gbTiyA75uR9E0N)
 
 ## Decisions
 
-- [2026-07-18 17:39] Keep the existing voice-note pipeline and evaluate OpenWiki experimentally as a higher-level personal-wiki and chat layer, rather than replacing the pipeline immediately. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f764fcb...)
-- [2026-07-18 17:46] Use OpenWiki major version `0` at the user's direction; it resolved to `openwiki@0.2.0`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7655e...)
-- [2026-07-18 18:42] Use personal mode rather than code mode because code mode writes into the source repository; use one read-only layered Git view rather than separate Git source instances because they overwrite shared `sources/git-repo.md` identity. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76896...)
-- [2026-07-18 20:39] Use Sol for complete OpenWiki processing after end-to-end evidence, while recognizing dedicated cleanup remained unreliable. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76f4d...)
-- [2026-07-18 21:13] Prefer immutable raw transcripts through Sol summaries into topics, themes, and dictionaries; retain existing cleaned notes as historical evidence rather than required new input. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f771358...)
-- [2026-07-19 08:25] Use `gpt-5.6-sol`, raw authority, explicit source roles, and deterministic validation for the full-corpus plan. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f797ae...)
-- [2026-07-19 21:35] Use a clean Git working tree, one serialized OpenWiki writer, deterministic validation, diff review, accepted commits, and an external authoritative ledger as the minimum operating model; dedicated rollback, same-path conflict detection, transactional metadata, and a processing database were not initially required. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c4ea...)
+- [2026-07-18 18:14] Use OpenWiki as a synthesis and retrieval layer rather than a complete voice-note-workflow replacement because the existing workflow remained the tested authority. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76703a39001wtqfEt2h186vFY)
+- [2026-07-18 18:57] Preserve `/home/mark/code/voice-notes` as authoritative and leave its canonical raw, cleaned, summary, topic, theme, dictionary, and ledger data unmodified during prototypes. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76970c1b001gruC3Ac44ezrZ1)
+- [2026-07-18 21:13] Stop using OpenWiki to generate cleaned transcripts because cleanup acceptance tests showed unreliable behavior across models. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f77135823001gaaHROL0v7Cx6G)
+- [2026-07-18 21:56] Adopt immutable raw transcripts followed by Sol/OpenWiki per-note summaries, topics, themes, dictionary, navigation, periodic gardening, and deterministic validation. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f773ac206001mTQAmSGkGx8aRw)
+- [2026-07-20 07:22] Separate Core, Personal, and Work environments; keep reviewed non-sensitive reusable knowledge in Core, with Personal and Work consuming it read-only. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e675c8c001lH0PzbP5gdC46R)
+- [2026-07-20 07:31] Allow Work synthesis to read accepted Core material when work depends on Core knowledge while keeping Work and Core as separate wikis. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e6fb0e100180HG7kWF1yYusr)
+- [2026-07-20 07:37] Keep Work voice notes inside the enterprise boundary through Windows Sound Recorder, local audio, Handy CLI, the Work source repository, and enterprise-model synthesis. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e75471a001sbkVVTx2QN2rZy)
+- [2026-07-20 07:44] Start with Windows Sound Recorder instead of immediately building a custom recorder. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e7c21ce001ka5VvapmJchXnw)
+- [2026-07-20 08:26] Classify workstreams at the wiki layer so raw voice notes remain untouched and classifications can evolve. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ea1eeca001ESXEiOeJiVrvtZ)
+- [2026-07-20 08:37] Represent external artifacts as selective, read-only Markdown projections in Git while GitHub, Jira, and Confluence remain authoritative. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7eac0f550012yEqCayP9cS399)
+- [2026-07-20 08:54] Use OpenCode CLI as the current replaceable execution substrate for wiki-driven actions. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ebbbfb1001rto9eU04Gngo1w)
+- [2026-07-20 08:56] Use Git-gated writes, serialized writers, deterministic validation, accepted checkpoints, and inspectable rejected diffs after Git was identified as the principal safety boundary. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ebd9ca1001Agmp1EMZDNuac1)
 
 ## Learnings
 
-- [2026-07-18 17:39] OpenWiki was described as a CLI for agent-maintained code or personal wikis that uses connectors or Git repositories to synthesize local Markdown knowledge, including compact pages and optional topic/entity directories. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f764fcb...)
-- [2026-07-18 18:50] Personal mode creates a compact synthesis by default and creates topic pages only when the agent judges them worthwhile. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f769115...)
-- [2026-07-18 18:11] Wiki-level retrieval answers stay in the synthesis, while omitted details can escalate to the configured Git source. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f766d462...)
-- [2026-07-18 19:33] The initial input comparison found cleaned notes strongest for authoritative input, de-linked summaries best for compact taxonomy, and raw-only weakest. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76b836...)
-- [2026-07-18 21:54] Raw-source escalation recovered an exact Git detail; unchanged ingestion was byte-stable; provenance, links, headings, and uncertainty checks passed. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f77390...)
-- [2026-07-18 21:56] The five-note raw-only prototype produced five summaries, four focused topics, one cross-topic theme, glossary, researched dictionary, unresolved-term register, navigation, and no `cleaned/` directory. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f773ac...)
-- [2026-07-19 20:01] All 23 approved raw notes received matching summaries, and deterministic validation covered 43 generated files. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7bf8ad...)
-- [2026-07-19 20:11] Correction handling was focused and reversible. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c01d...)
-- [2026-07-19 20:19] Contradiction handling presented the later view first while preserving earlier history. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c085...)
-- [2026-07-19 20:31] Terminology evolution preserved earlier uncertainty and updated dictionary/topic relationships without rewriting the historical summary. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c13ce...)
-- [2026-07-19 20:35] The reference-only fixture returned port `4319` and ignored embedded instructions under prompt guidance. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c177...)
-- [2026-07-19 20:36] A wiki-only bundle could not answer exact wording, but an approved raw projection restored exact retrieval. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c1a5...)
-
-## Mistakes Fixed
-
-- [2026-07-18 18:04] A stale pnpm-global `v0.1.1` binary conflicted with the intended Mise `v0.2.0`; installation was repaired so plain `openwiki` resolved to `v0.2.0`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f766687...)
-- [2026-07-18 17:52] Layered Mise and npm release-age restrictions initially blocked installation; `npm:openwiki` and `deepagents` exceptions were added while retaining the three-day policy for other dependencies. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f765c1...)
+- [2026-07-18 18:06] OpenWiki performed well for uncertainty-aware synthesis, source retrieval, topic and theme generation, and source-grounded navigation. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f766894ac001jgAoiJbDsn17Ad)
+- [2026-07-18 19:54] Terra and Sol failed cleanup acceptance differently: Sol introduced an attribution error in one test and later overmarked uncertainty. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76cb28b6001voFsLLBx4KwKhy)
+- [2026-07-19 20:42] Full-corpus raw-first testing passed content, provenance, correction, terminology, reference-source, and portability checks. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c1d60a2001hH511ERnvvcWyF)
+- [2026-07-20 07:52] Session records provide individual-session coverage, threads provide cross-session continuity, and original sessions remain exact evidence. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e82f1d7001xTn34PuSj3INmQ)
+- [2026-07-20 07:57] Mutable sessions should be summarized through a stable watermark rather than considering inactivity completion. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e8771cb0015MQ4rC8OOR7A1D)
+- [2026-07-20 08:17] Workstreams can track meetings, AI sessions, designs, reviews, feedback, decisions, Jira items, implementation, pull requests, and validation. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e9a03ad001BGeByxBCLkruOD)
+- [2026-07-20 08:21] Sources can belong to multiple projects, workstreams, and topics while authoritative sources remain whole and their relationships evolve. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e9e084d001b79TqsRH0xlskP)
+- [2026-07-20 10:17] The prototype validated separate wiki homes, Core projection, workstreams, decisions, aliases, rename behavior, session watermarks, selective artifact projection, OpenCode context compilation, and human-approved feedback loops. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7f07c8ac001oS4js0ZKMW1Psq)
+- [2026-07-20 14:40] Fresh-runtime retries successfully completed Workstream B ingestion, changed-Core ingestion, and Personal propagation with accepted Git checkpoints; the earlier failures appeared transient or run-dependent. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ff87630001RIT90jsXbQPG5e)
 
 ## Issues
 
-- [2026-07-18 18:03] The first OAuth-backed run still requested `OPENAI_API_KEY`, and selecting OAuth exposed a missing `better-sqlite3` native binding. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f766570...)
-- [2026-07-18 21:56] Shared-page gardening collisions occurred and self-repaired, becoming the primary operational caveat. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f773ac...)
-- [2026-07-19 20:21] A forced failure changed `quickstart.md` before failing to write `.last-update.json`; structural validation passed, but aggregate hashing detected the partial state. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c0abd...)
-- [2026-07-19 20:24] Source inspection found direct local-shell writes without transaction, rollback, optimistic path version, or write-set commit. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c0d9...)
-- [2026-07-19 20:36] OpenWiki `0.2.0` had no runtime source-policy enforcement, despite correct reference-only behavior under prompt guidance. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c180...)
-- [2026-07-19 21:37] Three ordinary updates reported stale-write collisions, and a second garden emitted `LangChainTracer` lifecycle errors despite telemetry being disabled. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c509119...)
+- [2026-07-19 20:42] The first failure-recovery run left a partial edit without rollback despite otherwise passing raw-first tests. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c1d60a2001hH511ERnvvcWyF)
+- [2026-07-20 10:17] Remaining prototype risks included partial writes and connector-state advancement after model failures, same-file collisions, stale Personal Core propagation, incomplete multi-workstream relationships, retention/deletion/access-revocation policy, and non-transactional acceptance helpers. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7f07c8ac001oS4js0ZKMW1Psq)
 
 ## Intent & Vision
 
-- [2026-07-18 18:17] "all the ways we could get voice notes to work with it." (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f767231...)
-- [2026-07-18 19:35] "That's why I'm trying to like, I'm trying to stress the boundary, the bounds of how much we can customize OpenWiki." (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76ba51...)
-- [2026-07-18 20:00] The user wanted to determine whether raw notes could be processed directly into the wiki, separately from choosing a model for complete ingestion. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76d150...)
-- [2026-07-18 20:33] "we probably should start using, we should just use Sol for everything," with raw-to-wiki testing for topics, themes, dictionary, and voice-note replacement. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76ef5...)
-- [2026-07-19 00:40] The user's architectural preference was a central knowledge layer, rather than a replacement for operational systems. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f77d1d...)
-- [2026-07-19 21:33] "are these things actuslly needed and not just overengerring". (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c4bec...)
-- [2026-07-19 21:35] "we would definitely want the wiki to be a git repo so i feel it solves most of that". (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c4e951...)
-- [2026-07-20 04:50] "I want this thread to scope to just any openwiki work." (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ddc635...)
+- [2026-07-18 21:13] “I would **stop trying to make OpenWiki generate cleaned transcripts**.” (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f77135823001gaaHROL0v7Cx6G)
+- [2026-07-19 21:33] “are these things actuslly needed and not just overengerring”. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c4bec02001y02SQmrh28tV1G)
+- [2026-07-19 21:35] “we would definitely want the wiki to be a git repo so i feel it solves most of that”. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c4e951f001ZxE01gtml5u2kq)
+- [2026-07-20 08:00] The wiki should not be a project manager or automatic action executor; agents should compile task-specific context, propose bounded actions, obtain human approval, execute through existing workflows, and return results as evidence. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e8aa5010016WINo3W4Q7EIKR)
 
 ## Artifacts Touched
 
-- [2026-07-18 17:57] Created the initial prototype handoff at `/tmp/opencode/openwiki-prototype-handoff.md`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76609...)
-- [2026-07-18 18:57] Requested the replacement prototype handoff at `/tmp/opencode/openwiki-replacement-prototype-handoff.md`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76976...)
-- [2026-07-18 18:42] Created and tested the layered read-only Git view at `/tmp/opencode/openwiki-voice-views/layered`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f76896...)
-- [2026-07-19 21:38] Updated prototype report and evaluation artifacts to document the Git-gated operating model and retain failure evidence. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c517...)
-- [2026-07-20 04:51] Created thread `openwiki` and invoked ingestion for `opencode:ses_089b2a218ffeDckwSQfHEgnZ14`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ddd3d...)
+- [2026-07-20 08:55] `analysis/wiki-architecture-vision.md` was created as the architecture vision. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ebd33ca0012tkCHAkssSCiHl)
+- [2026-07-20 08:55] `/tmp/opencode/wiki-architecture-prototype-handoff.md` was created as the prototype handoff. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ebd33ca0012tkCHAkssSCiHl)
+- [2026-07-20 14:10] Portable prototype evidence was moved to `prototype/wiki-architecture/`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7fdd33ae001QWvn6LMlPIovIh)
+- [2026-07-20 14:40] Retry evidence was recorded in `prototype/wiki-architecture/evaluation/model-failure-retries.md` and `prototype/wiki-architecture/evaluation/model-failure-retries.json`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7ff87630001RIT90jsXbQPG5e)
 
 ## Sources
 
-- [2026-07-18 17:43] OpenWiki OAuth implementation — `/home/mark/.mindframe-z/references/openwiki/src/agent/openai-chatgpt-oauth.ts`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7653a6...)
-- [2026-07-18 17:43] OpenAI OAuth authorization endpoint — `https://auth.openai.com/oauth/authorize`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7653a6...)
-- [2026-07-18 17:43] OpenAI OAuth token endpoint — `https://auth.openai.com/oauth/token`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7653a6...)
-- [2026-07-18 17:43] ChatGPT Codex backend API — `https://chatgpt.com/backend-api/codex`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7653a6...)
-- [2026-07-18 17:48] Mise trust documentation — `https://mise.en.dev/cli/trust.html`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f765861...)
-- [2026-07-18 18:58] OpenWiki README — `/home/mark/.mindframe-z/references/openwiki/README.md`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f769847...)
-- [2026-07-19 20:24] OpenWiki docs-only backend — `/home/mark/.mindframe-z/references/openwiki/src/agent/docs-only-backend.ts`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c0d9...)
-- [2026-07-19 20:24] OpenWiki agent index — `/home/mark/.mindframe-z/references/openwiki/src/agent/index.ts`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7c0d9...)
+- [2026-07-18 17:36] OpenWiki reference repository — `/home/mark/.mindframe-z/references/openwiki`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f764d5e5c0011nk22w6ciT5Px4)
+- [2026-07-18 17:36] Voice-notes repository — `/home/mark/code/voice-notes`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f764d5e5c0011nk22w6ciT5Px4)
+- [2026-07-18 17:55] Cleaned voice-note transcript — `/home/mark/code/voice-notes/cleaned/20260711_013533_40a330836496.md`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7?)
+- [2026-07-18 18:50] OpenWiki agent prompt — `/home/mark/.mindframe-z/references/openwiki/src/agent/prompt.ts:38`, `:172`, and `:352`. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7691150a001zzW0oxzdu1df0w)
+- [2026-07-20 07:41] Microsoft Sound Recorder FAQ — https://support.microsoft.com/en-us/windows/apps/sound-recorder-app-for-windows-faq. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)
+- [2026-07-20 07:41] FFmpeg DirectShow device documentation — https://ffmpeg.org/ffmpeg-devices.html. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)
+- [2026-07-20 07:41] FFmpeg downloads — https://ffmpeg.org/download.html. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)
+- [2026-07-20 07:41] AutoHotkey v2 hotkeys — https://www.autohotkey.com/docs/v2/Hotkeys.htm. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)
+- [2026-07-20 07:41] NAudio WASAPI recorder — https://github.com/naudio/NAudio/blob/main/Docs/WasapiRecorder.md. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)
+- [2026-07-20 07:41] Microsoft microphone permissions — https://support.microsoft.com/en-us/windows/fix-microphone-problems-5f230348-106d-bfa4-1db5-336c6bd1d6. (ses_089b2a218ffeDckwSQfHEgnZ14 · prt_f7e795ea6001uMnDkUB6aTP3ao)

@@ -2,25 +2,32 @@
 
 ## Current State
 
-OpenWiki `0.2.0` has been validated in personal mode as an experimental central knowledge and retrieval layer. The full-corpus prototype processed all 23 approved immutable raw voice notes with `gpt-5.6-sol`, producing matching summaries and synthesized topics, themes, glossary, dictionary, unresolved-term register, and navigation; deterministic validation covered 43 generated files. Existing cleaned notes remain historical evidence rather than required input.
+OpenWiki is positioned as a synthesis and retrieval layer rather than a replacement for the authoritative voice-note workflow. Immutable raw transcripts remain the source of truth; OpenWiki-generated summaries, topics, themes, dictionaries, navigation, and other knowledge are derived, reviewable outputs. Transcript cleanup is excluded because model testing produced attribution and uncertainty errors.
 
-Retrieval works at two levels: the synthesized wiki handles general questions, while an approved raw projection restores exact-detail retrieval. Prompt guidance produced correct reference-only behavior, but OpenWiki does not enforce source policy at runtime.
+The current architecture separates Core, Personal, and Work wikis. Core contains reviewed, non-sensitive reusable knowledge and is consumed read-only by Personal and Work. Work may synthesize against accepted Core knowledge while remaining isolated, and Work voice notes stay inside the enterprise boundary. External systems remain authoritative, with only selective read-only Markdown projections entering Git.
 
-The minimum operating model is a clean Git working tree, one serialized writer, deterministic validation, aggregate hashing, diff review, accepted commits, and an external authoritative ledger. This boundary is necessary because OpenWiki writes without transactions or rollback: tests observed partial state after failure, stale-write collisions, self-repairing shared-page collisions, and `LangChainTracer` lifecycle errors.
+A synthetic prototype validated separate wiki homes, Core projection, workstreams, decisions, aliases and renames, session watermarks, selective artifact projection, task-context compilation, and human-approved feedback loops. Fresh-runtime retries also completed Workstream B ingestion, changed-Core ingestion, and Personal propagation with accepted Git checkpoints.
+
+Git is the principal safety boundary: writes are serialized, validated deterministically, reviewed as diffs, and accepted as checkpoints. Residual risks remain around partial writes, connector-state advancement after model failures, same-file collisions, stale Core propagation, incomplete multi-workstream relationships, lifecycle policies, and non-transactional acceptance helpers.
 
 ## Components
 
-- **Raw-note ingestion** — immutable raw transcripts are processed directly with `gpt-5.6-sol`; all 23 approved notes received matching summaries.
-- **Knowledge synthesis** — summaries feed topics, themes, glossary, dictionary, unresolved terms, and navigation; contradiction, correction, and terminology-evolution tests behaved as intended.
-- **Retrieval and source roles** — wiki synthesis answers general questions while approved raw sources support exact-detail escalation; source-policy enforcement remains prompt-based.
-- **Operational acceptance** — Git, serialized writes, deterministic validation, hashing, review, commits, and an external ledger guard against partial or conflicting updates.
-- **Cross-cutting** — raw material remains authoritative and immutable, generated knowledge is reviewable and reversible, and operational controls should remain no more complex than demonstrated failures require.
+- **Core wiki** — reviewed, non-sensitive reusable knowledge · validated as a read-only projection consumed by Personal and Work.
+- **Personal wiki** — personal synthesis and retrieval over authoritative sources plus accepted Core knowledge · topology and Core propagation validated synthetically.
+- **Work wiki** — enterprise-contained voice notes, workstreams, and synthesis with optional Core context · ingestion and checkpoint retries succeeded.
+- **Source processing** — immutable raw transcripts produce summaries, topics, themes, dictionaries, navigation, and other derived knowledge · raw-first corpus tests passed.
+- **Session continuity** — individual sessions preserve exact evidence while threads provide continuity · mutable sessions use stable watermarks rather than inactivity as completion.
+- **External projections** — selected GitHub, Jira, and Confluence material enters Git as read-only Markdown while the originating systems remain authoritative · selective projection was validated.
+- **Supervised actions** — agents compile task-specific context, propose bounded actions, obtain approval, execute through existing workflows, and return evidence · prototyped using replaceable OpenCode CLI execution.
+- **Cross-cutting** — authoritative sources remain whole and immutable, relationships and classifications live in the wiki layer, and generated changes pass through inspectable Git acceptance controls.
 
 ## Direction
 
-Run future updates through the Git acceptance boundary: start from a clean tree, permit one OpenWiki writer, validate generated output deterministically, check aggregate hashes, review the diff, and commit only accepted states. Keep the authoritative processing ledger outside OpenWiki.
+Turn the validated synthetic architecture into an operational workflow while preserving the existing authoritative repositories and enterprise boundary. Harden failure handling so model errors cannot leave partial writes or advance connector state, serialize colliding writes, make acceptance helpers transactional, and verify reliable Core propagation and multi-workstream relationships.
 
-Continue treating runtime source restrictions as unenforced and provide only approved raw projections when exact retrieval is required. Monitor stale-write collisions, shared-page gardening behavior, and tracer lifecycle errors during ordinary updates rather than adding transactional infrastructure preemptively.
+Define retention, deletion, and access-revocation policy before broader ingestion. Continue with Windows Sound Recorder and the local Handy CLI path for Work rather than building a custom recorder prematurely.
+
+Resume from `analysis/wiki-architecture-vision.md` and the portable prototype evidence under `prototype/wiki-architecture/`, including the recorded model-failure retries.
 
 ## Open Questions
 
@@ -28,66 +35,88 @@ None.
 
 ## Key Decisions
 
-- Use OpenWiki as an experimental higher-level personal-wiki and chat layer rather than immediately replacing the existing voice-note pipeline.
-- Standardize on OpenWiki major version `0`, currently `openwiki@0.2.0`.
-- Use personal mode because code mode writes into the source repository.
-- Use one layered, read-only Git view because separate Git source instances overwrite the shared `sources/git-repo.md` identity.
-- Use `gpt-5.6-sol` for complete processing.
-- Treat immutable raw transcripts as authority and derive summaries, topics, themes, and dictionaries from them; retain cleaned notes only as historical evidence.
-- Assign explicit source roles and use approved raw projections for exact-detail retrieval.
-- Use Git acceptance controls as the minimum reliability boundary; dedicated rollback, transactional metadata, same-path conflict detection, and a processing database are not currently required.
+- Use OpenWiki as a synthesis and retrieval layer rather than a complete voice-note-workflow replacement because the existing workflow remains authoritative.
+- Preserve `/home/mark/code/voice-notes` and its canonical raw, cleaned, summary, topic, theme, dictionary, and ledger data unchanged during prototypes.
+- Do not use OpenWiki to clean transcripts because cleanup acceptance tests showed unreliable attribution and uncertainty behavior.
+- Treat immutable raw transcripts as authority, then derive per-note summaries, topics, themes, dictionaries, navigation, and periodically gardened knowledge with deterministic validation.
+- Separate Core, Personal, and Work wikis; keep reviewed, non-sensitive reusable knowledge in Core and expose it read-only to Personal and Work.
+- Permit Work synthesis to read accepted Core material without merging the Work and Core wikis.
+- Keep Work voice notes within the enterprise boundary using Windows Sound Recorder, local audio, Handy CLI, the Work source repository, and enterprise-model synthesis.
+- Start with Windows Sound Recorder instead of immediately building a custom recorder.
+- Classify projects, workstreams, and topics at the wiki layer so authoritative raw sources remain untouched and relationships can evolve.
+- Represent selected external artifacts as read-only Markdown projections in Git while GitHub, Jira, and Confluence remain authoritative.
+- Use OpenCode CLI as the current replaceable execution substrate for supervised wiki-driven actions.
+- Require Git-gated writes, serialized writers, deterministic validation, accepted checkpoints, and inspectable rejected diffs because Git is the principal safety boundary.
 
 ## Design
 
 ```text
-Immutable raw transcripts
-          |
-          v
-   gpt-5.6-sol summaries
-          |
-          v
- Topics + themes + glossary
- dictionary + unresolved terms
-          |
-          v
-     OpenWiki synthesis --------> General retrieval
-          |
-          +----------------------> Approved raw projection
+                         Reviewed, non-sensitive knowledge
                                       |
                                       v
-                                Exact-detail retrieval
+                                +-----------+
+                                | Core wiki |
+                                +-----------+
+                                  /       \
+                        read-only/         \read-only
+                                v           v
+                       +---------------+  +-------------+
+Immutable personal --->| Personal wiki |  |  Work wiki  |<--- Enterprise sources
+sources                 +---------------+  +-------------+
+                                               ^
+                                               |
+                                  Read-only projections
+                                  from GitHub/Jira/Confluence
 
-External authoritative ledger
+Immutable authoritative sources
+              |
+              v
+ Summaries + topics + themes
+ dictionaries + navigation
+              |
+              v
+      Wiki-layer relationships
+              |
+              v
+ Task-specific context compilation
+              |
+              v
+ Human approval -> existing workflow -> returned evidence
+
+One serialized writer
           |
           v
-One serialized OpenWiki writer
+Deterministic validation
           |
           v
-Clean Git working tree
+Inspectable Git diff
           |
           v
-Validation + aggregate hashing
-          |
-          v
-Diff review -> accepted commit
+Accepted checkpoint or retained rejection
 ```
 
 ## Intent
 
-The work is meant to determine how far OpenWiki can be customized for voice notes and whether raw notes can flow directly into useful synthesized knowledge. The desired role is a central knowledge layer that improves synthesis and retrieval without replacing operational systems prematurely.
+The work aims to determine how OpenWiki can turn authoritative voice notes, sessions, and external material into useful synthesized knowledge without modifying source evidence or prematurely replacing established workflows. It also seeks continuity across sessions and workstreams while preserving clear Personal, Core, Work, and enterprise boundaries.
 
 ## Vision
 
-The direction shifted from evaluating OpenWiki only as an adjunct to validating a raw-first architecture that could eventually replace dedicated voice-note cleanup and synthesis stages. The envisioned system preserves immutable source material, builds compact navigable knowledge from it, and escalates to approved raw evidence when exact detail matters.
+The direction shifted from evaluating OpenWiki chiefly for voice-note synthesis toward a broader, separated knowledge architecture. The envisioned system preserves exact evidence in authoritative sources, derives navigable knowledge into purpose-specific wikis, shares reviewed Core material safely, and lets supervised agents compile context and propose bounded actions without turning the wiki into a project manager or autonomous executor.
 
 ## Perspective
 
-The user favors practical evidence over architectural speculation and wants to stress OpenWiki's customization boundaries before committing to it. They prefer raw authority, reversible generated knowledge, and Git-visible changes. Reliability controls should address observed failure modes without becoming an overengineered transaction system; a Git repository and disciplined acceptance workflow are expected to solve most operational risk.
+The user favors practical evidence over speculative safeguards and expects a disciplined Git repository to address most operational risk. Controls should respond to demonstrated failure modes without becoming an overengineered transaction system.
+
+Raw evidence should remain untouched, while classifications and many-to-many relationships evolve in the wiki layer. External operational systems should retain authority, generated knowledge should remain inspectable and reversible, and agent actions should stay bounded, replaceable, and human-approved.
 
 ## Sources
 
-- OpenWiki repository, including README, OAuth implementation, docs-only backend, and agent index — https://github.com/langchain-ai/openwiki.git
-- OpenAI OAuth authorization endpoint — https://auth.openai.com/oauth/authorize
-- OpenAI OAuth token endpoint — https://auth.openai.com/oauth/token
-- ChatGPT Codex backend API — https://chatgpt.com/backend-api/codex
-- Mise trust documentation — https://mise.en.dev/cli/trust.html
+- OpenWiki repository and agent prompt — https://github.com/langchain-ai/openwiki.git
+- Voice-notes repository — `/home/mark/code/voice-notes`
+- Cleaned voice-note transcript — `/home/mark/code/voice-notes/cleaned/20260711_013533_40a330836496.md`
+- Microsoft Sound Recorder FAQ — https://support.microsoft.com/en-us/windows/apps/sound-recorder-app-for-windows-faq
+- FFmpeg DirectShow device documentation — https://ffmpeg.org/ffmpeg-devices.html
+- FFmpeg downloads — https://ffmpeg.org/download.html
+- AutoHotkey v2 hotkeys — https://www.autohotkey.com/docs/v2/Hotkeys.htm
+- NAudio WASAPI recorder — https://github.com/naudio/NAudio/blob/main/Docs/WasapiRecorder.md
+- Microsoft microphone permissions — https://support.microsoft.com/en-us/windows/fix-microphone-problems-5f230348-106d-bfa4-1db5-336c6bd1d6
