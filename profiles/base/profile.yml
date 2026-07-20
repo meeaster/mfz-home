@@ -19,6 +19,7 @@ references:
   - sideshow
   - codex
   - deep-swe
+  - openwiki
 thread:
   destinations:
     - name: testing
