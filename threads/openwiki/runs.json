@@ -1,0 +1,46 @@
+{
+  "runs": [
+    {
+      "id": "run-1784523080413",
+      "thread": "openwiki",
+      "started_at": "2026-07-20T04:51:20.413Z",
+      "finished_at": "2026-07-20T04:56:11.456Z",
+      "sessions": [
+        "opencode:ses_089b2a218ffeDckwSQfHEgnZ14"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-luna",
+          "duration_ms": 160851,
+          "cost_usd": 0,
+          "input_tokens": 94600,
+          "output_tokens": 7063,
+          "reasoning_tokens": 920
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-terra",
+          "duration_ms": 81255,
+          "cost_usd": 0,
+          "input_tokens": 12967,
+          "output_tokens": 3669,
+          "reasoning_tokens": 230
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-sol",
+          "duration_ms": 48725,
+          "cost_usd": 0,
+          "input_tokens": 10539,
+          "output_tokens": 1095,
+          "reasoning_tokens": 848
+        }
+      ],
+      "total_cost_usd": 0
+    }
+  ]
+}
