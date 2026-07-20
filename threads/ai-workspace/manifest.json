@@ -1,0 +1,18 @@
+{
+  "slug": "ai-workspace",
+  "charter": "Design and evolve the shared ~/workspace environment for autonomous human and AI side-project work. Include workspace structure, operating conventions, agent instructions, permissions, project and knowledge placement, repository migrations, orchestration, approval boundaries, and material changes to how the workspace is used. Exclude implementation details confined to an individual project unless they change workspace-wide practice.",
+  "destination": "home",
+  "created_at": "2026-07-20T16:20:36.854Z",
+  "sessions": [
+    {
+      "id": "ses_089b2a218ffeDckwSQfHEgnZ14",
+      "source": "opencode",
+      "title": "Shared AI Workspace",
+      "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
+      "message_count": 1016,
+      "last_message_id": "msg_f80564838001INnpa2Axh6hjBh",
+      "last_activity_at": "2026-07-20T16:22:46.072Z"
+    }
+  ],
+  "synthesis": {}
+}
