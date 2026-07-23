@@ -1,88 +1,103 @@
 # Digest — work-context-continuity
 
 ## Current State
-The continuity system has a settled MVP design centered on a fluid unit of work rather than a session, thread, specification, or repository. A unit may span repositories and external systems, while the MVP permits one active unit per session, no inter-unit relationships, and non-linear activity phases. Current orientation is separated from append-only segment checkpoints, context is loaded progressively, Mindframe-Z threads provide synthesized history rather than live resumption state, and the TUI serves as both a compact status surface and an on-demand context debugger.
+The work-unit continuity MVP is implemented, integrated with OpenCode, and active in the `validate` phase. The work unit is now operational authority; the `work-context-continuity` Mindframe-Z thread is historical synthesis rather than live resumption state. Archiving remains deliberate rather than automatic.
 
-Implementation has not been confirmed. The next agreed stage is to formalize the effort as a Mindframe-Z thread, bootstrap its first work-unit record, and prepare an OpenSpec discovery proposal. `batch-grill-me` has been reviewed, vendored, enabled across OpenCode, Claude Code, and Codex, and validated with `mfz doctor`.
+The engine owns storage, schemas, bindings, validation, and CLI behavior. Rendered OpenCode server and TUI adapters live in the personal home and fail open. Context is progressively delivered through request reminders, lifecycle-boundary orientation, and on-demand artifacts. Authored context, orientation, and immutable checkpoints are Markdown; the CLI scaffolds, explains, validates, binds, and records telemetry rather than generating prose.
+
+Dogfooding covered unbound and attached sessions, orientation receipts, HTTP-triggered compaction, scope drift, reverse phase changes, detach, post-compaction continuity, concurrent attachment, and TUI inspection. Validation reported OpenSpec `22/22`, engine suites of `448` fast and `131` integration tests, `153` personal-home tests plus typecheck, and a healthy `mfz doctor`.
+
+A malformed checkpoint without its required `id` caused the first post-compaction delivery to fail; fallback delivery restored orientation, but the assistant did not visibly reread the context map or status. This leaves checkpoint semantics and post-compaction agent behavior as areas for continued validation.
 
 ## Components
-- **Work unit** — the live operational object connecting orientation, phases, checkpoints, repositories, and external systems · MVP model designed, initial record not confirmed
-- **Context routing** — progressive disclosure through an ambient reminder, lifecycle-triggered orientation loads, and relevance-based artifact routing · behavior designed, implementation pending
-- **Checkpoint history** — append-only segment records kept separate from mutable current orientation · model designed, implementation pending
-- **Mindframe-Z continuity** — threads synthesize historical continuity without becoming a prerequisite for work resumption · integration boundary settled, initial thread not confirmed
-- **TUI observability** — compact ambient status plus detailed inspection of received context, loaded context, warnings, retrieval failures, and receipts · interface role designed, implementation pending
-- **Dogfooding and validation** — this context-management effort becomes the first unit and is exercised through scripted OpenCode CLI sessions · planned
-- **Cross-cutting** — authoritative intent and acceptance remain human-controlled; automation may produce only derived checkpoints and receipts without silently changing consequential state
+- **Work unit** — the operational object connecting context maps, orientation, checkpoints, repositories, external systems, and session bindings · implemented and active in `validate`
+- **Context routing** — request reminders, lifecycle-boundary orientation, and relevance-based artifact loading · implemented and dogfooded
+- **Checkpoint history** — immutable, directly authored Markdown records reserved for meaningful boundaries · implemented, with semantic validation still under evaluation
+- **OpenCode integration** — fail-open server and TUI adapters over engine-owned storage, validation, bindings, and CLI behavior · implemented and tested
+- **Delegation** — parent prompts name the work unit for children to load as supplemental context without inheriting the parent binding · behavior settled and exercised
+- **Mindframe-Z continuity** — threads retain synthesized history while work units hold live operational continuity · boundary settled; automatic refresh remains unresolved
+- **TUI observability** — compact inspection of configured versus effective context and delivery receipts · implemented, with sustained-use usefulness still unproven
+- **Cross-cutting** — live truth remains in its authoritative files, prose is authored directly, automation provides guidance and validation, and adapters fail open rather than blocking work
 
 ## Direction
-Create the Mindframe-Z thread, bootstrap the context-management effort as the first work unit, and file the discovery work in an OpenSpec proposal. Then implement the smallest one-active-unit MVP, dogfood it through scripted OpenCode CLI sessions, and inspect the resulting context loads, failures, warnings, and receipts before expanding the design.
-
-The preserved conflict between the `opencode-hub` thread digest and repository README should be surfaced during formalization rather than silently resolved.
+Resume from `/home/mark/.mindframe-z/work/v1/units/work-context-continuity/` and continue dogfooding the active unit in `validate`. Use sustained operation and additional compaction cycles to evaluate checkpoint retention, semantic checkpoint validation, visible post-compaction context use, TUI usefulness, and whether Mindframe-Z thread refresh should be automated. Archive only through an intentional lifecycle decision.
 
 ## Open Questions
-- Should Mindframe-Z threads refresh after OpenCode compaction, even though resumption must not depend on that refresh?
-- Should commits and pull requests load the active work context?
-- Should implementation activity be logged as part of the work unit?
+- What checkpoint-retention policy should apply?
+- Does the TUI remain useful during sustained everyday use?
+- How much semantic checkpoint validation should the CLI enforce?
+- Should Mindframe-Z thread refresh be automated?
 
 ## Key Decisions
-- Use a fluid unit of work as the central operational object while leaving native artifacts in their existing systems.
-- Allow units to range from small to large and span repositories or external systems.
-- Limit the MVP to one active unit per session, no relationships between units, and non-linear phase history.
-- Treat exploration, design, prototyping, implementation, and validation as activities within one unit, including movement back to earlier activities.
-- Keep mutable current orientation separate from append-only segment checkpoints because sessions and compaction intervals are episodes within the work, not the work itself.
-- Use progressive disclosure: retain a small reminder on every request; load orientation on attachment, resumption, post-compaction, or explicit reload; and load other artifacts only when relevant.
-- Treat Mindframe-Z threads as synthesized historical continuity and work units as live operational continuity.
-- Make the TUI an observability and debugging surface, while preserving a compact default presentation through an ambient indicator and on-demand detail.
-- Keep authority field-specific: vision and constraints belong to `VISION.md`; accepted design to `ARCHITECTURE.md` and ADRs; behavior to code and tests; change state to Git and checkpoints; rationale to threads and sessions; broader perspective to the Personal wiki; and experiments to prototypes and research.
-- Permit automation to write derived checkpoints and receipts, but not to silently alter vision, architecture, acceptance state, commitments, or prototype verdicts.
-- Dogfood the system using this context-management effort as its first work unit and inspect scripted OpenCode CLI sessions afterward.
-- Formalize the continuity records and discovery proposal before beginning implementation.
-- Retain `batch-grill-me` as an explicitly invoked design-interview skill across OpenCode, Claude Code, and Codex.
+- Use a work unit as the central operational object, separate from OpenCode sessions, Mindframe-Z threads, repositories, and OpenSpec changes.
+- Support cross-repository units, one active unit per source-qualified session, and non-linear phase history; exclude inter-unit relationships and automatic thread refresh from the MVP.
+- Keep live truth in project files, continuity in threads, broader principles in wiki material, and experimental evidence in prototypes.
+- Make the work unit operational authority after formalization and treat the corresponding Mindframe-Z thread as historical and stale for live operation.
+- Use progressive disclosure: retain a small request reminder, deliver orientation at lifecycle boundaries, and route additional artifacts only when needed.
+- Keep storage, schemas, bindings, validation, and CLI behavior in the engine while personal-home OpenCode adapters fail open.
+- Make the TUI an observability and debugging surface for configured versus effective context and receipts, not a full context dump.
+- Author AI-written Markdown directly; use the CLI for scaffolding, instructions, structural and invariant validation, bindings, and telemetry.
+- Reserve immutable checkpoints for meaningful boundaries rather than routine progress or duplicated test summaries.
+- Delegate context explicitly: the parent names the work unit in the child prompt, the child loads it as supplemental context, and the child remains unbound unless separately attached.
+- Treat a work unit as background context rather than a substitute for a complete delegated task brief.
+- Use stage, review, promote, then enable for Mindframe-Z activation because enabling requires a reviewed lock.
+- Keep the active unit in `validate`; do not archive it automatically.
 
 ## Design
 ```text
-                         field-specific authority
+                       authoritative project files
                                   |
                                   v
-                         +------------------+
-                         |   Work Unit      |
-                         | current          |
-                         | orientation      |
-                         +------------------+
-                           |       |       |
-             every request |       |       | relevant only
-                           v       |       v
-                    small reminder |  native artifacts
-                                   |
-             attach / resume / compact / reload
-                                   |
-                                   v
-                         orientation injection
+                    +---------------------------+
+                    | Work Unit                 |
+                    | context map + orientation |
+                    | immutable checkpoints     |
+                    +---------------------------+
+                         ^                 |
+                         |                 |
+              engine storage,             | one active unit per
+              schemas, bindings,          | source-qualified session
+              validation, CLI             v
+                                   +------------------+
+                                   | OpenCode adapter |
+                                   |    fail open     |
+                                   +------------------+
+                                     |      |      |
+                         every request      |      | inspection
+                                     v      |      v
+                              small reminder|  TUI + receipts
+                                            |
+                         attach / resume / compaction / reload
+                                            |
+                                            v
+                                  orientation delivery
 
-                         +------------------+
-                         | append-only      |
-                         | segment records  |
-                         +------------------+
+             parent prompt names unit
+                        |
+                        v
+             child loads supplemental context
+             without inheriting the binding
 
-             historical synthesis          inspection
-          +----------------------+     +----------------------+
-          | Mindframe-Z threads  |     | TUI context debugger|
-          +----------------------+     +----------------------+
-                    |
-          never required for resumption
+       +----------------------+       +----------------------+
+       | Mindframe-Z threads  |       | native artifacts     |
+       | historical synthesis|       | loaded when relevant |
+       +----------------------+       +----------------------+
+              not operational authority
 ```
 
 ## Intent
-The user wants relief from fragmented, drifting work context and the burden of manually remembering what is authoritative, current, or relevant. The system should preserve continuity around the work itself rather than around whichever session or tool happens to contain it, while preventing automation from quietly rewriting human intent or accepted decisions.
+The user wants continuity across reused sessions, compactions, delegation, threads, wiki material, prototypes, and durable Markdown without loading every source into every session. Context should follow the work itself, preserve authority boundaries, and provide enough orientation to resume safely without replacing a detailed task brief.
 
 ## Vision
-The envisioned system supports work units fluid enough to represent either very small or very large efforts, including work crossing repositories and external systems. It supplies just enough context at each moment, preserves inspectable history, and makes failures visible without overwhelming the normal interface. The design remains intentionally provisional: the user expects stronger opinions and further iteration only after implementation and dogfooding provide evidence.
+The system should support fluid work units ranging from small efforts to cross-repository work, progressively disclose relevant context, preserve inspectable checkpoints and receipts, and make delivery failures visible without overwhelming the normal interface. The design has shifted from an abstract proposal to an operational MVP whose next refinements should come from sustained dogfooding rather than further speculative design.
 
 ## Perspective
-The user favors flexible work boundaries over rigid project or session containers, progressive disclosure over repeatedly injecting complete records, and visible context receipts over opaque automation. They distinguish operational continuity from historical synthesis and want each kind of information to remain under the authority of its native artifact.
+The user prefers human-readable guidance by default and `--json` for automation. They favor direct Markdown authorship over prose-heavy mutation commands, with the CLI limited to guidance, scaffolding, validation, bindings, and telemetry.
 
-The prolonged design phase became tiring and difficult to track. That frustration prompted a shift toward formalizing the existing conclusions and moving into implementation rather than extending abstract design. The user expects practical dogfooding evidence, especially from scripted OpenCode sessions, to drive the next round of opinions and refinements.
+The user rejects automatic delegation inheritance: the parent should identify the work unit explicitly, while still providing a complete task brief. Testing a child without that guidance reinforced this view because the child remained unbound and reconstructed context through costly archaeology.
+
+The prolonged design phase caused burnout and prompted a deliberate move into implementation. Checkpoints should mark meaningful boundaries rather than routine progress, and practical evidence from compaction, delegation, restart behavior, and sustained TUI use should drive subsequent decisions.
 
 ## Sources
-- Matt Pocock skills repository, `skills/in-progress/batch-grill-me`, commit `ed37663cc5fbef691ddfecd080dff42f7e7e350d` — https://github.com/mattpocock/skills
-- `opencode-hub` thread digest and repository README
+- Matt Pocock skills repository, including `ask-matt` and `batch-grill-me` at commit `ed37663cc5fbef691ddfecd080dff42f7e7e350d` — https://github.com/mattpocock/skills.git
+- Mindframe-Z references index — `/home/mark/.mindframe-z/references.md`

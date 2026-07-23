@@ -7,11 +7,11 @@
     {
       "id": "ses_073c3ad9cffe8811MuoJj1tjUp",
       "source": "opencode",
-      "title": "Work-Unit Context Continuity Design",
+      "title": "Work-Unit Context Continuity",
       "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
-      "message_count": 101,
-      "last_message_id": "msg_f8cd73538001g5Qi0SKnCpZBH6",
-      "last_activity_at": "2026-07-23T02:39:01.944Z"
+      "message_count": 311,
+      "last_message_id": "msg_f8da75241001enUNHU8RkUvCpz",
+      "last_activity_at": "2026-07-23T06:26:20.865Z"
     }
   ],
   "synthesis": {}

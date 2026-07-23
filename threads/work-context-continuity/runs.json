@@ -13,31 +13,73 @@
           "role": "gather",
           "harness": "opencode",
           "model": "openai/gpt-5.6-luna",
-          "duration_ms": 115416,
           "cost_usd": 0,
           "input_tokens": 50906,
           "output_tokens": 4298,
-          "reasoning_tokens": 799
+          "reasoning_tokens": 799,
+          "duration_ms": 115416
         },
         {
           "role": "synthesize",
           "harness": "opencode",
           "model": "openai/gpt-5.6-terra",
-          "duration_ms": 73167,
           "cost_usd": 0,
           "input_tokens": 9245,
           "output_tokens": 3245,
-          "reasoning_tokens": 187
+          "reasoning_tokens": 187,
+          "duration_ms": 73167
         },
         {
           "role": "digest",
           "harness": "opencode",
           "model": "openai/gpt-5.6-sol",
-          "duration_ms": 44315,
           "cost_usd": 0,
           "input_tokens": 10900,
           "output_tokens": 1421,
-          "reasoning_tokens": 477
+          "reasoning_tokens": 477,
+          "duration_ms": 44315
+        }
+      ],
+      "total_cost_usd": 0
+    },
+    {
+      "id": "run-1784787987020",
+      "thread": "work-context-continuity",
+      "started_at": "2026-07-23T06:26:27.020Z",
+      "finished_at": "2026-07-23T06:31:29.901Z",
+      "sessions": [
+        "opencode:ses_073c3ad9cffe8811MuoJj1tjUp"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-luna",
+          "duration_ms": 129936,
+          "cost_usd": 0,
+          "input_tokens": 60181,
+          "output_tokens": 5009,
+          "reasoning_tokens": 912
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-terra",
+          "duration_ms": 89012,
+          "cost_usd": 0,
+          "input_tokens": 9427,
+          "output_tokens": 3885,
+          "reasoning_tokens": 379
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-sol",
+          "duration_ms": 83641,
+          "cost_usd": 0,
+          "input_tokens": 14704,
+          "output_tokens": 1599,
+          "reasoning_tokens": 2372
         }
       ],
       "total_cost_usd": 0
