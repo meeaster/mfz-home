@@ -1,0 +1,18 @@
+{
+  "slug": "work-context-continuity",
+  "charter": "Preserve the design, implementation, validation, and iteration of a work-unit-centered context continuity system for AI-assisted development. Emphasize user intent, authority boundaries, progressive disclosure, OpenCode and Mindframe-Z integration, observed agent behavior, design pivots, and dogfooding evidence. Keep exploratory ideas distinct from accepted decisions.",
+  "destination": "home",
+  "created_at": "2026-07-23T02:38:55.625Z",
+  "sessions": [
+    {
+      "id": "ses_073c3ad9cffe8811MuoJj1tjUp",
+      "source": "opencode",
+      "title": "Work-Unit Context Continuity Design",
+      "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
+      "message_count": 101,
+      "last_message_id": "msg_f8cd73538001g5Qi0SKnCpZBH6",
+      "last_activity_at": "2026-07-23T02:39:01.944Z"
+    }
+  ],
+  "synthesis": {}
+}
