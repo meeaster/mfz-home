@@ -39,7 +39,7 @@ bat = "0"
 
 [settings]
 minimum_release_age = "3d"
-minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki"]
+minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:executor"]
 
 [tools."github:dmtrKovalenko/fff"]
 version = "0"
