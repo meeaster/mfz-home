@@ -1,0 +1,46 @@
+{
+  "runs": [
+    {
+      "id": "run-1784767456222",
+      "thread": "opencode-hub",
+      "started_at": "2026-07-23T00:44:16.222Z",
+      "finished_at": "2026-07-23T00:49:09.005Z",
+      "sessions": [
+        "opencode:ses_079e814beffeNl4LzJ3kYM1phW"
+      ],
+      "dispatches": [
+        {
+          "role": "gather",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-luna",
+          "duration_ms": 131476,
+          "cost_usd": 0,
+          "input_tokens": 71242,
+          "output_tokens": 5738,
+          "reasoning_tokens": 756
+        },
+        {
+          "role": "synthesize",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-terra",
+          "duration_ms": 93254,
+          "cost_usd": 0,
+          "input_tokens": 10594,
+          "output_tokens": 4350,
+          "reasoning_tokens": 156
+        },
+        {
+          "role": "digest",
+          "harness": "opencode",
+          "model": "openai/gpt-5.6-sol",
+          "duration_ms": 67872,
+          "cost_usd": 0,
+          "input_tokens": 12175,
+          "output_tokens": 1617,
+          "reasoning_tokens": 1599
+        }
+      ],
+      "total_cost_usd": 0
+    }
+  ]
+}
