@@ -1,0 +1,5 @@
+interface:
+  display_name: "Skill Authoring"
+  short_description: "Author and assess behavior-driven skills"
+policy:
+  allow_implicit_invocation: false
