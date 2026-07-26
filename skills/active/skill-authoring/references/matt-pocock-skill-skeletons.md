@@ -1,6 +1,6 @@
 # Skeletons
 
-Four common assemblies of the forms in [PATTERNS.md](PATTERNS.md). They are examples, not a complete taxonomy. Derive the structure from intended behavior first; use one only when its shape fits, then prune.
+Four common assemblies of the forms in [`matt-pocock-skill-patterns.md`](matt-pocock-skill-patterns.md). They are examples, not a complete taxonomy. Derive the structure from intended behavior first; use one only when its shape fits, then prune.
 
 ## Phased step-skill
 

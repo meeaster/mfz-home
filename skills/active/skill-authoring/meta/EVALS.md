@@ -81,7 +81,7 @@ Every scenario confirms that:
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The bundled doctrine loads before design work; Skill Authoring's own `meta/` files remain unloaded; the pattern catalogue loads only after the agent names a specific structural uncertainty or competing forms; `SKELETONS.md` loads only after an applicable assembly is identified; and `TESTING.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The bundled doctrine loads before design work; Skill Authoring's own `meta/` files remain unloaded; the pattern catalogue loads only after the agent names a specific structural uncertainty or competing forms; `matt-pocock-skill-skeletons.md` loads only after an applicable assembly is identified; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 

@@ -2,11 +2,11 @@
 
 **Source:** Matt Pocock's skills, [github.com/mattpocock/skills](https://github.com/mattpocock/skills), commit `ed37663` (2026-07-21), surveyed 2026-07-25.
 
-The bundled [`writing-great-skills`](../writing-great-skills/DOCTRINE.md) doctrine names the **levers**: **predictability**, the two loads, the **information hierarchy**, **leading words**, and the **failure modes**. This catalogues observed forms those levers can take on the page.
+The bundled [`writing-great-skills.md`](writing-great-skills.md) doctrine names the **levers**: **predictability**, the two loads, the **information hierarchy**, **leading words**, and the **failure modes**. This catalogues observed forms those levers can take on the page.
 
 Design behavior before selecting a form. Use the bundled doctrine for the governing principles; consult this catalogue when examples or structural alternatives would help. Compare applicable forms and adopt only what solves an identified problem. A form is evidence, not a requirement, and the catalogue is not an exhaustive taxonomy.
 
-**Bold terms** belong to the doctrine's [`GLOSSARY.md`](../writing-great-skills/GLOSSARY.md) — look them up there.
+**Bold terms** belong to the doctrine's [`writing-great-skills-glossary.md`](writing-great-skills-glossary.md) — look them up there.
 
 ## Frontmatter forms
 
@@ -51,4 +51,4 @@ Design behavior before selecting a form. Use the bundled doctrine for the govern
 - **Inline rationale.** A short *"Why bother: …"* after a demanding step keeps the agent bought in without a paragraph of justification.
 - **Imperative and terse.** Second person, em-dashes, no hedging. Then hunt **no-ops** sentence by sentence — cut any line the model already obeys by default.
 
-For four common assemblies — phased step-skill, reference-skill, thin orchestrator, and router — see [SKELETONS.md](SKELETONS.md). Start from behavior; use a skeleton only after one of those assemblies fits.
+For four common assemblies — phased step-skill, reference-skill, thin orchestrator, and router — see [`matt-pocock-skill-skeletons.md`](matt-pocock-skill-skeletons.md). Start from behavior; use a skeleton only after one of those assemblies fits.

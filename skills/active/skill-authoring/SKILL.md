@@ -9,7 +9,7 @@ argument-hint: "What skill are you authoring, reviewing, or evaluating?"
 
 **Authoring** turns intended agent behavior into a skill package that can be understood, evaluated, and maintained.
 
-Before doing skill work, read [`references/writing-great-skills/DOCTRINE.md`](references/writing-great-skills/DOCTRINE.md). Treat this bundled snapshot as the authoritative doctrine. Follow its `GLOSSARY.md` pointers when the terms are needed.
+Before doing skill work, read [`references/writing-great-skills.md`](references/writing-great-skills.md). Treat this bundled snapshot as the authoritative doctrine. Follow its `writing-great-skills-glossary.md` pointers when the terms are needed.
 
 During ordinary authoring, runtime context consists of this `SKILL.md` and the references whose conditions fire. Read Skill Authoring's own `meta/` documents only when Skill Authoring itself is the skill being reviewed, evaluated, or maintained.
 
@@ -49,7 +49,7 @@ Complete this phase when the behavior is specific enough to evaluate without rea
 
 Design from the behavior before selecting a familiar form. Decide what belongs in steps, in-skill reference, disclosed reference, scripts, and harness metadata. Keep machine-, workspace-, and project-specific assumptions out unless the skill deliberately targets that environment and declares the boundary.
 
-Use the preliminary structure directly when its fit is clear. Before reading [`references/skill-patterns/PATTERNS.md`](references/skill-patterns/PATTERNS.md), name a specific structural uncertainty or at least two plausible forms that need comparison. Its forms are evidence, not a taxonomy. Read `SKELETONS.md` only after identifying one of its assemblies as applicable.
+Use the preliminary structure directly when its fit is clear. Before reading [`references/matt-pocock-skill-patterns.md`](references/matt-pocock-skill-patterns.md), name a specific structural uncertainty or at least two plausible forms that need comparison. Its forms are evidence, not a taxonomy. Read `matt-pocock-skill-skeletons.md` only after identifying one of its assemblies as applicable.
 
 Complete this phase when every proposed runtime element has a reason to exist and a deliberate place in the information hierarchy.
 
@@ -67,7 +67,7 @@ For authorized implementation, create or update this package:
     └── LOG.md
 ```
 
-Add `agents/`, `references/`, and `scripts/` only when the skill needs them. Follow destination-specific metadata conventions.
+Add `agents/`, `references/`, and `scripts/` only when the skill needs them. Follow destination-specific metadata conventions. Keep ordinary reference filenames lowercase and descriptive, and keep `references/` flat unless grouping provides a real navigation or maintenance boundary.
 
 Every skill gets all four `meta/` documents. Make each one meaningful and proportional: a one-line orchestrator may need only a short paragraph per file, while a consequential workflow may need substantial detail. Keep `meta/` outside ordinary runtime context.
 
@@ -91,7 +91,7 @@ Evaluate two surfaces separately when they apply:
 
 Record the model, harness, configuration, skill revision, and limitations of observed results. Prefer traces and artifacts over the evaluated agent's self-report.
 
-When the user asks to execute a live harness scenario, verify runtime behavior from a session, or revise from a trace-supported failure, follow [`references/TESTING.md`](references/TESTING.md). Static package validation and writing evaluation scenarios use the instructions in this file without loading that reference. For a live run, test in an isolated workspace, inspect the captured session, classify the evidence, and rerun the same scenario after the smallest authorized change. Keep assessment non-mutating when implementation is not authorized.
+When the user asks to execute a live harness scenario, verify runtime behavior from a session, or revise from a trace-supported failure, follow [`references/testing-workflow.md`](references/testing-workflow.md). Static package validation and writing evaluation scenarios use the instructions in this file without loading that reference. For a live run, test in an isolated workspace, inspect the captured session, classify the evidence, and rerun the same scenario after the smallest authorized change. Keep assessment non-mutating when implementation is not authorized.
 
 Complete this phase when every applicable scenario has a result or an explicit untested status and every remaining sentence is behaviorally justified.
 

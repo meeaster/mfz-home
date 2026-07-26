@@ -2,10 +2,13 @@
 
 ## Bundled References
 
-- `references/writing-great-skills/DOCTRINE.md` and `GLOSSARY.md` are the complete maintained doctrine snapshot used on every run.
-- `references/skill-patterns/PATTERNS.md` and `SKELETONS.md` are the maintained, non-exhaustive form catalogue consulted only when structural comparison helps.
+- `references/writing-great-skills.md` and `writing-great-skills-glossary.md` are the complete maintained doctrine snapshot used on every run.
+- `references/matt-pocock-skill-patterns.md` and `matt-pocock-skill-skeletons.md` are the maintained, non-exhaustive form catalogue consulted only when structural comparison helps.
+- `references/testing-workflow.md` is the isolated live-testing and trace-inspection procedure.
 
 Keep those meanings in their bundled references. `SKILL.md` should point to them rather than duplicate their doctrine or examples.
+
+This package keeps its references flat with descriptive lowercase filenames. The bundled source material is ordinary reference content rather than independently invocable skills, so it carries no skill frontmatter. This is a local adaptation for Skill Authoring, not a general recommendation to bundle one skill inside another.
 
 ## Upstream Provenance
 
@@ -14,7 +17,7 @@ Writing Great Skills:
 - Repository: `https://github.com/mattpocock/skills`
 - Subtree: `skills/productivity/writing-great-skills`
 - Snapshot: `9603c1cc8118d08bc1b3bf34cf714f62178dea3b`
-- Local adaptation: upstream `SKILL.md` is stored as `DOCTRINE.md`; the glossary's backlink targets that filename.
+- Local adaptation: upstream `SKILL.md` is stored without frontmatter as `references/writing-great-skills.md`; the glossary is stored as `writing-great-skills-glossary.md` and links back to that filename.
 
 Skill Patterns:
 
@@ -25,7 +28,7 @@ Skill Patterns:
 ## Reference Update Procedure
 
 1. Inspect the upstream changes since the recorded snapshot.
-2. Replace the accepted bundled doctrine files with the upstream versions, preserving only the documented filename and backlink adaptations.
+2. Replace the accepted bundled doctrine files with the upstream versions, removing skill frontmatter and preserving the documented local filenames and backlink adaptations.
 3. Resurvey pattern evidence when upstream forms changed materially; revise the catalogue only where the evidence warrants it.
 4. Update the recorded snapshots.
 5. Review `SKILL.md` and all meta artifacts for assumptions affected by the reference changes.
@@ -39,7 +42,7 @@ Skill Patterns:
 3. Classify the change as narrow tuning or intentional redesign.
 4. Update the runtime skill and every affected meta artifact together.
 5. Run representative evaluations for the changed branches.
-6. Follow `references/TESTING.md` for live runs and inspect traces or produced artifacts rather than relying on self-report.
+6. Follow `references/testing-workflow.md` for live runs and inspect traces or produced artifacts rather than relying on self-report.
 7. Record consequential decisions, observed effects, and reversals in `LOG.md`.
 
 ## Dogfooding Procedure

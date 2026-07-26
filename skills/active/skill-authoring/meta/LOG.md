@@ -28,7 +28,7 @@
 - Observed that the pattern catalogue and skeletons loaded without an explicit structural uncertainty and that Skill Authoring's own `meta/EVALS.md` leaked into ordinary runtime context.
 - Tightened both context pointers and added a disclosed testing loop for isolated execution, trace-based verification, evidence classification, smallest authorized revision, and rerun.
 - Treated two recovered validation-command failures as ordinary tool noise rather than evidence for another instruction change.
-- A same-scenario rerun closed the original pattern and meta-context leaks but loaded `TESTING.md` during static creation; narrowed that pointer to explicit live harness execution, session-based verification, or trace-supported revision.
+- A same-scenario rerun closed the original pattern and meta-context leaks but loaded `testing-workflow.md` during static creation; narrowed that pointer to explicit live harness execution, session-based verification, or trace-supported revision.
 - A second same-scenario rerun passed every context-boundary assertion: only the doctrine loaded, all optional references remained disclosed, and all writes stayed in the isolated workspace.
 - The adjacent non-mutating review also passed: it read the target package's meta files, loaded no optional Skill Authoring reference, issued no writes, and left every checksum unchanged.
 
@@ -38,3 +38,11 @@
 - Defined it as a living synthesis rather than an append-only session log so many runs aggregate into coverage, active observations, confirmed patterns, and recently resolved items.
 - Kept reusable scenarios in `EVALS.md`, accepted decisions in `LOG.md`, and raw session detail in harness stores or temporary artifacts.
 - Established promotion and pruning rules so resolved observations leave the active frontier while Git preserves history.
+
+## 2026-07-26 - Flattened Reference Layout
+
+- Flattened `references/` because the nested source-skill directories added navigation without representing a runtime or maintenance boundary.
+- Renamed every reference with a descriptive lowercase filename so context pointers and traces identify both its source or subject and its role.
+- Removed standalone-skill frontmatter from the bundled Writing Great Skills doctrine because it is reference content inside Skill Authoring, not an independently invocable skill.
+- Kept source provenance and refresh adaptations in `MAINTENANCE.md` rather than preserving upstream package structure in local paths.
+- Added only the general flat, lowercase reference convention to the authoring workflow; the decision to adapt bundled skills remains local to this package.
