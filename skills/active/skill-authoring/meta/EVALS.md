@@ -85,4 +85,4 @@ Every scenario confirms that:
 
 ## Latest Evaluation Result
 
-The Authoring Context Boundary, adjacent non-mutating review, and one end-to-end create, project-discover, execute, and session-evaluate sequence pass in OpenCode with Sol Medium. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+The Authoring Context Boundary and adjacent non-mutating review pass in OpenCode with Sol Medium. Two end-to-end create, project-discover, execute, and session-evaluate sequences have completed; the latest preserved fixture integrity while identifying one generated-skill output-classification defect and one underdetermined evaluation scenario. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.

@@ -10,10 +10,10 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 | Behavior | Harnesses and models | Evidence | Current result |
 |---|---|---|---|
-| New skill creation | OpenCode, Sol Medium | Four runs across two tasks | Passing after two pointer revisions |
-| Generated-skill execution | OpenCode, Sol Medium | One project-local skill and fixture | Passing; expected recommendation and unchanged fixtures |
-| Session-based evaluation | OpenCode, Sol Medium | One full package, trace, and artifact assessment | Passing; runtime and maintenance findings separated |
-| Non-mutating review | OpenCode, Sol Medium | Two assessment runs | Passing; no edit tools and target checksums unchanged |
+| New skill creation | OpenCode, Sol Medium | Five runs across three tasks | Passing after two pointer revisions |
+| Generated-skill execution | OpenCode, Sol Medium | Two project-local skills and fixtures | Expected verdicts and unchanged fixtures; one output-classification defect identified |
+| Session-based evaluation | OpenCode, Sol Medium | Two full package, trace, and artifact assessments | Passing; runtime, evaluation, environment, and maintenance findings separated |
+| Non-mutating review | OpenCode, Sol Medium | Three assessment runs | Passing; no edit tools and target checksums unchanged |
 | Existing skill revision | None | Untested | Untested |
 | Cross-harness context boundaries | None beyond OpenCode | Untested | Untested |
 
@@ -39,15 +39,15 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 **Next evidence:** Repeat the creation and non-mutating review scenarios in another enabled harness without changing their assertions.
 
-### D-006 - Session Stores May Omit Harness Startup Noise
+### D-007 - Generated Evaluation Scenarios Can Be Underdetermined
 
 **Status:** Watching
 
-**Evidence:** A project-local skill execution emitted a background dependency-install warning during OpenCode startup. The warning did not affect the run and was absent from the session's message and tool trace inspected by the evaluator.
+**Evidence:** One generated package allowed either high or medium severity for a retry-safety scenario without supplying the scale, dependencies, or recovery facts needed to distinguish them. Session-based evaluation identified the ambiguity after the runtime scenario.
 
-**Current hypothesis:** Session archaeology proves in-session behavior but may not capture harness startup, discovery, plugin, or dependency events emitted only by the parent CLI process.
+**Current hypothesis:** Evaluation scenarios that permit several outcomes need enough fixture evidence to distinguish them, or should assert only the behavior their evidence can decide.
 
-**Next evidence:** On another live evaluation, preserve the machine-readable CLI event stream alongside the session record and compare which environment events each surface captures.
+**Next evidence:** Inspect another generated package with graded findings or revise this package in a disposable evaluation to see whether the ambiguity recurs.
 
 ## Confirmed Patterns
 
@@ -56,8 +56,10 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 | Explicit context conditions reduce eager reference loading | Three same-scenario OpenCode runs | State both the condition that loads a reference and the ordinary path that leaves it unloaded |
 | Runtime structure may vary while behavioral intent remains stable | Three generated packages with different phase and recommendation labels | Evaluate process and observable behavior rather than textual identity |
 | Assessment routing preserves files when explicit | One adjacent review with unchanged checksums and no write tool calls | Keep assessment and implementation outcomes distinct |
-| Project-local creation can support a full live loop without global installation | One create, fresh-process discovery, execution, and session-evaluation sequence | Prefer isolated project skills for end-to-end dogfooding |
-| Trace review can distinguish runtime behavior from stale maintenance records | One live evaluation with all behavioral assertions passing and stale target evaluation metadata identified separately | Classify findings before revising runtime instructions |
+| Project-local creation can support a full live loop without global installation | Two create, fresh-process discovery, execution, and session-evaluation sequences | Prefer isolated project skills for end-to-end dogfooding |
+| Trace review can distinguish runtime behavior from stale maintenance records | Two live evaluations that separated runtime findings from target evaluation and maintenance state | Classify findings before revising runtime instructions |
+| Flat lowercase references remain discoverable and selectively loaded | One create, fresh-process discovery, execution, and session-evaluation sequence | Prefer descriptive flat reference paths unless a real boundary justifies grouping |
+| CLI events and session traces expose different environment evidence | Two live executions where the CLI reported startup dependency warnings absent from session traces | Preserve the machine-readable CLI stream alongside session evidence when environment behavior matters |
 
 ## Recently Resolved
 
