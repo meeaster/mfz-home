@@ -1,0 +1,18 @@
+{
+  "slug": "skill-authoring",
+  "charter": "Track the design, creation, modification, and maintenance of the skill-authoring skill: user intent, package structure, bundled doctrine and pattern references, meta artifact conventions, dogfooding evidence, live evaluations, accepted behavioral changes, and unresolved design questions. Admit sessions that create or modify skill-authoring. Exclude disposable CLI test sessions and sessions that only execute generated skills as separate members, while allowing their evidence to inform an admitted development session.",
+  "destination": "home",
+  "created_at": "2026-07-26T08:37:02.836Z",
+  "sessions": [
+    {
+      "id": "ses_064c97922ffeFxcXJtbcNkFpvD",
+      "source": "opencode",
+      "title": "Skill-Authoring Design, Creation, And Evaluation",
+      "extracted_by": "opencode:openai/gpt-5.6-terra@medium",
+      "message_count": 169,
+      "last_message_id": "msg_f9d920f400015g67cviLde6UBU",
+      "last_activity_at": "2026-07-26T08:37:02.912Z"
+    }
+  ],
+  "synthesis": {}
+}
