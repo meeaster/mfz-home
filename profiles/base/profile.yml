@@ -18,6 +18,7 @@ references:
   - dd-apm-test-agent
   - sideshow
   - codex
+  - openai-skills
   - deep-swe
   - openwiki
 thread:
