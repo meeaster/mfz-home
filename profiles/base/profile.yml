@@ -19,6 +19,7 @@ references:
   - sideshow
   - codex
   - openai-skills
+  - openai-plugins
   - deep-swe
   - openwiki
 thread:

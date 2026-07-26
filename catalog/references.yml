@@ -65,6 +65,9 @@ references:
   - name: openai-skills
     url: https://github.com/openai/skills.git
     description: "Markdown/Python repository of OpenAI-maintained agent skills. Inspect it when comparing skill packaging, creator guidance, evaluation workflows, scripts, or Codex-specific metadata. Main entrypoints: skills/.system/skill-creator/SKILL.md and skills/.curated/."
+  - name: openai-plugins
+    url: https://github.com/openai/plugins.git
+    description: "OpenAI repository of Codex plugin packages. Inspect it for current plugin and skill packaging, manifests, agents, bundled resources, and skill-only plugin examples. Main entrypoint: plugins/."
   - name: sideshow
     url: https://github.com/modem-dev/sideshow.git
     description: "TypeScript live visual surface for terminal coding agents. Publishes browser-rendered surfaces for diagrams, UI sketches, markdown, diffs, terminal output, images, Mermaid, JSON, and code; see README.md and docs/connecting-agents.md for CLI, MCP, HTTP, and agent integration details."
