@@ -144,15 +144,12 @@ skills:
     repo: https://github.com/mattpocock/skills
     ref: main
     subtree: skills/productivity/writing-great-skills
-  - name: skill-patterns
+  - name: skill-authoring
     source: local
-    skill: active/skill-patterns
+    skill: active/skill-authoring
     description: >
-      The rendered forms a well-written skill takes on the page — frontmatter
-      shapes, opening lines, step-and-criterion blocks, glossary entries,
-      composition moves, prose habits. Use when writing or reviewing a SKILL.md,
-      when another skill needs the authoring forms, or alongside the
-      writing-great-skills doctrine.
+      Design, create, revise, review, or evaluate an agent skill as a
+      behavior-driven package. User-invoked.
   - name: adversarial-code-review
     source: local
     skill: active/adversarial-code-review

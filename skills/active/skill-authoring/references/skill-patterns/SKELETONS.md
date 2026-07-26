@@ -1,10 +1,10 @@
 # Skeletons
 
-Copy-paste starting points for the four archetypes. Each is the skeleton of a real shipping skill stripped to its bones — fill in, then prune. The forms are catalogued in [SKILL.md](SKILL.md); these are them assembled.
+Four common assemblies of the forms in [PATTERNS.md](PATTERNS.md). They are examples, not a complete taxonomy. Derive the structure from intended behavior first; use one only when its shape fits, then prune.
 
 ## Phased step-skill
 
-For ordered work that closes each phase on a checkable bar (`diagnosing-bugs`, `triage`, `to-issues`). Model-invoked so the agent can reach for it.
+For ordered work that closes each phase on a checkable bar (`diagnosing-bugs`, `setup-ts-deep-modules`). Choose invocation independently from the body shape.
 
 ```markdown
 ---
@@ -14,7 +14,7 @@ description: <Essence.> Use when the user <trigger>, mentions "<phrase>", or <tr
 
 # <Title>
 
-<Essence line — what this is, in one sentence, leading word bolded.>
+<Immediate orientation: essence, boundary, or first operation.>
 <Skip-discipline preamble: the default is thorough; deviate only with reason.>
 
 ## Phase 1 — <name>
@@ -39,7 +39,7 @@ Do not proceed until <criterion>.
 
 ## Reference-skill (all glossary)
 
-For a shared vocabulary other skills lean on (`codebase-design`, `domain-modeling`). No steps — a flat peer-set. Model-invoked so other skills can invoke it for the terms.
+For a shared vocabulary other skills lean on (`codebase-design`, `domain-modeling`). No steps — a flat peer-set. Make it model-invoked only when agents or other skills must discover it.
 
 ```markdown
 ---
@@ -114,3 +114,15 @@ You don't remember every skill, so ask.
 
 - **`/<skill>`** — <off the main flow entirely>.
 ```
+
+## Other observed assemblies
+
+Do not force these into the four skeletons above:
+
+- **Branching artifact skill** — select a branch from the user's question, load only its reference, create or update a durable artifact, and define the handoff.
+- **Environment-adapting setup skill** — inspect local conventions, preserve existing configuration, apply the smallest change, then prove the guardrail bites through intentional failure.
+- **Frontier skill** — maintain a destination and low-resolution map, resolve the next uncertain frontier, and put detail in linked artifacts.
+- **Round-based interview** — ask every currently answerable question, incorporate the answers, recompute dependencies, and begin another round.
+- **Artifact loop** — re-read a shared artifact before every write, append or revise without losing human edits, and stop on an explicit review boundary.
+
+New behavior may need a new assembly. The catalogue supplies comparison points, not permission.
