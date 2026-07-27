@@ -18,6 +18,8 @@ references:
   - dd-apm-test-agent
   - sideshow
   - codex
+  - openai-skills
+  - openai-plugins
   - deep-swe
   - openwiki
 thread:
@@ -81,8 +83,8 @@ skills:
     agents: { opencode: true, claude-code: false, codex: false }
     toggleable: false
   writing-great-skills:
-    agents: { opencode: true, claude-code: true, codex: true }
-  skill-patterns:
+    agents: { opencode: false, claude-code: false, codex: false }
+  skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   audit-ai-writing:
     agents: { opencode: true, claude-code: true, codex: true }
