@@ -66,3 +66,9 @@
 - Kept OpenAI's concrete examples, degrees of freedom, reusable-resource planning, and layered validation; removed provider commands, initialization scripts, conflicting package policy, and duplicated writing doctrine.
 - Preserved capability-oriented live testing so harness execution and session-inspection mechanics remain outside the portable core.
 - Loaded both bundled guides at the start after a fresh trace showed that a visible pointer to required planning material was eagerly followed; their narrow, non-overlapping roles make the direct composition honest and predictable.
+
+## 2026-07-26 - Optional Comparative Baselines
+
+- Adapted Anthropic's baseline concept without adopting its Claude-specific evaluation suite.
+- Use no skill as the baseline for a new skill and the previous revision for an update only when incremental value is the question.
+- Keep the default trace-based loop unchanged for explicit contract verification, where a baseline would add cost without changing the decision.

@@ -10,7 +10,7 @@ Skill Authoring guides an agent from intent to a complete, reviewable skill pack
 
 The process supports creating, revising, reviewing, diagnosing, evaluating, and maintaining skills. It distinguishes narrow tuning from redesign, keeps development context outside ordinary runtime context, and leaves consequential intent and promotion decisions with the user. Review, diagnosis, evaluation, and design do not authorize file changes by themselves; the requested outcome determines whether the process returns a proposal or modifies a package.
 
-Live evaluation uses isolated task workspaces and captured session traces. It states the execution and inspection capabilities required while leaving commands and session-store mechanics to available environment guidance. Observed defects drive the smallest authorized revision followed by the same scenario and an adjacent regression scenario; apparent prose quality and agent self-report are insufficient evidence.
+Live evaluation uses isolated task workspaces and captured session traces. It states the execution and inspection capabilities required while leaving commands and session-store mechanics to available environment guidance. When incremental value is the question, it optionally compares a new skill with no skill or a revision with its previous version. Observed defects drive the smallest authorized revision followed by the same scenario and an adjacent regression scenario; apparent prose quality and agent self-report are insufficient evidence.
 
 Real uses also feed a bounded dogfooding synthesis. Observations remain provisional there until repeatable evidence promotes them into evaluations or accepted design decisions.
 

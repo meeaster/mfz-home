@@ -25,6 +25,13 @@ OpenAI Skill Creator:
 - Status: upstream repository deprecated in favor of OpenAI Plugins; no complete successor creator exists there at the surveyed revision.
 - Adaptation: retained concrete-example discovery, degrees of freedom, reusable-resource planning, and layered validation; removed Codex-only commands and metadata, initialization scripts, conflicting package rules, duplicated writing doctrine, and the upstream end-to-end lifecycle.
 
+Anthropic Skill Creator:
+
+- Repository: `https://github.com/anthropics/skills`
+- Subtree: `skills/skill-creator`
+- Snapshot: `9d2f1ae187231d8199c64b5b762e1bdf2244733d`
+- Adaptation: retained only the optional no-skill or previous-revision baseline concept. The Claude-specific runner, benchmark aggregation, viewer, grading agents, blind comparison, and description optimizer are not part of the default workflow.
+
 ## Guidance Update Procedure
 
 1. Inspect upstream changes since each recorded snapshot.

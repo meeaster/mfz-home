@@ -15,6 +15,14 @@ Select one scenario from `meta/EVALS.md` or define a missing representative scen
 
 Test one behavioral claim at a time. Preserve the same scenario across a before-and-after comparison.
 
+When the question is whether a skill or revision adds value, define a baseline under the same test contract:
+
+- for a new skill, run the same task without the skill;
+- for a revision, run the same task with the previous revision;
+- keep the harness, model, effort, fixture, assertions, and relevant configuration aligned.
+
+Skip the baseline when the test only needs to verify an explicit behavioral contract or its extra cost would not change the decision.
+
 Complete this step when pass, fail, and out-of-scope behavior are distinguishable before the run begins.
 
 ## 2. Isolate The Workspace
@@ -46,6 +54,8 @@ Inspect every produced artifact and the session record. Establish:
 - whether the final claims match the successful checks;
 - whether the observed behavior satisfies `VISION.md` and the scenario assertions in `EVALS.md`.
 
+When a baseline applies, compare behavior, artifacts, trace efficiency, and assertion results. An acceptable candidate that does not improve the motivating dimension has not established incremental value.
+
 Prefer the harness's durable structured session record or export. Use available environment guidance to locate and inspect it rather than duplicating session-store instructions here. Treat self-report as a claim to verify, not evidence.
 
 Complete this step when every pass or failure claim cites an artifact or trace event and uninspected evidence is named.
@@ -68,6 +78,6 @@ Complete this step when each observation has a classification, confidence, and e
 
 When implementation is authorized, make the smallest change that targets the supported behavioral defect. Update affected `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` artifacts together. When implementation is not authorized, present the proposed change without editing.
 
-Rerun the same scenario with the same harness, model, effort, fixture, and assertions. Then run the nearest adjacent scenario that could regress. Compare traces, not only final outputs.
+Rerun the same scenario with the same harness, model, effort, fixture, and assertions. Then run the nearest adjacent scenario that could regress. Compare traces, not only final outputs. Repeat the aligned baseline only when the candidate or test contract changed enough to invalidate the earlier comparison.
 
 Complete the loop when the target assertion passes, the result remains explicitly untested or noisy, or the user accepts the residual limitation. Clean up disposable sessions after capturing evidence; retain test artifacts only when they remain useful for review.

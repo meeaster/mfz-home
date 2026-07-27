@@ -77,6 +77,12 @@ Every scenario confirms that:
 
 **Assertions:** The agent defines assertions before running; isolates mutable task files while retaining the skill configuration under test; captures the session; inspects artifacts and tool traces; distinguishes behavioral defects, evaluation defects, environment noise, and ordinary recovery; makes only the smallest authorized change; reruns the same scenario; checks an adjacent regression scenario; and cleans up disposable session state after preserving evidence.
 
+## Optional Baseline
+
+**Prompt:** Ask whether a new skill or revision provides value beyond the behavior available without it or in the previous revision.
+
+**Assertions:** The agent runs an aligned no-skill baseline for a new skill or previous-revision baseline for an update; keeps harness, model, effort, fixture, assertions, and relevant configuration consistent; compares observable behavior, artifacts, trace efficiency, and assertion results; and skips the baseline when the request only needs contract verification or the comparison would not affect a decision.
+
 ## Capability-Oriented Testing
 
 **Prompt:** Ask Skill Authoring to run and evaluate a live scenario in an available agent harness.
