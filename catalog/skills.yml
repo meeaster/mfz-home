@@ -291,10 +291,10 @@ skills:
     source: local
     skill: active/audit-ai-writing
     description: >
-      Audits prose for the tells of AI-generated writing — puffery, weasel
-      attributions, negative parallelisms, the rule of three, AI vocabulary, and
-      formatting tics. Use when asked to review or audit writing for AI signs,
-      de-slop a draft, or strip ChatGPT-isms.
+      Audits prose for formulaic, AI-flavored writing — puffery, generic claims,
+      weasel attributions, repeated rhetorical patterns, model-favored
+      vocabulary, and formatting tics. Use when asked to review writing for AI
+      signs, de-slop a draft, or strip ChatGPT-isms.
   - name: agent-browser
     description: >
       Fast browser automation CLI for AI agents with accessibility-tree
