@@ -9,7 +9,7 @@ argument-hint: "What skill are you authoring, reviewing, or evaluating?"
 
 **Authoring** turns intended agent behavior into a skill package that can be understood, evaluated, and maintained.
 
-Before doing skill work, read [`references/writing-great-skills.md`](references/writing-great-skills.md). Treat this bundled snapshot as the authoritative doctrine. Follow its `writing-great-skills-glossary.md` pointers when the terms are needed.
+Before writing, editing, reviewing, or pruning runtime skill instructions, load the installed `writing-great-skills` guidance. Use it for runtime writing quality rather than duplicating its doctrine here.
 
 During ordinary authoring, runtime context consists of this `SKILL.md` and the references whose conditions fire. Read Skill Authoring's own `meta/` documents only when Skill Authoring itself is the skill being reviewed, evaluated, or maintained.
 
@@ -49,7 +49,9 @@ Complete this phase when the behavior is specific enough to evaluate without rea
 
 Design from the behavior before selecting a familiar form. Decide what belongs in steps, in-skill reference, disclosed reference, scripts, and harness metadata. Keep machine-, workspace-, and project-specific assumptions out unless the skill deliberately targets that environment and declares the boundary.
 
-Use the preliminary structure directly when its fit is clear. Before reading [`references/matt-pocock-skill-patterns.md`](references/matt-pocock-skill-patterns.md), name a specific structural uncertainty or at least two plausible forms that need comparison. Its forms are evidence, not a taxonomy. Read `matt-pocock-skill-skeletons.md` only after identifying one of its assemblies as applicable.
+Use existing authoring guidance for the work it already owns. Consult the configured OpenAI skill-creation reference when concrete examples, degrees of freedom, reusable resources, deterministic scaffolding, structural validation, or Codex metadata are material. Treat provider-specific guidance as authoritative only for that provider's format and behavior. Do not reproduce another creator's complete workflow inside this skill.
+
+Use a preliminary structure directly when its fit is clear. Consult examples or external pattern material only after naming a structural uncertainty or at least two plausible forms that need comparison. Patterns are evidence, not a taxonomy.
 
 Complete this phase when every proposed runtime element has a reason to exist and a deliberate place in the information hierarchy.
 
@@ -82,7 +84,7 @@ Complete this phase when the implemented package is coherent or the assessment a
 
 ## 5. Prune, Test, And Evaluate
 
-Apply the bundled doctrine's pruning tests sentence by sentence. Remove duplication, no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
+Apply the loaded writing guidance's pruning tests sentence by sentence. Remove duplication, no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
 
 Evaluate two surfaces separately when they apply:
 
@@ -91,7 +93,7 @@ Evaluate two surfaces separately when they apply:
 
 Record the model, harness, configuration, skill revision, and limitations of observed results. Prefer traces and artifacts over the evaluated agent's self-report.
 
-When the user asks to execute a live harness scenario, verify runtime behavior from a session, or revise from a trace-supported failure, follow [`references/testing-workflow.md`](references/testing-workflow.md). Static package validation and writing evaluation scenarios use the instructions in this file without loading that reference. For a live run, test in an isolated workspace, inspect the captured session, classify the evidence, and rerun the same scenario after the smallest authorized change. Keep assessment non-mutating when implementation is not authorized.
+When the user asks to execute a live harness scenario, verify runtime behavior from a session, or revise from a trace-supported failure, follow [`references/testing-workflow.md`](references/testing-workflow.md). Static package validation and writing evaluation scenarios use the instructions in this file without loading that reference. For a live run, test in an isolated workspace, inspect the captured session, classify the evidence, and rerun the same scenario after the smallest authorized change. State the capability needed and let available environment guidance supply harness execution and session-inspection mechanics. Keep assessment non-mutating when implementation is not authorized.
 
 Complete this phase when every applicable scenario has a result or an explicit untested status and every remaining sentence is behaviorally justified.
 

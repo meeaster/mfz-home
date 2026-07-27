@@ -46,3 +46,14 @@
 - Removed standalone-skill frontmatter from the bundled Writing Great Skills doctrine because it is reference content inside Skill Authoring, not an independently invocable skill.
 - Kept source provenance and refresh adaptations in `MAINTENANCE.md` rather than preserving upstream package structure in local paths.
 - Added only the general flat, lowercase reference convention to the authoring workflow; the decision to adapt bundled skills remains local to this package.
+
+## 2026-07-26 - External Guidance Composition
+
+- Reversed the package-local bundling decision after comparing the current workflow with OpenAI, Anthropic, Sentry, and the user's source-grounded experience.
+- Kept `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` as the user's consistent skill-development contract.
+- Restored Writing Great Skills as a separately managed dependency responsible for runtime writing quality instead of maintaining another adapted copy.
+- Made configured OpenAI guidance conditional for concrete examples, degrees of freedom, reusable resources, scaffolding, structural validation, and Codex-specific metadata.
+- Kept the default evaluation loop intentionally small: fresh harness process, captured session and parent events, artifact inspection, smallest supported revision, and rerun.
+- Made testing capability-oriented so environment guidance owns agent CLI commands and session-store mechanics without named helper-skill dependencies.
+- Kept Anthropic's benchmark and viewer machinery and Sentry's regression framework as optional sources rather than default runtime requirements.
+- Verified the composition in a fresh OpenCode and Sol Medium process: Skill Authoring loaded the separate writing guidance, left its own meta and testing reference unloaded, and produced the requested five-file package without optional sidecars.

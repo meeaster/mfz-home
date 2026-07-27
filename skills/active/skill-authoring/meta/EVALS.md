@@ -6,7 +6,7 @@ Evaluate behavior, not resemblance to a preferred template. Record the skill rev
 
 Every scenario confirms that:
 
-- the bundled `writing-great-skills` doctrine is read before skill work begins;
+- the installed `writing-great-skills` guidance is loaded before runtime instructions are written, edited, reviewed, or pruned;
 - the requested mode and authorized outcome are established;
 - files are modified only when implementation is authorized;
 - every applicable package artifact agrees with `SKILL.md`.
@@ -35,11 +35,11 @@ Every scenario confirms that:
 
 **Assertions:** The agent derives a fitting structure from behavior and does not force one of the known skeletons merely because it is available.
 
-## Consult Patterns Conditionally
+## Reuse External Guidance
 
-**Prompt:** Give a behavior whose structure is genuinely ambiguous after intent is clear.
+**Prompt:** Request a skill whose design needs concrete examples, reusable resources, deterministic scaffolding, or provider-specific metadata.
 
-**Assertions:** The agent proposes a preliminary structure before reading the bundled pattern catalogue, compares applicable forms, and adopts only justified elements.
+**Assertions:** The agent keeps Skill Authoring responsible for intent and package lifecycle, uses Writing Great Skills for runtime writing, consults configured OpenAI guidance only for the concerns it owns, and does not reproduce either source's complete workflow in the authored skill.
 
 ## Keep A Small Skill Small
 
@@ -51,7 +51,7 @@ Every scenario confirms that:
 
 **Prompt:** Review an existing skill and recommend improvements without making changes.
 
-**Assertions:** The agent reads the complete package, applies the bundled doctrine, returns prioritized findings, distinguishes valuable changes from cosmetic preferences, and performs no writes.
+**Assertions:** The agent reads the complete package, applies the installed writing guidance, returns prioritized findings, distinguishes valuable changes from cosmetic preferences, and performs no writes.
 
 ## Maintain An Existing Skill
 
@@ -77,12 +77,18 @@ Every scenario confirms that:
 
 **Assertions:** The agent defines assertions before running; isolates mutable task files while retaining the skill configuration under test; captures the session; inspects artifacts and tool traces; distinguishes behavioral defects, evaluation defects, environment noise, and ordinary recovery; makes only the smallest authorized change; reruns the same scenario; checks an adjacent regression scenario; and cleans up disposable session state after preserving evidence.
 
+## Capability-Oriented Testing
+
+**Prompt:** Ask Skill Authoring to run and evaluate a live scenario in an available agent harness.
+
+**Assertions:** The testing workflow requires a fresh harness process, captured session evidence, parent CLI events when relevant, and artifact inspection without naming helper skills, embedding harness commands, or duplicating session-store procedures. Available environment guidance supplies those mechanics.
+
 ## Authoring Context Boundary
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The bundled doctrine loads before design work; Skill Authoring's own `meta/` files remain unloaded; the pattern catalogue loads only after the agent names a specific structural uncertainty or competing forms; `matt-pocock-skill-skeletons.md` loads only after an applicable assembly is identified; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The installed writing guidance loads before runtime drafting; Skill Authoring's own `meta/` files remain unloaded; external examples or pattern material are consulted only after the agent names a specific structural uncertainty or need owned by that source; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 
-The Authoring Context Boundary and adjacent non-mutating review pass in OpenCode with Sol Medium. Two end-to-end create, project-discover, execute, and session-evaluate sequences have completed; the latest preserved fixture integrity while identifying one generated-skill output-classification defect and one underdetermined evaluation scenario. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+The Authoring Context Boundary passes in OpenCode with Sol Medium after the composition change: a fresh process loaded Skill Authoring and the separately managed Writing Great Skills guidance, left Skill Authoring's meta and testing reference unloaded, and created only `SKILL.md` plus the four required meta files. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.

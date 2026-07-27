@@ -29,7 +29,7 @@ Complete this step when all authorized task writes are confined to the disposabl
 
 For a model-invoked skill, use realistic positive, negative, and adjacent prompts without naming or preloading the skill. For a user-invoked skill, invoke it explicitly with a representative request. Confirm that the harness has discovered the revision under test.
 
-Run the harness in a machine-readable mode when available. Capture the session identifier, final response, created artifacts, and command-level failures or retries.
+Run a fresh process of the target harness with the tested skill available. Capture the session identifier, parent CLI event stream when available, final response, created artifacts, and command-level failures or retries. Use available environment guidance to operate the harness rather than embedding its commands here.
 
 Complete this step when the run can be reconstructed without relying on the final response alone.
 
@@ -46,7 +46,7 @@ Inspect every produced artifact and the session record. Establish:
 - whether the final claims match the successful checks;
 - whether the observed behavior satisfies `VISION.md` and the scenario assertions in `EVALS.md`.
 
-Prefer the harness's structured session store or export. Treat self-report as a claim to verify, not evidence.
+Prefer the harness's durable structured session record or export. Use available environment guidance to locate and inspect it rather than duplicating session-store instructions here. Treat self-report as a claim to verify, not evidence.
 
 Complete this step when every pass or failure claim cites an artifact or trace event and uninspected evidence is named.
 

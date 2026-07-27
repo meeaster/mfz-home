@@ -1,39 +1,22 @@
 # Maintenance
 
-## Bundled References
+## Dependencies And Sources
 
-- `references/writing-great-skills.md` and `writing-great-skills-glossary.md` are the complete maintained doctrine snapshot used on every run.
-- `references/matt-pocock-skill-patterns.md` and `matt-pocock-skill-skeletons.md` are the maintained, non-exhaustive form catalogue consulted only when structural comparison helps.
-- `references/testing-workflow.md` is the isolated live-testing and trace-inspection procedure.
+- `writing-great-skills` is a separately managed vendored skill and the preferred runtime-writing guidance. Its upstream repository, subtree, commit, and digest are owned by the Mindframe-Z skill catalogue and vendor lock.
+- `openai-skills` is a configured read-only reference used selectively for OpenAI's concrete-example, degrees-of-freedom, reusable-resource, scaffolding, validation, and Codex metadata guidance. The source repository is deprecated, so treat it as a pinned source rather than current universal doctrine.
+- `openai-plugins` is a configured read-only reference for current OpenAI plugin scaffolding and evaluation behavior. It does not contain a complete successor to the older skill creator.
+- `references/testing-workflow.md` is the only bundled runtime reference. It owns the harness-neutral evidence contract, not CLI commands or session-store mechanics.
 
-Keep those meanings in their bundled references. `SKILL.md` should point to them rather than duplicate their doctrine or examples.
+Do not copy complete upstream creator skills into this package. Keep upstream versions and promotion in their owning catalogue or reference records, then review this package when those dependencies change materially.
 
-This package keeps its references flat with descriptive lowercase filenames. The bundled source material is ordinary reference content rather than independently invocable skills, so it carries no skill frontmatter. This is a local adaptation for Skill Authoring, not a general recommendation to bundle one skill inside another.
+## Dependency Update Procedure
 
-## Upstream Provenance
-
-Writing Great Skills:
-
-- Repository: `https://github.com/mattpocock/skills`
-- Subtree: `skills/productivity/writing-great-skills`
-- Snapshot: `9603c1cc8118d08bc1b3bf34cf714f62178dea3b`
-- Local adaptation: upstream `SKILL.md` is stored without frontmatter as `references/writing-great-skills.md`; the glossary is stored as `writing-great-skills-glossary.md` and links back to that filename.
-
-Skill Patterns:
-
-- Evidence repository: `https://github.com/mattpocock/skills`
-- Surveyed snapshot: `ed37663cc5fbef691ddfecd080dff42f7e7e350d`
-- Local status: maintained synthesis rather than an upstream subtree.
-
-## Reference Update Procedure
-
-1. Inspect the upstream changes since the recorded snapshot.
-2. Replace the accepted bundled doctrine files with the upstream versions, removing skill frontmatter and preserving the documented local filenames and backlink adaptations.
-3. Resurvey pattern evidence when upstream forms changed materially; revise the catalogue only where the evidence warrants it.
-4. Update the recorded snapshots.
-5. Review `SKILL.md` and all meta artifacts for assumptions affected by the reference changes.
-6. Run the scenarios in `EVALS.md`.
-7. Record consequential effects, rejected changes, and reversals in `LOG.md`.
+1. Inspect the upstream skill or reference diff through its owning Mindframe-Z update workflow.
+2. Confirm whether the change affects a role Skill Authoring delegates to that source.
+3. Update `SKILL.md` only when the composition boundary or required behavior changes.
+4. Review every meta artifact for affected assumptions.
+5. Run the scenarios in `EVALS.md`.
+6. Record consequential effects, rejected changes, and reversals in `LOG.md`.
 
 ## Change Procedure
 
@@ -57,11 +40,11 @@ Skill Patterns:
 
 The package convention and authoring workflow were derived from practical skill-development concerns: preserving intent separately from implementation, distinguishing trigger evaluation from post-load behavior, using traces as evidence, controlling runtime context, and retaining concise maintenance and change rationale.
 
-The bundled doctrine remains the runtime source of truth for predictability, invocation loads, information hierarchy, leading words, completion criteria, and pruning. The bundled patterns remain a non-exhaustive catalogue of observed forms.
+Skill Authoring owns that personal behavior, evidence, authority, and lifecycle layer. Writing Great Skills owns runtime writing quality. Configured OpenAI sources supply their established planning, scaffolding, validation, and provider-specific guidance when relevant. Advanced Anthropic or Sentry evaluation machinery remains optional source material rather than a dependency of the default loop.
 
 ## Portability Review
 
-Before distribution, verify that the package contains no private source material, absolute personal paths, undeclared local skill dependencies, workspace-specific assumptions, or installation commands belonging to the current environment. Deliberately environment-specific skills must state that boundary in `VISION.md` and runtime instructions.
+Before distribution, verify that the package contains no private source material, absolute personal paths, undeclared dependencies, workspace-specific assumptions, or installation commands belonging to the current environment. Deliberately environment-specific skills must state that boundary in `VISION.md` and runtime instructions. Another environment may adapt or replace the declared external guidance while preserving the four-file development contract.
 
 ## Evaluation Results
 

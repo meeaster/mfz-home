@@ -10,7 +10,7 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 | Behavior | Harnesses and models | Evidence | Current result |
 |---|---|---|---|
-| New skill creation | OpenCode, Sol Medium | Five runs across three tasks | Passing after two pointer revisions |
+| New skill creation | OpenCode, Sol Medium | Six runs across four tasks, including one separate-guidance run | Passing; latest run loaded the managed writing skill and no optional Skill Authoring context |
 | Generated-skill execution | OpenCode, Sol Medium | Two project-local skills and fixtures | Expected verdicts and unchanged fixtures; one output-classification defect identified |
 | Session-based evaluation | OpenCode, Sol Medium | Two full package, trace, and artifact assessments | Passing; runtime, evaluation, environment, and maintenance findings separated |
 | Non-mutating review | OpenCode, Sol Medium | Three assessment runs | Passing; no edit tools and target checksums unchanged |
@@ -23,7 +23,7 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 **Status:** Watching
 
-**Evidence:** One of four creation runs produced `agents/openai.yaml`; three produced only `SKILL.md` and the four standard meta documents.
+**Evidence:** One of five inspected creation runs produced `agents/openai.yaml`; four produced only `SKILL.md` and the four standard meta documents.
 
 **Current hypothesis:** An empty destination does not establish whether harness-specific metadata is required, so otherwise compliant runs make different package-shape decisions.
 
@@ -49,6 +49,16 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 **Next evidence:** Inspect another generated package with graded findings or revise this package in a disposable evaluation to see whether the ambiguity recurs.
 
+### D-009 - Generated Runtime And Evaluation Can Diverge
+
+**Status:** Watching
+
+**Evidence:** The separate-guidance creation run generated an evaluation that requires `BLOCKED` when no release note is supplied, while the runtime skill does not define missing-input behavior. The creating agent reported static coherence despite that mismatch.
+
+**Current hypothesis:** Package creation needs a more direct runtime-to-evaluation coherence check, but one example does not yet justify another universal instruction.
+
+**Next evidence:** Review the next generated package for assertions that lack a corresponding runtime behavior, or exercise this scenario before promoting a change.
+
 ## Confirmed Patterns
 
 | Pattern | Supporting evidence | Design implication |
@@ -65,9 +75,10 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 | Observation | Resolution | Verification |
 |---|---|---|
-| Pattern catalogue and skeletons loaded without structural uncertainty | Required a named uncertainty or competing forms before loading | Same creation scenario passed |
+| Bundled pattern catalogue and skeletons loaded without structural uncertainty | Required a named uncertainty or competing forms before loading; later composition removed the bundled copies | Same creation scenario passed before composition change |
 | Skill Authoring's own meta leaked into ordinary creation | Defined ordinary runtime context and limited own-meta reads to self-review or maintenance | Same creation scenario passed |
 | Testing reference loaded during static authoring | Limited the pointer to explicit live execution, session verification, or trace-supported revision | Second same-scenario rerun passed |
+| Separate Writing Great Skills dependency was untested | Enabled the managed skill for each supported agent and kept an explicit semantic pointer in Skill Authoring | Fresh OpenCode process loaded both skills while leaving Skill Authoring meta and testing guidance unloaded |
 
 ## Rejected Hypotheses
 

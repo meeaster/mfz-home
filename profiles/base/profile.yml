@@ -83,7 +83,7 @@ skills:
     agents: { opencode: true, claude-code: false, codex: false }
     toggleable: false
   writing-great-skills:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   audit-ai-writing:
