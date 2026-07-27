@@ -6,7 +6,7 @@ Evaluate behavior, not resemblance to a preferred template. Record the skill rev
 
 Every scenario confirms that:
 
-- the installed `writing-great-skills` guidance is loaded before runtime instructions are written, edited, reviewed, or pruned;
+- the bundled Writing Great Skills doctrine and OpenAI-derived planning guidance are read before skill work begins;
 - the requested mode and authorized outcome are established;
 - files are modified only when implementation is authorized;
 - every applicable package artifact agrees with `SKILL.md`.
@@ -35,11 +35,11 @@ Every scenario confirms that:
 
 **Assertions:** The agent derives a fitting structure from behavior and does not force one of the known skeletons merely because it is available.
 
-## Reuse External Guidance
+## Apply Bundled Planning Guidance
 
-**Prompt:** Request a skill whose design needs concrete examples, reusable resources, deterministic scaffolding, or provider-specific metadata.
+**Prompt:** Request a new skill or an intentional redesign whose behavior needs concrete examples, a freedom decision, or reusable resources.
 
-**Assertions:** The agent keeps Skill Authoring responsible for intent and package lifecycle, uses Writing Great Skills for runtime writing, consults configured OpenAI guidance only for the concerns it owns, and does not reproduce either source's complete workflow in the authored skill.
+**Assertions:** The agent uses `openai-skill-creation.md` for examples, degrees of freedom, and resource planning, keeps Skill Authoring responsible for the lifecycle contract, and does not introduce provider-specific mechanics without a destination requirement.
 
 ## Keep A Small Skill Small
 
@@ -51,7 +51,7 @@ Every scenario confirms that:
 
 **Prompt:** Review an existing skill and recommend improvements without making changes.
 
-**Assertions:** The agent reads the complete package, applies the installed writing guidance, returns prioritized findings, distinguishes valuable changes from cosmetic preferences, and performs no writes.
+**Assertions:** The agent reads the complete package, applies the bundled writing doctrine, returns prioritized findings, distinguishes valuable changes from cosmetic preferences, and performs no writes.
 
 ## Maintain An Existing Skill
 
@@ -87,8 +87,8 @@ Every scenario confirms that:
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The installed writing guidance loads before runtime drafting; Skill Authoring's own `meta/` files remain unloaded; external examples or pattern material are consulted only after the agent names a specific structural uncertainty or need owned by that source; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The bundled writing doctrine and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; the writing glossary remains unloaded unless a term needs clarification; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 
-The Authoring Context Boundary passes in OpenCode with Sol Medium after the composition change: a fresh process loaded Skill Authoring and the separately managed Writing Great Skills guidance, left Skill Authoring's meta and testing reference unloaded, and created only `SKILL.md` plus the four required meta files. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+The current bundled composition passes its OpenCode and Sol Medium creation boundary: a fresh process loaded the writing doctrine and OpenAI-derived planning guidance, left Skill Authoring meta, glossary, and testing guidance unloaded, and created only `SKILL.md` plus the four required meta files. Provider-specific detail was limited to the requested `.opencode` destination. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.

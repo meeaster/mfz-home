@@ -57,3 +57,12 @@
 - Made testing capability-oriented so environment guidance owns agent CLI commands and session-store mechanics without named helper-skill dependencies.
 - Kept Anthropic's benchmark and viewer machinery and Sentry's regression framework as optional sources rather than default runtime requirements.
 - Verified the composition in a fresh OpenCode and Sol Medium process: Skill Authoring loaded the separate writing guidance, left its own meta and testing reference unloaded, and produced the requested five-file package without optional sidecars.
+
+## 2026-07-26 - Bundled Guidance Restored
+
+- Reversed the separate-skill runtime dependency because Writing Great Skills is user-invoked and cross-skill invocation is not a portable contract across OpenCode, Claude Code, and Codex.
+- Restored Writing Great Skills as bundled reference content so the complete authoring path travels with Skill Authoring.
+- Added a narrow agent-agnostic adaptation of OpenAI's deprecated Codex creator rather than installing a competing creator or copying its complete workflow.
+- Kept OpenAI's concrete examples, degrees of freedom, reusable-resource planning, and layered validation; removed provider commands, initialization scripts, conflicting package policy, and duplicated writing doctrine.
+- Preserved capability-oriented live testing so harness execution and session-inspection mechanics remain outside the portable core.
+- Loaded both bundled guides at the start after a fresh trace showed that a visible pointer to required planning material was eagerly followed; their narrow, non-overlapping roles make the direct composition honest and predictable.

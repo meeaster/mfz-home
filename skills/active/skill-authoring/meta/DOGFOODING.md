@@ -10,7 +10,7 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 | Behavior | Harnesses and models | Evidence | Current result |
 |---|---|---|---|
-| New skill creation | OpenCode, Sol Medium | Six runs across four tasks, including one separate-guidance run | Passing; latest run loaded the managed writing skill and no optional Skill Authoring context |
+| New skill creation | OpenCode, Sol Medium | Seven runs across five tasks across bundled and separate-guidance designs | Passing; latest run loaded both bundled guides and no optional Skill Authoring context |
 | Generated-skill execution | OpenCode, Sol Medium | Two project-local skills and fixtures | Expected verdicts and unchanged fixtures; one output-classification defect identified |
 | Session-based evaluation | OpenCode, Sol Medium | Two full package, trace, and artifact assessments | Passing; runtime, evaluation, environment, and maintenance findings separated |
 | Non-mutating review | OpenCode, Sol Medium | Three assessment runs | Passing; no edit tools and target checksums unchanged |
@@ -23,7 +23,7 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 
 **Status:** Watching
 
-**Evidence:** One of five inspected creation runs produced `agents/openai.yaml`; four produced only `SKILL.md` and the four standard meta documents.
+**Evidence:** One of six inspected creation runs produced `agents/openai.yaml`; five produced only `SKILL.md` and the four standard meta documents.
 
 **Current hypothesis:** An empty destination does not establish whether harness-specific metadata is required, so otherwise compliant runs make different package-shape decisions.
 
@@ -78,7 +78,8 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 | Bundled pattern catalogue and skeletons loaded without structural uncertainty | Required a named uncertainty or competing forms before loading; later composition removed the bundled copies | Same creation scenario passed before composition change |
 | Skill Authoring's own meta leaked into ordinary creation | Defined ordinary runtime context and limited own-meta reads to self-review or maintenance | Same creation scenario passed |
 | Testing reference loaded during static authoring | Limited the pointer to explicit live execution, session verification, or trace-supported revision | Second same-scenario rerun passed |
-| Separate Writing Great Skills dependency was untested | Enabled the managed skill for each supported agent and kept an explicit semantic pointer in Skill Authoring | Fresh OpenCode process loaded both skills while leaving Skill Authoring meta and testing guidance unloaded |
+| Separate Writing Great Skills dependency was untested | Enabled the managed skill for each supported agent and kept an explicit semantic pointer in Skill Authoring | Fresh OpenCode process loaded both skills while leaving Skill Authoring meta and testing guidance unloaded; later superseded by bundling for cross-harness portability |
+| Bundled OpenAI planning adaptation was untested | Added an agent-agnostic reference with an explicit role distinct from the writing doctrine and lifecycle | Fresh OpenCode process loaded both required guides, left meta, glossary, and testing guidance unloaded, and added provider detail only for the requested `.opencode` destination |
 
 ## Rejected Hypotheses
 

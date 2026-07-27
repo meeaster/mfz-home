@@ -9,7 +9,7 @@ argument-hint: "What skill are you authoring, reviewing, or evaluating?"
 
 **Authoring** turns intended agent behavior into a skill package that can be understood, evaluated, and maintained.
 
-Before writing, editing, reviewing, or pruning runtime skill instructions, load the installed `writing-great-skills` guidance. Use it for runtime writing quality rather than duplicating its doctrine here.
+Before doing skill work, read [`references/writing-great-skills.md`](references/writing-great-skills.md) and [`references/openai-skill-creation.md`](references/openai-skill-creation.md). Treat the first as the runtime writing doctrine and the second as agent-agnostic planning guidance. Follow the doctrine's `writing-great-skills-glossary.md` pointer only when a term needs its full meaning.
 
 During ordinary authoring, runtime context consists of this `SKILL.md` and the references whose conditions fire. Read Skill Authoring's own `meta/` documents only when Skill Authoring itself is the skill being reviewed, evaluated, or maintained.
 
@@ -34,6 +34,7 @@ Define the behavior independently from its current prose:
 
 - the problem and intended outcome;
 - users and invocation mode;
+- concrete positive, negative, and adjacent examples;
 - distinct branches and important variation;
 - human authority and approval boundaries;
 - portability expectations and declared skill dependencies;
@@ -49,7 +50,7 @@ Complete this phase when the behavior is specific enough to evaluate without rea
 
 Design from the behavior before selecting a familiar form. Decide what belongs in steps, in-skill reference, disclosed reference, scripts, and harness metadata. Keep machine-, workspace-, and project-specific assumptions out unless the skill deliberately targets that environment and declares the boundary.
 
-Use existing authoring guidance for the work it already owns. Consult the configured OpenAI skill-creation reference when concrete examples, degrees of freedom, reusable resources, deterministic scaffolding, structural validation, or Codex metadata are material. Treat provider-specific guidance as authoritative only for that provider's format and behavior. Do not reproduce another creator's complete workflow inside this skill.
+Use the bundled planning guidance to match freedom to fragility and plan reusable scripts, references, assets, or harness metadata. Its examples inform intent; they do not replace the user's behavioral contract.
 
 Use a preliminary structure directly when its fit is clear. Consult examples or external pattern material only after naming a structural uncertainty or at least two plausible forms that need comparison. Patterns are evidence, not a taxonomy.
 
@@ -84,7 +85,7 @@ Complete this phase when the implemented package is coherent or the assessment a
 
 ## 5. Prune, Test, And Evaluate
 
-Apply the loaded writing guidance's pruning tests sentence by sentence. Remove duplication, no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
+Apply the bundled writing doctrine's pruning tests sentence by sentence. Remove duplication, no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
 
 Evaluate two surfaces separately when they apply:
 

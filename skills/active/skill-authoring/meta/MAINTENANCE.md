@@ -1,20 +1,36 @@
 # Maintenance
 
-## Dependencies And Sources
+## Bundled Guidance
 
-- `writing-great-skills` is a separately managed vendored skill and the preferred runtime-writing guidance. Its upstream repository, subtree, commit, and digest are owned by the Mindframe-Z skill catalogue and vendor lock.
-- `openai-skills` is a configured read-only reference used selectively for OpenAI's concrete-example, degrees-of-freedom, reusable-resource, scaffolding, validation, and Codex metadata guidance. The source repository is deprecated, so treat it as a pinned source rather than current universal doctrine.
-- `openai-plugins` is a configured read-only reference for current OpenAI plugin scaffolding and evaluation behavior. It does not contain a complete successor to the older skill creator.
-- `references/testing-workflow.md` is the only bundled runtime reference. It owns the harness-neutral evidence contract, not CLI commands or session-store mechanics.
+- `references/writing-great-skills.md` and `writing-great-skills-glossary.md` provide the required runtime writing doctrine without cross-skill invocation.
+- `references/openai-skill-creation.md` is the required agent-agnostic planning adaptation for examples, freedom, reusable resources, and layered validation.
+- `references/testing-workflow.md` owns the harness-neutral live-evidence contract, not CLI commands or session-store mechanics.
 
-Do not copy complete upstream creator skills into this package. Keep upstream versions and promotion in their owning catalogue or reference records, then review this package when those dependencies change materially.
+Keep each role distinct. Skill Authoring owns behavior, authority, the four-file lifecycle, and evidence. Writing Great Skills owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
 
-## Dependency Update Procedure
+## Upstream Provenance
 
-1. Inspect the upstream skill or reference diff through its owning Mindframe-Z update workflow.
-2. Confirm whether the change affects a role Skill Authoring delegates to that source.
-3. Update `SKILL.md` only when the composition boundary or required behavior changes.
-4. Review every meta artifact for affected assumptions.
+Writing Great Skills:
+
+- Repository: `https://github.com/mattpocock/skills`
+- Subtree: `skills/productivity/writing-great-skills`
+- Snapshot: `9603c1cc8118d08bc1b3bf34cf714f62178dea3b`
+- Adaptation: removed standalone skill frontmatter, renamed the files for their local reference role, and tightened some glossary definitions without changing their behavioral meaning.
+
+OpenAI Skill Creator:
+
+- Repository: `https://github.com/openai/skills`
+- Subtree: `skills/.system/skill-creator`
+- Snapshot: `49f948faa9258a0c61caceaf225e179651397431`
+- Status: upstream repository deprecated in favor of OpenAI Plugins; no complete successor creator exists there at the surveyed revision.
+- Adaptation: retained concrete-example discovery, degrees of freedom, reusable-resource planning, and layered validation; removed Codex-only commands and metadata, initialization scripts, conflicting package rules, duplicated writing doctrine, and the upstream end-to-end lifecycle.
+
+## Guidance Update Procedure
+
+1. Inspect upstream changes since each recorded snapshot.
+2. Classify changes by the local role they could affect; do not copy a complete upstream workflow mechanically.
+3. Update the bundled adaptation and its recorded boundary together.
+4. Review `SKILL.md` and every meta artifact for affected assumptions.
 5. Run the scenarios in `EVALS.md`.
 6. Record consequential effects, rejected changes, and reversals in `LOG.md`.
 
@@ -40,11 +56,11 @@ Do not copy complete upstream creator skills into this package. Keep upstream ve
 
 The package convention and authoring workflow were derived from practical skill-development concerns: preserving intent separately from implementation, distinguishing trigger evaluation from post-load behavior, using traces as evidence, controlling runtime context, and retaining concise maintenance and change rationale.
 
-Skill Authoring owns that personal behavior, evidence, authority, and lifecycle layer. Writing Great Skills owns runtime writing quality. Configured OpenAI sources supply their established planning, scaffolding, validation, and provider-specific guidance when relevant. Advanced Anthropic or Sentry evaluation machinery remains optional source material rather than a dependency of the default loop.
+Skill Authoring owns that personal behavior, evidence, authority, and lifecycle layer. The bundled adaptations make its required writing and planning guidance available in every supported harness. Advanced Anthropic or Sentry evaluation machinery remains optional source material rather than a dependency of the default loop.
 
 ## Portability Review
 
-Before distribution, verify that the package contains no private source material, absolute personal paths, undeclared dependencies, workspace-specific assumptions, or installation commands belonging to the current environment. Deliberately environment-specific skills must state that boundary in `VISION.md` and runtime instructions. Another environment may adapt or replace the declared external guidance while preserving the four-file development contract.
+Before distribution, verify that the package contains no private source material, absolute personal paths, undeclared dependencies, workspace-specific assumptions, or installation commands belonging to the current environment. Deliberately environment-specific skills must state that boundary in `VISION.md` and runtime instructions.
 
 ## Evaluation Results
 
