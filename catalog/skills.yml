@@ -125,6 +125,13 @@ skills:
       Use when the user references an existing thread, wants to resume or catch
       up on a thread, or wants to ingest sessions into a thread. For catching up
       on a session (not a thread), use agent-sessions instead.
+  - name: work-context
+    source: local
+    skill: active/work-context
+    description: >
+      Work-unit context operations. Use when durable work should be attached,
+      the active phase or orientation changes, scope drift suggests switching or
+      detaching, or the user asks to inspect or checkpoint work context.
   - name: skill-writer
     description: >
       Create, synthesize, and iteratively improve agent skills following the

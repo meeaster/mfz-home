@@ -35,6 +35,9 @@ claude:
 opencode:
   plugins:
     - current-session
+    - work-context
+  tui_plugins:
+    - work-context
   config:
     permission:
       read:

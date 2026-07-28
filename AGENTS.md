@@ -44,11 +44,10 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - `opencode/commands/` contains installed OpenCode slash commands (`apply-spec`, `rmslop`).
 - `opencode/agents/` contains OpenCode subagent definitions; `research` is readonly and documentation-focused.
 - `skills/active/` contains local active skills. External skill sources are catalogued in `catalog/skills.yml`.
-- `threads/` stores thread manifests, digests, runs, and session dossiers.
 
 ## Local Context
 
-- Reference repos are cloned under `/home/mark/.mindframe-z/references/`; treat them as read-only.
+- Reference repos are cloned under `/home/mark/workspace/references/`; treat them as read-only.
 - Extra configured folders are `/home/mark/.mindframe-z`, `/home/mark/.agent/diagrams`, and `/home/mark/.claude/threads`.
 - Base OpenCode permissions deny `~/.aws/**` reads and token-shaped bash commands; personal profile denies read/edit of `~/.xurl`.
 
