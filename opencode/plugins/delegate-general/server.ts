@@ -345,12 +345,14 @@ export async function createDelegateGeneralTool(input: {
 
   return tool({
     description:
-      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available.',
+      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Give the child a self-contained task prompt; when relevant, name a work unit only as supplemental background and tell the child to load it. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available.',
     args: {
       description: tool.schema.string().describe("Short task description"),
       prompt: tool.schema
         .string()
-        .describe("Detailed general-purpose task prompt; prefer a better-fitting specialized subagent when available"),
+        .describe(
+          "Detailed, self-contained task prompt with the work, scope, constraints, and expected result. When the task advances a known work unit, also name it and tell the child to load it as supplemental background; never use the work unit as a substitute for task instructions. Prefer a better-fitting specialized subagent when available."
+        ),
       model: tool.schema
         .string()
         .describe(

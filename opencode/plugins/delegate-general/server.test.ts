@@ -210,7 +210,7 @@ describe("delegate-general plugin", () => {
     const definition = await createDelegateGeneralTool({ client: {}, directory: "/tmp" });
 
     expect(definition.description).toBe(
-      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available.'
+      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Give the child a self-contained task prompt; when relevant, name a work unit only as supplemental background and tell the child to load it. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available.'
     );
   });
 
