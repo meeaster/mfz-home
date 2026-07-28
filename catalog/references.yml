@@ -1,34 +1,34 @@
 references:
   - name: opencode
     url: https://github.com/anomalyco/opencode.git
-    description: "TypeScript/Bun monorepo for the open-source AI coding agent (terminal, desktop, VS Code extension). Main CLI entrypoint at packages/opencode/src/index.ts. Supports MCP, custom tools, file editing, and agentic workflows."
+    description: "TypeScript/Bun monorepo for the OpenCode coding agent across terminal, desktop, and editor surfaces. Inspect it for CLI behavior, configuration, sessions, providers, MCP, plugins, tools, permissions, or agent workflows. Main CLI: packages/opencode/src/index.ts."
   - name: openspec
     url: https://github.com/Fission-AI/OpenSpec.git
-    description: "TypeScript spec-driven development framework (npm @fission-ai/openspec) for collaboratively authoring software specifications, change proposals, and implementation plans. Defines spec schema, CLI commands (/opsx:propose, /opsx:apply), and workflow conventions for spec-first development under openspec/changes/."
+    description: "TypeScript CLI and framework for spec-driven development. Inspect it for change proposals, requirements and scenarios, implementation plans, apply/verify/archive workflows, schema behavior, or shared planning stores. Primary package: @fission-ai/openspec."
   - name: compound-engineering-plugin
     url: https://github.com/EveryInc/compound-engineering-plugin.git
-    description: "Cross-harness plugin for compound engineering workflows, including planning, implementation, review, and reusable command- and skill-based development artifacts."
+    description: "Cross-harness agent plugin providing skills for planning, implementation, debugging, simplification, review, and reusable engineering knowledge. Inspect it when designing agent workflows, resolving bugs, reviewing changes, or capturing project learnings. Main entrypoint: src/index.ts."
   - name: mise
     url: https://github.com/jdx/mise.git
-    description: "Rust-based CLI (github.com/jdx/mise) combining dev tool version management, per-project environment variables, and task running into a single mise.toml. Installs and switches between hundreds of tools (node, python, terraform, etc.) without shims."
+    description: "Rust CLI for managing development tools, project environments, and tasks from mise.toml. Inspect it for tool versions, reproducible shells or CI, environment loading, task execution, activation, or version-manager workflows."
   - name: hunk
     url: https://github.com/modem-dev/hunk.git
-    description: "TypeScript terminal diff viewer (npm hunkdiff) for browsing agent-authored changesets. Multi-file diff review TUI with sidebar navigation, inline AI annotations, split/stack layouts, watch mode, and Git/Jujutsu/raw patch support. Entrypoint: bin/hunk.cjs."
+    description: "Bun/TypeScript terminal UI for reviewing Git, Jujutsu, Sapling, raw-file, and patch changesets. Inspect it for diff navigation, watch mode, inline annotations, live agent sessions, pager integration, or terminal diff components. Entrypoint: bin/hunk.cjs."
   - name: herdr
     url: https://github.com/ogulcancelik/herdr.git
-    description: "Rust terminal multiplexer for AI agents with live pane views, detachable sessions, a socket API, and plugin support."
+    description: "Rust terminal multiplexer and workspace manager for AI coding agents. Inspect it for persistent panes and sessions, detachable orchestration, workspace control, remote reattachment, socket automation, plugins, or PTY behavior."
   - name: vercel-skills
     url: https://github.com/vercel-labs/skills.git
-    description: "TypeScript CLI for the open ecosystem manager of AI coding agent skills. Installs, lists, finds, updates, and removes reusable SKILL.md instruction sets across 50+ agents (OpenCode, Claude Code, Codex, Cursor, etc.) from Git repos or local paths, with project-level or global scoping."
+    description: "TypeScript/Node CLI for distributing reusable SKILL.md instructions across coding agents. Inspect it for discovery, installation, updates, Git or local sources, project versus global scope, agent detection, locks, or skill lifecycle commands."
   - name: agent-vault
     url: https://github.com/Infisical/agent-vault.git
-    description: "Go-based open-source HTTP credential proxy/vault (by Infisical) that sits between AI agents and APIs to eliminate credential exfiltration risk. Stores credentials server-side; MITM proxy on port 14322 injects them via HTTPS_PROXY. Management API/UI on port 14321."
+    description: "Go HTTP credential proxy and vault for AI agents. Inspect it for server-side secret storage, HTTPS_PROXY credential injection, API authorization, MITM behavior, management APIs, deployment, or credential-exfiltration defenses."
   - name: just-bash
     url: https://github.com/vercel-labs/just-bash.git
-    description: "TypeScript virtual bash environment with an in-memory filesystem for AI agents. Provides a sandboxed shell with broad unix command support and optional curl, Python, JS/TS, and sqlite capabilities."
+    description: "TypeScript library and CLI for an interpreted Bash-like environment with an in-memory filesystem. Inspect it for isolated shell semantics, deterministic sandboxing, custom commands, execution limits, or optional language, database, and network capabilities."
   - name: executor
     url: https://github.com/rhyssullivan/executor.git
-    description: "TypeScript integration layer for AI agents that catalogs tools across OpenAPI, GraphQL, MCP, Google Discovery, and custom JSON-schema-based integrations."
+    description: "Bun/TypeScript integration and tool-execution layer for AI agents across MCP, OpenAPI, GraphQL, and other schema sources. Inspect it for tool catalogues, connections, authentication, approval policy, deferred execution, the Executor CLI, or self-hosting."
   - name: datadog-agent
     url: https://github.com/datadog/datadog-agent.git
     description: Go/Bazel monorepo for the Datadog Agent v6 and v7, including the agent runtime, component bundles, packaging, and developer docs. Main developer docs live under docs/dev and comp/README.md lists component packages and their pkg.go.dev entrypoints
@@ -43,25 +43,25 @@ references:
     description: "Rust-based CLI companion for Datadog observability with 200+ commands across many product areas. Main entrypoints include the `pup` CLI, `docs/COMMANDS.md`, `docs/OAUTH2.md`, and `docs/EXAMPLES.md`; the repo also ships agent skills, agents, and plugin manifests under `.agents/`, `.claude-plugin/`, `.codex-plugin/`, and `skills/`."
   - name: clack
     url: https://github.com/bombshell-dev/clack.git
-    description: "TypeScript pnpm monorepo for building stylish, interactive CLI prompts. Two main packages: @clack/prompts (ready-to-use components: text inputs, selects, spinners, multiselects) and @clack/core (headless primitives for custom prompts)."
+    description: "TypeScript/pnpm monorepo for interactive CLI prompts using ready-made @clack/prompts components or headless @clack/core primitives. Inspect it for terminal setup flows, menus, confirmations, spinners, text inputs, or custom prompts."
   - name: ha-mcp
     url: https://github.com/homeassistant-ai/ha-mcp.git
-    description: "Python project (>=3.13, FastMCP-based) providing a Model Context Protocol interface for AI assistants to control Home Assistant. Exposes 89+ MCP tools for querying device states, executing services, and managing automations via natural language. Connects via Home Assistant WebSocket API with a Long-Lived Access Token."
+    description: "Python/FastMCP server connecting AI assistants to Home Assistant. Inspect it for querying state, controlling devices, managing automations or configuration, MCP tool behavior, authentication, transports, deployment, or troubleshooting. Main entrypoint: src/ha_mcp/__main__.py."
   - name: ponytail
     url: https://github.com/DietrichGebert/ponytail.git
-    description: "JavaScript plugin and skills for AI agents (Claude Code, Codex, OpenCode, Gemini, Pi, Copilot) that enforces a YAGNI minimum-code ruleset via an always-on ladder (YAGNI -> stdlib -> native -> installed dep -> one line -> minimum). Main entrypoints are the OpenCode plugin at .opencode/plugins/ponytail.mjs, the rules in AGENTS.md, and the commands under commands/ (lite/full/ultra/off, review, audit, debt). Deferred shortcuts are marked inline with a `ponytail:` comment naming the upgrade path"
+    description: "JavaScript plugin and skills applying a YAGNI-first implementation ladder for AI coding agents. Inspect it for over-engineering, unnecessary dependencies, bloated diffs, or minimum-change reviews. Entrypoints: AGENTS.md and .opencode/plugins/ponytail.mjs."
   - name: mattpocock-skills
     url: https://github.com/mattpocock/skills.git
-    description: "Shell/markdown collection of composable AI coding agent skills by Matt Pocock (grill-me, grill-with-docs, tdd, diagnosing-bugs, triage, to-prd, improve-codebase-architecture, and more). Entrypoints under skills/engineering/, skills/productivity/, and skills/misc/. Installable via npx skills@latest add mattpocock/skills"
+    description: "Shell/Markdown collection of composable AI engineering skills. Inspect it for repeatable workflows covering requirements, domain terminology, test-driven development, debugging, review, architecture, triage, handoff, or other agent practices."
   - name: ccstatusline
     url: https://github.com/sirmalloc/ccstatusline.git
-    description: "TypeScript/Bun project for a highly customizable status line formatter for Claude Code CLI with Powerline support, themes, and 80+ widgets (model info, git branch, token usage, context, timers, usage limits, and more). Main entrypoints: src/ for the React/Ink TUI, and the ccstatusline CLI command."
+    description: "TypeScript/Bun CLI and Ink TUI for Claude Code status lines. Inspect it for model, context, usage or Git displays, Powerline layouts, input JSON, settings, customization, or rendering behavior. Main entrypoint: src/ccstatusline.ts."
   - name: dd-apm-test-agent
     url: https://github.com/DataDog/dd-apm-test-agent.git
-    description: "Python DataDog APM test agent (aka lapdog) that acts as an observability proxy for AI coding agents. Captures hook events, LLM cost spans, and per-source hook APIs (Claude/Codex/Pi) for dashboard rendering. Key entrypoints: ddapm_test_agent/agent.py (CLI flags: --lapdog-mode, --web-ui-port), ddapm_test_agent/claude_hooks.py (/claude/hooks handler), plugins/lapdog/hooks/hooks.json (Claude Code hook plugin), lapdog/cli.py (liveness probe), lapdog/pi_lapdog_extension.ts (LAPDOG_URL env override)."
+    description: "Python/Aiohttp test agent and observability proxy emulating Datadog APM endpoints. Inspect it for tracer integration tests, trace validation, snapshots, OTLP, exporter payloads, session-scoped traces, LLM observability, or agent-hook telemetry."
   - name: codex
     url: https://github.com/openai/codex.git
-    description: "Rust workspace (codex-rs/) for OpenAI's Codex CLI terminal coding agent. Key crates: core (config loading/merging, ~/.codex/config.toml), tui (interactive terminal UI), cli (the `codex` binary incl. `codex mcp` subcommands), mcp-server. Config options including [mcp_servers.*] and the per-server `enabled` flag are documented in docs/config.md."
+    description: "Rust workspace for OpenAI's Codex CLI coding agent. Inspect it for CLI or TUI behavior, configuration loading, models, sessions, tools, sandboxing, approvals, MCP, hooks, or extensions. Main crates: codex-rs/core, tui, cli, and mcp-server."
   - name: openai-skills
     url: https://github.com/openai/skills.git
     description: "Markdown/Python repository of OpenAI-maintained agent skills. Inspect it when comparing skill packaging, creator guidance, evaluation workflows, scripts, or Codex-specific metadata. Main entrypoints: skills/.system/skill-creator/SKILL.md and skills/.curated/."
@@ -70,19 +70,28 @@ references:
     description: "OpenAI repository of Codex plugin packages. Inspect it for current plugin and skill packaging, manifests, agents, bundled resources, and skill-only plugin examples. Main entrypoint: plugins/."
   - name: sideshow
     url: https://github.com/modem-dev/sideshow.git
-    description: "TypeScript live visual surface for terminal coding agents. Publishes browser-rendered surfaces for diagrams, UI sketches, markdown, diffs, terminal output, images, Mermaid, JSON, and code; see README.md and docs/connecting-agents.md for CLI, MCP, HTTP, and agent integration details."
+    description: "TypeScript live visual surface for terminal coding agents. Inspect it for browser-rendered diagrams, UI sketches, Markdown, diffs, terminal output, Mermaid, JSON, code, or CLI/MCP/HTTP agent integration. See docs/connecting-agents.md."
   - name: axis
     url: https://github.com/netlify/axis.git
-    description: "TypeScript CLI for scenario-based evaluation of coding agents. Runs agents in isolated workspaces, captures transcripts, scores rubric checks, and supports OpenCode through its built-in ACP adapter."
+    description: "TypeScript CLI and library for scenario-based evaluation of AI agents against services, sites, or developer platforms. Inspect it for agent tasks, transcripts, rubric scoring, baseline comparisons, MCP or skill integration, and custom adapters."
   - name: openwiki
     url: https://github.com/langchain-ai/openwiki.git
-    description: "Agentic CLI for building and maintaining local personal and repository knowledge wikis from configured sources."
+    description: "TypeScript/Ink agentic CLI for generating and maintaining repository documentation or personal knowledge wikis. Inspect it for codebase context, recurring updates, connector ingestion, OKF-compatible Markdown, Mermaid-backed synthesis, or wiki workflows."
   - name: deepagents
     url: https://github.com/langchain-ai/deepagents.git
-    description: "Deep Agents framework for building agentic workflows with planning, subagents, filesystem access, and tool use."
+    description: "Python/LangGraph agent harness centered on create_deep_agent. Inspect it for planning, filesystem backends, subagents, context management, skills, memory, human approval, customizable agents, or durable multi-step orchestration."
+  - name: deepagentsjs
+    url: https://github.com/langchain-ai/deepagentsjs.git
+    description: "TypeScript/LangGraph runtime exposing createDeepAgent. Inspect it for planning, filesystem work, isolated subagents, skills, permissions, context management, Node or browser agents, and longer-running tool-using workflows."
   - name: vercel-ai
     url: https://github.com/vercel/ai.git
-    description: "Vercel AI SDK monorepo for building TypeScript AI applications, provider integrations, UI, and agent workflows."
+    description: "TypeScript monorepo for the Vercel AI SDK. Inspect it for provider-independent model calls, streaming, structured output, tool loops, agents, provider adapters, harness integrations, chatbots, or React and Next.js AI interfaces."
+  - name: eve
+    url: https://github.com/vercel/eve.git
+    description: "TypeScript filesystem-first framework for durable backend agents defined by project files. Inspect it for agent scaffolding, instructions, tools, skills, channels, schedules, recurring execution, sandbox backends, authentication, or deployment. Main package: packages/eve."
   - name: deep-swe
     url: https://github.com/datacurve-ai/deep-swe.git
-    description: "Benchmark for measuring frontier coding agents on original, long-horizon software engineering tasks drawn from active open-source repositories."
+    description: "Benchmark task corpus and Harbor/Pier fixtures for repository-grounded, long-horizon coding-agent evaluations. Inspect it for isolated task environments, held-out verifiers, patch extraction, trajectory analysis, or cross-language repair benchmarks. Main tasks: tasks/."
+  - name: buzz
+    url: https://github.com/block/buzz.git
+    description: "Rust workspace and desktop, web, and mobile clients for a Nostr-based collaboration relay connecting people, coding agents, channels, workflows, Git, and media. Inspect it for relay behavior, ACP agent integration, event ingestion and fan-out, mobile pairing, or self-hosted deployment. Main crates: buzz-relay and buzz-acp."

@@ -1,4 +1,12 @@
 skills:
+  - name: batch-grill-me
+    description: >
+      A relentless interview that asks every currently unblocked design question
+      at once, round by round, until shared understanding is complete.
+    source: vendored
+    repo: https://github.com/mattpocock/skills
+    ref: main
+    subtree: skills/in-progress/batch-grill-me
   - name: grill-with-docs
     description: >
       Grill a codebase with questions about how something works, finding related

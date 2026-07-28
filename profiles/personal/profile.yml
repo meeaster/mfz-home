@@ -12,11 +12,11 @@ thread:
 agents: [opencode, claude-code, codex, pi]
 references:
   - axis
-  - clack
-  - compound-engineering-plugin
   - deepagents
+  - deepagentsjs
   - vercel-ai
-  - ha-mcp
+  - eve
+  - buzz
 extra_folders:
   - path: /tmp/compound-engineering
     description: Compound Engineering temporary scratch files for brainstorm grounding and repository profiles

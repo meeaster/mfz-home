@@ -6,17 +6,12 @@ references:
   - opencode
   - openspec
   - mise
-  - hunk
   - herdr
   - vercel-skills
   - agent-vault
-  - ponytail
-  - ccstatusline
-  - just-bash
   - executor
   - mattpocock-skills
   - dd-apm-test-agent
-  - sideshow
   - codex
   - openai-skills
   - openai-plugins
@@ -96,6 +91,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   grilling:
     agents: { opencode: false, claude-code: false, codex: false }
+  batch-grill-me:
+    agents: { opencode: true, claude-code: true, codex: true }
   to-spec:
     agents: { opencode: false, claude-code: false, codex: false }
   improve-codebase-architecture:

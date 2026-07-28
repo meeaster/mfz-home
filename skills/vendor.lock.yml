@@ -62,3 +62,6 @@ skills:
   skill-creator:
     commit: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
     digest: 5ad0868be528859ba96a52cb368f0ced16605d5a9ed433a811d8c6d1fd5b2c4f
+  batch-grill-me:
+    commit: ed37663cc5fbef691ddfecd080dff42f7e7e350d
+    digest: 2401f2ba698053ca497d02f832a6d6225a60e7766bf5a75e06c841034a546e0f
