@@ -6,7 +6,7 @@ exposes to plugins. It does not add an agent-facing tool or mutate prompts.
 Enable it only for a fresh probe process:
 
 ```sh
-OPENCODE_CONFIG_CONTENT='{"plugin":["file:///home/mark/code/mindframe-z-personal-home/opencode/plugins/executor-context-probe/server.ts"]}' \
+OPENCODE_CONFIG_CONTENT='{"plugin":["file:///home/mark/workspace/repos/mindframe-z-personal-home/opencode/plugins/executor-context-probe/server.ts"]}' \
 OPENCODE_EXECUTOR_CONTEXT_PROBE_DIR=/tmp/executor-context-probe \
 opencode run --format json "Use a tool, then describe what you learned."
 ```
