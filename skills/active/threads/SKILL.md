@@ -31,7 +31,7 @@ Folds sessions into a thread. **Ingestion dispatches read-only agents and costs 
 
 3. **Ingest.** `mfz thread ingest <source:id...> --thread <slug>`
 
-   Folds the named sessions in — runs gather → synthesize → digest and commits the result to the thread's destination repo. Add `--no-push` to commit locally without pushing. Each id must be **source-qualified** (`claude-code:<id>` or `opencode:<id>`) — the form `discover` emits; a bare id is rejected. Requires at least one id. Done when the run shows complete in `mfz thread runs --thread <slug>`.
+   Folds the named sessions in — runs gather → synthesize → digest and commits the result to the thread's destination repo. A destination configured with `pull_request.base` writes through a disposable worktree, pushes a unique review branch, and reports the pull-request URL without merging it or modifying the canonical checkout. Add `--no-push` to retain a local review branch without pushing or opening a PR. Each id must be **source-qualified** (`claude-code:<id>` or `opencode:<id>`) — the form `discover` emits; a bare id is rejected. Requires at least one id. Done when the run shows complete in `mfz thread runs --thread <slug>`.
 
    **Ingest also auto-refreshes drift.** Before dispatching, it recomputes a per-session watermark for every session already in the thread — free, no agent call — and folds any that grew since the last ingest into this run alongside the ids you named, then digests once. It reports the refresh set, noting any session that vanished or shrank (which it leaves untouched). A session that was never watermarked is left alone until you name it in an ingest once.
 
