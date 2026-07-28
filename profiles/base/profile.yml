@@ -56,6 +56,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   threads:
     agents: { opencode: true, claude-code: true, codex: true }
+  work-context:
+    agents: { opencode: true, claude-code: false, codex: false }
   openspec-apply-change:
     agents: { opencode: true, claude-code: true, codex: true }
     toggleable: false
