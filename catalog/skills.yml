@@ -165,6 +165,15 @@ skills:
     description: >
       Design, create, revise, review, or evaluate an agent skill as a
       behavior-driven package. User-invoked.
+  - name: vision-steward
+    source: local
+    skill: active/vision-steward
+    description: >
+      Create, revise, reconcile, or review a repository or workspace VISION.md
+      as a human-owned north star. Use when asked to capture durable direction,
+      update vision after an accepted change, check work against vision, or
+      resolve drift between vision and related designs. Do not use for a skill
+      package's meta/VISION.md; use skill-authoring.
   - name: adversarial-code-review
     source: local
     skill: active/adversarial-code-review
