@@ -20,8 +20,8 @@ references:
 extra_folders:
   - path: /tmp/compound-engineering
     description: Compound Engineering temporary scratch files for brainstorm grounding and repository profiles
-  - path: /home/mark/.mindframe-z/stores/mindframe-z-specs
-    description: Standalone OpenSpec store for Mindframe-Z change proposals, specifications, and task ledgers — needed when planning or implementing canonical home workspace changes
+  - path: /home/mark/workspace/specs/workspace-specs
+    description: Machine-wide OpenSpec store for cross-project change proposals, specifications, and task ledgers — needed when planning or implementing workspace work
 skills:
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }

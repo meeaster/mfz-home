@@ -245,9 +245,8 @@ skills:
     source: local
     skill: openspec/openspec-verify-change
     description: >
-      Verify a change is ready for implementation. Use when checking if all
-      required artifacts are complete and the change can proceed to
-      implementation.
+      Verify implementation matches change artifacts. Use when validating that
+      implementation is complete, correct, and coherent before archiving.
   - name: openspec-orchestrate
     source: local
     skill: openspec/openspec-orchestrate
