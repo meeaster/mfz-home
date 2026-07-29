@@ -7,13 +7,17 @@ license: MIT
 compatibility: Requires OpenSpec CLI and OpenCode delegate_general.
 metadata:
   author: mindframe-z
-  version: "2.1"
+  version: "3.0"
 ---
 
-OpenSpec orchestration is a **standalone, plan-first execution workflow**. It creates a temporary
-execution graph above OpenSpec's flat task checklist, then implements that graph in the current
-session or through bounded, fresh worker sessions. It is an alternative to `openspec-apply-change`,
-not an overlay on it. Do not assume that Apply is loaded, and do not depend on a skill call stack.
+OpenSpec orchestration is a **standalone, plan-first execution workflow**. It turns OpenSpec's flat
+task checklist into cohesive work packages, packs those packages into the smallest practical list
+of bounded worker sessions, then executes that list sequentially. The worker list is the primary
+planning result: each listed implementation worker corresponds to one future `delegate_general`
+call. Coordinator and operator checkpoints remain separate and never inflate the worker count.
+
+This is an alternative to `openspec-apply-change`, not an overlay on it. Do not assume that Apply is
+loaded, and do not depend on a skill call stack.
 
 Keep three locations distinct throughout the run:
 
@@ -31,8 +35,8 @@ This is a structured process. Skip a phase only when its completion criterion is
 you can show why. `tasks.md` (or the schema's task artifact) is the only durable completion ledger;
 the coordinator owns its checkboxes. Workers report completion; the coordinator accepts it only
 after reviewing the diff and running the gate, then updates the accepted checkboxes immediately.
-The execution graph, ownership, order, and estimates are temporary coordination state unless the
-user explicitly asks to persist them elsewhere.
+The work packages, worker list, ownership, order, and estimates are temporary coordination state
+unless the user explicitly asks to persist them elsewhere.
 
 ## 1. Prepare The Change
 
@@ -127,8 +131,9 @@ Do a bounded local static preflight from the loaded artifacts and repository sta
 task ids, roots, the dirty baseline, artifact-explicit seams, obvious shared files, generated outputs,
 cross-repository edges, migration boundaries, and likely verification commands. Record these facts
 locally for coordinator validation, but do not perform open-ended repository discovery, duplicate
-their contents in the delegate prompt, or invent execution groups. The planner owns broad read-only
-repository exploration needed to resolve candidate reads, exact writes, dependencies, and gates.
+their contents in the delegate prompt, or invent work packages or workers. The planner owns broad
+read-only repository exploration needed to resolve candidate reads, exact writes, dependencies,
+gates, work packages, and the final worker list.
 
 During Phases 1 through 3, the coordinator performs preparation, preflight, and validation directly.
 The required Sol/high `delegate_general` planner is the only workflow planning child-model call.
@@ -148,7 +153,7 @@ and stop. Do not silently substitute a cheaper model. The planning child may rea
 OpenSpec context and the current implementation repository, but it must not edit, commit, test,
 delegate, or inspect unrelated session history.
 
-The planning call uses `openai/gpt-5.6-sol` at `high`. Every implementation group uses
+The planning call uses `openai/gpt-5.6-sol` at `high`. Every implementation worker uses
 `openai/gpt-5.6-luna` at `xhigh`; Sol is not an implementation route. Reject any other model or
 variant in the planning result.
 
@@ -179,7 +184,7 @@ Static preflight facts:
 
 Worker routing:
 - Planning call: `openai/gpt-5.6-sol` at `high`.
-- Every implementation group: `openai/gpt-5.6-luna` at `xhigh`.
+- Every implementation worker: `openai/gpt-5.6-luna` at `xhigh`.
 - Do not assign Sol to implementation or use any other model/variant.
 
 Allowed planning inputs:
@@ -203,15 +208,41 @@ delegate another agent. Do not load or execute the orchestration skill, assess t
 `delegate_general`; this is already the required planning child. Do not infer or expose secrets.
 
 Planning objective:
-Choose `current-session` or `delegated` execution. Delegated groups run sequentially in the
-coordinator workspace because delegate_general has no directory/worktree argument. Every delegated
-group, including a retry, will be a fresh delegate_general session with an explicitly selected model
-and variant; never plan to resume a planner or another worker. Account for every pending OpenSpec
-task found in the task artifact exactly once.
+Choose `current-session` or `delegated` execution. First derive cohesive work packages from the
+OpenSpec tasks and repository seams. Then pack those packages into the smallest practical list of
+implementation workers. A worker is a delegation unit, not a task heading, verification phase, or
+operator checkpoint. One worker may own several adjacent work packages when their read/write sets
+overlap or later work builds directly on earlier context.
+
+Delegated workers run sequentially in the coordinator workspace because delegate_general has no
+directory/worktree argument. Every delegated worker, including a retry, will be a fresh
+delegate_general session with an explicitly selected model and variant; never plan to resume a
+planner or another worker. Account for every pending OpenSpec task found in the task artifact exactly
+once, including tasks assigned to coordinator or operator checkpoints rather than implementation
+workers.
 
 Choose `current-session` only when the coordinator is explicitly running
 `openai/gpt-5.6-luna` at `xhigh`. If the coordinator route cannot be confirmed, choose `delegated`;
-every delegated implementation group must use `openai/gpt-5.6-luna` at `xhigh`.
+every delegated implementation worker must use `openai/gpt-5.6-luna` at `xhigh`.
+
+Worker-packing rules:
+- Optimize total execution cost, not each worker in isolation. A fresh worker duplicates OpenSpec
+  context, repository policy, shared source reads, and handoff review.
+- Prefer one worker when all pending implementation fits safely. For larger changes, normally aim
+  for roughly two to five implementation workers. More than six requires a concrete repository,
+  ownership, or context-budget reason for every additional boundary.
+- Start a fresh worker when the next package moves to a substantially disjoint semantic and file
+  area, crosses an independently governed repository, or would push the combined working set into
+  the mandatory-split band.
+- Keep packages in the same worker when they repeatedly read or write the same core files, share
+  fixtures or generated outputs, or form one implementation-and-test loop. Sequential dependencies
+  alone do not require separate workers.
+- Do not create implementation workers for coordinator validation, operator approval, remote PR
+  actions, merge waiting, final status reporting, or a no-write verification step that the
+  coordinator can perform.
+- For each proposed split, compare it with assigning the package to an adjacent worker. Keep the
+  split only when the saved working-set pressure or authority isolation exceeds the duplicated-read
+  and handoff cost.
 
 Required output:
 
@@ -222,42 +253,57 @@ Required output:
 1. Contract summary
    - Restate requested behavior and boundaries from the OpenSpec artifacts.
    - State explicit non-goals and operator-gated actions.
-   - Treat task headings as hints for grouping, not authoritative execution groups.
+   - Treat task headings as hints for packages, not worker boundaries.
 
 2. Complete task ledger mapping
    - Assign every pending task id exactly once.
    - Copy each task id verbatim from the task artifact. Never convert hierarchical ids such as
      `1.1` into ordinal ids such as `1`, or infer ids from section counts.
    - Do not omit, duplicate, merge away, or invent task ids.
-   - Map each task id to one execution group or to `current-session`.
+   - Map each task id to one work package and then to one implementation worker,
+     `current-session`, `coordinator`, or `operator-gate`.
 
-3. Execution groups
-   For every group provide:
-   - group id and goal;
+3. Work packages
+   For every cohesive package provide:
+   - package id and goal;
    - exact task ids;
-   - why these tasks belong together or must be split;
+   - why these tasks form one semantic and file-area unit;
    - likely files to read, with a candidate read set and estimated payload;
-    - likely files to create or modify, with exact proposed write paths;
-    - explicit write ownership, including generated outputs written by any proposed gate, or an
-      explicit coordinator-owned designation for those outputs;
-   - explicit out-of-scope files; include this field even for a no-write verification group;
+   - likely files to create or modify, with exact proposed write paths;
+   - explicit write ownership, including generated outputs written by any proposed gate, or an
+     explicit coordinator-owned designation for those outputs;
+   - explicit out-of-scope files; include this field even for a no-write verification package;
    - relevant repository patterns and semantic seams;
    - dependencies and blocked-by relationships;
    - focused verification commands and pass gates;
-   - estimated unique files, read payload, changed LOC, architectural seams, test breadth, and
-     iteration buffer;
-   - expected repeated reads from earlier fresh sessions, their duplicated payload, and why the
-     group is merged or split to minimize that payload without exceeding the worker budget;
-   - the model and variant for the worker;
    - confidence and uncertainty.
 
-4. Dependency and conflict model
+4. Implementation workers
+   Pack the work packages into the actual fresh sessions the coordinator will delegate. For every
+   worker provide:
+   - worker id, goal, and exact package and task ids;
+   - why these packages belong in one session;
+   - candidate reads and exact proposed writes, consolidated across its packages;
+   - explicit out-of-scope files;
+   - dependencies and sequential position;
+   - focused verification commands and pass gates;
+   - estimated unique files, read payload, patch payload, command output, architectural seams, test
+     breadth, and iteration buffer;
+   - expected repeated reads from earlier fresh sessions and duplicated payload;
+   - the concrete comparison with one fewer or one more worker that justifies this boundary;
+   - `openai/gpt-5.6-luna` at `xhigh`;
+   - confidence and uncertainty.
+
+   List coordinator and operator checkpoints separately. They may own OpenSpec tasks but are not
+   implementation workers and must not be counted as delegated sessions.
+
+5. Dependency and conflict model
    - Build the dependency DAG.
    - Identify shared writable files and generated-file overlap.
    - Identify semantic API, fixture, and integration conflicts.
    - Identify migration, external-store, cross-repository, and operational sequencing constraints.
 
-5. Context-budget assessment
+6. Context-budget assessment
    - Estimate candidate read/search payload, expected patch payload, command/test output, and an
      iteration buffer.
    - Use working-set payload, unique files, architectural seams, test breadth, and iteration buffer;
@@ -271,50 +317,54 @@ Required output:
     - Report every payload estimate in characters. If token equivalents are useful, label them
       separately and derive them from the character estimate; never substitute token counts for the
       character-based calibration bands.
-    - For each proposed worker, distinguish unique reads from reads likely to be repeated across
-      fresh sessions. Report total planned worker payload and the duplicated cross-group payload.
+   - For each proposed worker, distinguish unique reads from reads likely to be repeated across
+     fresh sessions. Report total planned worker payload and the duplicated cross-worker payload.
     - Count the complete OpenSpec context read set in every worker's payload. Those repeated reads
       are intentional for independent overall understanding; task ownership and write scope still
       bound execution.
-   - Optimize grouping across four constraints: bounded per-session payload, cohesive read/write
-     sets, minimal repeated context payload, and serialized ownership of shared files or semantic
-     contracts. Do not merge unrelated tasks merely to share a file, and do not split a cohesive
-     group merely to make its changed-LOC count smaller.
-   - Identify groups that need internal splits or a handoff. Treat the bands as calibration ranges,
-     not universal limits. Repeated reads are a cost-efficiency concern, not a guaranteed statement
-     about provider cache behavior.
+   - Optimize worker packing across four constraints: bounded per-session payload, cohesive
+     read/write sets, minimal repeated context payload, and serialized ownership of shared files or
+     semantic contracts. Do not merge unrelated tasks merely to share a file, and do not split a
+     cohesive package merely to make its changed-LOC count smaller.
+   - Report total payload across all workers and total duplicated cross-worker payload. Reject a
+     larger worker count when it reduces per-worker payload but materially increases total uncached
+     reads without crossing a safety band.
+   - Identify workers that need an internal handoff or package split. Treat the bands as calibration
+     ranges, not universal limits. Repeated reads are a cost-efficiency concern, not a guaranteed
+     statement about provider cache behavior.
 
-6. Execution recommendation
+7. Execution recommendation
    - Choose `current-session` or `delegated`.
    - If `current-session`, explain why one coordinator session can safely implement and verify all
      pending tasks.
-   - If `delegated`, define a sequential group order and explain why each dependency is satisfied
-     before the next worker starts.
+   - If `delegated`, return the exact sequential worker list the coordinator should invoke. State the
+     implementation-worker count separately from coordinator and operator checkpoints.
    - Do not recommend parallel workers, worktrees, or cherry-picks. Record any need for them as an
      unresolved tooling boundary.
 
-7. Worker contract
-    - Define the coordinator implementation workspace and OpenSpec planning root for each group.
+8. Worker contract
+    - Define the coordinator implementation workspace and OpenSpec planning root for each worker.
     - Define exact owned task ids and exact write paths.
    - Define forbidden files and actions.
     - Define focused tests and the acceptance gate.
-    - Define the coordinator's per-group diff review, write-scope verification, focused-gate
+    - Define the coordinator's per-worker diff review, write-scope verification, focused-gate
       acceptance, exact task-id acceptance, coordinator-only checkbox update, and refreshed Apply
       progress reconciliation.
    - State that the worker starts with no prior worker context and must use a fresh `delegate_general`
      session with the selected model and variant.
    - Require a handoff with changed files, tests run, unresolved issues, and remaining scope.
 
-8. Uncertainty register
+9. Uncertainty register
    - List unresolved design questions and confidence.
    - Do not silently choose inventory paths, CLI output formats, renderer semantics, migration
      commands, canonical-spec destinations, or task-lifecycle actions when the contract leaves them
      open.
 
 Return only the planning report. Do not implement. Use one compact plan envelope: state global worker
-defaults once, use one task-to-group table, and provide one concise record per group. Do not repeat
-the global worker contract in every group. An unresolved write path is a blocker, not permission to
-name a directory or use a speculative path.
+defaults once, use one task-to-package-to-owner table, and provide one concise record per package and
+worker. Lead with the actual worker count and sequential worker list. Do not repeat the global worker
+contract in every worker. An unresolved write path is a blocker, not permission to name a directory
+or use a speculative path.
 ```
 
 The planning result must cover all pending tasks, not merely the broad areas in the task headings.
@@ -323,12 +373,12 @@ read-only context path from a writable implementation path and call out external
 files, migrations, and real-home operations.
 
 **Completion criterion:** one planning result exists from the requested model, attests `Read all
-<N> context paths` with the supplied count, contains a one-to-one mapping for every pending task
-found in the task artifact, names its execution mode and waves, defines fresh-session model routing,
-candidate read and exact proposed write sets, gives every group an explicit out-of-scope field,
-reports payloads in characters, and covers shared-file ownership, repeated-read payload,
-context-budget tradeoffs, focused gates, and every unresolved boundary. If any field is missing,
-stop and report the incomplete plan instead of implementing from inference.
+<N> context paths` with the supplied count, contains a one-to-one task-to-package-to-owner mapping,
+names its execution mode and exact worker sequence, separates checkpoints from delegated workers,
+defines fresh-session model routing, gives every worker candidate reads, exact proposed writes, and
+explicit out-of-scope files, reports per-worker and total duplicated payloads in characters, and
+justifies every fresh-session boundary. If any field is missing, stop and report the incomplete plan
+instead of implementing from inference.
 
 ## 3. Validate And Announce The Plan
 
@@ -342,8 +392,8 @@ artifact before any implementation action.
 - The coordinator has already read the proposal, design, and specs. Validate the planner's coverage
   against that loaded context and its context-read manifest; do not delegate another interpretation
   pass.
-- Confirm that every group has one owner, exact task ids, explicit writes, explicit out-of-scope
-  files, dependencies, and a verification gate.
+- Confirm that every package has one owner and every implementation worker has exact task ids,
+  explicit writes, explicit out-of-scope files, dependencies, and a verification gate.
 - Confirm that every proposed write is an exact path. An unresolved or directory-only write blocks
   the plan.
 - Confirm that every generated output written by a proposed gate belongs to the gate's write set or
@@ -352,24 +402,30 @@ artifact before any implementation action.
   compare hashes. Do not use `git diff --exit-code` as the proof when intended generated changes are
   part of the accepted diff.
 - Confirm that the recommendation names current-session versus delegated execution and, when
-  delegated, names a sequential group order.
+  delegated, names an exact sequential worker order.
 - If the recommendation is `current-session`, confirm that the coordinator is explicitly
   `openai/gpt-5.6-luna` at `xhigh`; otherwise reject the recommendation.
-- Confirm that each delegated group has an explicit model and variant and that the plan requires a
+- Confirm that each delegated worker has an explicit model and variant and that the plan requires a
   fresh session with no `task_id`; the read-only planning child is never reused for implementation.
-- Confirm that each group reports candidate reads, exact proposed writes, repeated reads, duplicated payload, and
-  the tradeoff that led to its boundaries.
+- Confirm that each worker reports candidate reads, exact proposed writes, repeated reads, duplicated
+  payload, and the tradeoff that led to its boundaries.
+- Confirm that coordinator and operator checkpoints are excluded from the implementation-worker
+  count and are not delegated merely to account for their task ids.
+- When more than six implementation workers are proposed, require a concrete disjoint-file,
+  repository-authority, or mandatory-split justification for each boundary and compare the plan with
+  the adjacent merged-worker alternative. Reject mechanical task-heading or verification-only
+  workers.
 - Selectively inspect the planner's proposed repository paths and seams to validate exact writes,
   ownership, and gates. Do not repeat broad repository exploration or silently replace the planner's
-  grouping; an unresolvable path remains a blocker.
+  package or worker assignment; an unresolvable path remains a blocker.
 - Confirm that each worker receives the complete `contextFiles` path list and is required to read
   every OpenSpec context file before editing. Full context grants understanding, not execution
   authority; only the accepted task ids, write set, dependencies, and gates are actionable.
 - Confirm that every implementation route is exactly `openai/gpt-5.6-luna` at `xhigh`.
-- Confirm that the worker contract requires per-group diff review, write-scope verification,
+- Confirm that the worker contract requires per-worker diff review, write-scope verification,
   focused-gate acceptance, exact task-id acceptance, coordinator-only checkbox updates, and
   refreshed Apply progress reconciliation.
-- Serialize groups with overlapping writes, generated outputs, semantic contracts, or dependencies.
+- Serialize workers with overlapping writes, generated outputs, semantic contracts, or dependencies.
 - Reject parallel-worker or worktree execution because delegate_general currently runs children in
   the coordinator directory. Record that limitation when the dependency graph would otherwise favor
   parallelism.
@@ -385,7 +441,8 @@ silently repair it.
 
 For a normal run, show before implementation:
 
-- selected mode;
+- selected mode and actual implementation-worker count;
+- exact sequential worker list;
 - exact task allocation;
 - dependency and conflict order;
 - write ownership and out-of-scope files;
@@ -394,8 +451,9 @@ For a normal run, show before implementation:
 - migration, external-store, cross-repository, and operational boundaries;
 - unresolved questions and confidence.
 
-**Completion criterion:** the coordinator has a checked, one-to-one mapping from every pending task
-to the current session or one bounded worker group, and the selected execution order is explicit.
+**Completion criterion:** the coordinator has a checked task-to-package-to-owner mapping, an exact
+sequential list of bounded implementation workers, and a separate checkpoint list. Every fresh
+worker boundary has a validated context or authority justification.
 
 If the user requested `plan-only`, stop here after reporting the selected mode, task allocation,
 validation result, and unresolved boundaries. Do not enter implementation or closeout.
@@ -422,12 +480,13 @@ scope, and require a new orchestration decision rather than silently re-planning
 
 ### Delegated workers
 
-Use `delegate_general` for each implementation group, one group at a time in the coordinator
-workspace. `delegate_general` creates child sessions in the coordinator's current directory; a path
-written in a prompt does not create a worktree or confine a child session. Do not claim parallel
-worker isolation unless the delegation tool has an explicit, tested directory/worktree contract.
+Use `delegate_general` for each implementation worker in the accepted worker list, one at a time in
+the coordinator workspace. `delegate_general` creates child sessions in the coordinator's current
+directory; a path written in a prompt does not create a worktree or confine a child session. Do not
+claim parallel worker isolation unless the delegation tool has an explicit, tested
+directory/worktree contract.
 
-Every implementation group must start a **fresh session**. Call `delegate_general` without
+Every implementation worker must start a **fresh session**. Call `delegate_general` without
 `task_id`, even when a previous planner or worker handled related files. Never resume the planning
 child, a prior worker, or a failed attempt. If a retry is authorized, create another fresh session
 whose prompt includes the current diff, the failure, and the narrowed or corrected scope. This
@@ -447,7 +506,7 @@ Every worker prompt must include:
 - the complete OpenSpec context path list it must read before editing;
 - the exact implementation workspace it may modify;
 - the exact OpenSpec planning root whose task artifact the coordinator owns;
-- the group goal and dependencies already satisfied;
+- the worker goal and dependencies already satisfied;
 - its explicit write set and explicit out-of-scope files;
 - required focused tests and the pass gate;
 - the migration and real-home restrictions;
@@ -455,7 +514,7 @@ Every worker prompt must include:
   context file to understand the overall change rather than assume another worker's context. Full
   context is for understanding only; the owned task ids and explicit write set are the execution
   authority;
-- the planner's group-specific candidate repository reads and semantic seams, with an instruction to
+- the planner's worker-specific candidate repository reads and semantic seams, with an instruction to
   focus on those paths after reading the OpenSpec context rather than repeat broad repository discovery;
 - a required handoff containing changed files, tests run and outcomes, unresolved issues, and
   remaining scope.
@@ -463,10 +522,11 @@ Every worker prompt must include:
 Use this worker prompt structure:
 
 ```text
-Implement only this accepted OpenSpec execution group.
+Implement only this accepted OpenSpec worker assignment.
 
 Owned task ids: <exact ids>
-Group goal: <goal>
+Owned work packages: <exact package ids>
+Worker goal: <goal>
 Implementation workspace: <exact path>
 OpenSpec planning root: <exact path>
 Complete OpenSpec context paths to read before editing:
@@ -476,22 +536,22 @@ Write ownership:
 <exact files or generated outputs>
 
 Out of scope:
-<exact files, groups, and task ids>
+<exact files, packages, workers, and task ids>
 
 Context rule: read the complete OpenSpec context above for overall change understanding, but act only
-on the owned task ids, satisfied dependencies, and explicit write ownership in this group.
+on the owned task ids, packages, satisfied dependencies, and explicit write ownership in this worker.
 
 Repository context:
 <planner-supplied candidate reads and semantic seams>
 
-Repository rule: after reading the complete OpenSpec context, focus on the supplied group repository
+Repository rule: after reading the complete OpenSpec context, focus on the supplied worker repository
 context. Bounded task-local discovery inside the accepted semantic seam is allowed when needed to
 resolve implementation or verification details. Do not perform broad discovery across unrelated
-areas. Report a blocker if the work requires an undeclared write, an unrelated area, a material group
+areas. Report a blocker if the work requires an undeclared write, an unrelated area, a material worker
 change, or a guess.
 
 Dependencies already satisfied:
-<accepted commits, groups, or contracts>
+<accepted commits, workers, or contracts>
 
 Required focused verification:
 <commands and pass criteria>
@@ -500,7 +560,7 @@ This is a fresh worker session. Read the supplied context and current repository
 editing; do not assume that another worker's reads or conclusions are in your context. Implement
 only the owned task ids and their declared supporting changes. Keep the diff minimal and within the
 write set. Do not edit the tasks artifact, mark checkboxes complete, start another agent, or absorb
-another group's tasks. Do not run live migration or modify a real home.
+another worker's tasks. Do not run live migration or modify a real home.
 Report blockers instead of guessing.
 
 Handoff required:
@@ -511,38 +571,38 @@ Handoff required:
 ```
 
 Workers must not edit the tasks artifact, mark tasks complete, start another agent,
-absorb another group's tasks, exceed their write scope, commit, or perform live migration. After each
+absorb another worker's tasks, exceed their write scope, commit, or perform live migration. After each
 worker, the coordinator immediately reviews the handoff and diff, runs the focused gate, checks write
-scope, and marks only the accepted task checkboxes complete before starting the next group.
+scope, and marks only the accepted task checkboxes complete before starting the next worker.
 
 ### Sequential worker protocol
 
-Delegated workers share the coordinator workspace. Serialize every group, and do not create
-worktrees, branches, or parallel waves. Before each worker, confirm that the coordinator diff is
-understood and that the group's declared write set does not conflict with unaccepted changes. After
-each worker:
+Delegated workers share the coordinator workspace. Follow the accepted worker list sequentially, and
+do not create worktrees, branches, or parallel waves. Before each worker, confirm that the
+coordinator diff is understood and that the worker's declared write set does not conflict with
+unaccepted changes. After each worker:
 
 1. Review the coordinator diff and worker handoff.
 2. Run the focused verification gate.
 3. Accept only the declared task ids and write set.
 4. Immediately update only the accepted task checkboxes.
 5. Re-run `openspec instructions apply --change "<name>" --json [--store <id>]` and confirm the
-   expected progress before starting the next group. The resolved standalone store id is mandatory
+   expected progress before starting the next worker. The resolved standalone store id is mandatory
    whenever Phase 1 selected a store.
 
 The coordinator owns commits. If a worker fails, changes scope, or exposes a shared semantic
-conflict, stop before the next group and require a new orchestration decision rather than silently
+conflict, stop before the next worker and require a new orchestration decision rather than silently
 re-planning. If that decision authorizes a retry, use a fresh `delegate_general` session; never
 resume the failed worker. Do not run a live migration or irreversible machine operation through a
 worker.
 
-**Completion criterion:** every accepted group has an in-scope diff, passing focused verification, a
-complete handoff, and coordinator acceptance before its dependent group starts. Every completed
+**Completion criterion:** every accepted worker has an in-scope diff, passing focused verification, a
+complete handoff, and coordinator acceptance before its dependent worker starts. Every completed
 checkbox is backed by that acceptance, and no parallel or unconfined worker was used.
 
 ## 5. Close The Change
 
-After all accepted groups converge, re-run the Apply instruction query:
+After all accepted workers and checkpoints converge, re-run the Apply instruction query:
 
 ```bash
 openspec instructions apply --change "<name>" --json
@@ -561,14 +621,14 @@ coordinator's ledger. Then:
   authorization.
 
 Do not mark a task complete because a worker claims completion. Mark it after coordinator review and
-the required focused gate, then use the per-group and final OpenSpec progress checks to reconcile the
+the required focused gate, then use the per-worker and final OpenSpec progress checks to reconcile the
 coordinator-owned ledger.
 
 Report:
 
 - change and schema;
 - tasks completed this run and final `N/M` progress;
-- selected mode and worker waves;
+- selected mode and worker sequence;
 - changed files and accepted commits;
 - focused and broad verification outcomes;
 - unresolved issues or explicit operator gates;
