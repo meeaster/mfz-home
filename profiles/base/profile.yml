@@ -18,9 +18,6 @@ references:
   - deep-swe
   - openwiki
 thread:
-  destinations:
-    - name: testing
-      remote: git@github.com:meeaster/thread-testing.git
   defaults:
     synthesize: claude-code:sonnet@max
     gather: claude-code:haiku@low

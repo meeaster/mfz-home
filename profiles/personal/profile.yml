@@ -4,6 +4,14 @@ description: Personal AI setup with Home Assistant integrations.
 instructions:
   - instructions/PERSONAL.md
 thread:
+  stores:
+    - name: personal-knowledge
+      root: ~/workspace/knowledge/personal-knowledge
+      path: threads
+      publication:
+        mode: pull-request
+        base: main
+      default: true
   defaults:
     discover: opencode:openai/gpt-5.6-luna@medium
     gather: opencode:openai/gpt-5.6-luna@medium
