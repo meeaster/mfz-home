@@ -11,6 +11,7 @@ thread:
       publication:
         mode: pull-request
         base: main
+        auto_merge: true
       default: true
   defaults:
     discover: opencode:openai/gpt-5.6-luna@medium
