@@ -76,8 +76,10 @@ Every skill gets all four `meta/` documents. Make each one meaningful and propor
 
 - `VISION.md` owns intended behavior, boundaries, and success.
 - `EVALS.md` owns reusable scenarios and observable assertions, including invocation and post-load behavior where applicable.
-- `MAINTENANCE.md` owns dependencies, provenance, refresh procedures, verification, and environment assumptions.
+- `MAINTENANCE.md` owns skill-specific dependencies, provenance, refresh procedures, verification, and environment assumptions. Keep it specific to the authored skill; do not copy or reference this authoring process or its bundled writing doctrine.
 - `LOG.md` owns selected behavioral decisions, observed effects, and reversals rather than ordinary textual history.
+
+These artifacts are distinct projections of one behavioral contract. They may deliberately restate behavior from `SKILL.md` or one another in the form their role requires; that is coherence, not duplication. Prune copied doctrine and repeated explanatory prose, not role-specific statements of intent, observable assertions, upkeep, or rationale.
 
 For assessment, inspect the same package for coherence and return proposed changes without modifying files. Treat missing or contradictory artifacts as findings rather than silently creating them.
 
@@ -85,7 +87,7 @@ Complete this phase when the implemented package is coherent or the assessment a
 
 ## 5. Prune, Test, And Evaluate
 
-Apply the bundled writing doctrine's pruning tests sentence by sentence. Remove duplication, no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
+Apply the bundled writing doctrine's pruning tests sentence by sentence to runtime instructions and references. For meta artifacts, remove material that does not serve the artifact's role while preserving role-specific restatements of the behavioral contract. Remove no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
 
 Evaluate two surfaces separately when they apply:
 

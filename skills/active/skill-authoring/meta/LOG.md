@@ -72,3 +72,15 @@
 - Adapted Anthropic's baseline concept without adopting its Claude-specific evaluation suite.
 - Use no skill as the baseline for a new skill and the previous revision for an update only when incremental value is the question.
 - Keep the default trace-based loop unchanged for explicit contract verification, where a baseline would add cost without changing the decision.
+
+## 2026-07-28 - Skill-Specific Maintenance Scope
+
+- Kept authored `MAINTENANCE.md` files focused on the skill's own dependencies, provenance, refresh procedures, verification, and environment assumptions.
+- Excluded references to Skill Authoring and copies of its authoring or writing doctrine; the environment that selects Skill Authoring owns that routing.
+- Added evaluation coverage for skill-specific maintenance content without generic boilerplate.
+
+## 2026-07-28 - Cross-Artifact Behavioral Coherence
+
+- Clarified that `SKILL.md` and meta artifacts are distinct projections of one behavioral contract, not mutually exclusive stores of facts.
+- Limited runtime writing doctrine's duplication test to runtime instructions and references; meta artifacts retain role-specific intent, assertions, upkeep, and rationale.
+- Added evaluation coverage against simplifying `VISION.md` merely because runtime instructions implement the same behavior.

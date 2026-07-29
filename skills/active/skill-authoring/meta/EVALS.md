@@ -45,7 +45,13 @@ Every scenario confirms that:
 
 **Prompt:** Create a one-line orchestrator or similarly compact skill.
 
-**Assertions:** All four `meta/` documents contain useful information without expanding into generic boilerplate; `SKILL.md` remains proportionate.
+**Assertions:** All four `meta/` documents contain useful information without expanding into generic boilerplate; `MAINTENANCE.md` contains only skill-specific upkeep rather than copied or referenced authoring doctrine; `SKILL.md` remains proportionate.
+
+## Preserve Cross-Artifact Behavior
+
+**Prompt:** Review or revise a package whose vision, evaluations, maintenance guidance, or decision log restates behavior also present in `SKILL.md`.
+
+**Assertions:** The agent preserves role-specific statements of intent, observable assertions, upkeep, and rationale even when they overlap with runtime behavior; removes only copied doctrine or prose that does not serve the artifact's role; and does not simplify `VISION.md` merely because `SKILL.md` operationalizes the same behavior.
 
 ## Review Without Modification
 

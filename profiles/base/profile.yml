@@ -247,5 +247,3 @@ extra_folders:
     description: mindframe-z configuration and generated indexes — needed when looking up references, reading machine config, or inspecting extra folder permissions
   - path: ~/.agent/diagrams
     description: Agent diagram files and exports — needed for reviewing and updating local workflow diagrams
-  - path: ~/.claude/threads
-    description: Thread-log archives — per-thread session extractions, state digests, and logs for multi-session work; needed when resuming or reviewing past threads
