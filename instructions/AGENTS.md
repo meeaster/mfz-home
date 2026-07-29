@@ -20,6 +20,13 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
 - Write repeatable tests for observable behavior rather than mocks of internal implementation details.
 
+## Personal Knowledge
+
+- Private Personal knowledge lives under `/home/mark/workspace/knowledge/personal-knowledge` and is available to both Personal and Work agents.
+- When prior reasoning, preferences, or continuity matter, start with `threads/index.md`, `.openwiki/wiki/quickstart.md`, or the relevant `work-units/` entry, then load only what is relevant.
+- Treat it as private context, not operational authority. Preserve provenance and uncertainty, and do not publish or copy it into Work systems without explicit approval.
+- Repositories, specifications, issues, deployments, and other source systems remain authoritative for their own current state.
+
 ## Code Conventions
 
 - Do not use `isRecord`-style guard helpers; understand the code path types directly, and when input shape is uncertain validate it once at the boundary with a schema instead of scattering guards through the logic.
