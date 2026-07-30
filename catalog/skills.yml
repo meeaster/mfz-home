@@ -42,6 +42,15 @@ skills:
     repo: https://github.com/mattpocock/skills
     ref: main
     subtree: skills/engineering/to-spec
+  - name: wayfinder
+    description: >
+      Plan a huge chunk of work — more than one agent session can hold — as a
+      shared map of decision tickets on your issue tracker, and resolve them one
+      at a time until the way to the destination is clear.
+    source: vendored
+    repo: https://github.com/mattpocock/skills
+    ref: main
+    subtree: skills/engineering/wayfinder
   - name: improve-codebase-architecture
     description: >
       Analyze a codebase architecture and suggest improvements, refactors, and

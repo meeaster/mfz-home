@@ -94,6 +94,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   to-spec:
     agents: { opencode: false, claude-code: false, codex: false }
+  wayfinder:
+    agents: { opencode: true, claude-code: true, codex: true }
   improve-codebase-architecture:
     agents: { opencode: false, claude-code: false, codex: false }
   domain-modeling:

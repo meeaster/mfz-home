@@ -65,3 +65,6 @@ skills:
   batch-grill-me:
     commit: ed37663cc5fbef691ddfecd080dff42f7e7e350d
     digest: 2401f2ba698053ca497d02f832a6d6225a60e7766bf5a75e06c841034a546e0f
+  wayfinder:
+    commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
+    digest: e50142bf6c4ec000a127bc0b808491ba0303d42f9d2c14d60af9e681603873c8
