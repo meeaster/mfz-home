@@ -32,7 +32,7 @@ extra_folders:
   - path: /home/mark/workspace/specs/workspace-specs
     description: Machine-wide OpenSpec store for cross-project change proposals, specifications, and task ledgers — needed when planning or implementing workspace work
   - path: /home/mark/workspace/knowledge/personal-knowledge
-    description: Private Personal knowledge containing accepted synthesis, retrospective thread evidence, and work-unit continuity context
+    description: Private Personal knowledge containing accepted wiki synthesis, reasoned Practices, lightweight Session Captures, retrospective thread evidence, and work-unit continuity context
 skills:
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
