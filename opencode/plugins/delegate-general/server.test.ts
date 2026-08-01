@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -6,13 +6,16 @@ import path from "node:path";
 import plugin, {
   DELEGATE_GENERAL_CONFIG_RELATIVE_PATH,
   DELEGATE_GENERAL_GLOBAL_CONFIG_RELATIVE_PATH,
+  MAX_DELEGATED_SESSION_RESUME_CONTEXT_TOKENS,
   buildChildSessionPermissions,
   buildDelegatedPromptBody,
   buildToolOverrides,
   canAgentUseTask,
   createDelegateGeneralTool,
   extractDelegatedText,
+  formatDelegatedContextStatus,
   formatDelegatedResult,
+  getDelegatedSessionContextStatus,
   loadDelegateGeneralConfigWithSource,
   modelCatalogDescription,
   normalizeRequiredStringArg,
@@ -128,6 +131,108 @@ describe("delegation helpers", () => {
   });
 });
 
+describe("session context status", () => {
+  it("reports context-window usage, compaction headroom, and the next pricing tier", async () => {
+    const status = await getDelegatedSessionContextStatus({
+      tokens: {
+        input: 200_000,
+        output: 1_000,
+        cache: { read: 50_000, write: 0 }
+      },
+      provider: {
+        list: async () => ({
+          data: {
+            all: [
+              {
+                id: "openai",
+                models: {
+                  "gpt-5.6-terra": {
+                    id: "gpt-5.6-terra",
+                    limit: { context: 1_050_000, input: 922_000, output: 128_000 },
+                    cost: { tiers: [{ tier: { type: "context", size: 272_000 } }] }
+                  }
+                }
+              }
+            ]
+          }
+        })
+      },
+      directory: "/tmp",
+      model: { providerID: "openai", modelID: "gpt-5.6-terra" },
+      config: {}
+    });
+
+    expect(status).toMatchObject({
+      contextTokens: 250_000,
+      contextWindow: 1_050_000,
+      autoCompactionThreshold: 902_000,
+      tokensUntilAutoCompaction: 651_000,
+      nextPricingTier: 272_000
+    });
+    expect(status?.contextWindowPercent).toBeCloseTo(23.8095, 4);
+    expect(formatDelegatedContextStatus(status)).toEqual([
+      "<context_status>",
+      "current_context: 250,000 / 1,050,000 tokens (23.8% of window)",
+      "auto_compaction: estimated at 902,000 tokens; 651,000 tokens remaining",
+      "pricing: higher context pricing starts at 272,000 tokens (22,000 tokens away)",
+      "session_reuse: blocked: context meets the 250,000-token cutoff; start a new session.",
+      "</context_status>"
+    ]);
+  });
+
+  it("keeps the exact pricing-tier boundary non-elevated", async () => {
+    const provider = {
+      list: async () => ({
+        data: {
+          all: [
+            {
+              id: "openai",
+              models: {
+                "gpt-5.6-terra": {
+                  id: "gpt-5.6-terra",
+                  limit: { context: 1_050_000, input: 922_000, output: 128_000 },
+                  cost: { tiers: [{ tier: { type: "context" as const, size: 250_000 } }] }
+                }
+              }
+            }
+          ]
+        }
+      })
+    };
+    const tokens = (input: number) => ({
+      input,
+      output: 0,
+      cache: { read: 0, write: 0 }
+    });
+
+    const atBoundary = await getDelegatedSessionContextStatus({
+      tokens: tokens(250_000),
+      provider,
+      directory: "/tmp",
+      model: { providerID: "openai", modelID: "gpt-5.6-terra" },
+      config: {}
+    });
+    const aboveBoundary = await getDelegatedSessionContextStatus({
+      tokens: tokens(250_001),
+      provider,
+      directory: "/tmp",
+      model: { providerID: "openai", modelID: "gpt-5.6-terra" },
+      config: {}
+    });
+
+    expect(atBoundary).toMatchObject({
+      contextTokens: 250_000,
+      currentPricingTier: undefined,
+      nextPricingTier: 250_000
+    });
+    expect(aboveBoundary).toMatchObject({
+      contextTokens: 250_001,
+      currentPricingTier: 250_000,
+      nextPricingTier: undefined
+    });
+  });
+});
+
 describe("validation helpers", () => {
   it("normalizes required strings and provider model IDs", () => {
     expect(normalizeRequiredStringArg(" openai/gpt-5.6-sol ", "model")).toEqual({
@@ -210,7 +315,7 @@ describe("delegate-general plugin", () => {
     const definition = await createDelegateGeneralTool({ client: {}, directory: "/tmp" });
 
     expect(definition.description).toBe(
-      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Give the child a self-contained task prompt; when relevant, name a work unit only as supplemental background and tell the child to load it. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available.'
+      'Delegate general-purpose complex questions and multi-step work to the general subagent using an explicitly selected allowlisted model and reasoning level. Give the child a self-contained task prompt; when relevant, name a work unit only as supplemental background and tell the child to load it. Use this instead of the built-in task tool with subagent_type "general". Prefer a better-fitting specialized subagent when one is available. Reuse a child only for a direct continuation with useful prior context; start fresh for unrelated work or a different subsystem.'
     );
   });
 
@@ -276,6 +381,324 @@ describe("delegate-general plugin", () => {
           variant: "medium"
         }
       });
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
+  });
+
+  it("blocks a resume when cache.write reaches the delegated-session context cutoff", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "delegate-general-resume-limit-"));
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(directory, "xdg");
+    await mkdir(path.join(directory, ".opencode"), { recursive: true });
+    await writeFile(path.join(directory, DELEGATE_GENERAL_CONFIG_RELATIVE_PATH), JSON.stringify({ models }));
+
+    const ask = vi.fn();
+    const prompt = vi.fn();
+
+    try {
+      const definition = await createDelegateGeneralTool({
+        directory,
+        client: {
+          app: {
+            agents: async () => ({ data: [{ name: "general", mode: "subagent" }] })
+          },
+          config: {
+            get: async () => ({ data: {} })
+          },
+          provider: {
+            list: async () => ({
+              data: {
+                all: [
+                  {
+                    id: "openai",
+                    models: {
+                      "gpt-5.6-terra": {
+                        id: "gpt-5.6-terra",
+                        limit: { context: 1_050_000, input: 922_000, output: 128_000 }
+                      }
+                    }
+                  }
+                ]
+              }
+            })
+          },
+          session: {
+            get: async () => ({ data: { id: "ses_existing" } }),
+            messages: async () => ({
+              data: [
+                {
+                  info: {
+                    role: "assistant",
+                    tokens: {
+                      input: MAX_DELEGATED_SESSION_RESUME_CONTEXT_TOKENS - 1,
+                      output: 0,
+                      cache: { read: 0, write: 1 }
+                    }
+                  }
+                }
+              ]
+            }),
+            prompt
+          }
+        }
+      });
+
+      await expect(
+        definition.execute(
+          {
+            description: "Continue work",
+            prompt: "Continue the work.",
+            model: "openai/gpt-5.6-terra",
+            variant: "medium",
+            task_id: "ses_existing"
+          },
+          {
+            sessionID: "ses_parent",
+            directory,
+            ask,
+            metadata: () => {}
+          } as never
+        )
+      ).resolves.toContain("Cannot resume delegated session \"ses_existing\"");
+      expect(ask).not.toHaveBeenCalled();
+      expect(prompt).not.toHaveBeenCalled();
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
+  });
+
+  it("fails closed when the existing assistant has no token usage", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "delegate-general-missing-tokens-"));
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(directory, "xdg");
+    await mkdir(path.join(directory, ".opencode"), { recursive: true });
+    await writeFile(path.join(directory, DELEGATE_GENERAL_CONFIG_RELATIVE_PATH), JSON.stringify({ models }));
+
+    const ask = vi.fn();
+    const prompt = vi.fn();
+
+    try {
+      const definition = await createDelegateGeneralTool({
+        directory,
+        client: {
+          app: {
+            agents: async () => ({ data: [{ name: "general", mode: "subagent" }] })
+          },
+          config: {
+            get: async () => ({ data: {} })
+          },
+          session: {
+            get: async () => ({ data: { id: "ses_existing" } }),
+            messages: async () => ({ data: [{ info: { role: "assistant" } }] }),
+            prompt
+          }
+        }
+      });
+
+      await expect(
+        definition.execute(
+          {
+            description: "Continue work",
+            prompt: "Continue the work.",
+            model: "openai/gpt-5.6-terra",
+            variant: "medium",
+            task_id: "ses_existing"
+          },
+          {
+            sessionID: "ses_parent",
+            directory,
+            ask,
+            metadata: () => {}
+          } as never
+        )
+      ).resolves.toContain("Cannot safely resume delegated session \"ses_existing\"");
+      expect(ask).not.toHaveBeenCalled();
+      expect(prompt).not.toHaveBeenCalled();
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
+  });
+
+  it("allows a below-cutoff resume when provider metadata is unavailable", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "delegate-general-missing-provider-"));
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(directory, "xdg");
+    await mkdir(path.join(directory, ".opencode"), { recursive: true });
+    await writeFile(path.join(directory, DELEGATE_GENERAL_CONFIG_RELATIVE_PATH), JSON.stringify({ models }));
+
+    const ask = vi.fn();
+    const prompt = vi.fn().mockResolvedValue({
+      data: {
+        info: {
+          role: "assistant",
+          tokens: { input: 100, output: 10, cache: { read: 0, write: 0 } }
+        },
+        parts: [{ type: "text", text: "continued" }]
+      }
+    });
+
+    try {
+      const definition = await createDelegateGeneralTool({
+        directory,
+        client: {
+          app: {
+            agents: async () => ({ data: [{ name: "general", mode: "subagent" }] })
+          },
+          config: {
+            get: async () => ({ data: {} })
+          },
+          provider: {
+            list: async () => ({ data: { all: [] } })
+          },
+          session: {
+            get: async () => ({ data: { id: "ses_existing" } }),
+            messages: async () => ({
+              data: [
+                {
+                  info: {
+                    role: "assistant",
+                    tokens: { input: 100, output: 10, cache: { read: 0, write: 0 } }
+                  }
+                }
+              ]
+            }),
+            prompt
+          }
+        }
+      });
+
+      const result = await definition.execute(
+        {
+          description: "Continue work",
+          prompt: "Continue the work.",
+          model: "openai/gpt-5.6-terra",
+          variant: "medium",
+          task_id: "ses_existing"
+        },
+        {
+          sessionID: "ses_parent",
+          directory,
+          ask,
+          metadata: () => {}
+        } as never
+      );
+
+      expect(result).toMatchObject({ title: "Continue work" });
+      expect((result as { output: string }).output).toContain(
+        "unavailable: OpenCode did not return the session token or model metadata needed to assess reuse safely."
+      );
+      expect(ask).toHaveBeenCalledOnce();
+      expect(prompt).toHaveBeenCalledOnce();
+    } finally {
+      if (previousXdgConfigHome === undefined) {
+        delete process.env.XDG_CONFIG_HOME;
+      } else {
+        process.env.XDG_CONFIG_HOME = previousXdgConfigHome;
+      }
+    }
+  });
+
+  it("uses bounded history for the guard and prompt tokens for final status", async () => {
+    const directory = await mkdtemp(path.join(tmpdir(), "delegate-general-token-reuse-"));
+    const previousXdgConfigHome = process.env.XDG_CONFIG_HOME;
+    process.env.XDG_CONFIG_HOME = path.join(directory, "xdg");
+    await mkdir(path.join(directory, ".opencode"), { recursive: true });
+    await writeFile(path.join(directory, DELEGATE_GENERAL_CONFIG_RELATIVE_PATH), JSON.stringify({ models }));
+
+    const ask = vi.fn();
+    const messages = vi.fn().mockResolvedValue({
+      data: [
+        {
+          info: {
+            role: "assistant",
+            tokens: { input: 100, output: 10, cache: { read: 0, write: 0 } }
+          }
+        }
+      ]
+    });
+    const prompt = vi.fn().mockResolvedValue({
+      data: {
+        info: {
+          role: "assistant",
+          tokens: { input: 200_000, output: 0, cache: { read: 40_000, write: 10_000 } }
+        },
+        parts: [{ type: "text", text: "continued" }]
+      }
+    });
+    const providerList = vi.fn().mockResolvedValue({
+      data: {
+        all: [
+          {
+            id: "openai",
+            models: {
+              "gpt-5.6-terra": {
+                id: "gpt-5.6-terra",
+                limit: { context: 1_050_000, input: 922_000, output: 128_000 }
+              }
+            }
+          }
+        ]
+      }
+    });
+
+    try {
+      const definition = await createDelegateGeneralTool({
+        directory,
+        client: {
+          app: {
+            agents: async () => ({ data: [{ name: "general", mode: "subagent" }] })
+          },
+          config: {
+            get: async () => ({ data: {} })
+          },
+          provider: { list: providerList },
+          session: {
+            get: async () => ({ data: { id: "ses_existing" } }),
+            messages,
+            prompt
+          }
+        }
+      });
+
+      const result = await definition.execute(
+        {
+          description: "Continue work",
+          prompt: "Continue the work.",
+          model: "openai/gpt-5.6-terra",
+          variant: "medium",
+          task_id: "ses_existing"
+        },
+        {
+          sessionID: "ses_parent",
+          directory,
+          ask,
+          metadata: () => {}
+        } as never
+      );
+
+      expect((result as { output: string }).output).toContain(
+        "current_context: 250,000 / 1,050,000 tokens (23.8% of window)"
+      );
+      expect(messages).toHaveBeenCalledOnce();
+      expect(messages).toHaveBeenCalledWith({
+        path: { id: "ses_existing" },
+        query: { directory, limit: 1 }
+      });
+      expect(providerList).toHaveBeenCalledOnce();
+      expect(prompt).toHaveBeenCalledOnce();
     } finally {
       if (previousXdgConfigHome === undefined) {
         delete process.env.XDG_CONFIG_HOME;
