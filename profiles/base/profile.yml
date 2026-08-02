@@ -143,6 +143,7 @@ opencode:
         model: openai/gpt-5.6-luna
         variant: high
     permission:
+      question: deny
       read:
         "~/.aws/**": deny
       bash:
@@ -159,6 +160,7 @@ opencode:
     - session-cost-tui
   commands:
     - apply-spec
+    - implement-design
     - rmslop
   agents:
     - research
