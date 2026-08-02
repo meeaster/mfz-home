@@ -15,7 +15,7 @@ permission:
   deepwiki_*: allow
   external_directory:
     "*": ask
-    "~/references/**": allow
+    "~/workspace/references/**": allow
     "~/.mindframe-z/**": allow
 ---
 
@@ -65,7 +65,7 @@ Research order:
 
 1. Local references first.
    - Read `~/.mindframe-z/references.md` to discover locally cloned reference repositories.
-   - If the requested library, framework, CLI, SDK, API, or repository exists under `~/references`, inspect that local clone first.
+   - If the requested library, framework, CLI, SDK, API, or repository exists under `~/workspace/references`, inspect that local clone first.
    - Prefer local source, docs, examples, tests, package metadata, and changelogs over external sources when the clone is relevant.
 
 2. DeepWiki for GitHub repository internals.

@@ -7,7 +7,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - Edit profile/catalog files here, then run `mfz apply` to update generated/applied config.
 - Do not edit applied files directly, such as `~/.claude/settings.json`, when the setting belongs in a profile.
 - `profiles/base/profile.yml` contains shared defaults. `profiles/personal/profile.yml` extends it for this machine/user.
-- Agent instructions loaded by the profile come from root `AGENTS.md`, via `profiles/base/profile.yml`.
+- Profile instruction sources are declared in `profiles/*/profile.yml`: Base selects `instructions/AGENTS.md`, and Personal adds `instructions/PERSONAL.md`.
 
 ## How To Configure
 
@@ -24,7 +24,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - `pnpm test` runs Vitest for `opencode/**/*.test.ts`.
 - `pnpm vitest run opencode/plugins/delegate-general/server.test.ts` runs the current focused test file.
 - `pnpm typecheck` runs strict TypeScript checking for `opencode/**/*.ts(x)`.
-- Use `pnpm`, not npm/yarn. Tool versions are managed by profile `mise.toml` files; base sets pnpm 11, personal overrides Node to 26.
+- Use `pnpm`, not npm/yarn. Base provides Node 26 and pnpm 11; Personal retains Node 26.
 - The Executor rollout is applied in the personal profile. Isolated three-harness anonymous smoke and browser OAuth acceptance, refresh, and cancellation remain pending live validation; route declarations and generated bridges must not be treated as that acceptance.
 
 ## OpenCode Plugins
@@ -41,14 +41,14 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 - `catalog/` contains registries for MCP servers, reference repositories, and skills.
 - `profiles/` contains the applied configuration model. Most configuration changes belong here.
 - `opencode/plugins/` contains TypeScript OpenCode plugins, including `advisor`, `advisor-tui`, `lapdog`, and `delegate-general`.
-- `opencode/commands/` contains installed OpenCode slash commands (`apply-spec`, `rmslop`).
+- `opencode/commands/` contains installed OpenCode slash commands (`apply-spec`, `implement-design`, `rmslop`).
 - `opencode/agents/` contains OpenCode subagent definitions; `research` is readonly and documentation-focused.
 - `skills/active/` contains local active skills. External skill sources are catalogued in `catalog/skills.yml`.
 
 ## Local Context
 
 - Reference repos are cloned under `/home/mark/workspace/references/`; treat them as read-only.
-- Extra configured folders are `/home/mark/.mindframe-z`, `/home/mark/.agent/diagrams`, and `/home/mark/.claude/threads`.
+- Extra configured folders are `~/.mindframe-z`, `~/.agent/diagrams`, `/tmp/compound-engineering`, `/home/mark/workspace/specs/workspace-specs`, and `/home/mark/workspace/knowledge/personal-knowledge`.
 - Base OpenCode permissions deny `~/.aws/**` reads and token-shaped bash commands; personal profile denies read/edit of `~/.xurl`.
 
 <!-- mfz:home-guidance:begin -->
