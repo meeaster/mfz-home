@@ -39,6 +39,10 @@ skills:
 mcp:
   homeassistant:
     agents: { enabled: [claude-code], disabled: [opencode, codex] }
+  robinhood-trading:
+    route: executor
+    connections:
+      main: oauth
 claude:
   settings:
     permissions:

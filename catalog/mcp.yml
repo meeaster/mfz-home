@@ -75,3 +75,12 @@ servers:
     type: local
     transport: stdio
     command: [npx, -y, "@tylertech/forge-mcp@latest"]
+  robinhood-trading:
+    description: Robinhood Trading MCP server.
+    type: remote
+    transport: http
+    url: https://agent.robinhood.com/mcp/trading
+    executor:
+      authentication:
+        - slug: oauth
+          kind: oauth2
