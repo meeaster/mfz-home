@@ -42,7 +42,7 @@ Out of scope:
 Authoritative sources:
 
 - official mise documentation surfaced through Context7
-- local `skill-writer` guidance for skill structure
+- repository-local `skills/vendor/skill-writer/SKILL.md` guidance for skill structure
 
 Useful improvement sources:
 
@@ -66,7 +66,7 @@ Data that must not be stored:
 
 ## Validation
 
-- Lightweight validation: run the skill-writer quick validator against this skill directory.
+- Lightweight validation: run `uv run skills/vendor/skill-writer/scripts/quick_validate.py skills/active/mise`.
 - Deeper validation: spot-check commands against current mise docs when CLI behavior changes.
 - Acceptance gates: frontmatter is valid, guidance stays compact, docs fallback remains explicit, and `SKILL.md` reads like LLM nudges rather than user-facing documentation.
 

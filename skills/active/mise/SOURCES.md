@@ -5,21 +5,21 @@
 | Source                                                             | Trust | Contribution                                                                                            |
 | ------------------------------------------------------------------ | ----- | ------------------------------------------------------------------------------------------------------- |
 | Context7 `/jdx/mise` docs query for global tools/backends/env vars | High  | Confirmed `mise use --global`, backend prefixes, `mise backends ls`, env examples, and config commands. |
-| `/home/mark/.agents/skills/skill-writer/SKILL.md`                  | High  | Creation workflow and required output expectations.                                                     |
-| `skill-writer/references/mode-selection.md`                        | High  | Selected new-skill synthesis + authoring + validation path.                                             |
-| `skill-writer/references/execution-shapes.md`                      | High  | Selected `inline-guidance` as simplest adequate shape.                                                  |
-| `skill-writer/references/layout-inline-skill.md`                   | High  | Confirmed single-file runtime layout is appropriate.                                                    |
-| `skill-writer/references/authoring-path.md`                        | High  | Frontmatter, compact runtime guidance, and precision-pass requirements.                                 |
-| `skill-writer/references/spec-template.md`                         | High  | `SPEC.md` structure.                                                                                    |
-| `skill-writer/references/registration-validation.md`               | High  | Skill root convention and validation command.                                                           |
+| `skills/vendor/skill-writer/SKILL.md`                              | High  | Creation workflow and required output expectations.                                                     |
+| `skills/vendor/skill-writer/references/mode-selection.md`          | High  | Selected new-skill synthesis + authoring + validation path.                                             |
+| `skills/vendor/skill-writer/references/execution-shapes.md`        | High  | Selected `inline-guidance` as simplest adequate shape.                                                  |
+| `skills/vendor/skill-writer/references/layout-inline-skill.md`     | High  | Confirmed single-file runtime layout is appropriate.                                                    |
+| `skills/vendor/skill-writer/references/authoring-path.md`          | High  | Frontmatter, compact runtime guidance, and precision-pass requirements.                                 |
+| `skills/vendor/skill-writer/references/spec-template.md`           | High  | `SPEC.md` structure.                                                                                    |
+| `skills/vendor/skill-writer/references/registration-validation.md` | High  | Skill root convention and validation command.                                                           |
 
 ## Decisions
 
 | Decision                                                            | Status  | Rationale                                                                           |
 | ------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------- |
 | Name the skill `mise`                                               | adopted | User explicitly requested this name.                                                |
-| Maintain the skill in this repo under `skills/mise/`                | adopted | The AI config repo is now the source of truth for this skill.                       |
-| Install through skills.sh from the local `skills/` parent directory | adopted | `npx skills add <parent> --skill mise` discovers the skill reliably.                |
+| Maintain the skill in this repo under `skills/active/mise/`         | adopted | The AI config repo is now the source of truth for this skill.                       |
+| Install through skills.sh from `skills/active/` parent directory    | adopted | `npx skills add <parent> --skill mise` discovers the skill reliably.                |
 | Keep runtime guidance inline                                        | adopted | The requested behavior is slim command recall, not exhaustive documentation.        |
 | Add docs fallback instruction                                       | adopted | User requested lookup when more information is needed than the slim skill includes. |
 | Avoid bundled references                                            | adopted | No separate branch or lookup need exists yet.                                       |

@@ -42,7 +42,7 @@ Pick the direction that matches the invoking environment:
 - **Claude chair -> OpenCode gardener -> independent reviewer -> independent merger**: Claude writes the brief, dispatches OpenCode to garden and create the PR, dispatches a separate reviewer, then dispatches a separate merger for the final approve/deny decision.
 - **OpenCode chair/gardener -> independent reviewer -> independent merger**: OpenCode gardens and creates the PR, then dispatches separate Claude agents for review and merge decision.
 
-Use the best available model for each role. Default to OpenCode GPT-5.5 for the gardener when available, a general reviewer subagent on Claude Opus 4.8/high effort when available, and Claude Code `fable`/high effort for the merger when available. Treat those as defaults, not requirements. Record which agent/model performed each role.
+Use the best available model for each role. Default to OpenCode GPT-5.6 Luna at max effort for the gardener when available, a general reviewer subagent on Claude Opus 4.8/high effort when available, and Claude Code `fable`/high effort for the merger when available. Treat those as defaults, not requirements. Record which agent/model performed each role.
 
 The chair does not explore the codebase, choose the target, run verification, perform the merge-gate review, or make the final merge decision. Those belong to the gardener, reviewer, and merger.
 
@@ -74,7 +74,7 @@ Run one behavior-preserving garden pass in this repository. No user-specified ta
 Example OpenCode dispatch shape:
 
 ```bash
-opencode run "<garden brief>" -m openai/gpt-5.5 --variant high
+opencode run "<garden brief>" -m openai/gpt-5.6-luna --variant max
 ```
 
 Done when the gardener has the role instruction plus run-specific context, with no copied checklist from this skill.
@@ -201,7 +201,7 @@ git commit -m "refactor: tighten <area>"
 git push -u origin HEAD
 ```
 
-Load the `pr-writer` skill if available. If it is not enabled, read `skills/pr-writer/SKILL.md` or follow its reader-first doctrine: write for the reviewer, not as a changelog or test transcript.
+Load the `pr-writer` skill if available. If it is not enabled, follow its reader-first doctrine: write for the reviewer, not as a changelog or test transcript.
 
 Create or update a draft PR with `gh`. The PR body should say, in reader-first prose:
 

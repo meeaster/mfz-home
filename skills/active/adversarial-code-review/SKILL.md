@@ -1,12 +1,12 @@
 ---
 name: adversarial-code-review
-description: Adversarial code review — dispatch the current branch to a two-engine panel (Claude Opus + GPT-5.5), each running the thermo-nuclear review, then chair the merge into consensus/split findings. User-invoked.
+description: Adversarial code review — dispatch the current branch to a two-engine panel (Claude Opus + GPT-5.6 Sol), each running the thermo-nuclear review, then chair the merge into consensus/split findings. User-invoked.
 disable-model-invocation: true
 ---
 
 # Adversarial Code Review
 
-Run the current branch's changes past a **panel** of two independent engines — Claude Opus and GPT-5.5 — each loading the `thermo-nuclear-code-quality-review` skill, then **chair** the merge of their verdicts.
+Run the current branch's changes past a **panel** of two independent engines — Claude Opus and GPT-5.6 Sol — each loading the `thermo-nuclear-code-quality-review` skill, then **chair** the merge of their verdicts.
 
 You are the chair, not a third reviewer. You read the same case the panel did so you can weigh its findings — confirm, downgrade, or reject — instead of rubber-stamping two pasted reviews. Disagreement between the engines is the signal:
 
@@ -18,7 +18,8 @@ You are the chair, not a third reviewer. You read the same case the panel did so
 Resolve the base and capture the exact diff range both engines will review:
 
 ```bash
-git merge-base HEAD master
+BASE_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
+git merge-base HEAD "$BASE_BRANCH"
 ```
 
 Done when you have the range (base SHA `..HEAD`) and know it is non-empty.
@@ -28,15 +29,15 @@ Done when you have the range (base SHA `..HEAD`) and know it is non-empty.
 Launch both engines as **background** commands so they run concurrently while you read the case, each loading the thermo-nuclear skill by slash command and writing to its own file:
 
 ```bash
-claude -p "/thermo-nuclear-code-quality-review Review the current branch's diff against master." \
+claude -p "/thermo-nuclear-code-quality-review Review the current branch's diff against $(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')." \
   --model opus --effort high \
   --allowedTools "Read Grep Glob Bash(git *)" \
   --output-format text > /tmp/adv-review-opus.md 2>&1
 ```
 
 ```bash
-opencode run "/thermo-nuclear-code-quality-review Review the current branch's diff against master." \
-  -m openai/gpt-5.5 --variant high \
+opencode run "/thermo-nuclear-code-quality-review Review the current branch's diff against $(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')." \
+  -m openai/gpt-5.6-sol --variant high \
   --dangerously-skip-permissions > /tmp/adv-review-gpt.md 2>&1
 ```
 
@@ -62,7 +63,7 @@ Done when you hold both engines' full review text.
 
 Produce one merged report:
 
-- Classify **every** finding from both reviews as **consensus** or **split** (attribute split findings to Opus or GPT-5.5).
+- Classify **every** finding from both reviews as **consensus** or **split** (attribute split findings to Opus or GPT-5.6 Sol).
 - Adjudicate each against the case and the rubric you read: confirm it, downgrade it, or reject it with a reason. Do not pass through a finding you cannot stand behind.
 - Order surviving findings by the rubric's priority ranking (structural regressions first, legibility last) — do not invent a new ranking.
 - For each, give a concrete recommended change aligned with the rubric's remedies (delete indirection, decompose the file, isolate the branch behind an abstraction, reuse the canonical helper, etc.).
