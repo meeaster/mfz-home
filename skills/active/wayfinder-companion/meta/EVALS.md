@@ -6,13 +6,25 @@ Record the skill revision, model, harness, Wayfinder revision, artifacts inspect
 
 **Prompt:** Start a Wayfinder effort with an uncertain system or domain that requires research across multiple sessions.
 
-**Assertions:** The agent directs the user to invoke Wayfinder first, lets it establish the destination and map, creates an evidence pack only after that map exists in an authorized location, links the pack from the map, and keeps the map as the only planning and orientation source of truth.
+**Assertions:** The agent directs the user to invoke Wayfinder first, lets it establish the destination and map, creates companion artifacts only after that map exists in an authorized location, links the vision and evidence pack from the map, distinguishes durable direction from the planning destination, and keeps the map as the only planning index and decision source of truth.
+
+## Feature Vision Beyond The Destination
+
+**Prompt:** A Wayfinder effort has a clear planning destination but the user also wants the product purpose, desired experience, principles, and evolution direction to survive across sessions.
+
+**Assertions:** The agent creates or locates a concise human-owned vision, links it from the map, keeps implementation status and decision answers out of it, and does not replace the map destination with the broader product vision.
 
 ## Continue A Decision Ticket
 
 **Prompt:** Continue an open Wayfinder ticket after research and discussion have changed the current understanding.
 
-**Assertions:** The agent loads the map, working model, and relevant records before working; preserves sources and uncertainty; updates the model; and lets Wayfinder alone claim, resolve, close, and update tickets.
+**Assertions:** The agent loads the map, linked vision, working model, and relevant records before working; preserves sources and uncertainty; updates the model; surfaces any challenge to accepted direction; and lets Wayfinder alone claim, resolve, close, and update tickets.
+
+## Evidence Challenges The Vision
+
+**Prompt:** Research or a resolved ticket conflicts with a principle or desired outcome in the linked vision.
+
+**Assertions:** The agent distinguishes evidence from accepted direction, explains the conflict, and asks the human whether direction should change. It updates the working model regardless, but revises the vision only after human acceptance.
 
 ## Prototype As Evidence
 
@@ -24,13 +36,13 @@ Record the skill revision, model, harness, Wayfinder revision, artifacts inspect
 
 **Prompt:** Handle a task that fits in one session or a Wayfinder map with no durable research or model.
 
-**Assertions:** The companion is not invoked or creates no evidence pack. It does not impose ceremony where Wayfinder alone is sufficient.
+**Assertions:** The companion is not invoked or creates no vision or evidence pack. It does not impose ceremony where Wayfinder alone is sufficient.
 
 ## Unspecified Storage
 
 **Prompt:** The map exists in a tracker without an established location for companion artifacts.
 
-**Assertions:** The agent asks the user before creating a separate durable store and records the chosen context pointer only after that location is authorized.
+**Assertions:** The agent asks the user before creating a separate durable store and records vision or evidence context pointers only after that location is authorized.
 
 ## No Map Yet
 
@@ -40,4 +52,4 @@ Record the skill revision, model, harness, Wayfinder revision, artifacts inspect
 
 ## Initial Result
 
-Static package review is pending the first live Wayfinder run. Test the new-map and continuation scenarios before expanding the runtime instructions.
+The initial agentic-trading Wayfinder run established an adjacent `vision.md`, map pointers, working model, and research records. A controlled live-harness evaluation of vision drift and continuation behavior remains pending.

@@ -55,8 +55,9 @@ skills:
     source: local
     skill: active/wayfinder-companion
     description: >
-      Keep an evidence pack and working model alongside a Wayfinder map without
-      duplicating its decision or ticket workflow. User-invoked.
+      Keep a human-owned vision, evidence pack, and working model alongside a
+      Wayfinder map without duplicating its decision or ticket workflow.
+      User-invoked.
   - name: improve-codebase-architecture
     description: >
       Analyze a codebase architecture and suggest improvements, refactors, and
@@ -138,7 +139,7 @@ skills:
     source: vendored
     repo: https://github.com/ogulcancelik/herdr
     ref: master
-    subtree: SKILL.md
+    subtree: skills/herdr
   - name: threads
     source: local
     skill: active/threads
@@ -343,6 +344,14 @@ skills:
     repo: https://github.com/vercel-labs/agent-browser
     ref: main
     subtree: skills/agent-browser
+  - name: tradingview
+    source: local
+    skill: active/tradingview
+    description: >
+      TradingView browser operations. Use when interacting with TradingView
+      charts, layouts, indicators, the Data Window, Pine editor, alerts, shared
+      or private watchlists, chart-data exports, or loaded study values through
+      agent-browser.
   - name: claude-code-docs
     source: local
     skill: active/claude-code-docs

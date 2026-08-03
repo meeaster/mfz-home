@@ -2,6 +2,11 @@
 
 - Put temporary research, experiments, and other scratch work under `/home/mark/workspace/scratch/` and follow its local instructions. Use a different location when the user names one.
 
+# Wayfinder Planning
+
+- Store Personal Wayfinder maps, decision tickets, and companion evidence packs under `/home/mark/workspace/specs/workspace-specs/wayfinder/<effort>/` by default. Use this local Markdown store instead of GitHub issues, `.scratch/`, or another tracker unless the user names a different location.
+- Keep each effort's human-owned `vision.md`, `map.md`, `issues/`, and companion `evidence/` together under its Wayfinder directory, and treat `workspace-specs` as the owning Git repository.
+
 # Personal Mindframe-Z Home
 
 - Authoritative home path: `/home/mark/workspace/repos/mindframe-z-personal-home`.

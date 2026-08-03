@@ -28,6 +28,8 @@ thread:
 skills:
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
+  tradingview:
+    agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
     agents: { opencode: false, claude-code: false, codex: false }
   thermo-nuclear-code-quality-review:

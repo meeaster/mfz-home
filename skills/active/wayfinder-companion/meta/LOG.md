@@ -10,3 +10,10 @@
 - Chose a manual handshake instead of peer-skill loading so the companion never implies it can execute Wayfinder's user-invoked map workflow by itself.
 - Kept the map as the only orientation index after confirming that the local-map convention already provides the adjacent research and working-model layer; the companion must not add a second README.
 - Enabled Wayfinder's `grilling` and `domain-modeling` peers in the shared profile so its charting path is available wherever the companion is available.
+
+## 2026-08-02 - Add Human-Owned Vision
+
+- Expanded the companion from evidence-only context to a three-authority model: vision for durable human direction, Wayfinder map and tickets for planning decisions, and the evidence pack for source-grounded understanding.
+- Kept the map as the sole planning index by linking the vision from `## Notes` rather than copying product intent into the destination or decisions list.
+- Required human acceptance before evidence or implementation drift may revise the vision.
+- Added evaluation scenarios for feature vision creation and evidence that challenges accepted direction.
