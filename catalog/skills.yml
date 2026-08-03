@@ -51,6 +51,12 @@ skills:
     repo: https://github.com/mattpocock/skills
     ref: main
     subtree: skills/engineering/wayfinder
+  - name: wayfinder-companion
+    source: local
+    skill: active/wayfinder-companion
+    description: >
+      Keep an evidence pack and working model alongside a Wayfinder map without
+      duplicating its decision or ticket workflow. User-invoked.
   - name: improve-codebase-architecture
     description: >
       Analyze a codebase architecture and suggest improvements, refactors, and

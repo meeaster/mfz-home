@@ -89,17 +89,19 @@ skills:
   grill-me:
     agents: { opencode: false, claude-code: false, codex: false }
   grilling:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
   batch-grill-me:
     agents: { opencode: true, claude-code: true, codex: true }
   to-spec:
     agents: { opencode: false, claude-code: false, codex: false }
   wayfinder:
     agents: { opencode: true, claude-code: true, codex: true }
+  wayfinder-companion:
+    agents: { opencode: true, claude-code: true, codex: true }
   improve-codebase-architecture:
     agents: { opencode: false, claude-code: false, codex: false }
   domain-modeling:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
   qmd:
     agents: { opencode: false, claude-code: false, codex: false }
   openai-docs:
