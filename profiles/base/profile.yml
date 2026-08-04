@@ -15,6 +15,7 @@ references:
   - codex
   - openai-skills
   - openai-plugins
+  - eve
   - deep-swe
   - openwiki
 thread:

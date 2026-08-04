@@ -2,17 +2,17 @@
 
 ## Problem
 
-Wayfinder deliberately keeps its map small and its decisions in tickets. Complex efforts also need durable human direction plus evidence, hypotheses, alternatives, and experiments that survive across sessions without becoming a competing planning system.
+Wayfinder deliberately keeps its map small and its decisions in tickets. Complex efforts also need durable human direction, source research, experiment learning, and a changing explanation of the system that survive across sessions without becoming a competing planning system.
 
 ## Intended Behavior
 
-Wayfinder Companion adds a human-owned vision and compact evidence pack around an existing Wayfinder effort. The vision preserves the future worth reaching, while the pack contains source-grounded research, a working model that separates facts from hypotheses and alternatives, and links to experiments. The Wayfinder map remains the planning index and decision source of truth.
+Wayfinder Companion adds optional durable context around an existing Wayfinder effort. The vision preserves the future worth reaching. Adjacent source research, experiment readouts, and a working model preserve why a current explanation is credible, what a prototype established, and what remains uncertain. A decision brief gives a user-designated forum a reader-ready synthesis without replacing its ticket. Wayfinder's map remains the low-resolution planning index; each ticket retains authoritative decision detail.
 
-The companion is intentionally user-invoked and generic. It joins a Wayfinder map through a manual handshake and adds intent and evidence layers; Wayfinder remains required whenever ticket lifecycle work occurs. The human owns vision changes, durable storage locations, and HITL decisions. The companion does not assume a tracker, repository, workspace, project, or knowledge system.
+The companion is intentionally user-invoked and generic. It joins a Wayfinder map through a manual handshake and adds intent and context layers; Wayfinder remains required whenever ticket lifecycle work occurs. The human owns vision changes, durable storage locations, HITL decisions, and the choice to convene a decision forum or create its brief. A human-designated forum helps the user collect shared input through an existing Wayfinder grilling ticket without creating a parallel process. The companion does not assume a tracker, repository, workspace, project, or knowledge system.
 
 ## Success
 
-A future session can load the map, human-owned vision, and a small evidence pack to understand both intended direction and the current model, trace important claims to sources, find experiments, and continue one decision without redoing prior exploration. The map remains the sole planning index and each decision remains in its ticket.
+A future session can load the map and relevant companion artifacts to understand intended direction, trace important claims to sources or experiments, see the current model, and continue one decision without redoing prior exploration. The map remains the sole planning index and each decision remains in its ticket.
 
 ## Non-Goals
 
