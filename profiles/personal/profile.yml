@@ -25,14 +25,13 @@ references:
   - deepagentsjs
   - vercel-ai
   - eve
-  - buzz
 extra_folders:
   - path: /home/mark/workspace/specs/workspace-specs
-    description: Machine-wide OpenSpec store for cross-project change proposals, specifications, and task ledgers — needed when planning or implementing workspace work
+    description: Machine-wide OpenSpec store for cross-project proposals, specifications, and task ledgers.
   - path: /home/mark/workspace/knowledge/personal-knowledge
-    description: Private Personal knowledge containing accepted wiki synthesis, reasoned Practices, Session Capture boundary guidance, retrospective thread evidence, and work-unit continuity context
+    description: "Private Personal knowledge: accepted synthesis, Practices, Session Capture boundaries, threads, and work-unit context."
   - path: /home/mark/workspace/knowledge/personal-sources
-    description: Private Personal source evidence containing immutable voice notes and canonical append-only Session Captures
+    description: "Private Personal source evidence: immutable voice notes and canonical append-only Session Captures."
 skills:
   tradingview:
     agents: { opencode: true, claude-code: true, codex: true }

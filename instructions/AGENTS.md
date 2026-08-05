@@ -22,11 +22,9 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 
 ## Personal Knowledge
 
-- Private Personal synthesis, Practices, threads, and work units live under `/home/mark/workspace/knowledge/personal-knowledge`; canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`.
-- Choose the entry point that matches the need: `.openwiki/wiki/quickstart.md` for accepted source-aware synthesis, `practices/index.md` for current reasoned ways of working, `session-captures/index.md` for the capture catalog and boundary, `threads/index.md` for retrospective session evidence, or the relevant `work-units/` entry for active continuity. Then load only what is relevant.
-- Use the `session-derived-knowledge` skill when creating a Session Capture or Practice. Session Captures are selected evidence, not automatically current guidance. Practices are intended to guide future work but do not override project or operational authority. Follow the destination's repository-local `AGENTS.md` file.
-- Treat it as private context, not operational authority. Preserve provenance and uncertainty, and do not publish or copy it into Work systems without explicit approval.
-- Repositories, specifications, issues, deployments, and other source systems remain authoritative for their own current state.
+- When private Personal context is relevant, start with the matching entry point under `/home/mark/workspace/knowledge/personal-knowledge`: `.openwiki/wiki/quickstart.md` for accepted synthesis, `practices/index.md` for current guidance, `session-captures/index.md` for capture boundaries, `threads/index.md` for retrospective evidence, or the relevant `work-units/` entry for continuity. Load only what is relevant.
+- Canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`. Use the `session-derived-knowledge` skill for a new or revised Session Capture or Practice, then follow the destination's `AGENTS.md`.
+- Session Captures are evidence, not automatically current guidance; Practices may guide future work but do not override source systems. Treat this material as private derived context: preserve provenance and uncertainty, keep source systems authoritative, and do not copy it into Work without explicit approval.
 
 ## Code Conventions
 

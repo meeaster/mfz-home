@@ -18,6 +18,7 @@ references:
   - eve
   - deep-swe
   - openwiki
+  - buzz
 thread:
   defaults:
     synthesize: claude-code:sonnet@max
@@ -246,6 +247,6 @@ claude:
 
 extra_folders:
   - path: ~/.mindframe-z
-    description: mindframe-z configuration and generated indexes — needed when looking up references, reading machine config, or inspecting extra folder permissions
+    description: mindframe-z configuration and generated indexes.
   - path: ~/.agent/diagrams
-    description: Agent diagram files and exports — needed for reviewing and updating local workflow diagrams
+    description: Agent diagram files and exports.

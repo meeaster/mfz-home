@@ -9,10 +9,5 @@
 
 # Personal Mindframe-Z Home
 
-- Authoritative home path: `/home/mark/workspace/repos/mindframe-z-personal-home`.
-- Personal profile: `/home/mark/workspace/repos/mindframe-z-personal-home/profiles/personal/profile.yml`.
-- Shared base profile: `/home/mark/workspace/repos/mindframe-z-personal-home/profiles/base/profile.yml`.
-- This home contains profiles, catalogs, agent instructions, skills, OpenCode assets, and dotfiles/tooling. Durable Personal wiki synthesis, Practices, threads, work units, and Session Capture boundary guidance live under `/home/mark/workspace/knowledge/personal-knowledge`; canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`.
-- When the user explicitly asks to modify their personal Mindframe-Z home or profile, use this repository as the source of truth.
-- After changing it, run `mfz apply --target all --agent all`.
-- Do not edit rendered output under `~/.mindframe-z/configs/` directly.
+- For changes to the Personal Mindframe-Z home or profile, work in `/home/mark/workspace/repos/mfz-home` and follow its `AGENTS.md`.
+- The Personal profile extends `base`; put shared behavior in `base` and Personal-only configuration in `personal`.
