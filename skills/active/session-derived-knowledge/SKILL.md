@@ -9,6 +9,11 @@ Extract the useful result of an AI session into a durable artifact that supports
 future work without making the session a routine dependency. Preserve selected
 knowledge rather than reproducing the interaction.
 
+Load `context-transfer` before shaping the artifact. It owns the intended
+consumer, destination context, accessible dependencies, level of detail, and
+proportional references. This skill owns session evidence, form selection, and
+the session-independence floor.
+
 ## 1. Establish The Request
 
 Confirm that the user wants durable preservation, not merely a session summary,
@@ -63,40 +68,39 @@ observed outcomes, or direct judgment. Distinguish:
 - observed outcomes;
 - uncertainty and unresolved questions.
 
-Retain exact wording only where it carries continuing value. Preserve safe,
-portable provenance when available, while following the destination's privacy
-and authority boundaries. Do not imply that the extracted material is complete
-or independently corroborated.
+Retain exact wording only where it carries continuing value. Preserve safe
+provenance when it remains useful under the transfer contract, while following
+the destination's privacy and authority boundaries. Do not imply that the
+extracted material is complete or independently corroborated.
 
 **Done when:** every consequential claim has an appropriate evidence state and
 the extraction does not overstate the source.
 
-## 4. Apply The Portability Contract
+## 4. Enforce Session Independence
 
-Make the artifact:
+Apply the transfer contract, then require this additional durability floor:
 
-- **Self-contained:** ordinary use requires no transcript.
+- **Session-independent:** ordinary use requires no transcript or hidden
+  conversational context.
 - **Reasoned:** conclusions retain their important rationale.
 - **Evidence-aware:** exact excerpts and references remain where useful.
 - **Stateful:** accepted guidance is distinguishable from proposals.
 - **Revisable:** assumptions and reconsideration triggers are explicit.
 - **Historical:** meaningful changes explain what was superseded and why.
-- **Portable:** content does not depend on one agent harness or machine.
+- **Harness-independent:** content does not require one agent harness or its
+  private runtime state.
 - **Bounded:** irrelevant session material is excluded.
 
-Portability is not losslessness. The original session may remain an escalation
-path for audit, exact attribution, or unanticipated questions. A fresh reader
-given only the artifact should be able to explain what is understood or
-recommended, why, what remains uncertain, and how new evidence could revise it.
+Session independence is not losslessness or global self-containment. The original
+session may remain an optional escalation path for audit, exact attribution, or
+unanticipated questions. Other intentional dependencies may remain when the
+transfer contract guarantees them. A fresh intended consumer given the artifact,
+its host context, and its declared accessible references should be able to
+explain what is understood or recommended, why, what remains uncertain, and how
+new evidence could revise it.
 
-When a named project, document, skill, or framework materially informs the
-artifact, provide a canonical locator, the specific source and version when
-behavior is version-sensitive, and enough context to explain its relevance. A
-machine-local path may supplement those references but cannot be the only
-locator.
-
-**Done when:** ordinary continuation succeeds from the artifact alone and every
-remaining dependency is an intentional escalation path.
+**Done when:** ordinary continuation does not require the source session and
+every remaining dependency is deliberate under the transfer contract.
 
 ## 5. Shape The Artifact
 

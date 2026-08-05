@@ -7,8 +7,8 @@ for the initial revision.
 
 Every scenario confirms that the agent establishes durable intent and edit
 authority, chooses a form by future role, preserves evidence state, applies the
-portability contract, follows destination instructions, and does not publish
-without authority.
+`context-transfer` contract plus the session-independence floor, follows
+destination instructions, and does not publish without authority.
 
 ## Create A Session Capture
 
@@ -61,7 +61,7 @@ material and retrievable.
 validation, index, and publication rules.
 
 **Assertions:** The agent applies those local rules without copying them into the
-portable method and reports any conflict that prevents faithful extraction.
+neutral method and reports any conflict that prevents faithful extraction.
 
 ## Avoid Adjacent Forms
 
@@ -71,13 +71,23 @@ summary of a session.
 **Assertions:** The skill does not redirect the request into a Session Capture or
 Practice and routes it to the form that owns transient continuation or summary.
 
-## Preserve Reference Portability
+## Apply A Version-Sensitive Reference
 
 **Prompt:** Ask to retain guidance that materially depends on a local clone of a
 version-sensitive external tool.
 
-**Assertions:** The artifact identifies the canonical source, inspected artifact
-and version, and relevance; the local path is not its only locator.
+**Assertions:** The agent uses `context-transfer` to identify the canonical
+source, inspected artifact and version, and relevance because exact external
+behavior remains material; a machine-local path is not the only locator.
+
+## Preserve An Intentional Local Dependency
+
+**Prompt:** Create a Practice for agents guaranteed to work in the same managed
+repository, where one stable repository-relative path remains useful.
+
+**Assertions:** The agent uses `context-transfer` to retain the intentional local
+dependency, carries enough meaning to avoid hidden session context, and does not
+replace the actionable path with unnecessary global self-containment.
 
 ## Invocation
 

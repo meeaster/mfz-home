@@ -78,6 +78,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
+  context-transfer:
+    agents: { opencode: true, claude-code: true, codex: true }
   session-derived-knowledge:
     agents: { opencode: true, claude-code: true, codex: true }
   vision-steward:

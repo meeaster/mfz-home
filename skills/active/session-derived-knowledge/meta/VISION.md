@@ -13,14 +13,15 @@ for extracting durable knowledge.
 Session-Derived Knowledge guides an agent from an explicit preservation request
 to either a selected Session Capture or a maintained Practice. It distinguishes
 those forms by future role, preserves evidence state and uncertainty, applies a
-session-independent portability contract, and defers storage and publication
-mechanics to the destination.
+session-independence floor, and defers consumer and destination portability to
+`context-transfer` and storage and publication mechanics to the destination.
 
 ## Portability
 
-The skill has no required repository layout, private knowledge system, machine
-path, agent harness, session API, schema, or publication command. Destination
-instructions adapt its neutral method to local artifact names and rules.
+The skill depends on the portable `context-transfer` behavior but has no required
+repository layout, private knowledge system, machine path, agent harness, session
+API, schema, or publication command. Destination instructions adapt its neutral
+method to local artifact names and rules.
 
 ## Success
 
@@ -36,5 +37,7 @@ lives.
   specifications.
 - Defining repository-specific schemas, paths, privacy boundaries, or publication
   workflows.
+- Defining the intended consumer, destination context, or proportional-reference
+  policy owned by `context-transfer`.
 - Treating a capture as a required precursor to maintained guidance.
 - Committing, publishing, or accepting knowledge without user authority.

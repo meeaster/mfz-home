@@ -170,6 +170,16 @@ skills:
     description: >
       Design, create, revise, review, or evaluate an agent skill as a
       behavior-driven package. User-invoked.
+  - name: context-transfer
+    source: local
+    skill: active/context-transfer
+    description: >
+      Preserve meaning when context moves into an artifact for a different
+      consumer or environment. Use when creating or revising content for a
+      consumer who will not share all of the current conversation, workspace,
+      access, or assumptions, or when another skill needs to decide what must
+      cross that boundary. When an artifact-specific skill applies, keep it
+      primary and use this only as its context lens.
   - name: session-derived-knowledge
     source: local
     skill: active/session-derived-knowledge
