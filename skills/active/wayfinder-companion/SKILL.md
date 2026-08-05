@@ -1,21 +1,21 @@
 ---
 name: wayfinder-companion
-description: Keep a human-owned vision, source research, experiment readouts, and a working model alongside a Wayfinder map. User-invoked.
+description: Keep human direction, current thinking, evidence, and a working model alongside a Wayfinder map. User-invoked.
 disable-model-invocation: true
 argument-hint: "An idea, map, or ticket to orient and preserve"
 ---
 
 # Wayfinder Companion
 
-Wayfinder owns the route: its map is the low-resolution planning index, and its tickets hold authoritative decision detail. This companion keeps optional durable context around that effort: a human-owned **vision**, source research, experiment readouts, and a changing **working model**.
+Wayfinder owns the route: its map is the low-resolution planning index, and its tickets hold authoritative decision detail. This companion keeps optional durable context around that effort: human-owned **vision**, current human **thinking**, source research, experiment readouts, and a changing **working model**.
 
-Use it when starting or continuing a Wayfinder effort that needs durable intent or evidence beyond its decision tickets. Do not use it for a one-session task or an effort whose map needs neither.
+Use it when starting or continuing a Wayfinder effort that needs durable direction, current perspective, or evidence beyond its decision tickets. Do not use it for a one-session task or an effort whose map needs neither.
 
 ## 1. Join A Wayfinder Effort
 
 This companion has a manual handshake with Wayfinder:
 
-- **Start:** invoke Wayfinder first to name the destination and chart the map. Then invoke this companion with that map to establish its durable vision and evidence context.
+- **Start:** invoke Wayfinder first to name the destination and chart the map. Then invoke this companion with that map to establish only the needed vision, human-perspective, and evidence context.
 - **Continue:** load the map and any linked companion artifacts relevant to the question; invoke Wayfinder again before claiming, resolving, or otherwise advancing a ticket.
 
 If no map exists, direct the user to invoke Wayfinder and stop. Do not create companion artifacts before a map exists.
@@ -26,7 +26,7 @@ Done when the vision is the source of durable human direction, Wayfinder owns th
 
 ## 2. Create Or Locate Companion Artifacts
 
-Use an existing, authorized durable location. Keep companion artifacts adjacent to the map only when the tracker or local-map convention already supplies that location; otherwise ask the user before creating a separate store. Add concise context pointers to the map's `## Notes` section so future sessions can find active artifacts without turning the map into a catalog.
+Use an existing, authorized durable location. Keep companion artifacts adjacent to the map only when the tracker or local-map convention already supplies that location; otherwise ask the user before creating a separate store. For every artifact you create, add a concise context pointer to the map's `## Notes` section or its owning companion artifact. State what it is, when an agent should load it, and which artifact retains authority. Keep routine orientation pointers on the map; disclose deep evidence and history only when their conditions fire.
 
 Locate an existing human-owned vision before creating one. When the effort has durable product or feature direction that is broader than the map's planning destination, create the smallest vision artifact that preserves the accepted north star, desired outcome, principles, authority boundaries, evolution direction, and non-goals. Resolve consequential ambiguity with the human. Keep implementation plans, ticket state, framework inventory, and current status in their owning artifacts rather than the vision.
 
@@ -42,6 +42,8 @@ For a local Markdown tracker, use the tracker convention. A companion-capable in
     closed/
   decision-briefs/   # optional: first reader-ready forum brief
   vision.md          # optional: first durable direction need
+  current-thinking.md # optional: first current human-perspective need
+  thinking-log.md    # optional: first retrievable thought-shift need
   working-model.md   # optional: first synthesis need
   research/          # optional: first source-research record
   experiments/       # optional: first prototype or experiment readout
@@ -49,29 +51,37 @@ For a local Markdown tracker, use the tracker convention. A companion-capable in
 
 Create companion artifacts only when their first record is needed. The adjacent companion artifacts provide durable context without an additional wrapper directory, initiative README, or status board.
 
+Choose an artifact by authority: accepted human direction belongs in the vision; current human perspective belongs in current thinking; source-derived facts belong in research; prototype learning belongs in experiments; the current explanation belongs in the working model; a reader-ready forum synthesis belongs in a decision brief; a question or accepted decision belongs in Wayfinder.
+
 Each artifact has a distinct job:
 
 - A decision brief is a standalone, reader-ready synthesis for one user-designated forum. It supports the ticket but never replaces its decision detail or lifecycle.
+- Current thinking is a compact, rewrite-in-place record of the user's explicitly stated present leanings, live forks, concerns, and what could change their mind. Create it when a future agent needs to recover that stance; load it when orienting to the user's current perspective or proposing a direction. It is provisional human perspective, while Wayfinder decisions and research retain their own authority.
+- A thinking log is a concise, append-only history of meaningful user thought shifts. Create it only when a shift needs future retrieval; load only entries linked from current thinking or when the user asks why a direction changed. Each entry links to its supporting session, research, experiment, or decision record.
 - The working model is the current synthesis of established facts, constraints, candidate shape, meaningful alternatives, uncertainty, and implications. It is neither a target-state document nor a status board.
 - Research records capture what existing source code, documentation, systems, or other sources establish: their question or scope, source locators, observations, interpretation, uncertainty, and related map or ticket links.
 - Experiment readouts capture what a bounded prototype or test established: its hypothesis, linked ticket and artifact, method, observations, limits, and changes to the working model. The prototype source stays in its owning repository or worktree.
 
-Do not copy the destination, frontier, ticket status, decision answers, or scope boundaries into companion artifacts. Link to the Wayfinder artifact that owns each of them.
+Keep the destination, frontier, ticket status, decision answers, and scope boundaries in Wayfinder; companion artifacts link to the owning map or ticket.
 
-Done when a fresh session can load the map and relevant companion artifacts, then selectively open evidence without reopening every source.
+Done when a fresh session can load the map, recover current human perspective when needed, and selectively open history or evidence without reopening every source.
 
 ## 3. Work A Ticket With Evidence
 
-At the start of a ticket session, load the map, any linked vision, working model, and decision brief, and only the relevant research or experiment records. Claim and resolve the ticket exactly as Wayfinder directs.
+At the start of a ticket session, load the map, any linked vision, working model, and decision brief. Load current thinking when the user's present stance shapes the question or next direction; load only the relevant research, experiment, or linked thinking-log entry. Claim and resolve the ticket exactly as Wayfinder directs.
 
 As evidence changes:
 
 - preserve the source and its confidence boundary in a research record;
 - create an experiment readout when a prototype produces reusable learning, then update the working model if that learning changes the current explanation;
 - update the working model when the evidence changes the current explanation;
+- rewrite current thinking when the user explicitly states a new or revised perspective; present a proposed distillation for confirmation when attribution is uncertain;
+- append a thinking-log entry only for a meaningful new fork, reversal, or thought shift, linking the evidence or decision that made it retrievable;
 - surface evidence or decisions that challenge the vision, and revise the vision only when the human accepts a change in direction;
 - explain meaningful alternatives and how each would change the model before asking the human to choose;
 - surface newly precise decisions through Wayfinder's tickets or fog, not through a checklist in companion context.
+
+Place agent recommendations under a clearly labeled recommendation in the working model, decision brief, or ticket. Reserve current thinking for the user's stated perspective.
 
 When a question needs a concrete artifact, let Wayfinder designate a prototype ticket and use the appropriate prototype behavior. Follow the active effort's isolation guidance; if none exists, ask the user before creating mutable code. Link the artifact from the ticket and relevant experiment readout or working model, and record what it taught the model.
 
@@ -88,10 +98,10 @@ Done when the ticket's answer has the needed evidence behind it, the model refle
 
 ## 4. Close The Loop
 
-Before Wayfinder records a resolution, make changed research, experiment readouts, model, vision, decision brief, and asset links durable. Revise the vision only when the resolution intentionally changes accepted direction. If a decision brief exists, link its concise outcome to the authoritative ticket resolution. Then let Wayfinder post the resolution, close the ticket, update the map, and graduate or rule out follow-on work.
+Before Wayfinder records a resolution, make changed research, experiment readouts, model, vision, decision brief, and asset links durable. Revise current thinking so resolved forks no longer read as active, and retain a linked thinking-log entry when the shift merits later retrieval. Revise the vision only when the resolution intentionally changes accepted direction. If a decision brief exists, link its concise outcome to the authoritative ticket resolution. Then let Wayfinder post the resolution, close the ticket, update the map, and graduate or rule out follow-on work.
 
 Every closed in-scope ticket, including research and prototype tickets, receives one linked gist in the map's `## Decisions so far`. An out-of-scope ticket follows Wayfinder's `## Out of scope` treatment instead.
 
-Leave the effort orientation-ready: the map points to its active companion context, the vision remains durable intent rather than status, and the model distinguishes evidence, hypotheses, and unresolved alternatives. Use a separate handoff only when the user needs a narrative beyond that durable context.
+Leave the effort orientation-ready: the map points to its active companion context, current thinking reflects the user's live stance, the vision remains durable intent rather than status, and the model distinguishes evidence, hypotheses, and unresolved alternatives. Use a separate handoff only when the user needs a narrative beyond that durable context.
 
 Done when the next Wayfinder session can resume from the map and relevant companion artifacts without reconstructing prior intent or exploration.

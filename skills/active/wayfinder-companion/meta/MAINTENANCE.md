@@ -6,13 +6,13 @@ Wayfinder is the sole functional dependency. Both skills are user-invoked, so th
 
 ## Boundary Check
 
-On every revision, verify that the runtime instructions leave destination definition, frontier selection, ticket claims, blocking, resolution, map updates, and scope handling to Wayfinder. The map is its low-resolution index and tickets retain decision detail. Verify separately that the vision owns durable human direction without becoming a roadmap or map copy, and that research, experiments, and the working model preserve context without restating a parallel planning system.
+On every revision, verify that the runtime instructions leave destination definition, frontier selection, ticket claims, blocking, resolution, map updates, and scope handling to Wayfinder. The map is its low-resolution index and tickets retain decision detail. Verify separately that the vision owns durable human direction, current thinking owns explicitly stated provisional human perspective, and research, experiments, and the working model preserve context without restating a parallel planning system.
 
-For a local Markdown convention, verify that companion artifacts remain optional and adjacent to the map, research and experiment provenance remain distinct, and prototype source stays in its owning repository or worktree. A human-designated decision forum prepares an existing Wayfinder grilling ticket for shared input; its optional decision brief remains a reader-ready supporting asset, not a new ticket type, decision source, or status board. The user manages participation and buy-off outside companion artifacts.
+For a local Markdown convention, verify that companion artifacts remain optional and adjacent to the map, research and experiment provenance remain distinct, and prototype source stays in its owning repository or worktree. Current thinking remains concise and rewrite-in-place; its optional thinking log records only meaningful shifts and links to supporting evidence or decisions. A human-designated decision forum prepares an existing Wayfinder grilling ticket for shared input; its optional decision brief remains a reader-ready supporting asset, not a new ticket type, decision source, or status board. The user manages participation and buy-off outside companion artifacts.
 
 ## Portability
 
-Keep paths, tracker details, repository names, projects, and storage systems out of the package. The active effort chooses an authorized durable location at runtime. Reuse an existing human-owned vision when one governs the effort; create an adjacent feature vision only when durable direction would otherwise be implicit. Keep the skill user-invoked unless a deliberate invocation-policy change is evaluated separately.
+Keep paths, tracker details, repository names, projects, and storage systems out of the package. The active effort chooses an authorized durable location at runtime. Reuse an existing human-owned vision when one governs the effort; create an adjacent feature vision only when durable direction would otherwise be implicit. Context pointers must name the artifact, its load condition, and its authority boundary, while deep history and evidence remain selectively disclosed. Keep the skill user-invoked unless a deliberate invocation-policy change is evaluated separately.
 
 ## Change Procedure
 

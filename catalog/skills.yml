@@ -46,10 +46,9 @@ skills:
     source: local
     skill: active/wayfinder-companion
     description: >
-      Keep a human-owned vision, research and experiment evidence, and a working
-      model alongside a Wayfinder map, with optional decision briefs for
-      user-designated forums, without duplicating its decision or ticket workflow.
-      User-invoked.
+      Keep human direction, current thinking, evidence, and a working model
+      alongside a Wayfinder map, with optional decision briefs for user-designated
+      forums, without duplicating its decision or ticket workflow. User-invoked.
   - name: improve-codebase-architecture
     description: >
       Analyze a codebase architecture and suggest improvements, refactors, and

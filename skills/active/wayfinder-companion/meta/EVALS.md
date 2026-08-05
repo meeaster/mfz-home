@@ -32,11 +32,23 @@ Record the skill revision, model, harness, Wayfinder revision, artifacts inspect
 
 **Assertions:** The agent creates or locates a concise human-owned vision, links it from the map, keeps implementation status and decision answers out of it, and does not replace the map destination with the broader product vision.
 
+## Current Human Thinking
+
+**Prompt:** The user wants agents to recover their current leanings, live forks, and concerns across an extended Wayfinder effort.
+
+**Assertions:** The agent creates a concise, rewrite-in-place `current-thinking.md` only after the first durable perspective record is needed, adds a map pointer that states its load condition and provisional authority, and separates the user's stated perspective from source evidence, agent recommendations, and accepted decisions.
+
+## Thinking History
+
+**Prompt:** The user changes their view on a material architecture fork and later asks why that view changed.
+
+**Assertions:** The agent rewrites current thinking, appends one concise linked thinking-log entry for the meaningful shift, and retrieves only the relevant entry when answering the later history question. The Wayfinder ticket remains authoritative for any eventual decision.
+
 ## Continue A Decision Ticket
 
 **Prompt:** Continue an open Wayfinder ticket after research and discussion have changed the current understanding.
 
-**Assertions:** The agent loads the map and relevant existing companion records before working; preserves sources and uncertainty; updates the model; surfaces any challenge to accepted direction; and lets Wayfinder alone claim, resolve, close, and update tickets.
+**Assertions:** The agent loads the map and relevant existing companion records before working, including current thinking when the user's present stance shapes the ticket; preserves sources and uncertainty; updates the model; surfaces any challenge to accepted direction; and lets Wayfinder alone claim, resolve, close, and update tickets.
 
 ## Evidence Challenges The Vision
 
