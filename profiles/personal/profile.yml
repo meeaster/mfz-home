@@ -27,8 +27,6 @@ references:
   - eve
   - buzz
 extra_folders:
-  - path: /tmp/compound-engineering
-    description: Compound Engineering temporary scratch files for brainstorm grounding and repository profiles
   - path: /home/mark/workspace/specs/workspace-specs
     description: Machine-wide OpenSpec store for cross-project change proposals, specifications, and task ledgers — needed when planning or implementing workspace work
   - path: /home/mark/workspace/knowledge/personal-knowledge

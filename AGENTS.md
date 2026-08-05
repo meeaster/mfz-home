@@ -48,7 +48,7 @@ This repo is a mindframe-z home: declarative configuration for AI coding agents,
 ## Local Context
 
 - Reference repos are cloned under `/home/mark/workspace/references/`; treat them as read-only.
-- Extra configured folders are `~/.mindframe-z`, `~/.agent/diagrams`, `/tmp/compound-engineering`, `/home/mark/workspace/specs/workspace-specs`, `/home/mark/workspace/knowledge/personal-knowledge`, and `/home/mark/workspace/knowledge/personal-sources`.
+- Extra configured folders are `~/.mindframe-z`, `~/.agent/diagrams`, `/home/mark/workspace/specs/workspace-specs`, `/home/mark/workspace/knowledge/personal-knowledge`, and `/home/mark/workspace/knowledge/personal-sources`.
 - Base OpenCode permissions deny `~/.aws/**` reads and token-shaped bash commands; personal profile denies read/edit of `~/.xurl`.
 
 <!-- mfz:home-guidance:begin -->
