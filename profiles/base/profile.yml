@@ -7,16 +7,11 @@ references:
   - openspec
   - mise
   - herdr
-  - vercel-skills
-  - agent-vault
   - executor
   - mattpocock-skills
-  - dd-apm-test-agent
   - codex
   - openai-skills
   - openai-plugins
-  - eve
-  - deep-swe
   - openwiki
   - buzz
 thread:
