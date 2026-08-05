@@ -1,7 +1,7 @@
 skills:
   grilling:
-    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
-    digest: 5ce6cb948ee858ef5467f1ec691ae0818e6b964a7082762fa1dfa6d7451db3c5
+    commit: 0986ebaf5d29e812162702b2633a2942c30200d2
+    digest: c2295fb953f7598dd7b9df9da4c74b7fc06aeb38163f9353263e540b11d1ed3c
   hunk-review:
     commit: 2458366fbf028759ac7ca7da729f4f6089e22b02
     digest: c67fad8eef6fda4dab6b4d7460ab01213eca1389586b45bad270efe2f08f68b0
@@ -35,9 +35,9 @@ skills:
   home-assistant-best-practices:
     commit: 5c023edf38677ef7484aa8b0cc621bedcfcfcdae
     digest: ad2444283aa48a8e4dd4d86151322853b7776366ed38aad7e867b1e0ade0a258
-  writing-great-skills:
-    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
-    digest: 3512574755c7fd0bbb3a6a99b0443296e579fb8d5fa25914d04cd4e2ce480fd4
+  writing-for-agents:
+    commit: 0986ebaf5d29e812162702b2633a2942c30200d2
+    digest: 0daf01e9f80953acd202b552e2af498eec113fca020aa8ae2bfb1bf9272e75e4
   herdr:
     commit: e7fc85bfdb51f89488430adbfe5bbced3be79c2f
     digest: 43ab44b42fb69da5c6aefebce60dd4a763c0761a9b3b867a552ee6ff6f21d258
@@ -45,8 +45,8 @@ skills:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     digest: d41587eb5078a178987ab2a69d0037643066907068c2b6552bba0039d6dde1c3
   prototype:
-    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
-    digest: f9890c39a63d298e758f2087efc39febe78fd004638d0fca8dcd6dc1009d859f
+    commit: 0986ebaf5d29e812162702b2633a2942c30200d2
+    digest: 09304d09b01ea7f1dad0bfd80822b62574f11ccf04ea67b62db8e4d82e4c24d8
   agent-browser:
     commit: 01c1147da66940c034a5ccea497447e52c2f6dfe
     digest: 77576fd2d1400d07b216139036c194e2eee3fa8bdffb992b40fc5e61d506a0ba
@@ -54,17 +54,14 @@ skills:
     commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
     digest: 714d10e50281927854f739efa2a023271f702ca7a4c57600a5a0f9abde56aab7
   impeccable:
-    commit: 8259c28209b92792005cec14dad573df39f68eaf
-    digest: fb9089b0aa30e688f09fa3b4205536901da9c146e0d891faf4d72c26095ba803
+    commit: ae5e95101a6979e7f7973a4ff57680b3c7adc1ec
+    digest: 8a973975dc04602a326ed5b4b5d73d038bd186580e954e4442b981a9cb03cea3
   visual-explainer:
     commit: 528b71feb85dab5d92b82c3554880826f50a75da
     digest: ee391ff9c3630bcd9621d252ce06f5a66012ffbacb77bc25c7a946d12632d468
   skill-creator:
     commit: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
     digest: 5ad0868be528859ba96a52cb368f0ced16605d5a9ed433a811d8c6d1fd5b2c4f
-  batch-grill-me:
-    commit: ed37663cc5fbef691ddfecd080dff42f7e7e350d
-    digest: 2401f2ba698053ca497d02f832a6d6225a60e7766bf5a75e06c841034a546e0f
   wayfinder:
-    commit: 2ab958093e83e0ec752e6c1c5932da465bf23e0c
-    digest: e50142bf6c4ec000a127bc0b808491ba0303d42f9d2c14d60af9e681603873c8
+    commit: 0986ebaf5d29e812162702b2633a2942c30200d2
+    digest: 4a867f9d357399e579d46b5c4cd9726ab11e786e74fda21b3ec336455682168e

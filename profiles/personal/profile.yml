@@ -36,6 +36,10 @@ extra_folders:
   - path: /home/mark/workspace/knowledge/personal-sources
     description: Private Personal source evidence containing immutable voice notes and canonical append-only Session Captures
 skills:
+  tradingview:
+    agents: { opencode: true, claude-code: true, codex: true }
+  quality-garden:
+    agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:

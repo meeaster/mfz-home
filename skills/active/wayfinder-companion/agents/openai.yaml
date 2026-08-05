@@ -1,5 +1,5 @@
 interface:
   display_name: "Wayfinder Companion"
-  short_description: "Keep research and a working model beside a map"
+  short_description: "Keep vision, evidence, and decision briefs beside a map"
 policy:
   allow_implicit_invocation: false

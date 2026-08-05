@@ -15,6 +15,7 @@ references:
   - codex
   - openai-skills
   - openai-plugins
+  - eve
   - deep-swe
   - openwiki
 thread:
@@ -28,17 +29,11 @@ thread:
 skills:
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
-  tradingview:
-    agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
     agents: { opencode: false, claude-code: false, codex: false }
   thermo-nuclear-code-quality-review:
     agents: { opencode: true, claude-code: true, codex: true }
   adversarial-code-review:
-    agents: { opencode: true, claude-code: true, codex: true }
-  quality-garden:
-    agents: { opencode: true, claude-code: true, codex: true }
-  closure-review:
     agents: { opencode: true, claude-code: true, codex: true }
   impeccable:
     agents: { opencode: false, claude-code: false, codex: false }
@@ -78,8 +73,8 @@ skills:
   openspec-orchestrate:
     agents: { opencode: true, claude-code: false, codex: false }
     toggleable: false
-  writing-great-skills:
-    agents: { opencode: false, claude-code: false, codex: false }
+  writing-for-agents:
+    agents: { opencode: true, claude-code: true, codex: true }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   session-derived-knowledge:
@@ -94,8 +89,6 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   grilling:
     agents: { opencode: true, claude-code: true, codex: true }
-  batch-grill-me:
-    agents: { opencode: true, claude-code: true, codex: true }
   to-spec:
     agents: { opencode: false, claude-code: false, codex: false }
   wayfinder:
@@ -109,9 +102,9 @@ skills:
   qmd:
     agents: { opencode: false, claude-code: false, codex: false }
   openai-docs:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   improve:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   claude-code-docs:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-creator:
@@ -123,7 +116,7 @@ skills:
   pr-writer:
     agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   context7:
     route: executor

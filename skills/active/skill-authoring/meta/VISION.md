@@ -6,7 +6,7 @@ Skill authoring easily collapses into editing one prompt file. That loses the in
 
 ## Intended Behavior
 
-Skill Authoring guides an agent from intent to a complete, reviewable skill package. It begins with behavior rather than formatting. Its bundled Writing Great Skills adaptation owns runtime writing quality. Its bundled OpenAI-derived planning reference contributes concrete examples, degrees of freedom, reusable-resource planning, and layered validation without carrying Codex-specific mechanics or a competing lifecycle. Both load at the start because they are required inputs with distinct roles.
+Skill Authoring guides an agent from intent to a complete, reviewable skill package. It begins with behavior rather than formatting. The separately managed `writing-for-agents` skill owns runtime writing quality. Its bundled OpenAI-derived planning reference contributes concrete examples, degrees of freedom, reusable-resource planning, and layered validation without carrying Codex-specific mechanics or a competing lifecycle. Both load at the start because they are required inputs with distinct roles.
 
 The process supports creating, revising, reviewing, diagnosing, evaluating, and maintaining skills. It distinguishes narrow tuning from redesign, keeps development context outside ordinary runtime context, and leaves consequential intent and promotion decisions with the user. Meta artifacts preserve distinct views of the same behavioral contract, so intent, observable assertions, upkeep, and rationale may deliberately overlap with runtime instructions without copying generic authoring doctrine. Review, diagnosis, evaluation, and design do not authorize file changes by themselves; the requested outcome determines whether the process returns a proposal or modifies a package.
 
@@ -20,7 +20,7 @@ Every resulting skill contains `SKILL.md` and four uppercase process artifacts u
 
 ## Portability
 
-The core behavior, four-file development contract, writing doctrine, and planning guidance travel together without requiring one skill to invoke another. The OpenAI adaptation is agent-agnostic; provider-specific commands, metadata, and discovery behavior stay in the environment guidance that owns them.
+The core behavior, four-file development contract, and planning guidance travel with Skill Authoring. Runtime writing quality is supplied by the separately managed `writing-for-agents` skill rather than copied into this package. The OpenAI adaptation is agent-agnostic; provider-specific commands, metadata, and discovery behavior stay in the environment guidance that owns them.
 
 The runtime process must not depend on a particular person's private notes, machine paths, workspace layout, project, knowledge system, or installation tool. It may use repositories, prior interactions, traces, or supplied notes when they are available and relevant. Add harness-specific guidance only when a harness changes the behavioral contract; command syntax and session storage belong to the environment capabilities that own them.
 

@@ -9,7 +9,7 @@ argument-hint: "What skill are you authoring, reviewing, or evaluating?"
 
 **Authoring** turns intended agent behavior into a skill package that can be understood, evaluated, and maintained.
 
-Before doing skill work, read [`references/writing-great-skills.md`](references/writing-great-skills.md) and [`references/openai-skill-creation.md`](references/openai-skill-creation.md). Treat the first as the runtime writing doctrine and the second as agent-agnostic planning guidance. Follow the doctrine's `writing-great-skills-glossary.md` pointer only when a term needs its full meaning.
+Before doing skill work, load the `writing-for-agents` skill and read [`references/openai-skill-creation.md`](references/openai-skill-creation.md). The first owns runtime writing quality; the second provides agent-agnostic planning guidance. When authoring a skill, follow `writing-for-agents`'s pointer to `SKILL-MECHANICS.md` for skill packaging, invocation, and router guidance.
 
 During ordinary authoring, runtime context consists of this `SKILL.md` and the references whose conditions fire. Read Skill Authoring's own `meta/` documents only when Skill Authoring itself is the skill being reviewed, evaluated, or maintained.
 
@@ -87,7 +87,7 @@ Complete this phase when the implemented package is coherent or the assessment a
 
 ## 5. Prune, Test, And Evaluate
 
-Apply the bundled writing doctrine's pruning tests sentence by sentence to runtime instructions and references. For meta artifacts, remove material that does not serve the artifact's role while preserving role-specific restatements of the behavioral contract. Remove no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
+Apply `writing-for-agents`'s pruning tests sentence by sentence to runtime instructions and references. For meta artifacts, remove material that does not serve the artifact's role while preserving role-specific restatements of the behavioral contract. Remove no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
 
 Evaluate two surfaces separately when they apply:
 
