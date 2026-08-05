@@ -57,3 +57,54 @@
   plot-only inspection missed meaningful engine boxes. Every exposed input, plot,
   colorer, style, palette, graphics family, primitive collection, visibility, and
   row-availability state must now be accounted for before interpretation.
+- Promoted exact-title Pine script selection and `More -> New tab` as the
+  least-ambiguous inspection route after a private strategy opened in a dedicated
+  editor with matching title, saved version number, and timestamp.
+- Recorded built-in Pine copy and version-history controls as the preferred safety
+  boundary before an authorized edit, while keeping copy, rename, restore, save,
+  chart update, and publish actions under explicit authority.
+- Recorded that Monaco's accessibility textbox contains only the current line and
+  rendered editor rows contain only the visible viewport; neither is a valid
+  full-source backup or replacement route.
+- Promoted full Pine source extraction through explicit tab foregrounding,
+  Monaco `Control+a`, copy, and agent-browser's JSON clipboard read after the
+  private strategy passed stable in-memory boundary and digest checks. Required
+  fail-closed clipboard acquisition, one-process preservation, `finally`
+  restoration, concurrent-change detection, and restoration verification without
+  emitting private values.
+- Corrected the editor status interpretation: the leading value beside the saved
+  timestamp is the script version number, not a source line count. Whole-buffer
+  replacement remains unverified and must be tested on a disposable copy.
+- Promoted a tab-local cached reader for repeated Pine inspection after one exact
+  capture supported bounded line ranges, limited regex matches, context windows,
+  and a structural index without copying the full buffer again. Required digest
+  verification, explicit cache deletion, and re-extraction after reload or script
+  switch.
+
+## 2026-08-04 - Pine Client Cache Extraction
+
+- Replaced clipboard-first Pine extraction with the feature-detected
+  `localStorage.last_edited_script` client record after its `scriptSource` matched
+  the independent buffer in memory. Required in-page parsing, sanitized outputs,
+  script ID, visible title, saved version, source-shape, and ephemeral digest
+  checks, with the fail-closed clipboard route retained as fallback.
+- Declined to persist a raw HAR or replay the observed private Pine endpoint.
+  Resource metadata established that the saved version arrives as plain text, but
+  the matching same-origin client cache removes any need to retain authenticated
+  traffic or build a private backend client.
+- Promoted the verified new-indicator lifecycle after one authorized RSI script
+  used `Create new -> Indicator`, one whole-buffer Monaco insertion, chart-API
+  compile verification, separate private save, targeted study removal, and a
+  fresh-load restoration check.
+- Recorded that unsaved keystrokes do not refresh `last_edited_script`, while save
+  updates it with exact source, title, user identity, and version. Kept exact
+  clipboard verification as the pre-save fallback and required canonical LF
+  comparison for CRLF normalization.
+- Promoted checked `getAllStudies()` diffing plus `getStudyById()` status, pane,
+  plot, and data checks for compile validation, and checked
+  `removeEntityWithUndo()` for removing only the newly introduced study without
+  saving the layout. Required feature and shape checks plus semantic UI fallbacks
+  for every undocumented study method.
+- Prohibited logging raw hidden compiled-study inputs after live inspection showed
+  encoded intermediate code and private Pine identity. The internal
+  `pineSourceCodeModel` did not expose a direct editable-source getter.
