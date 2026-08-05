@@ -22,9 +22,9 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 
 ## Personal Knowledge
 
-- Private Personal knowledge lives under `/home/mark/workspace/knowledge/personal-knowledge` and is available to both Personal and Work agents.
-- Choose the entry point that matches the need: `.openwiki/wiki/quickstart.md` for accepted source-aware synthesis, `practices/index.md` for current reasoned ways of working, `session-captures/index.md` for lightweight things Mark deliberately retained from sessions, `threads/index.md` for retrospective session evidence, or the relevant `work-units/` entry for active continuity. Then load only what is relevant.
-- Session Captures are selected evidence, not automatically current guidance. Practices are intended to guide future work but do not override project or operational authority. Follow the repository-local `AGENTS.md` files when creating or changing either form.
+- Private Personal synthesis, Practices, threads, and work units live under `/home/mark/workspace/knowledge/personal-knowledge`; canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`.
+- Choose the entry point that matches the need: `.openwiki/wiki/quickstart.md` for accepted source-aware synthesis, `practices/index.md` for current reasoned ways of working, `session-captures/index.md` for the capture catalog and boundary, `threads/index.md` for retrospective session evidence, or the relevant `work-units/` entry for active continuity. Then load only what is relevant.
+- Use the `session-derived-knowledge` skill when creating a Session Capture or Practice. Session Captures are selected evidence, not automatically current guidance. Practices are intended to guide future work but do not override project or operational authority. Follow the destination's repository-local `AGENTS.md` file.
 - Treat it as private context, not operational authority. Preserve provenance and uncertainty, and do not publish or copy it into Work systems without explicit approval.
 - Repositories, specifications, issues, deployments, and other source systems remain authoritative for their own current state.
 

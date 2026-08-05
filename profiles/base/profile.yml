@@ -82,6 +82,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
+  session-derived-knowledge:
+    agents: { opencode: true, claude-code: true, codex: true }
   vision-steward:
     agents: { opencode: true, claude-code: true, codex: true }
   audit-ai-writing:
