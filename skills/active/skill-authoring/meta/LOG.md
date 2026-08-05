@@ -84,3 +84,9 @@
 - Clarified that `SKILL.md` and meta artifacts are distinct projections of one behavioral contract, not mutually exclusive stores of facts.
 - Limited runtime writing doctrine's duplication test to runtime instructions and references; meta artifacts retain role-specific intent, assertions, upkeep, and rationale.
 - Added evaluation coverage against simplifying `VISION.md` merely because runtime instructions implement the same behavior.
+
+## 2026-08-05 - External Writing Guidance
+
+- Replaced the copied Writing Great Skills adaptation with the separately managed `writing-for-agents` skill.
+- Updated the runtime dependency, meta contract, and provenance to require loading `writing-for-agents` before skill work.
+- Removed the copied doctrine and glossary so Skill Authoring has one source of truth for runtime writing quality.

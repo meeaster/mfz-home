@@ -1,21 +1,21 @@
 # Maintenance
 
-## Bundled Guidance
+## Runtime Dependencies
 
-- `references/writing-great-skills.md` and `writing-great-skills-glossary.md` provide the required runtime writing doctrine without cross-skill invocation.
+- The separately managed `writing-for-agents` skill provides the required runtime writing doctrine. Load it before skill work; follow its `SKILL-MECHANICS.md` pointer when authoring a skill.
 - `references/openai-skill-creation.md` is the required agent-agnostic planning adaptation for examples, freedom, reusable resources, and layered validation.
 - `references/testing-workflow.md` owns the harness-neutral live-evidence contract, not CLI commands or session-store mechanics.
 
-Keep each role distinct. Skill Authoring owns behavior, authority, the four-file lifecycle, and evidence. Writing Great Skills owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
+Keep each role distinct. Skill Authoring owns behavior, authority, the four-file lifecycle, and evidence. Writing for Agents owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
 
 ## Upstream Provenance
 
-Writing Great Skills:
+Writing for Agents:
 
 - Repository: `https://github.com/mattpocock/skills`
-- Subtree: `skills/productivity/writing-great-skills`
-- Snapshot: `9603c1cc8118d08bc1b3bf34cf714f62178dea3b`
-- Adaptation: removed standalone skill frontmatter, renamed the files for their local reference role, and tightened some glossary definitions without changing their behavioral meaning.
+- Subtree: `skills/productivity/writing-for-agents`
+- Snapshot: `0986ebaf5d29e812162702b2633a2942c30200d2`
+- Role: separately managed runtime writing guidance. Its `SKILL-MECHANICS.md` supplies skill packaging, invocation, and router guidance when the target is a skill.
 
 OpenAI Skill Creator:
 
@@ -36,7 +36,7 @@ Anthropic Skill Creator:
 
 1. Inspect upstream changes since each recorded snapshot.
 2. Classify changes by the local role they could affect; do not copy a complete upstream workflow mechanically.
-3. Update the bundled adaptation and its recorded boundary together.
+3. Update the vendored `writing-for-agents` dependency and its recorded boundary together.
 4. Review `SKILL.md` and every meta artifact for affected assumptions.
 5. Run the scenarios in `EVALS.md`.
 6. Record consequential effects, rejected changes, and reversals in `LOG.md`.

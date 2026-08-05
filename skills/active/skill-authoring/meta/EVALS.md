@@ -6,7 +6,7 @@ Evaluate behavior, not resemblance to a preferred template. Record the skill rev
 
 Every scenario confirms that:
 
-- the bundled Writing Great Skills doctrine and OpenAI-derived planning guidance are read before skill work begins;
+- the `writing-for-agents` skill and OpenAI-derived planning guidance are loaded before skill work begins;
 - the requested mode and authorized outcome are established;
 - files are modified only when implementation is authorized;
 - every applicable package artifact agrees with `SKILL.md`.
@@ -99,8 +99,8 @@ Every scenario confirms that:
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The bundled writing doctrine and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; the writing glossary remains unloaded unless a term needs clarification; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 
-The current bundled composition passes its OpenCode and Sol Medium creation boundary: a fresh process loaded the writing doctrine and OpenAI-derived planning guidance, left Skill Authoring meta, glossary, and testing guidance unloaded, and created only `SKILL.md` plus the four required meta files. Provider-specific detail was limited to the requested `.opencode` destination. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+The current composition passes its OpenCode and Sol Medium creation boundary: a fresh process loaded `writing-for-agents` and OpenAI-derived planning guidance, left Skill Authoring meta and testing guidance unloaded, and created only `SKILL.md` plus the four required meta files. Provider-specific detail was limited to the requested `.opencode` destination. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.

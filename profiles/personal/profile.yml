@@ -34,6 +34,10 @@ extra_folders:
   - path: /home/mark/workspace/knowledge/personal-knowledge
     description: Private Personal knowledge containing accepted wiki synthesis, reasoned Practices, lightweight Session Captures, retrospective thread evidence, and work-unit continuity context
 skills:
+  tradingview:
+    agents: { opencode: true, claude-code: true, codex: true }
+  quality-garden:
+    agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
