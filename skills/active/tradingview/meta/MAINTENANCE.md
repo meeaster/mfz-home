@@ -8,7 +8,7 @@ plan features, server-rendered init data, and in-page chart internals are extern
 dependencies that may change independently.
 
 The authoritative source is
-`/home/mark/workspace/repos/mindframe-z-personal-home/skills/active/tradingview/`.
+`/home/mark/workspace/repos/mfz-home/skills/active/tradingview/`.
 Rendered copies under `~/.mindframe-z/configs/` and harness skill directories are
 outputs and must not be edited.
 

@@ -63,7 +63,7 @@ tools/deepswe/pier-sitecustomize/sitecustomize.py
 Set the absolute path once before running Pier:
 
 ```bash
-export PIER_SITECUSTOMIZE="$HOME/workspace/repos/mindframe-z-personal-home/tools/deepswe/pier-sitecustomize"
+export PIER_SITECUSTOMIZE="$HOME/workspace/repos/mfz-home/tools/deepswe/pier-sitecustomize"
 ```
 
 ## Common Variables
