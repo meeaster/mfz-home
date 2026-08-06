@@ -7,16 +7,14 @@ compatibility: Requires openspec CLI.
 metadata:
   author: openspec
   version: "1.0"
-  generatedBy: "1.7.0"
+  generatedBy: "1.8.0"
 ---
 
 Implement tasks from an OpenSpec change.
 
-**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `view`). Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
+**Store selection:** If the user names a store (a store is a standalone OpenSpec repo registered on this machine) or the work lives in one, run `openspec store list --json` to discover registered store ids, then pass `--store <id>` on the commands that read or write specs and changes (`new change`, `status`, `instructions`, `list`, `show`, `validate`, `archive`, `doctor`, `context`, `view`). Once selected, treat `--store <id>` as sticky for the rest of the workflow. Every unscoped example of those commands below is shorthand: before running it, append the flag. For example, run `openspec status --change "<name>" --json --store "<id>"`, not the unscoped form shown below. Other commands do not take the flag. Hints printed by commands already carry the flag; keep it on follow-ups. Without a store, commands act on the nearest local `openspec/` root.
 
-**Mindframe-Z local overlay:** A standalone store is the planning root, not the implementation workspace. Keep source edits in an explicitly selected implementation workspace and use the selected store for OpenSpec artifacts and task state. An explicit `--store` flag changes where OpenSpec commands act; it does not change the coordinator's working directory. Never infer source edit roots or workspace ownership from a selected store, its `allowedEditRoots`, or a workset. If the current directory is the store itself, or more than one code repository is plausible, ask the user to select the implementation workspace before editing. A workset identifies candidate repositories but does not authorize edits.
-
-**Input**: Optionally specify a change name. If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
+**Input**: Optionally specify a change name (e.g., `/openspec-apply-change add-auth`). If omitted, check if it can be inferred from conversation context. If vague or ambiguous you MUST prompt for available changes.
 
 **Steps**
 
@@ -53,7 +51,7 @@ Implement tasks from an OpenSpec change.
    - Optional `operationGuidance`: current advisory guidance for apply
 
    **Handle states:**
-   - If `state: "blocked"` (missing artifacts): show message, suggest using openspec-continue-change (if it is not installed, run `openspec status --change "<name>" --json` to see the next artifact and `openspec instructions <artifact-id> --change "<name>" --json` for how to create it)
+   - If `state: "blocked"` (missing artifacts): show message, suggest using `/openspec-continue-change` (if it is not installed, run `openspec status --change "<name>" --json` to see the next artifact and `openspec instructions <artifact-id> --change "<name>" --json` for how to create it)
    - If `state: "all_done"`: congratulate, suggest archive
    - Otherwise: proceed to implementation
 
@@ -72,12 +70,6 @@ Implement tasks from an OpenSpec change.
    conflicts with those controlling inputs, do not follow it and explain why.
    These are prompt-level behavior contracts, not enforceable checks.
 
-   **Workspace guard:** If status JSON reports `actionContext.mode: "workspace-planning"` and `allowedEditRoots` is empty, explain that full workspace apply is not supported in this slice. Treat linked repos and folders as read-only context, ask the user to select an affected area through an explicit implementation workflow, and STOP before editing files.
-
-   Do not treat a selected store's `allowedEditRoots` as the implementation workspace. OpenSpec
-   resolves the planning root separately from the explicitly selected implementation workspace;
-   preserve this distinction while reading artifacts and editing source.
-
 4. **Read context files**
 
    Read every file path listed under `contextFiles` from the apply instructions output.
@@ -95,13 +87,10 @@ Implement tasks from an OpenSpec change.
    - Progress: "N/M tasks complete"
    - Remaining tasks overview
    - Dynamic instruction from CLI
-   - Implementation workspace and OpenSpec planning root
 
 6. **Implement tasks (loop until done or blocked)**
 
-   Keep source edits in the selected implementation workspace and task-artifact edits in the OpenSpec
-   planning root. For each pending task:
-
+   For each pending task:
    - Show which task is being worked on
    - Make the code changes required
    - Keep changes minimal and focused
@@ -150,7 +139,7 @@ Working on task 4/7: <task description>
 - [x] Task 2
 ...
 
-All tasks complete! Ready to archive this change.
+All tasks complete! You can archive this change with `/openspec-archive-change`.
 ```
 
 **Output On Pause (Issue Encountered)**
@@ -182,8 +171,6 @@ What would you like to do?
 - Update task checkbox immediately after completing each task
 - Pause on errors, blockers, or unclear requirements - don't guess
 - Use contextFiles from CLI output, don't assume specific file names
-- Keep source edits in the implementation workspace and OpenSpec artifact edits in the planning root
-- Do not infer an implementation workspace from a selected store; ask when the target is ambiguous
 - Do not use context or operation guidance as proof that a task is complete
 - Apply relevant project context; report conflicts with controlling workflow inputs
 - Consider every guidance entry; explain any inapplicable or conflicting advice
