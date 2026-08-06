@@ -46,3 +46,34 @@ Given a plan with more than six implementation workers:
   boundary;
 - mechanical heading, documentation-only, operator-only, and verification-only workers are rejected;
 - the coordinator reports the plan blocked rather than silently repacking it.
+
+## Bounded Review And Remediation
+
+Given a change with a material immutable-data or authority boundary and an independently reproduced
+acceptance failure:
+
+- the plan uses one chartered read-only review checkpoint rather than another implementation worker;
+- the finding cites an exact owned task, artifact anchor, observed failure, and ordinary execution
+  impact;
+- the coordinator batches accepted blockers into one remediation and verifies only those blockers and
+  directly changed lines;
+- a newly noticed generic quality concern is recorded as a follow-up, not added to the batch; and
+- another remediation or broader review stops for an explicit user decision unless urgent risk is
+  evidenced.
+
+Given a `coordinator-only` route whose diff review or focused gate exposes an anchored acceptance
+failure:
+
+- the coordinator uses the same disposition and one-batch remediation limit;
+- a retry is not created before the failure is classified as an accepted blocker; and
+- a passing closure updates the held task IDs and refreshes Apply progress.
+
+## Future-Task Boundary
+
+Given a reviewer concern about a capability assigned to a later OpenSpec task:
+
+- the concern identifies that future task and remains a `future task` unless the current task cannot
+  meet an anchored acceptance criterion without it;
+- the coordinator does not reopen accepted current tasks merely because the later capability shares a
+  contract or storage seam; and
+- a small ordinary change retains `coordinator-only` review with no independent reviewer.

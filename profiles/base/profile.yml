@@ -158,6 +158,7 @@ opencode:
   commands:
     - apply-spec
     - implement-design
+    - openspec-rolling-apply
     - rmslop
   agents:
     - research

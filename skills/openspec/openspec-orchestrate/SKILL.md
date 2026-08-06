@@ -7,7 +7,7 @@ license: MIT
 compatibility: Requires OpenSpec CLI and OpenCode delegate_general.
 metadata:
   author: mindframe-z
-  version: "3.0"
+  version: "3.1"
 ---
 
 OpenSpec orchestration is a **standalone, plan-first execution workflow**. It turns OpenSpec's flat
@@ -34,9 +34,16 @@ working directory. A workset can identify candidate repositories but does not au
 This is a structured process. Skip a phase only when its completion criterion is already true and
 you can show why. `tasks.md` (or the schema's task artifact) is the only durable completion ledger;
 the coordinator owns its checkboxes. Workers report completion; the coordinator accepts it only
-after reviewing the diff and running the gate, then updates the accepted checkboxes immediately.
+after reviewing the diff and running the gate, then updates only task checkboxes accepted under the
+selected review route.
 The work packages, worker list, ownership, order, and estimates are temporary coordination state
 unless the user explicitly asks to persist them elsewhere.
+
+A review is a bounded acceptance checkpoint, not another planning authority. Coordinator diff and
+gate review is the default. Use an independent review only when the user asks or the accepted
+contract puts authority, security, irreversible state, concurrency, or immutable evidence at material
+risk. Its charter is limited to owned task IDs, artifact anchors, observable criteria, and directly
+affected lines. Generic quality, hypothetical hardening, and a later task do not become current scope.
 
 ## 1. Prepare The Change
 
@@ -138,7 +145,8 @@ gates, work packages, and the final worker list.
 During Phases 1 through 3, the coordinator performs preparation, preflight, and validation directly.
 The required Sol/high `delegate_general` planner is the only workflow planning child-model call.
 Advisor checkpoints are allowed, but they cannot supply, revise, or replace the planning result.
-Do not use a second planner, implementation worker, or discovery model before or after it.
+Do not use a second planner or unplanned discovery model. A chartered independent review may occur
+after implementation under Phase 5, but it is a read-only checkpoint, not a worker or a second plan.
 
 Make exactly one initial read-only planning call with `delegate_general`:
 
@@ -160,6 +168,27 @@ variant in the planning result.
 Copy each `contextFiles` path verbatim into the delegate prompt. Before calling `delegate_general`,
 compare the complete delegated path list with the Apply output and confirm that no path is missing,
 added, or changed. Stop with an incomplete preparation report if the lists differ.
+
+### Define The Review Route
+
+Set the review route before implementation. `coordinator-only` is the default: the coordinator's
+diff review, write-scope check, and focused gate are the acceptance review. Plan one independent,
+fresh, read-only `openai/gpt-5.6-sol` at `high` checkpoint only for a user request or an explicit
+material-risk trigger in the accepted contract. Size, novelty, or a desire for more ideas is not a
+trigger. An independent review is never an implementation worker and may not edit or delegate.
+
+For each planned review scope, define a charter with:
+
+- exact owned task IDs and OpenSpec artifact anchors;
+- observable acceptance criteria and focused gates;
+- affected safety, authority, or immutable-data invariants, or `not implicated`;
+- planned write paths and review exclusions; and
+- adjacent future tasks or follow-up concerns that share a seam without expanding current scope.
+
+The default remediation budget permits one consolidated batch for failed task IDs followed by one
+scope-locked closure verification. A second remediation, additional task reopening, or broader review
+requires an explicit user decision unless an authority, security, or likely immutable-data-loss issue
+is evidenced.
 
 Use this prompt verbatim except for replacing its angle-bracket placeholders with concrete values
 from the Apply preparation output. Do not compress, summarize, rename, reorder, or omit its fields.
@@ -186,6 +215,8 @@ Worker routing:
 - Planning call: `openai/gpt-5.6-sol` at `high`.
 - Every implementation worker: `openai/gpt-5.6-luna` at `xhigh`.
 - Do not assign Sol to implementation or use any other model/variant.
+- An independent review, only when its charter justifies one, is a fresh read-only
+  `openai/gpt-5.6-sol` at `high` checkpoint. It is not an implementation worker.
 
 Allowed planning inputs:
 - Every concrete path returned under contextFiles:
@@ -213,6 +244,10 @@ OpenSpec tasks and repository seams. Then pack those packages into the smallest 
 implementation workers. A worker is a delegation unit, not a task heading, verification phase, or
 operator checkpoint. One worker may own several adjacent work packages when their read/write sets
 overlap or later work builds directly on earlier context.
+
+Derive acceptance criteria from exact task and OpenSpec artifact anchors. Keep downstream consumers,
+generic quality work, and speculative hardening visible as exclusions or follow-ups rather than
+inventing current task scope.
 
 Delegated workers run sequentially in the coordinator workspace because delegate_general has no
 directory/worktree argument. Every delegated worker, including a retry, will be a fresh
@@ -272,11 +307,14 @@ Required output:
    - likely files to create or modify, with exact proposed write paths;
    - explicit write ownership, including generated outputs written by any proposed gate, or an
      explicit coordinator-owned designation for those outputs;
-   - explicit out-of-scope files; include this field even for a no-write verification package;
-   - relevant repository patterns and semantic seams;
-   - dependencies and blocked-by relationships;
-   - focused verification commands and pass gates;
-   - confidence and uncertainty.
+    - explicit out-of-scope files; include this field even for a no-write verification package;
+    - relevant repository patterns and semantic seams;
+    - dependencies and blocked-by relationships;
+    - focused verification commands and pass gates;
+    - observable acceptance criteria with exact task and artifact anchors;
+    - affected safety, authority, or immutable-data invariants, or `not implicated`;
+    - adjacent future tasks or follow-up concerns that share a seam but remain out of scope; and
+    - confidence and uncertainty.
 
 4. Implementation workers
    Pack the work packages into the actual fresh sessions the coordinator will delegate. For every
@@ -354,9 +392,21 @@ Required output:
      session with the selected model and variant.
    - Require a handoff with changed files, tests run, unresolved issues, and remaining scope.
 
-9. Uncertainty register
-   - List unresolved design questions and confidence.
-   - Do not silently choose inventory paths, CLI output formats, renderer semantics, migration
+9. Review route and charter
+   - Choose `coordinator-only` or one independent review checkpoint and cite its user request or
+     explicit material-risk trigger.
+   - For each review scope, name exact owned task IDs, artifact anchors, observable acceptance
+     criteria, focused gates, relevant invariants, planned write paths, and review exclusions.
+   - State that new concerns must be classified as `accepted blocker`, `follow-up`, `future task`,
+     or `closed`.
+   - Reserve one consolidated remediation and one closure verification for accepted blockers. The
+     permitted batch may reopen failed task IDs; any second remediation, additional reopening, or
+     scope expansion needs explicit user authority unless authority, security, or likely immutable-
+     data loss is evidenced.
+
+10. Uncertainty register
+    - List unresolved design questions and confidence.
+    - Do not silently choose inventory paths, CLI output formats, renderer semantics, migration
      commands, canonical-spec destinations, or task-lifecycle actions when the contract leaves them
      open.
 
@@ -377,8 +427,9 @@ files, migrations, and real-home operations.
 names its execution mode and exact worker sequence, separates checkpoints from delegated workers,
 defines fresh-session model routing, gives every worker candidate reads, exact proposed writes, and
 explicit out-of-scope files, reports per-worker and total duplicated payloads in characters, and
-justifies every fresh-session boundary. If any field is missing, stop and report the incomplete plan
-instead of implementing from inference.
+justifies every fresh-session boundary. It also contains a chartered review route with exact anchors,
+criteria, exclusions, and a bounded remediation route. If any field is missing, stop and report the
+incomplete plan instead of implementing from inference.
 
 ## 3. Validate And Announce The Plan
 
@@ -394,6 +445,16 @@ artifact before any implementation action.
   pass.
 - Confirm that every package has one owner and every implementation worker has exact task ids,
   explicit writes, explicit out-of-scope files, dependencies, and a verification gate.
+- Confirm that every review criterion and invariant has an exact owned task ID and OpenSpec artifact
+  anchor. `not implicated` is valid; invented criteria are not.
+- Confirm `coordinator-only` unless a user request or explicit material-risk trigger justifies one
+  independent review checkpoint. The checkpoint must be separate from implementation workers.
+- Confirm that the charter excludes unowned future tasks, generic quality work, and speculative
+  hardening from current acceptance unless they demonstrate a current acceptance failure.
+- Confirm one consolidated remediation and one scope-locked closure verification. That permitted
+  remediation may reopen failed task IDs; a second remediation, additional reopening, or broader
+  review must be user-gated except for evidenced authority, security, or likely immutable-data-loss
+  risk.
 - Confirm that every proposed write is an exact path. An unresolved or directory-only write blocks
   the plan.
 - Confirm that every generated output written by a proposed gate belongs to the gate's write set or
@@ -447,6 +508,7 @@ For a normal run, show before implementation:
 - dependency and conflict order;
 - write ownership and out-of-scope files;
 - focused verification gates;
+- review route, charter, and bounded remediation route;
 - context-budget risks;
 - migration, external-store, cross-repository, and operational boundaries;
 - unresolved questions and confidence.
@@ -468,7 +530,8 @@ Follow the announced order. For each task:
 - implement only that task and declared supporting changes;
 - run its focused verification gate;
 - inspect the diff and confirm that no out-of-scope file changed;
-- mark its checkbox complete in the OpenSpec planning root only after the gate passes.
+- mark its checkbox complete in the OpenSpec planning root only after the gate passes and any
+  chartered review closes.
 
 Keep source edits in the implementation workspace and planning-artifact edits in the OpenSpec
 planning root. A selected store does not replace the implementation workspace.
@@ -494,7 +557,8 @@ deliberately trades duplicated context payload for bounded context windows and c
 Confirm the selected model is allowlisted before calling it:
 
 - Every implementation worker: `openai/gpt-5.6-luna`, variant `xhigh`.
-- `openai/gpt-5.6-sol`, variant `high`, is reserved for the single initial planning call.
+- `openai/gpt-5.6-sol`, variant `high`, is reserved for the single initial planning call and any
+  chartered read-only independent review.
 
 These are routing rules, not claims that implementation-worker quality was benchmarked in the
 planning panel. If a requested model or variant is unavailable, stop and report it; do not silently
@@ -509,6 +573,7 @@ Every worker prompt must include:
 - the worker goal and dependencies already satisfied;
 - its explicit write set and explicit out-of-scope files;
 - required focused tests and the pass gate;
+- its review charter: task/artifact anchors, observable criteria, relevant invariants, and exclusions;
 - the migration and real-home restrictions;
 - a statement that this is a fresh session and that the worker must read every supplied OpenSpec
   context file to understand the overall change rather than assume another worker's context. Full
@@ -538,6 +603,10 @@ Write ownership:
 Out of scope:
 <exact files, packages, workers, and task ids>
 
+Review charter:
+<task/artifact anchors, observable acceptance criteria, affected invariants or not implicated,
+planned write paths, review exclusions, and whether the route is coordinator-only or independent>
+
 Context rule: read the complete OpenSpec context above for overall change understanding, but act only
 on the owned task ids, packages, satisfied dependencies, and explicit write ownership in this worker.
 
@@ -566,6 +635,8 @@ Report blockers instead of guessing.
 Handoff required:
 - changed files;
 - tests or commands run and their outcomes;
+- acceptance evidence for the chartered criteria;
+- follow-up or future-task candidates, separated from blockers;
 - unresolved issues;
 - remaining scope.
 ```
@@ -573,7 +644,9 @@ Handoff required:
 Workers must not edit the tasks artifact, mark tasks complete, start another agent,
 absorb another worker's tasks, exceed their write scope, commit, or perform live migration. After each
 worker, the coordinator immediately reviews the handoff and diff, runs the focused gate, checks write
-scope, and marks only the accepted task checkboxes complete before starting the next worker.
+scope, and marks only task IDs accepted under the selected review route before starting the next
+worker. When an independent review is chartered, hold its task IDs pending until Phase 5 closes that
+review.
 
 ### Sequential worker protocol
 
@@ -584,23 +657,77 @@ unaccepted changes. After each worker:
 
 1. Review the coordinator diff and worker handoff.
 2. Run the focused verification gate.
-3. Accept only the declared task ids and write set.
-4. Immediately update only the accepted task checkboxes.
+3. For `coordinator-only`, accept only the declared task ids and write set. For an independent route,
+   retain the task IDs as pending until Phase 5 closes the chartered review.
+4. Immediately update only task checkboxes accepted under the selected review route.
 5. Re-run `openspec instructions apply --change "<name>" --json [--store <id>]` and confirm the
    expected progress before starting the next worker. The resolved standalone store id is mandatory
    whenever Phase 1 selected a store.
 
 The coordinator owns commits. If a worker fails, changes scope, or exposes a shared semantic
-conflict, stop before the next worker and require a new orchestration decision rather than silently
-re-planning. If that decision authorizes a retry, use a fresh `delegate_general` session; never
-resume the failed worker. Do not run a live migration or irreversible machine operation through a
-worker.
+conflict, classify the failure under Phase 5 before retrying or starting a dependent worker. Use a
+fresh `delegate_general` session only for the one accepted consolidated remediation or after the user
+authorizes a further reopening; never resume the failed worker. Do not run a live migration or
+irreversible machine operation through a worker.
 
 **Completion criterion:** every accepted worker has an in-scope diff, passing focused verification, a
 complete handoff, and coordinator acceptance before its dependent worker starts. Every completed
 checkbox is backed by that acceptance, and no parallel or unconfined worker was used.
 
-## 5. Close The Change
+## 5. Review And Remediate
+
+Run this phase whenever coordinator review or a chartered independent checkpoint reports a concern.
+For a `coordinator-only` route with passing diff and focused gates, move directly to closeout. An
+independent review assesses acceptance, not the desirability of more work.
+
+### Review Scope And Disposition
+
+Give the reviewer only the chartered task IDs, anchors, observable criteria, invariants, changed
+paths, and focused gates. It may inspect directly affected lines and evidence needed to verify those
+criteria. It does not restart broad discovery across the change or adjacent future worker groups.
+
+Each concern must include:
+
+- one disposition: `accepted blocker`, `follow-up`, `future task`, or `closed`;
+- exact owned task ID and OpenSpec artifact path plus requirement, heading, or scenario;
+- expected and observed behavior with a command, test, artifact, or diff citation;
+- affected file and line range;
+- ordinary supported-execution impact; and
+- the implicated authority, security, or immutable-data invariant, or `not implicated`.
+
+An `accepted blocker` requires a current acceptance criterion to be false, or evidence of an
+authority, security, or likely immutable-data-loss failure. A `follow-up` improves the delivered
+task without invalidating acceptance. A `future task` is an unowned capability, downstream workflow,
+or generic hardening and names its exact future task or separate-change destination. `closed` covers
+unsupported, duplicate, or preference-only concerns. Do not remediate a concern before the
+coordinator records its disposition.
+
+### Consolidated Remediation And Closure
+
+Collect every accepted blocker into one remediation batch. Reopen only the failed task IDs, preserve
+accepted task IDs, and use the chartered write set or obtain a user decision for any wider write.
+The remediation follows the selected execution mode and receives focused regression gates for all
+accepted blockers. It does not absorb follow-ups or future tasks.
+
+The coordinator then performs one closure verification limited to accepted blockers, remediation-
+changed lines, directly affected criteria, and their focused gates. It records each original blocker
+as closed or unresolved; it does not begin a new exploratory review. If a nonurgent concern remains
+or appears, classify it and request a user decision before a second remediation, task reopening, or
+scope expansion. For an evidenced authority, security, or likely immutable-data-loss risk, stop
+closeout, preserve the evidence, apply only the narrow safety remediation permitted by the change,
+and report the exception immediately.
+
+When closure passes, accept the declared task IDs whose chartered criteria now pass, update only their
+task-artifact checkboxes, and rerun `openspec instructions apply --change "<name>" --json [--store
+<id>]` before closeout. Keep unresolved task IDs pending and report the required user or urgent-risk
+authority.
+
+**Completion criterion:** every independent-review concern has a disposition, at most one
+consolidated remediation and one scope-locked closure verification have occurred, passing task IDs
+have been accepted and reconciled in the task ledger, and any further work has explicit user or
+urgent-risk authority.
+
+## 6. Close The Change
 
 After all accepted workers and checkpoints converge, re-run the Apply instruction query:
 
@@ -620,9 +747,9 @@ coordinator's ledger. Then:
 - stop before real-home migration or another irreversible machine operation and request explicit
   authorization.
 
-Do not mark a task complete because a worker claims completion. Mark it after coordinator review and
-the required focused gate, then use the per-worker and final OpenSpec progress checks to reconcile the
-coordinator-owned ledger.
+Do not mark a task complete because a worker claims completion. Mark it after coordinator review,
+the required focused gate, and the selected review route, then use the per-worker and final OpenSpec
+progress checks to reconcile the coordinator-owned ledger.
 
 Report:
 
@@ -631,6 +758,7 @@ Report:
 - selected mode and worker sequence;
 - changed files and accepted commits;
 - focused and broad verification outcomes;
+- review route, accepted blockers, closure evidence, and follow-up or future-task dispositions;
 - unresolved issues or explicit operator gates;
 - whether the change is ready for archive or remains blocked.
 

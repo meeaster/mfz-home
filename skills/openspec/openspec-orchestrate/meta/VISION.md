@@ -14,5 +14,10 @@ Success means every pending task has one owner, implementation workers are few e
 unnecessary uncached rereads but bounded enough to avoid expensive late-context work, and operator or
 coordinator checkpoints are visible without masquerading as delegated agents.
 
+Coordinator diff and gate review is the normal acceptance path. When an independent review is
+justified, it is chartered by exact task IDs and observable criteria, receives one consolidated
+remediation, and closes through a scope-locked verification. Follow-up hardening and future worker
+scope stay visible without preventing a bounded change from completing.
+
 Parallel implementation, implicit worktree isolation, speculative write paths, worker-owned task
 checkboxes, and irreversible operations without approval remain outside the workflow.
