@@ -47,3 +47,13 @@
   complete before the implementation batch's review, brief, and commit.
 - Reset review cadence after an independent review and excluded coordinator-only verification and
   ledger edits from unreviewed implementation, preventing duplicate final review of the same code.
+
+## 2026-08-06 - Defer Near-Final Boundary Review
+
+- The aligned rerun correctly removed the verification worker and ledger-only commit but still
+  reviewed the library boundary immediately before the final CLI batch, then reviewed the CLI boundary
+  at completion.
+- Kept subsystem transitions as review triggers for larger changes, but deferred them when only one
+  bounded implementation batch plus coordinator verification remains.
+- Required one final review over the complete accepted change in that case, unless material risk
+  justifies both checkpoints.

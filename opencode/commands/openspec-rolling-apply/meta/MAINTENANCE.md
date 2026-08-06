@@ -41,7 +41,8 @@ frequency, finding dispositions, remediation count, future-task leakage, and sto
 design gates. Also inspect whether the mode was resolved before work, whether checkpoint briefs explain
 product and technical context, whether approval-gated runs pause before committing, and whether staged
 files exclude the dirty baseline. Verification-only worker delegations, ledger-only commits, a return
-to broad planner output, or repeated review of unchanged implementation are behavioral regressions.
+to broad planner output, repeated review of unchanged implementation, or near-final boundary review
+immediately followed by final review are behavioral regressions unless material risk required both.
 
 ## Environment Boundary
 

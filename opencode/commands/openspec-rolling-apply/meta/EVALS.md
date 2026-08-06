@@ -76,6 +76,14 @@ final verification readiness:
 After that review, the accumulated-batch count resets. Coordinator-only verification and ledger edits
 do not count as unreviewed implementation.
 
+Given a subsystem boundary with only one bounded implementation batch plus coordinator verification
+remaining and no material-risk trigger:
+
+- the boundary review is deferred;
+- the last batch completes;
+- one final review covers the complete accepted change; and
+- the run does not perform both near-final boundary and final reviews.
+
 ## Speculative Finding
 
 Given a reviewer concern with no credible trigger or current acceptance anchor:

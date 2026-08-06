@@ -102,7 +102,8 @@ Coordinator review is sufficient after ordinary batches. Run one fresh read-only
 when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;
-- a coherent subsystem or vertical milestone is complete and the next batch moves to another seam;
+- a coherent subsystem or vertical milestone is complete, the next batch moves to another seam, and
+  more than one bounded implementation batch remains before final verification;
 - the accepted work materially affects authority, security, concurrency, irreversible state, or
   immutable evidence; or
 - the change is ready for final verification and implementation changes remain unreviewed.
@@ -111,6 +112,10 @@ Do not review merely because one worker finished. Do not resume a prior reviewer
 An independent review resets the accumulated-batch count. A later no-write verification task or
 ledger-only update does not trigger another review when the previous review already covered every
 implementation change and the coordinator's verification passes.
+When a subsystem boundary leaves only one bounded implementation batch plus coordinator verification,
+defer the boundary review and perform one final review over the complete accepted change. Do not pay
+for both a near-final boundary review and a final review unless material risk requires the earlier
+checkpoint.
 
 For the independent review, use one fresh `delegate_general` call with `openai/gpt-5.6-sol` at `high`
 and no `task_id`. Require it to load `thermo-nuclear-code-quality-review`, then review only the
