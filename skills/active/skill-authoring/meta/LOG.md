@@ -90,3 +90,11 @@
 - Replaced the copied Writing Great Skills adaptation with the separately managed `writing-for-agents` skill.
 - Updated the runtime dependency, meta contract, and provenance to require loading `writing-for-agents` before skill work.
 - Removed the copied doctrine and glossary so Skill Authoring has one source of truth for runtime writing quality.
+
+## 2026-08-06 - OpenCode Command Authoring
+
+- Added OpenCode commands as the single-file, explicit-invocation counterpart to Claude Code user-invoked skills.
+- Kept commands distinct from skills: commands are slash-invoked prompt templates, while skills remain model-loadable packages with optional supporting resources.
+- Made OpenCode mechanics conditional so provider detail loads only when a command is the target or a genuine candidate.
+- Allowed destination-owned development metadata around a command source while preserving one Markdown file as the rendered runtime artifact.
+- Defaulted commands to explicit `subtask: false`; `subtask: true` is reserved for behavior that intentionally needs a fresh context separate from the main session.

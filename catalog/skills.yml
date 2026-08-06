@@ -199,8 +199,8 @@ skills:
     source: local
     skill: active/skill-authoring
     description: >
-      Design, create, revise, review, or evaluate an agent skill as a
-      behavior-driven package. User-invoked.
+      Design, create, revise, review, or evaluate an agent skill or explicit
+      command from intended behavior. User-invoked.
   - name: context-transfer
     source: local
     skill: active/context-transfer

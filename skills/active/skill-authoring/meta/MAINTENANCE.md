@@ -4,6 +4,7 @@
 
 - The separately managed `writing-for-agents` skill provides the required runtime writing doctrine. Load it before skill work; follow its `SKILL-MECHANICS.md` pointer when authoring a skill.
 - `references/openai-skill-creation.md` is the required agent-agnostic planning adaptation for examples, freedom, reusable resources, and layered validation.
+- `references/opencode-commands.md` owns the conditional OpenCode command format, substitution, and invocation guidance. Refresh it against the OpenCode reference repository when command behavior changes.
 - `references/testing-workflow.md` owns the harness-neutral live-evidence contract, not CLI commands or session-store mechanics.
 
 Keep each role distinct. Skill Authoring owns behavior, authority, the four-file lifecycle, and evidence. Writing for Agents owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
@@ -31,6 +32,13 @@ Anthropic Skill Creator:
 - Subtree: `skills/skill-creator`
 - Snapshot: `9d2f1ae187231d8199c64b5b762e1bdf2244733d`
 - Adaptation: retained only the optional no-skill or previous-revision baseline concept. The Claude-specific runner, benchmark aggregation, viewer, grading agents, blind comparison, and description optimizer are not part of the default workflow.
+
+OpenCode commands:
+
+- Repository: `https://github.com/anomalyco/opencode`
+- Source: command documentation and command/config/session implementations.
+- Surveyed: 2026-08-06 local reference snapshot.
+- Adaptation: retained the single-file prompt-template model, explicit slash invocation, supported metadata, argument substitution, file and shell interpolation, and skill boundary. Omitted unstable legacy `variant` metadata.
 
 ## Guidance Update Procedure
 

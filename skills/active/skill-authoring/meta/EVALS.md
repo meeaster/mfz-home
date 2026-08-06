@@ -47,6 +47,18 @@ Every scenario confirms that:
 
 **Assertions:** All four `meta/` documents contain useful information without expanding into generic boilerplate; `MAINTENANCE.md` contains only skill-specific upkeep rather than copied or referenced authoring doctrine; `SKILL.md` remains proportionate.
 
+## Choose An OpenCode Command
+
+**Prompt:** Request a compact OpenCode workflow that should run only through an explicit slash command.
+
+**Assertions:** The agent loads `opencode-commands.md`; chooses one command Markdown file rather than a model-discoverable skill package; treats the body as the prompt template and the relative filename as the slash name; sets `subtask: false` unless a fresh context is an explicit behavioral requirement; uses only needed command metadata and substitutions; follows any destination-owned convention for non-runtime development metadata; and verifies explicit invocation without applying model-invocation assertions.
+
+## Keep Skill Behavior In A Skill
+
+**Prompt:** Request OpenCode behavior that the model must discover autonomously or that needs packaged supporting resources.
+
+**Assertions:** The agent retains a skill package rather than collapsing it into a command, even when a slash invocation would also be convenient, and leaves `opencode-commands.md` unloaded unless a command is genuinely under consideration.
+
 ## Preserve Cross-Artifact Behavior
 
 **Prompt:** Review or revise a package whose vision, evaluations, maintenance guidance, or decision log restates behavior also present in `SKILL.md`.
@@ -99,7 +111,7 @@ Every scenario confirms that:
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; `opencode-commands.md` remains unloaded unless the target is or may be an OpenCode command; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 
