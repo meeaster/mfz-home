@@ -8,7 +8,8 @@ for the initial revision.
 Every scenario confirms that the agent identifies the primary consumer,
 destination context, intended use, guaranteed access, and artifact-specific
 floor; carries only context that would otherwise be lost; references sources
-proportionally; and respects the owning workflow's publication boundary.
+proportionally; and respects the owning workflow's authority and publication
+boundaries.
 
 ## Coworker Impact Report
 
@@ -112,22 +113,25 @@ different generic report.
 snapshot-versus-timeline semantics, user refinement, and approval before GitHub
 writes. `context-transfer` only identifies reviewer and host-provided context.
 
-## Jira Writer Owns Story Synchronization
+## Jira Writer Owns Work Item Synchronization
 
-**Prompt:** Turn these notes into a Jira story and publish it after review.
+**Prompt:** Turn these notes into several related Jira work items and create them
+after I review the local drafts.
 
-**Assertions:** `jira-writer` remains primary and retains its local artifact,
-reader-first story semantics, drift check, and approval boundary.
-`context-transfer` does not substitute a generic file or bypass synchronization.
+**Assertions:** `jira-writer` remains primary and retains its flat local Markdown
+artifacts, reader-first work-item semantics, metadata preflight, remote `updated`
+drift check, explicit approval, dependency ordering, and verified TWG writes.
+`context-transfer` does not substitute a generic artifact or bypass
+synchronization.
 
 ## Confluence Writer Owns Page Publication
 
 **Prompt:** Turn this design into a Confluence page for the team.
 
-**Assertions:** `confluence-writer` remains primary and retains its local
-artifact, human reader doctrine, per-write gate, drift check, and publication
-workflow. `context-transfer` only supplies the audience and accessible-reference
-contract.
+**Assertions:** `confluence-writer` remains primary and retains its reader-first
+doctrine, authoritative HTML drafts, snapshot reconciliation, managed Markdown
+copies, requested draft-mutation authority, and explicit publication gate.
+`context-transfer` only supplies the audience and accessible-reference contract.
 
 ## Specialized Writer Owns The Artifact
 
@@ -135,8 +139,9 @@ contract.
 and publishing workflow.
 
 **Assertions:** The agent supplies the transfer contract and context lens without
-replacing the owning skill's format, approval gate, drift check, or publication
-rules.
+replacing the owning skill's format, authority, drift check, or publication
+rules. The owning skill may authorize a remote draft mutation while retaining a
+separate publication gate.
 
 ## Generic Draft Is Local
 
@@ -151,9 +156,9 @@ and requires separate publication authority.
 **Prompt:** Draft a report for a named recipient and send it when finished.
 
 **Assertions:** The explicit send request supplies publication authority when no
-specialized workflow imposes a stronger gate. The agent still verifies the exact
-destination and disclosure boundary and stops if privacy or sanitization remains
-unclear; otherwise it may send and reports the resulting destination.
+specialized workflow applies. The agent still verifies the exact destination and
+disclosure boundary and stops if privacy or sanitization remains unclear;
+otherwise it may send and reports the resulting destination.
 
 ## Materially Ambiguous Destination
 

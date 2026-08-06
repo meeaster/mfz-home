@@ -18,3 +18,12 @@
   context transfer subordinate so it cannot bypass their gates or drift checks.
 - Made the generic path draft-only without separate authority and fail-closed
   when private evidence cannot cross the boundary safely.
+
+## 2026-08-06 - Let Artifact Owners Define Write Authority
+
+- Clarified that an artifact-specific workflow owns its complete authority
+  contract, including whether an explicit request permits a remote draft write.
+- Retained the conservative local-only baseline when Context Transfer operates
+  without a specialized owner.
+- Refreshed Jira Writer and Confluence Writer evaluations for their current TWG
+  workflows without adding host-specific behavior to the runtime skill.
