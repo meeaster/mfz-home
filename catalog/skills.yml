@@ -153,6 +153,12 @@ skills:
       Run another agent harness via its CLI. Use when the user explicitly asks
       to run Codex, OpenCode, or Claude Code; continue a session from one of
       those harnesses; or inspect a harness's available models or variants.
+  - name: codex-imagegen
+    source: local
+    skill: active/codex-imagegen
+    description: >
+      Generate or edit contextual raster images through an isolated Codex CLI
+      worker and its built-in image tool, without requiring an OpenAI API key.
   - name: herdr
     description: >
       Control Herdr from inside a Herdr-managed agent pane: inspect and

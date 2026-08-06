@@ -39,6 +39,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   agent-exec:
     agents: { opencode: true, claude-code: true, codex: true }
+  codex-imagegen:
+    agents: { opencode: true, claude-code: true, codex: false }
   herdr:
     agents: { opencode: true, claude-code: true, codex: true }
   threads:

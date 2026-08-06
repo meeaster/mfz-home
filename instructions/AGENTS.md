@@ -16,6 +16,7 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 - Prefer exact dependency versions and packages older than 7 days.
 - Flag documentation made obsolete by code changes and avoid hardcoded counts.
 - Push back on flawed assumptions and ask when intent is unclear.
+- Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
 - Bash permissions match exact shell text. Prefer narrow, reusable read-only commands; prefixes, wrappers, and chaining may require separate approval.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
 - Write repeatable tests for observable behavior rather than mocks of internal implementation details.

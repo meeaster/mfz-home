@@ -1,0 +1,4 @@
+interface:
+  display_name: "Codex Imagegen"
+  short_description: "Generate and edit images with isolated Codex"
+  default_prompt: "Use $codex-imagegen to create or edit a contextual raster image through Codex's built-in image tool."
