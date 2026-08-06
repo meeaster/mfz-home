@@ -84,6 +84,37 @@ skills:
     repo: https://github.com/pbakaus/impeccable
     ref: main
     subtree: plugin/skills/impeccable
+  - name: animate
+    description: >
+      Build an animation from scratch, making the decisions in the order that
+      determines whether it feels right — should it animate at all, what
+      purpose, which tool, which properties, which curve and duration, how it
+      interrupts, how it exits. Writes the implementation. Use when asked to
+      animate something, add motion, make a component feel alive, or build a
+      transition.
+    source: vendored
+    repo: https://github.com/emilkowalski/skills
+    ref: main
+    subtree: skills/animate
+  - name: find-animation-opportunities
+    description: >
+      Search a codebase or UI for places that don't animate but should, and
+      reject everything that shouldn't. Read-only; it proposes motion with exact
+      values, it does not implement it. Use when the user asks what could be
+      animated or wants to make an interface feel more alive.
+    source: vendored
+    repo: https://github.com/emilkowalski/skills
+    ref: main
+    subtree: skills/find-animation-opportunities
+  - name: review-animations
+    description: >
+      Reviews animation and motion code against a high craft bar derived from
+      Emil Kowalski's design engineering philosophy. Default to flagging;
+      approval is earned.
+    source: vendored
+    repo: https://github.com/emilkowalski/skills
+    ref: main
+    subtree: skills/review-animations
   - name: confluence-writer
     source: local
     skill: active/confluence-writer

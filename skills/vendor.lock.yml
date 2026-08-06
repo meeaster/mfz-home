@@ -65,3 +65,12 @@ skills:
   wayfinder:
     commit: 0986ebaf5d29e812162702b2633a2942c30200d2
     digest: 4a867f9d357399e579d46b5c4cd9726ab11e786e74fda21b3ec336455682168e
+  animate:
+    commit: de33dbed000212b54400a33767d1e4d03654db2a
+    digest: 4ffc09c307f229dcb48597aa8ef7cf4629c606e65c75324e24bfc65cda299cc4
+  find-animation-opportunities:
+    commit: de33dbed000212b54400a33767d1e4d03654db2a
+    digest: 3038575e139da4dd7b15cb88e3f11a7aa91dc3a694bdacd88e82ee6d3239b6c7
+  review-animations:
+    commit: de33dbed000212b54400a33767d1e4d03654db2a
+    digest: c20d32d37046ed44e25677d98b17f95b42c35e1fdbed0fe393a6e94833476406
