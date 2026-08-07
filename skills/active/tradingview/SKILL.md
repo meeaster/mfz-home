@@ -85,7 +85,8 @@ browser commands; this skill owns TradingView routes, not browser mechanics.
    boundaries, and has a verification and fallback. Record sanitized evidence
    before editing. When the authoritative Personal Mindframe-Z home is writable
    and its repository state permits the change, update the single owning
-   reference, affected evaluations, and `meta/LOG.md`, run focused validation,
+   runtime reference and the resolved authoring record's affected `EVALS.md`,
+   `MAINTENANCE.md`, and `LOG.md`, run focused validation,
    then apply the home. When only rendered output is available, report the
    candidate and reproduction evidence instead. Replace superseded guidance.
    Done when a material reusable discovery passes the promotion gate or is

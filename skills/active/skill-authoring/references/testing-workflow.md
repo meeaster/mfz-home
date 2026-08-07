@@ -4,7 +4,7 @@ Use this loop to test a skill's actual behavior rather than its apparent prose.
 
 ## 1. Fix The Test Contract
 
-Select one scenario from `meta/EVALS.md` or define a missing representative scenario. Record:
+Select one scenario from the resolved authoring record's `EVALS.md` or define a missing representative scenario. Record:
 
 - the skill revision;
 - the invocation surface under test;

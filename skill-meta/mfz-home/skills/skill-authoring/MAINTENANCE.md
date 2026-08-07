@@ -7,7 +7,7 @@
 - `references/opencode-commands.md` owns the conditional OpenCode command format, substitution, and invocation guidance. Refresh it against the OpenCode reference repository when command behavior changes.
 - `references/testing-workflow.md` owns the harness-neutral live-evidence contract, not CLI commands or session-store mechanics.
 
-Keep each role distinct. Skill Authoring owns behavior, authority, the four-file lifecycle, and evidence. Writing for Agents owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
+Keep each role distinct. Skill Authoring owns behavior, authority, authoring record resolution, the four-file lifecycle, and evidence. Writing for Agents owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
 
 ## Upstream Provenance
 
@@ -45,7 +45,7 @@ OpenCode commands:
 1. Inspect upstream changes since each recorded snapshot.
 2. Classify changes by the local role they could affect; do not copy a complete upstream workflow mechanically.
 3. Update the vendored `writing-for-agents` dependency and its recorded boundary together.
-4. Review `SKILL.md` and every meta artifact for affected assumptions.
+4. Review `SKILL.md` and every authoring record artifact for affected assumptions.
 5. Run the scenarios in `EVALS.md`.
 6. Record consequential effects, rejected changes, and reversals in `LOG.md`.
 
@@ -54,7 +54,7 @@ OpenCode commands:
 1. Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, `LOG.md`, and `DOGFOODING.md` before editing `SKILL.md`.
 2. State the observed problem and desired behavior.
 3. Classify the change as narrow tuning or intentional redesign.
-4. Update the runtime skill and every affected meta artifact together.
+4. Update the runtime artifact and every affected authoring record artifact together.
 5. Run representative evaluations for the changed branches.
 6. Follow `references/testing-workflow.md` for live runs and inspect traces or produced artifacts rather than relying on self-report.
 7. Record consequential decisions, observed effects, and reversals in `LOG.md`.
@@ -69,7 +69,7 @@ OpenCode commands:
 
 ## Provenance
 
-The package convention and authoring workflow were derived from practical skill-development concerns: preserving intent separately from implementation, distinguishing trigger evaluation from post-load behavior, using traces as evidence, controlling runtime context, and retaining concise maintenance and change rationale.
+The authoring record convention and workflow were derived from practical skill-development concerns: preserving intent separately from implementation, distinguishing trigger evaluation from post-load behavior, using traces as evidence, controlling runtime context, and retaining concise maintenance and change rationale.
 
 Skill Authoring owns that personal behavior, evidence, authority, and lifecycle layer. The bundled adaptations make its required writing and planning guidance available in every supported harness. Advanced Anthropic or Sentry evaluation machinery remains optional source material rather than a dependency of the default loop.
 

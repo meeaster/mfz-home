@@ -18,6 +18,6 @@ Keep paths, tracker details, repository names, projects, and storage systems out
 
 1. Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md`.
 2. Classify the observed problem as a clarification of the vision or evidence layer, or a boundary change with Wayfinder.
-3. Update the runtime instructions and every affected meta artifact together.
+3. Update the runtime instructions and every affected authoring record artifact together.
 4. Run the relevant scenarios in `EVALS.md` and inspect the map, companion artifacts, and ticket records.
 5. Record consequential boundary or behavior changes in `LOG.md`.

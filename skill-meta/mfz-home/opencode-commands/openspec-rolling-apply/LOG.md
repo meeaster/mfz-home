@@ -57,3 +57,29 @@
   bounded implementation batch plus coordinator verification remains.
 - Required one final review over the complete accepted change in that case, unless material risk
   justifies both checkpoints.
+
+## 2026-08-07 - Durable Resume Journal And Continuous Code Health
+
+- A 385-turn live run crossed three compactions and had to reintroduce the command prompt after context
+  loss, showing that checkpoint briefs and transcript compaction were not a sufficient resume surface.
+- Added one `rolling-apply.md` journal beside the OpenSpec change with a self-contained resume contract,
+  reconciled current state, append-only activity log, review frontier, and code-health register.
+- Kept OpenSpec, Git, and test evidence authoritative; the journal records and resumes the run but does
+  not become a second task ledger.
+- Split maintainability dispositions into `health-now` for bounded structural repairs to code introduced
+  or worsened by the run and `health-register` for pre-existing or genuinely cross-cutting issues.
+- Required `health-now` work to join the single consolidated remediation instead of being deferred
+  because it is a refactor or because behavior already passes.
+- Required final code-health reconciliation: current-scope items must close, while remaining
+  cross-cutting items need explicit user assignment to a named follow-on change before readiness.
+
+## 2026-08-07 - Propagate Live Apply Guidance
+
+- Confirmed from the live rolling session that all 36 Luna/max workers loaded
+  `openspec-apply-change` and ran the current Apply instructions.
+- Kept operation guidance in the selected OpenSpec store as the single source of truth rather than
+  copying its learning policy into this command.
+- Required each worker to resolve and follow current guidance itself, while allowing applicable
+  companion-file and authoritative-artifact edits through its planning-root write boundary.
+- Reserved task completion checkboxes and `rolling-apply.md` for the coordinator instead of broadly
+  prohibiting Luna from editing OpenSpec files.

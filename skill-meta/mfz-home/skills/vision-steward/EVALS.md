@@ -42,7 +42,7 @@ Every scenario confirms that the agent establishes edit authority, ranks evidenc
 
 ## Exclude Skill Meta Vision
 
-**Prompt:** Ask to update `<skill>/meta/VISION.md`.
+**Prompt:** Ask to update a skill or command authoring record's `VISION.md`.
 
 **Assertions:** Vision Steward stops and routes the work to `skill-authoring` without editing the package.
 
@@ -50,4 +50,4 @@ Every scenario confirms that the agent establishes edit authority, ranks evidenc
 
 **Positive prompts:** Create our workspace vision; update `VISION.md` after this accepted decision; review whether this repository has drifted from its vision; reconcile the vision with the accepted design.
 
-**Adjacent negative prompts:** Write a product roadmap; summarize current project status; update a skill's `meta/VISION.md`; brainstorm possible future features without asking to establish direction.
+**Adjacent negative prompts:** Write a product roadmap; summarize current project status; update a skill authoring record's `VISION.md`; brainstorm possible future features without asking to establish direction.

@@ -1,6 +1,6 @@
 # Skill Creation Planning
 
-This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves the planning and reusable-resource guidance that complements Skill Authoring and Writing Great Skills. Skill Authoring owns behavior, authority, the four-file development contract, and evaluation. Writing Great Skills owns runtime writing quality.
+This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves the planning and reusable-resource guidance that complements Skill Authoring and Writing for Agents. Skill Authoring owns behavior, authority, the four-file authoring record, and evaluation. Writing for Agents owns runtime writing quality.
 
 ## Match Freedom To Fragility
 
@@ -41,7 +41,7 @@ Create only the directories the behavior needs. Test executable scripts directly
 
 ## Separate Portable Behavior From Provider Mechanics
 
-The runtime behavior, references, scripts, and four-file development contract should remain provider-neutral when practical. Follow destination conventions for frontmatter, sidecars, installation, discovery, and interface metadata. Let available environment guidance supply those provider-specific mechanics rather than copying one provider's commands into the core skill.
+The runtime behavior, references, scripts, and four-file authoring contract should remain provider-neutral when practical. Follow destination conventions for frontmatter, sidecars, installation, discovery, and interface metadata. Let available environment guidance supply those provider-specific mechanics rather than copying one provider's commands into the core skill.
 
 ## Validate In Layers
 
@@ -54,7 +54,7 @@ After structural checks:
 3. Inspect artifacts and session evidence rather than relying on self-report.
 4. Iterate from observed struggles, inefficiencies, and regressions.
 
-Use Skill Authoring's `meta/EVALS.md` and testing workflow for the behavioral evidence contract.
+Use Skill Authoring's authoring record `EVALS.md` and testing workflow for the behavioral evidence contract.
 
 ## Adaptation Boundary
 
@@ -70,5 +70,5 @@ Owned elsewhere or intentionally omitted:
 - Codex-only metadata and command syntax;
 - OpenAI initialization and metadata-generation scripts;
 - the upstream prohibition on auxiliary documents, because this workflow deliberately keeps four non-runtime maintenance artifacts;
-- writing and progressive-disclosure doctrine already owned by Writing Great Skills;
+- writing and progressive-disclosure doctrine already owned by Writing for Agents;
 - the complete upstream end-to-end workflow, which would conflict with Skill Authoring's behavior-first lifecycle.

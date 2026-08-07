@@ -13,6 +13,7 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 
 ## Working Preferences
 
+- If you need to use `/tmp`, use `/tmp/opencode` instead.
 - Prefer exact dependency versions and packages older than 7 days.
 - Flag documentation made obsolete by code changes and avoid hardcoded counts.
 - Push back on flawed assumptions and ask when intent is unclear.

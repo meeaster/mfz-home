@@ -9,23 +9,23 @@ Every scenario confirms that:
 - the `writing-for-agents` skill and OpenAI-derived planning guidance are loaded before skill work begins;
 - the requested mode and authorized outcome are established;
 - files are modified only when implementation is authorized;
-- every applicable package artifact agrees with `SKILL.md`.
+- every applicable runtime and authoring record artifact agrees with `SKILL.md`.
 
 ## Create From A Sparse Brief
 
 **Prompt:** Ask for a skill with only a goal and rough use case.
 
-**Assertions:** The agent establishes intended behavior and genuine ambiguities before choosing a form; resolves available facts through legwork; asks about unresolved consequential choices while stating reversible assumptions; creates all four meaningful `meta/` documents; and avoids inventing unsupported environment assumptions.
+**Assertions:** The agent establishes intended behavior and genuine ambiguities before choosing a form; resolves available facts through legwork; asks about unresolved consequential choices while stating reversible assumptions; creates all four meaningful authoring record documents; and avoids inventing unsupported environment assumptions.
 
 ## Create From Rich Evidence
 
 **Prompt:** Supply notes, repository material, or prior interactions describing a desired process.
 
-**Assertions:** The agent extracts durable behavior, identifies uncertainty, and keeps incidental evidence out of runtime instructions while preserving useful provenance in `meta/MAINTENANCE.md` or rationale in `meta/LOG.md`.
+**Assertions:** The agent extracts durable behavior, identifies uncertainty, and keeps incidental evidence out of runtime instructions while preserving useful provenance in the record's `MAINTENANCE.md` or rationale in `LOG.md`.
 
 ## Revise An Existing Skill
 
-**Prompt:** Request a behavioral change to a skill with an existing `meta/` package.
+**Prompt:** Request a behavioral change to a skill with an existing authoring record.
 
 **Assertions:** The agent reads all package artifacts, classifies tuning versus redesign, reconciles the change with `VISION.md`, updates affected evaluations and maintenance guidance, and records a consequential decision in `LOG.md`.
 
@@ -45,13 +45,43 @@ Every scenario confirms that:
 
 **Prompt:** Create a one-line orchestrator or similarly compact skill.
 
-**Assertions:** All four `meta/` documents contain useful information without expanding into generic boilerplate; `MAINTENANCE.md` contains only skill-specific upkeep rather than copied or referenced authoring doctrine; `SKILL.md` remains proportionate.
+**Assertions:** All four record documents contain useful information without expanding into generic boilerplate; `MAINTENANCE.md` contains only skill-specific upkeep rather than copied or referenced authoring doctrine; `SKILL.md` remains proportionate.
+
+## Default Package-Local Record
+
+**Prompt:** Create a skill in an environment with no explicit record location or configured authoring record root.
+
+**Assertions:** The agent creates `<skill>/meta` with the four standard documents, does not invent an external store, and keeps those documents out of ordinary runtime context.
+
+## Configured External Record
+
+**Prompt:** Create or revise a skill while applicable environment guidance supplies only an authoring record root.
+
+**Assertions:** The agent derives `<root>/<repository-name>/skills/<skill-name>`, writes `TARGET.md` and the four standard documents there, creates no package-local `meta/`, and introduces no dependency on the system that supplied the root.
+
+## External OpenCode Command Record
+
+**Prompt:** Create or revise an OpenCode command while applicable environment guidance supplies an authoring record root.
+
+**Assertions:** The agent derives `<root>/<repository-name>/opencode-commands/<command-name>`, keeps the runtime command single-file, writes `TARGET.md` and the four standard documents only to the external record, and does not expose development files through command discovery.
+
+## Unsafe Command Record Location
+
+**Prompt:** Explicitly select an authoring record location that OpenCode could render or discover as a command.
+
+**Assertions:** The agent rejects the unsafe location and requests a safe alternative; explicit placement does not override the runtime-context boundary.
+
+## Conflicting Records
+
+**Prompt:** Revise an artifact when both its configured external record and a package-local record exist.
+
+**Assertions:** The agent reports the competing records and obtains an authoritative-location decision instead of merging, moving, or updating both silently.
 
 ## Choose An OpenCode Command
 
 **Prompt:** Request a compact OpenCode workflow that should run only through an explicit slash command.
 
-**Assertions:** The agent loads `opencode-commands.md`; chooses one command Markdown file rather than a model-discoverable skill package; treats the body as the prompt template and the relative filename as the slash name; sets `subtask: false` unless a fresh context is an explicit behavioral requirement; uses only needed command metadata and substitutions; follows any destination-owned convention for non-runtime development metadata; and verifies explicit invocation without applying model-invocation assertions.
+**Assertions:** The agent loads `opencode-commands.md`; chooses one command Markdown file rather than a model-discoverable skill package; treats the body as the prompt template and the relative filename as the slash name; sets `subtask: false` unless a fresh context is an explicit behavioral requirement; uses only needed command metadata and substitutions; resolves one safe authoring record; and verifies explicit invocation without applying model-invocation assertions.
 
 ## Keep Skill Behavior In A Skill
 
@@ -111,8 +141,10 @@ Every scenario confirms that:
 
 **Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
 
-**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own `meta/` files remain unloaded; `opencode-commands.md` remains unloaded unless the target is or may be an OpenCode command; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
+**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own authoring record remains unloaded; `opencode-commands.md` remains unloaded unless the target is or may be an OpenCode command; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
 
 ## Latest Evaluation Result
 
-The current composition passes its OpenCode and Sol Medium creation boundary: a fresh process loaded `writing-for-agents` and OpenAI-derived planning guidance, left Skill Authoring meta and testing guidance unloaded, and created only `SKILL.md` plus the four required meta files. Provider-specific detail was limited to the requested `.opencode` destination. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+The previous composition passed its OpenCode and Sol Medium creation boundary: a fresh process loaded `writing-for-agents` and OpenAI-derived planning guidance, left Skill Authoring's record and testing guidance unloaded, and created `SKILL.md` plus the four required package-local record files. Provider-specific detail was limited to the requested `.opencode` destination.
+
+External-root creation and reuse passed on 2026-08-07 in two fresh OpenCode 1.18.14 sessions using Luna High and `--auto`. Creation in an isolated Git repository wrote only `SKILL.md` into the target package and derived the expected external record from the configured root, repository basename, `skills` kind, and declared skill name. A second fresh session received no record path, read `TARGET.md`, `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` before editing, then coherently updated the runtime artifact and four affected record files. A non-auto preflight derived the same path but could not write outside the fixture because noninteractive permission prompts were rejected; this was environment noise rather than a routing defect. OpenCode command routing and competing-record handling remain statically specified but not live-tested. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.

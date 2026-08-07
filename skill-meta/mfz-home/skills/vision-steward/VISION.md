@@ -20,7 +20,7 @@ A successful vision document helps a future person or agent make tradeoffs, loca
 
 ## Non-Goals
 
-- Maintaining skill-package `meta/VISION.md` files, which belong to `skill-authoring`.
+- Maintaining skill or command authoring record `VISION.md` files, which belong to `skill-authoring`.
 - Turning current implementation or generated synthesis into accepted direction.
 - Producing roadmaps, status reports, inventories, or implementation plans.
 - Requiring one section template for every vision document.

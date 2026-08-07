@@ -11,3 +11,7 @@
 
 - For changes to the Personal Mindframe-Z home or profile, work in `/home/mark/workspace/repos/mfz-home` and follow its `AGENTS.md`.
 - The Personal profile extends `base`; put shared behavior in `base` and Personal-only configuration in `personal`.
+
+# Skill Authoring Records
+
+- Use `/home/mark/workspace/repos/mfz-home/skill-meta` as the Skill Authoring record root. Skill Authoring owns the structure beneath this root.

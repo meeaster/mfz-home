@@ -1,6 +1,6 @@
 ---
 name: vision-steward
-description: Create, revise, reconcile, or review a repository or workspace VISION.md as a human-owned north star. Use when asked to capture durable direction, update vision after an accepted change, check work against vision, or resolve drift between vision and related designs. Do not use for a skill package's meta/VISION.md; use skill-authoring.
+description: Create, revise, reconcile, or review a repository or workspace VISION.md as a human-owned north star. Use when asked to capture durable direction, update vision after an accepted change, check work against vision, or resolve drift between vision and related designs. Do not use for a skill or command authoring record's VISION.md; use skill-authoring.
 ---
 
 # Vision Steward
@@ -11,7 +11,7 @@ Treat `VISION.md` as durable intent, not a description of whatever exists today.
 
 Determine whether the user wants to create, revise, reconcile, or review a vision. Review and assessment do not authorize edits. For creation or revision, confirm the target repository or workspace from explicit context; if more than one target is plausible, ask.
 
-If the target is a skill package's `meta/VISION.md`, stop and use `skill-authoring` instead.
+If the target is a skill or command authoring record's `VISION.md`, stop and use `skill-authoring` instead.
 
 **Done when:** the target, requested mode, and edit authority are unambiguous.
 

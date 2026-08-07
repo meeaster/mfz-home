@@ -46,6 +46,10 @@ mcp:
     route: executor
     connections:
       main: oauth
+  sentry:
+    route: executor
+    connections:
+      main: oauth
 claude:
   settings:
     permissions:

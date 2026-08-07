@@ -27,8 +27,32 @@ deployment, migration, production access, or another operator-gated action.
 ## Prepare
 
 Resolve the change, store, planning root, and implementation workspace through the Apply procedure.
-Read every returned context path. Preserve the distinction between the planning root and the code
-workspace. Stop for a blocked or all-done state as the Apply procedure requires.
+Read every returned context path and follow every applicable `operationGuidance` entry. Preserve the
+distinction between the planning root and the code workspace. Stop for a blocked or all-done state as
+the Apply procedure requires.
+
+Create or resume `<change-directory>/rolling-apply.md` before delegation. This is the run journal, not
+a second task ledger. A fresh or compacted coordinator must read it first, reconcile it against current
+OpenSpec and Git state, correct stale current-state fields, and then continue from it.
+
+Keep one file with these sections:
+
+- **Resume Contract:** a self-contained restatement of this run's change, control mode, roots, Apply
+  authority, delegation routes, acceptance cycle, review/remediation policy, Git and operator
+  boundaries, and the instruction to reconcile durable state before acting;
+- **Current State:** last-updated time, Apply progress, active or next batch, dirty baseline, accepted
+  but uncommitted work, last checkpoint commit, batches since review, last reviewed scope, pending
+  gates or blockers, and open code-health items;
+- **Activity Log:** append-only timestamped entries for batch selection, worker result, coordinator
+  acceptance, review dispositions, remediation, checkpoint, commit, control-mode change, and pause;
+- **Code-Health Register:** stable IDs, evidence and affected paths, origin (`current-scope` or
+  `pre-existing`), disposition, intended checkpoint, and closure evidence.
+
+Update Current State and append the corresponding Activity Log entry before every delegation and after
+every acceptance, review, remediation, commit, mode change, or stop. Preserve prior log entries. Include
+the journal in checkpoint staging when it belongs to the checkpoint repository; otherwise report its
+separate planning-root status. Journal state never overrides the task ledger, repository, or test
+evidence.
 
 Inspect the current Git status before delegation. Preserve unrelated changes and include the dirty
 baseline in every worker brief. A checkpoint commit may contain only files and task-ledger changes
@@ -65,8 +89,9 @@ Use one fresh `delegate_general` call with:
 - variant `max`;
 - no `task_id`.
 
-The worker brief must require the worker to load `openspec-apply-change`, read every supplied OpenSpec
-context path, and implement only the selected task IDs. Include:
+The worker brief must require the worker to load `openspec-apply-change`, resolve the selected store,
+run the current Apply instructions itself, read every returned context path and applicable
+`operationGuidance` entry, and implement only the selected task IDs. Include:
 
 - exact task IDs and descriptions;
 - the observable batch outcome and acceptance criteria;
@@ -78,16 +103,20 @@ context path, and implement only the selected task IDs. Include:
 - satisfied dependencies and unresolved operator gates; and
 - a handoff listing changed files, tests and outcomes, blockers, and remaining scope.
 
-The worker uses Apply for context and implementation discipline but leaves the task ledger unchanged.
-The coordinator owns acceptance checkboxes. The worker must preserve unrelated changes, avoid broad
-discovery, and report a blocker before widening scope or inventing behavior.
+The worker uses Apply for context and implementation discipline. It may maintain change companion files
+and reconcile authoritative OpenSpec artifacts when current `operationGuidance` requires that work.
+Worker exclusions must preserve that route rather than prohibiting all planning-root edits. The worker
+leaves task completion checkboxes and `rolling-apply.md` unchanged; the coordinator owns acceptance
+state and the run journal. The worker must preserve unrelated changes, avoid broad discovery, and report
+a blocker before widening scope or inventing behavior.
 
 ## Accept The Batch
 
 After the worker returns:
 
 1. Inspect the handoff and complete diff against the brief and dirty baseline.
-2. Confirm changed files belong to the selected batch and no unrelated change was overwritten.
+2. Confirm implementation, companion-file, and authoritative-artifact changes belong to the selected
+   batch and no unrelated change was overwritten.
 3. Run the focused acceptance gate independently.
 4. Mark only task IDs whose observable criteria pass.
 5. Refresh `openspec instructions apply` with the selected store and reconcile progress.
@@ -126,18 +155,26 @@ Every finding must state a concrete trigger and be classified as:
 
 - `blocker`: an accepted criterion is false or there is evidenced authority, security, likely
   irreversible-data, or ordinary-path correctness risk;
+- `health-now`: the reviewed scope introduced or materially worsened an evidenced maintainability
+  problem, and a bounded refactor now will keep the remaining implementation safer or simpler;
+- `health-register`: a valid maintainability problem is pre-existing or genuinely cross-cutting enough
+  that repairing it in this checkpoint would require a separate design or materially unrelated scope;
 - `follow-up`: useful hardening that does not invalidate acceptance;
 - `future task`: behavior owned by an unimplemented task or separate change; or
 - `closed`: unsupported, duplicate, preference-only, or already covered.
 
 Low likelihood alone does not dismiss a high-impact authority or irreversible-data risk, but a
 hypothetical concern without a credible trigger does not block. The reviewer cannot add acceptance
-criteria or reopen previously reviewed work merely to improve it.
+behavior or reopen previously reviewed work merely from preference. Structural quality is part of the
+current implementation: a large or mixed-responsibility file, duplicated pathway, poor boundary, or
+growing conditional tangle in changed code is not deferred merely because its repair is a refactor.
 
-Consolidate accepted blockers into one fresh Luna/max remediation. The coordinator verifies the
-specific fixes and gates without commissioning a second review. Record follow-ups and future tasks
-without implementing them. If a blocker remains after remediation, stop for the user rather than
-starting a review loop.
+The coordinator adjudicates every finding against the diff and remaining work. Consolidate accepted
+`blocker` and `health-now` findings into one fresh Luna/max remediation. The coordinator verifies the
+specific fixes and gates without commissioning a second review. Put `health-register` findings in the
+run journal with an intended checkpoint; record other follow-ups and future tasks there when no more
+authoritative destination exists. If a blocker or health-now item remains after remediation, stop for
+the user rather than starting a review loop.
 
 ## Brief And Commit The Checkpoint
 
@@ -171,12 +208,19 @@ checkpoint.
 Repeat batch selection, delegation, acceptance, and triggered review until Apply reports all done, an
 operator gate or design decision blocks progress, or the user interrupts.
 
+Before claiming readiness for final verification, reconcile the Code-Health Register. Implement
+current-scope items in the earliest coherent checkpoint, normally when found rather than in an end-only
+cleanup. At the end, close remaining current-scope items with verified code or stop for the user.
+Pre-existing or truly cross-cutting items require an explicit user disposition into a named follow-on
+change before this command may call the run ready; they cannot disappear into an unowned final list.
+
 At each pause or completion, report:
 
 - task IDs accepted in this run and current progress;
 - implementation batches and their observable outcomes;
 - focused gates and results;
 - whether an independent review ran, its dispositions, and any remediation;
-- pending operator gates, follow-ups, future tasks, or blockers; and
+- journal path and open code-health register entries;
+- pending operator gates, follow-ups, future tasks, or blockers;
 - checkpoint commit hashes or the approval-gated uncommitted checkpoint; and
 - whether the change is ready for verification or archive.

@@ -84,3 +84,12 @@ servers:
       authentication:
         - slug: oauth
           kind: oauth2
+  sentry:
+    description: Sentry issue, event, and trace investigation MCP server.
+    type: remote
+    transport: http
+    url: https://mcp.sentry.dev/mcp
+    executor:
+      authentication:
+        - slug: oauth
+          kind: oauth2

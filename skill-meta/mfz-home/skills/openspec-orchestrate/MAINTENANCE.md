@@ -9,7 +9,7 @@ out of useful context or when plans create fresh sessions that reread the same c
 both per-worker payload and total duplicated payload; lowering one worker's estimate is not an
 improvement when total uncached reads and handoffs rise materially.
 
-After behavioral changes, run the scenarios in `meta/EVALS.md` against at least one small local
+After behavioral changes, run the scenarios in `EVALS.md` against at least one small local
 change and one cross-cutting standalone-store change. Inspect the returned task mapping, worker count,
 worker boundaries, exact writes, and checkpoint separation. A planner self-report is insufficient.
 

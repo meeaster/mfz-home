@@ -246,6 +246,8 @@ claude:
           matcher: "*"
 
 extra_folders:
+  - path: ~/workspace/repos/mfz-home
+    description: Personal mindframe-z home for shared base and Personal profile configuration.
   - path: ~/.mindframe-z
     description: mindframe-z configuration and generated indexes.
   - path: ~/.agent/diagrams

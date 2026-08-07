@@ -13,6 +13,39 @@ Given a ready change with several ordered implementation tasks:
 - one fresh Luna/max worker receives exact IDs, boundaries, criteria, and focused gates; and
 - only coordinator-verified tasks are checked off.
 
+## Dynamic Apply Guidance
+
+Given a selected store whose Apply instructions include operation guidance:
+
+- the coordinator reads the current guidance rather than relying on a command-local copy;
+- the Luna/max worker loads `openspec-apply-change` and independently resolves the same selected store
+  and current Apply instructions;
+- applicable guidance may produce a companion-file or authoritative-artifact change in the planning
+  root;
+- worker exclusions do not prohibit those applicable planning-root writes;
+- the worker leaves task completion checkboxes and `rolling-apply.md` unchanged; and
+- the coordinator verifies and checkpoints the planning-root changes with the implementation batch.
+
+Given guidance that says to create a companion file only when a qualifying event occurs, a batch
+without that event does not create an empty or speculative file.
+
+## Run Journal And Resume
+
+Given a new rolling Apply run:
+
+- `<change-directory>/rolling-apply.md` is created before the first delegation;
+- its Resume Contract is sufficient for a fresh coordinator to recover the selected change, mode,
+  roots, cycle, routes, review policy, and safety boundaries;
+- Current State names the dirty baseline, next batch, review frontier, and open health items; and
+- Activity Log entries are appended without rewriting earlier history.
+
+Given compaction or a fresh coordinator with a stale journal:
+
+- the journal is read before work;
+- OpenSpec, Git, and test evidence are inspected and win on disagreement;
+- stale Current State fields are corrected with a reconciliation log entry; and
+- the coordinator continues without requiring the full prior transcript or pasted command prompt.
+
 ## Control Mode
 
 Given no explicit mode, the command asks for `continuous` or `approval-gated` before project work and
@@ -95,6 +128,26 @@ Given a reviewer concern with no credible trigger or current acceptance anchor:
 Given a rare but credible authority bypass or likely irreversible-data failure, impact may justify a
 blocker despite low likelihood.
 
+## Code Health
+
+Given a review finding that changed code introduced a giant mixed-responsibility module, duplicated an
+execution path, weakened a boundary, or added a conditional tangle:
+
+- the reviewer gives concrete evidence and classifies it `health-now` when a bounded refactor protects
+  the remaining work;
+- the coordinator does not defer it merely because behavior already passes or the repair is a
+  refactor;
+- the consolidated remediation repairs it before checkpoint acceptance; and
+- closure evidence is recorded in the journal.
+
+Given a valid pre-existing or genuinely cross-cutting health issue:
+
+- it is classified `health-register`, not silently dismissed;
+- the journal records stable ID, evidence, origin, intended checkpoint, and disposition;
+- current-scope work is resolved in the earliest coherent checkpoint; and
+- final verification readiness is withheld until every remaining item is closed or the user explicitly
+  assigns it to a named follow-on change.
+
 ## Single Remediation
 
 Given accepted review blockers:
@@ -103,6 +156,9 @@ Given accepted review blockers:
 - the coordinator verifies only those fixes and their regressions;
 - no second reviewer or review-until-clean loop starts; and
 - an unresolved blocker stops for the user.
+
+The same single-remediation rule applies to accepted `health-now` findings; it does not create a second
+review loop.
 
 ## Dirty Workspace
 
@@ -121,7 +177,8 @@ Given an accepted worker batch with or without a triggered review:
 - the brief explains delivered product behavior and its place in the final OpenSpec outcome;
 - it explains component boundaries, data flow, and consequential architecture decisions;
 - it identifies important changed code and tests without reducing the explanation to file names;
-- it reports gates, review dispositions, limitations, and remaining scope; and
+- it reports gates, review dispositions, limitations, and remaining scope;
+- it names the run journal and any open code-health entries; and
 - it names the exact checkpoint files and proposed Conventional Commit message before commit.
 
 The reviewer does not produce a competing user brief, and worker self-report is not copied without

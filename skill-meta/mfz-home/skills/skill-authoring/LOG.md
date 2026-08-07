@@ -98,3 +98,11 @@
 - Made OpenCode mechanics conditional so provider detail loads only when a command is the target or a genuine candidate.
 - Allowed destination-owned development metadata around a command source while preserving one Markdown file as the rendered runtime artifact.
 - Defaulted commands to explicit `subtask: false`; `subtask: true` is reserved for behavior that intentionally needs a fresh context separate from the main session.
+
+## 2026-08-07 - Configurable External Authoring Records
+
+- Generalized the four development documents into one authoring record shared by skills and OpenCode commands.
+- Kept `<skill>/meta` as the portable default and allowed applicable environment guidance to supply only an external record root.
+- Made Skill Authoring derive repository, artifact-kind, and artifact-name segments so environment guidance does not duplicate storage structure.
+- Required external records to carry `TARGET.md` and prohibited silent selection, merging, or migration when local and external records compete.
+- Kept direct runtime command directories free of development Markdown when no safe source package or external record location exists.
