@@ -246,6 +246,8 @@ claude:
           matcher: "*"
 
 extra_folders:
+  - path: ~/workspace
+    description: Workspace root for cross-repository project work and shared specifications, knowledge, references, artifacts, and scratch material.
   - path: ~/workspace/repos/mfz-home
     description: Personal mindframe-z home for shared base and Personal profile configuration.
   - path: ~/.mindframe-z
