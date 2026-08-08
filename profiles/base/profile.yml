@@ -119,17 +119,17 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   context7:
-    route: executor
+    agents: [opencode, claude-code, codex]
   fff:
     agents: [opencode, claude-code, codex]
   deepwiki:
-    route: executor
+    agents: [opencode, claude-code, codex]
   openai-docs:
-    route: executor
+    agents: [opencode, claude-code, codex]
   aws-knowledge:
-    route: executor
+    agents: [opencode, claude-code, codex]
   x-docs:
-    route: executor
+    agents: [opencode, claude-code, codex]
 opencode:
   config:
     lsp: true
@@ -141,6 +141,19 @@ opencode:
       explore:
         model: openai/gpt-5.6-luna
         variant: high
+        permission:
+          skill:
+            "*": deny
+            agent-sessions: allow
+            claude-code-docs: allow
+          fff_*: allow
+          context7_*: allow
+          deepwiki_*: allow
+          openai_docs_*: allow
+          aws_knowledge_*: allow
+          x_docs_*: allow
+          execute: allow
+          executor_*: deny
     permission:
       question: deny
       read:

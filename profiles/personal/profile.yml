@@ -41,17 +41,23 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
+executor:
+  bridge: false
 mcp:
   homeassistant:
     agents: { enabled: [claude-code], disabled: [opencode, codex] }
   robinhood-trading:
-    route: executor
-    connections:
-      main: oauth
+    agents: [opencode, claude-code, codex]
+    executor:
+      enabled: true
+      connections:
+        main: oauth
   sentry:
-    route: executor
-    connections:
-      main: oauth
+    agents: [opencode, claude-code, codex]
+    executor:
+      enabled: true
+      connections:
+        main: oauth
 claude:
   settings:
     permissions:
