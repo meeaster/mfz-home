@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! command -v apt-get >/dev/null 2>&1; then
+  exit 0
+fi
+
+if [ "$(dpkg --print-architecture)" != "amd64" ]; then
+  printf '%s\n' "Google Chrome is only available for amd64 Debian-based systems." >&2
+  exit 1
+fi
+
+keyring="/etc/apt/keyrings/google-chrome.gpg"
+source_list="/etc/apt/sources.list.d/google-chrome.list"
+repository="deb [arch=amd64 signed-by=$keyring] https://dl.google.com/linux/chrome/deb/ stable main"
+
+if [ -s "$keyring" ] && [ -r "$source_list" ] && [ "$(<"$source_list")" = "$repository" ]; then
+  exit 0
+fi
+
+if ! command -v curl >/dev/null 2>&1 || ! command -v gpg >/dev/null 2>&1; then
+  sudo apt-get update
+  sudo apt-get install --yes ca-certificates curl gnupg
+fi
+
+key_file="$(mktemp)"
+keyring_file="$(mktemp)"
+trap 'rm -f "$key_file" "$keyring_file"' EXIT
+
+curl --fail --location --silent --show-error \
+  https://dl.google.com/linux/linux_signing_key.pub \
+  --output "$key_file"
+gpg --dearmor --yes --output "$keyring_file" "$key_file"
+
+sudo install --directory --mode 0755 /etc/apt/keyrings
+sudo install --mode 0644 "$keyring_file" "$keyring"
+printf '%s\n' "$repository" | sudo tee "$source_list" >/dev/null
+sudo apt-get update

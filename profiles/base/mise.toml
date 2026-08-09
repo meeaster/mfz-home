@@ -42,6 +42,12 @@ bat = "0"
 minimum_release_age = "3d"
 minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:executor", "herdr"]
 
+[bootstrap.hooks]
+pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
+
+[bootstrap.packages]
+"apt:google-chrome-stable" = "latest"
+
 [tools."github:dmtrKovalenko/fff"]
 version = "0"
 asset_pattern = "fff-mcp-x86_64-unknown-linux-gnu"
