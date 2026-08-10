@@ -141,11 +141,20 @@ skills:
     source: local
     skill: active/agent-sessions
     description: >
-      Use when doing session archaeology: finding, reading, reconstructing,
-      catching up on, or auditing prior OpenCode or Claude Code sessions,
-      including catching up on or resuming from a specific past session, tool
-      calls, subagents, permission events, failures, skill usage, and local
-      session stores.
+      Use for session archaeology across agent harnesses: locating, outlining,
+      investigating, reconstructing, auditing, incrementally reading, or
+      calculating API cost for a prior session, including its tools, children,
+      compactions, failures, guidance, and durable user perspective.
+  - name: session-brief
+    source: local
+    skill: active/session-brief
+    description: >
+      Create or refresh a local Session Brief for one current or prior AI
+      session so a human or agent can reuse what happened without rereading the
+      transcript. Use when explicitly asked to extract a session into a
+      refreshable working artifact or update an existing Session Brief. Do not
+      use for a conversational summary, handoff, thread digest, work-unit
+      checkpoint, Session Capture, or maintained Practice.
   - name: agent-exec
     source: local
     skill: active/agent-exec

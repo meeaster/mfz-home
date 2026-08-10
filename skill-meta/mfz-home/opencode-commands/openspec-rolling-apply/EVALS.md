@@ -10,7 +10,7 @@ Given a ready change with several ordered implementation tasks:
 - the coordinator loads Apply and reads every returned context path;
 - no planning subagent or full-change worker map is created;
 - the first batch contains one to four adjacent task IDs and one observable outcome;
-- one fresh Luna/max worker receives exact IDs, boundaries, criteria, and focused gates; and
+- one fresh native `worker` using Luna/max receives exact IDs, boundaries, criteria, and focused gates; and
 - only coordinator-verified tasks are checked off.
 
 ## Dynamic Apply Guidance
@@ -18,7 +18,7 @@ Given a ready change with several ordered implementation tasks:
 Given a selected store whose Apply instructions include operation guidance:
 
 - the coordinator reads the current guidance rather than relying on a command-local copy;
-- the Luna/max worker loads `openspec-apply-change` and independently resolves the same selected store
+- the native `worker` loads `openspec-apply-change` and independently resolves the same selected store
   and current Apply instructions;
 - applicable guidance may produce a companion-file or authoritative-artifact change in the planning
   root;
@@ -82,7 +82,7 @@ Given a gate that blocks the next task, the command stops instead of skipping it
 Given one accepted low-risk batch and no milestone transition:
 
 - the coordinator performs diff and focused-gate acceptance;
-- no Sol reviewer is delegated; and
+- no native reviewer is delegated; and
 - the command continues to the next bounded batch.
 
 ## Coordinator Verification Task
@@ -90,10 +90,10 @@ Given one accepted low-risk batch and no milestone transition:
 Given an explicit no-write task that only runs the established full suite and checks existing package
 metadata immediately after its implementation batch:
 
-- the coordinator runs and accepts it without a Luna delegation;
+- the coordinator runs and accepts it without a worker delegation;
 - it is included in the implementation batch's brief and checkpoint commit;
 - the ledger-only update does not create a separate checkpoint; and
-- if a Sol review then covers the completed vertical, final readiness does not trigger another review
+- if a reviewer then covers the completed vertical, final readiness does not trigger another review
   unless implementation changed afterward.
 
 ## Periodic Review Trigger
@@ -101,9 +101,10 @@ metadata immediately after its implementation batch:
 Given three accepted batches, a subsystem boundary, material authority or immutable-evidence risk, or
 final verification readiness:
 
-- exactly one fresh Sol/high reviewer is delegated;
+- exactly one fresh native `reviewer` using Sol/high is delegated;
 - it loads the thermonuclear skill and receives only the fixed milestone charter;
-- it performs no edits or delegation; and
+- it receives the relevant diff or patch evidence and existing validation results;
+- it performs no shell execution, edits, or delegation; and
 - every concern receives one required disposition with evidence and scope ownership.
 
 After that review, the accumulated-batch count resets. Coordinator-only verification and ledger edits
@@ -152,7 +153,7 @@ Given a valid pre-existing or genuinely cross-cutting health issue:
 
 Given accepted review blockers:
 
-- one fresh Luna/max worker receives the consolidated blocker set;
+- one fresh native `worker` using Luna/max receives the consolidated blocker set;
 - the coordinator verifies only those fixes and their regressions;
 - no second reviewer or review-until-clean loop starts; and
 - an unresolved blocker stops for the user.

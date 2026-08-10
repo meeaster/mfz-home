@@ -37,6 +37,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   agent-sessions:
     agents: { opencode: true, claude-code: true, codex: true }
+  session-brief:
+    agents: { opencode: true, claude-code: true, codex: true }
   agent-exec:
     agents: { opencode: true, claude-code: true, codex: true }
   codex-imagegen:
@@ -119,17 +121,17 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   context7:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
   fff:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
   deepwiki:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
   openai-docs:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
   aws-knowledge:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
   x-docs:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
 opencode:
   config:
     lsp: true
@@ -166,7 +168,6 @@ opencode:
         "*GH_TOKEN*": deny
   plugins:
     - advisor
-    - delegate-general
   tui_plugins:
     - advisor
     - session-cost-tui
@@ -177,6 +178,8 @@ opencode:
     - rmslop
   agents:
     - research
+    - reviewer
+    - worker
   delegate_general:
     models:
       - id: openai/gpt-5.6-luna
@@ -188,6 +191,16 @@ opencode:
       - id: openai/gpt-5.6-sol
         variants: [low, medium, high, xhigh]
         description: Quality-first escalation family for consequential decisions, independent criticism, and the hardest ambiguous design work. Use high for high-stakes review, adjudicating competing designs, and difficult reasoning where a missed issue is expensive. Use xhigh for broad, security-sensitive, irreversible, or still-unresolved architecture and for maximum-quality design exploration. Use a fresh context and, where possible, a different model family from the artifact's author. Do not use Sol for routine retrieval or ordinary implementation.
+opencode_v2:
+  commands:
+    - apply-spec
+    - implement-design
+    - openspec-rolling-apply
+    - rmslop
+  agents:
+    - research
+    - reviewer
+    - worker
 codex:
   config:
     tui:

@@ -1,8 +1,9 @@
 ---
-description: Implement the accepted current-session design through a fresh Luna-max delegation
+description: Implement the accepted current-session design through a fresh worker subagent
+subtask: false
 ---
 
-Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to `general`.
+Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `worker` subagent.
 
 This is an ephemeral handoff, not an OpenSpec change. Do not create or update proposal, specification, design, task, or other planning artifacts, and do not run OpenSpec commands.
 
@@ -30,11 +31,12 @@ The execution brief must state:
 - A blocker policy: resolve narrow implementation gaps from repository evidence, but do not synthesize new semantics or silently replace accepted design decisions. A concrete blocker must name the conflicting rules, affected observable behavior, and the smallest decision needed.
 - An optional active work unit only as supplemental background, never as a substitute for the brief.
 
-Use one fresh `delegate_general` call with:
+Use one fresh native `task` call with:
 
-- `model`: `openai/gpt-5.6-luna`
-- `variant`: `max`
+- a short outcome-based `description`
+- `subagent_type`: `worker`
 - no `task_id`
+- the complete execution brief as `prompt`
 
 Tell the worker to read the named context before editing, implement only the execution brief, preserve unrelated working-tree changes, run the declared validation, and return changed files, validation results, and unresolved issues.
 

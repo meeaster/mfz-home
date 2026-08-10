@@ -1,5 +1,5 @@
 ---
-description: Apply an OpenSpec change in bounded Luna-max batches with periodic Sol-high review
+description: Apply an OpenSpec change in bounded worker batches with periodic reviewer checks
 model: openai/gpt-5.6-sol
 subtask: false
 ---
@@ -77,17 +77,18 @@ batch's relevant seams, likely writes, exclusions, and focused tests. If the tas
 yield one observable outcome, narrow the batch rather than delegating the whole heading.
 
 An explicit no-write verification task that only runs established local gates or inspects existing
-metadata is coordinator-owned, not a Luna batch. When it directly follows and verifies the current
+metadata is coordinator-owned, not a worker batch. When it directly follows and verifies the current
 implementation batch, run and accept it before that batch's review, brief, and checkpoint commit. Do
 not create a separate worker or checkpoint for ledger-only acceptance.
 
 ## Delegate The Batch
 
-Use one fresh `delegate_general` call with:
+Use one fresh native `task` call with:
 
-- model `openai/gpt-5.6-luna`;
-- variant `max`;
-- no `task_id`.
+- a short outcome-based `description`;
+- `subagent_type`: `worker`;
+- no `task_id`; and
+- the complete worker brief as `prompt`.
 
 The worker brief must require the worker to load `openspec-apply-change`, resolve the selected store,
 run the current Apply instructions itself, read every returned context path and applicable
@@ -122,12 +123,12 @@ After the worker returns:
 5. Refresh `openspec instructions apply` with the selected store and reconcile progress.
 
 Do not accept a task from worker self-report alone. If the batch fails, classify the concrete failure
-before retrying. Use at most one fresh Luna/max remediation for that batch; unresolved product,
+before retrying. Use at most one fresh `worker` remediation for that batch; unresolved product,
 authority, security, or likely irreversible-data risk stops for the user.
 
 ## Periodic Review
 
-Coordinator review is sufficient after ordinary batches. Run one fresh read-only Sol/high review only
+Coordinator review is sufficient after ordinary batches. Run one fresh native `reviewer` review only
 when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;
@@ -146,10 +147,12 @@ defer the boundary review and perform one final review over the complete accepte
 for both a near-final boundary review and a final review unless material risk requires the earlier
 checkpoint.
 
-For the independent review, use one fresh `delegate_general` call with `openai/gpt-5.6-sol` at `high`
-and no `task_id`. Require it to load `thermo-nuclear-code-quality-review`, then review only the
-accepted task IDs, changed paths, OpenSpec anchors, and observable criteria accumulated since the
-last review checkpoint. The review is read-only and may not delegate.
+For the independent review, use one fresh native `task` call with a short milestone `description`,
+`subagent_type: reviewer`, no `task_id`, and the complete review charter as `prompt`. Require it to load
+`thermo-nuclear-code-quality-review`, then review only the accepted task IDs, changed paths, OpenSpec
+anchors, observable criteria, complete relevant diff or patch evidence, and existing validation results
+accumulated since the last review checkpoint. The reviewer is deny-by-default and cannot run shell
+commands, edit, or delegate; the coordinator must supply the evidence needed to judge the milestone.
 
 Every finding must state a concrete trigger and be classified as:
 
@@ -170,8 +173,10 @@ current implementation: a large or mixed-responsibility file, duplicated pathway
 growing conditional tangle in changed code is not deferred merely because its repair is a refactor.
 
 The coordinator adjudicates every finding against the diff and remaining work. Consolidate accepted
-`blocker` and `health-now` findings into one fresh Luna/max remediation. The coordinator verifies the
-specific fixes and gates without commissioning a second review. Put `health-register` findings in the
+`blocker` and `health-now` findings into one fresh native `task` call with a short remediation
+`description`, `subagent_type: worker`, no `task_id`, and the complete remediation brief as `prompt`.
+The coordinator verifies the specific fixes and gates without commissioning a second review. Put
+`health-register` findings in the
 run journal with an intended checkpoint; record other follow-ups and future tasks there when no more
 authoritative destination exists. If a blocker or health-now item remains after remediation, stop for
 the user rather than starting a review loop.

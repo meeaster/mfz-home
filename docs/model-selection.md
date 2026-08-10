@@ -11,8 +11,8 @@ representative local traces.
 
 ## Scope
 
-This guide covers the OpenCode `delegate_general` workflow and the configured
-OpenCode `advisor` tool. It separates four kinds of evidence:
+This guide covers OpenCode native agents, the `delegate_general` workflow, and
+the configured `advisor` tool. It separates four kinds of evidence:
 
 - **Official guidance:** OpenAI model and reasoning documentation.
 - **Independent evaluation:** benchmark and cost-performance analysis from
@@ -244,13 +244,27 @@ tokens, latency, cost, and whether escalation was required.
 - Do not claim Luna `xhigh` is equivalent to Sol without a task-specific eval.
 - Compare model and effort combinations on the same prompt and tool budget.
 - Measure cost per successful task, not just cost per model call.
-- Update runtime descriptions when the routing policy changes. Keep the Luna,
-  Terra, and Sol descriptions in `profiles/personal/profile.yml` synchronized
-  with this guide.
+- Update runtime descriptions and native agent assignments when the routing
+  policy changes. Keep `profiles/base/profile.yml` synchronized with this guide.
 - Promote a community observation into default routing only after it survives
   representative local work.
 
 ## Local Runtime Notes
+
+The current native agent assignments are:
+
+```text
+worker: openai/gpt-5.6-luna@max
+reviewer: openai/gpt-5.6-sol@high
+explore: openai/gpt-5.6-luna@high
+research: openai/gpt-5.6-luna@high
+```
+
+Agent descriptions route by task shape rather than model rank. The model and
+variant remain configuration policy: `worker` is the bounded execution lane,
+`reviewer` is the independent quality-first judgment lane, and `explore` and
+`research` retain their specialized discovery scopes. Workflow prompts own
+task-specific briefs, review cadence, and acceptance.
 
 The current advisor target is configured as:
 

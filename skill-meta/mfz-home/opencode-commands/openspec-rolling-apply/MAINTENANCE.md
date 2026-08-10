@@ -4,21 +4,21 @@
 
 - OpenSpec CLI and the local `openspec-apply-change` skill provide authoritative change selection,
   context paths, task state, live operation guidance, and Apply semantics.
-- OpenCode `delegate_general` must allow `openai/gpt-5.6-luna@max` and
-  `openai/gpt-5.6-sol@high`.
+- OpenCode must expose the native `worker` and `reviewer` subagents. Their authoring records own role,
+  model, prompt, and permission policy.
 - `thermo-nuclear-code-quality-review` supplies the periodic maintainability-review lens.
 - Mindframe-Z must support packaged commands at `opencode/commands/<name>/COMMAND.md` and render only
   `COMMAND.md`.
 
 OpenCode command metadata supports `model` but not a reasoning `variant`. `COMMAND.md` pins the Sol
 model family; run the command from a Sol/medium session when that exact coordinator route matters.
-Delegated worker and reviewer variants are explicit and enforceable through `delegate_general`.
+Delegated worker and reviewer variants are fixed by their native agent configuration.
 
 ## Change Procedure
 
 1. Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` before changing `COMMAND.md`.
 2. Preserve OpenSpec Apply as the sole durable task authority.
-3. Preserve live `operationGuidance` propagation into every Luna worker; do not cache store-specific
+3. Preserve live `operationGuidance` propagation into every native worker; do not cache store-specific
    guidance in the command or negate it with blanket planning-root exclusions.
 4. Keep ordinary batch acceptance separate from periodic independent review.
 5. Keep checkpoint explanation and coordinator-owned commit behavior aligned across both control modes.
@@ -50,7 +50,7 @@ compaction, append-only activity history, review-frontier accuracy, and whether 
 closure or explicit ownership. Verification-only worker delegations, ledger-only commits, a return to
 broad planner output, repeated review of unchanged implementation, silently deferred current-scope
 health work, or near-final boundary review immediately followed by final review are behavioral
-regressions unless material risk required both. Also inspect whether each Luna worker independently
+regressions unless material risk required both. Also inspect whether each worker independently
 resolved current Apply guidance, whether applicable companion or artifact edits survived its write
 boundary, and whether task completion state and the run journal remained coordinator-owned.
 

@@ -22,6 +22,13 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
 - Write repeatable tests for observable behavior rather than mocks of internal implementation details.
 
+## Subagent Use
+
+- Use `explore` and `research` proactively for bounded, read-only discovery or evidence gathering when they materially reduce uncertainty.
+- Treat `worker` as a user-authorized mutation lane. Do not create or resume one merely because work remains.
+- Treat `reviewer` as a user-authorized independent-judgment lane. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
+- A request to continue permits ongoing work, but does not by itself authorize a new or resumed `worker` or `reviewer`.
+
 ## Personal Knowledge
 
 - When private Personal context is relevant, start with the matching entry point under `/home/mark/workspace/knowledge/personal-knowledge`: `.openwiki/wiki/quickstart.md` for accepted synthesis, `practices/index.md` for current guidance, `session-captures/index.md` for capture boundaries, `threads/index.md` for retrospective evidence, or the relevant `work-units/` entry for continuity. Load only what is relevant.

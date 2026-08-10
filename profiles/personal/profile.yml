@@ -18,7 +18,7 @@ thread:
     gather: opencode:openai/gpt-5.6-luna@medium
     synthesize: opencode:openai/gpt-5.6-terra@medium
     digest: opencode:openai/gpt-5.6-sol@high
-agents: [opencode, claude-code, codex, pi]
+agents: [opencode, opencode-v2, claude-code, codex, pi]
 references:
   - axis
   - deepagents
@@ -45,15 +45,15 @@ executor:
   bridge: false
 mcp:
   homeassistant:
-    agents: { enabled: [claude-code], disabled: [opencode, codex] }
+    agents: { enabled: [claude-code], disabled: [opencode, opencode-v2, codex] }
   robinhood-trading:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
     executor:
       enabled: true
       connections:
         main: oauth
   sentry:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode, opencode-v2, claude-code, codex]
     executor:
       enabled: true
       connections:
@@ -72,6 +72,7 @@ opencode:
     permission:
       read:
         "~/.xurl": deny
+        "~/.config/opencode-v2/service.json": deny
       edit:
         "~/.xurl": deny
       bash:
@@ -86,3 +87,5 @@ opencode:
       research:
         model: openai/gpt-5.6-luna
         variant: high
+opencode_v2:
+  config: {}

@@ -83,3 +83,15 @@
   companion-file and authoritative-artifact edits through its planning-root write boundary.
 - Reserved task completion checkboxes and `rolling-apply.md` for the coordinator instead of broadly
   prohibiting Luna from editing OpenSpec files.
+
+## 2026-08-08 - Native Role-Based Delegation
+
+- Replaced per-call `delegate_general` model selection with the native `worker` and `reviewer` agents so
+  the web application can present running task cards and child-session navigation.
+- Kept command behavior role-based while agent configuration owns Luna/max execution and Sol/high
+  review policy.
+- Preserved fresh sessions for every batch, review, and remediation by omitting `task_id`.
+- Required reviewer briefs to include the relevant diff or patch evidence and existing validation
+  results because the deny-by-default reviewer cannot reconstruct them through shell execution.
+- OpenCode 1.18.15 rendered all batch, review, and remediation routes through native `task`; repository
+  tests and type checking passed. A representative rolling OpenSpec run remains untested.

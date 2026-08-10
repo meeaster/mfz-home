@@ -11,7 +11,7 @@ hardening and future-task concerns into an open-ended remediation loop.
 
 `openspec-rolling-apply` keeps OpenSpec Apply authoritative and delegates only the next bounded batch.
 A Sol coordinator reads the current Apply state, selects one to four adjacent tasks that produce one
-observable outcome, delegates implementation to a fresh Luna/max worker, verifies the diff and focused
+observable outcome, delegates implementation to a fresh native `worker`, verifies the diff and focused
 gate, updates accepted checkboxes, and refreshes Apply state before selecting more work.
 
 No-write verification tasks remain with the coordinator and, when they validate the current batch,
@@ -39,9 +39,10 @@ from both user-value and implementation perspectives. Continuous mode commits ac
 rolling; approval-gated mode pauses before the commit and next worker so the human can inspect or
 redirect the work.
 
-Independent review is periodic and risk-triggered, not attached to every worker. A fresh Sol/high
-review uses the thermonuclear maintainability lens against a fixed milestone charter. It classifies
-findings instead of making every concern a blocker. One consolidated Luna remediation is followed by
+Independent review is periodic and risk-triggered, not attached to every worker. A fresh native
+`reviewer` uses the thermonuclear maintainability lens against a fixed milestone charter supplied with
+the relevant diff and validation evidence. It classifies findings instead of making every concern a
+blocker. One consolidated `worker` remediation is followed by
 coordinator verification, never another automatic review.
 
 Maintainability is handled continuously. An evidenced structural problem introduced or materially
