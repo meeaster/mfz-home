@@ -84,9 +84,9 @@ describe("work-context TUI state", () => {
     expect(receiptsForSession(receipts, "ses_1")).toHaveLength(1);
   });
 
-  it("activates both server and TUI entries in the personal profile", async () => {
+  it("does not activate server or TUI entries in the personal profile", async () => {
     const profile = await readFile(new URL("../../../../profiles/personal/profile.yml", import.meta.url), "utf8");
-    expect(profile).toMatch(/plugins:\n(?:.*\n)*?\s+- work-context/);
-    expect(profile).toMatch(/tui_plugins:\n(?:.*\n)*?\s+- work-context/);
+    expect(profile).not.toMatch(/plugins:\n(?:.*\n)*?\s+- work-context/);
+    expect(profile).not.toMatch(/tui_plugins:\n(?:.*\n)*?\s+- work-context/);
   });
 });
