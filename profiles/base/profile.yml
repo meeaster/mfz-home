@@ -130,8 +130,6 @@ mcp:
     agents: [opencode, opencode-v2, claude-code, codex]
   aws-knowledge:
     agents: [opencode, opencode-v2, claude-code, codex]
-  x-docs:
-    agents: [opencode, opencode-v2, claude-code, codex]
 opencode:
   config:
     lsp: true

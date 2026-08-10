@@ -8,8 +8,4 @@ mfz_finalize_zsh
 path=("$HOME/.local/bin" ${path:#$HOME/.local/bin})
 rehash
 
-opencode2() {
-  "$HOME/.local/bin/opencode2" "$@"
-}
-
 unset -f mfz_finalize_zsh

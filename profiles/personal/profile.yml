@@ -44,6 +44,8 @@ skills:
 executor:
   bridge: false
 mcp:
+  x-docs:
+    agents: [opencode, opencode-v2, claude-code, codex]
   homeassistant:
     agents: { enabled: [claude-code], disabled: [opencode, opencode-v2, codex] }
   robinhood-trading:
