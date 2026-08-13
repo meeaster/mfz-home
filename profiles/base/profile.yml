@@ -171,6 +171,7 @@ opencode:
     - session-cost-tui
   commands:
     - apply-spec
+    - code-like-luke
     - implement-design
     - openspec-rolling-apply
     - rmslop
@@ -192,6 +193,7 @@ opencode:
 opencode_v2:
   commands:
     - apply-spec
+    - code-like-luke
     - implement-design
     - openspec-rolling-apply
     - rmslop
