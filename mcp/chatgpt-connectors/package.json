@@ -1,0 +1,13 @@
+{
+  "name": "@mfz/chatgpt-connectors-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "chatgpt-connectors-mcp": "server.mjs"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "check": "node --check server.mjs"
+  }
+}
