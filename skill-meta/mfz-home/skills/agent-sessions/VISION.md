@@ -18,7 +18,9 @@ common coverage discipline and harness-specific adapters. It begins with cheap
 structure, spends transcript tokens according to the requested mode, preserves
 evidence locators and topology, and exposes incomplete or mutable state.
 For OpenCode it can also derive a body-free, per-turn cost estimate from persisted
-usage and an explicit models.dev pricing snapshot.
+usage and an explicit models.dev pricing snapshot where the selected adapter
+supports the store shape. OpenCode V2 is API-first; V1 SQLite extraction and V2
+service API evidence remain distinct adapters.
 
 Dependent skills may use its evidence to produce briefs, captures, handoffs,
 evaluations, or other artifacts. Those skills retain ownership of synthesis,

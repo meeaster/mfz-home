@@ -1,5 +1,15 @@
 # Log
 
+## 2026-08-14 - OpenCode V2 API-First Source Selection
+
+- Added an explicit OpenCode V2 service-API branch using `opencode2 api` for
+  session metadata and targeted messages.
+- Kept the bundled SQLite extractor and cost calculator scoped to the confirmed
+  V1-compatible schema instead of treating the documented `opencode-next.db`
+  fallback as proof of the live store.
+- Recorded V2 pagination, field names, message endpoints, export endpoint, and
+  reasoning/privacy boundaries in the OpenCode reference.
+
 ## 2026-08-08 - General Evidence Layer And Efficient Extraction
 
 - Defined Locate, Outline, Investigate, Reconstruct, Audit, and Delta as distinct

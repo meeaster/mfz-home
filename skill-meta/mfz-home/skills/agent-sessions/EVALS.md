@@ -1,6 +1,6 @@
 # Agent Sessions Evaluations
 
-**Status:** Static scenarios defined. On 2026-08-08, the OpenCode extractor was
+**Status:** Static scenarios defined. On 2026-08-08, the OpenCode V1 extractor was
 compiled and run read-only against the local OpenCode 1.18.15 store: Locate found
 `ses_020250d00ffe3pU7HWgAFxGGJ0`, Outline identified one child resumed once, and
 Delta detected a previously running tool's completion while excluding reasoning.
@@ -12,6 +12,17 @@ root option placements including `--db` after the subcommand. The cost fixture
 suite covers recursive descendants, per-turn model changes, context tiers,
 reasoning and cache pricing, missing prices, malformed source JSON, null agents,
 deterministic local catalogs, and transcript exclusion.
+
+## OpenCode V2 Source Selection
+
+**Prompt:** Locate and inspect a session created by OpenCode V2.
+
+**Assertions:** The agent selects the running `opencode2` service API, uses
+`/api/session` metadata before `/api/session/<id>/message`, preserves V2 field
+names and pagination, excludes reasoning bodies, and does not assume the V1
+SQLite schema or `opencode db path`. If the service is unavailable, it reports
+that gap rather than silently switching to an unrelated V1 store.
+
 Live model invocation on 2026-08-09 used Bundle for historical full rebuild,
 current-parent extraction, guard rejection and recovery, and a verified no-op
 refresh. Initial historical acquisition used one Bundle call for a parent and

@@ -1,8 +1,61 @@
 # OpenCode Sessions
 
-OpenCode session archaeology reads a SQLite store or an exported JSON transcript.
-Use the bundled extractor for structural evidence and deltas, then query only the
-content records the question needs.
+OpenCode session archaeology has two storage surfaces:
+
+- OpenCode V2: the running background service API, accessed through `opencode2`.
+- OpenCode V1 or a supplied legacy store: SQLite or an exported JSON transcript.
+
+Identify the active surface before reading content. V2 session records do not use
+the V1 `session`, `message`, and `part` table contract.
+
+## OpenCode V2 Service API
+
+Use the service API first when `opencode2` is installed or the user identifies a
+V2 session. The API uses the managed service's authentication and location
+context; do not read service passwords or construct unauthenticated requests.
+
+List sessions without reading transcript bodies:
+
+```bash
+opencode2 api get /api/session
+```
+
+The response is an object whose `data` array contains session metadata and whose
+`cursor` can be used for the next page. Relevant metadata includes `id`,
+`parentID`, `title`, `location.directory`, `time.created`, `time.updated`,
+`agent`, `model`, and `tokens`. Preserve V2 field names when reporting locators;
+map them to common concepts only in the synthesis.
+
+Read one session's metadata:
+
+```bash
+opencode2 api get /api/session/<session-id>
+```
+
+Read messages only after locating the relevant session:
+
+```bash
+opencode2 api get /api/session/<session-id>/message
+opencode2 api get /api/session/<session-id>/message/<message-id>
+```
+
+The message list is paginated and may contain user text, assistant content,
+tool calls, tool results, metadata, snapshots, and reasoning. Project only the
+fields needed for the question, exclude reasoning bodies, and avoid dumping the
+full API response into the conversation. The V2 API also exposes session export
+at `/api/session/<session-id>/export` when an export is explicitly requested.
+
+V2's documented default database is `~/.local/share/opencode/opencode-next.db`,
+with `OPENCODE_DB` as an override. This is an implementation fallback, not the
+primary archaeology interface: the active service may use an override or a
+runtime-managed location. Do not guess the database path, and do not use
+`opencode db path` as a V2 probe when the installed V2 CLI does not provide that
+command.
+
+The bundled SQLite evidence and cost scripts currently target the V1-compatible
+schema. Do not run them against V2 unless a schema check confirms that exact
+contract. V2 cost work requires API/export-specific extraction until a dedicated
+V2 cost adapter is added.
 
 ## SQLite Store
 

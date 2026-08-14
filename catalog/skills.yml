@@ -1,4 +1,10 @@
 skills:
+  - name: opencode-drive
+    description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
+    source: vendored
+    repo: https://github.com/anomalyco/opencode.git
+    ref: v2
+    subtree: .opencode/skills/opencode-drive
   - name: grill-with-docs
     description: >
       Grill a codebase with questions about how something works, finding related
@@ -226,6 +232,14 @@ skills:
       access, or assumptions, or when another skill needs to decide what must
       cross that boundary. When an artifact-specific skill applies, keep it
       primary and use this only as its context lens.
+  - name: opencode-v2-plugin-authoring
+    source: local
+    skill: active/opencode-v2-plugin-authoring
+    description: >
+      Build, migrate, debug, or review an OpenCode V2 server or native TUI
+      plugin. Use when creating an OpenCode 2 plugin, porting a V1 plugin to V2,
+      configuring a plugin, or diagnosing V2 plugin loading and dependency
+      resolution.
   - name: session-derived-knowledge
     source: local
     skill: active/session-derived-knowledge
@@ -329,9 +343,10 @@ skills:
     source: local
     skill: active/pr-writer
     description: >
-      Write or refresh a GitHub PR title and description, then create or update
-      the PR with gh on approval. Use when opening a PR, writing or rewriting a
-      PR title/body, or refreshing one after the branch changed.
+      Write or refresh a GitHub PR title and description, then create, update, or
+      merge the PR with gh under the user's authority. Use when opening or merging
+      a PR, writing or rewriting a PR title/body, or refreshing one after the branch
+      changed.
   - name: qmd
     description: Search markdown knowledge bases, notes, and documentation using
       QMD. Use when users ask to search notes, find documents, or look up

@@ -2,9 +2,10 @@
 
 ## Dependencies
 
-The runtime skill has harness-specific disclosed references. OpenCode structural
-extraction additionally requires Python 3 with the standard-library `sqlite3`
-module and a SQLite store compatible with the live schema checks in
+The runtime skill has harness-specific disclosed references. OpenCode V2
+archaeology additionally requires a running `opencode2` service and its `api`
+command. OpenCode V1 structural extraction additionally requires Python 3 with
+the standard-library `sqlite3` module and a SQLite store compatible with the live schema checks in
 `scripts/opencode-session-evidence.py`. OpenCode cost estimation additionally
 uses standard-library `urllib`, `decimal`, and `hashlib` with either the live
 `https://models.dev/api.json` endpoint or a bounded local snapshot. Claude Code
@@ -40,7 +41,9 @@ authority, and lifecycle behavior.
    OpenCode adaptation, Claude Code adaptation, or deterministic extraction.
 3. Inspect known dependent skills before changing shared evidence or cursor
    semantics.
-4. Confirm current harness storage shapes from live or fixture evidence.
+4. Confirm current harness storage shapes from live or fixture evidence. For
+   OpenCode, check V2 service API availability before selecting the V1 SQLite
+   adapter.
 5. Make the smallest change and update affected evaluation scenarios.
 6. Run the extractor against a fixture and a read-only live store when available.
 7. Verify positive and adjacent-negative invocation when the description changes.
@@ -101,7 +104,10 @@ malformed JSON, null agents, deterministic local catalogs, and body exclusion.
 The active-pin fixture mutates message and part rows between `limit=1` pages and
 expects an unchanged-cursor re-pin response. A final-probe fixture deletes a
 pinned row and expects bounded-count guard failure. Live-store checks cover
-current OpenCode schema compatibility and mutable running tools. Reusable
+current OpenCode V1 schema compatibility and mutable running tools. V2
+source-selection checks cover API-first routing, V2 metadata names, message
+endpoints, pagination, reasoning exclusion, and the documented database fallback.
+Reusable
 local checks begin with:
 
 ```bash

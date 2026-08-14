@@ -25,6 +25,10 @@ Identify:
 - repositories, systems, tools, and references the consumer can reliably access;
 - the artifact's expected lifetime, privacy boundary, and authority.
 
+Use this as a working contract for creating the artifact, not as a required
+section of the output. Carry contract details into the artifact only when the
+consumer needs them to understand, evaluate, or use the result.
+
 If another skill or repository owns the artifact, read its instructions and treat
 its independence requirements as a minimum floor. Infer the contract from the
 request and destination when the evidence is clear. Ask only when an unresolved

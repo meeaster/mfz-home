@@ -38,6 +38,11 @@ Choose the least expensive mode that can answer the request:
 - **Cost** recalculates current-catalog API cost for one session and its recursive
   descendants without reading transcript bodies.
 
+For OpenCode V2, use the running service API as the authoritative session source.
+Use the SQLite extractor only for a confirmed legacy V1 store or a supplied V1
+export. V2's API and V1's SQLite rows are different evidence surfaces; do not
+apply V1 table, cursor, or message-shape assumptions to V2 sessions.
+
 Treat requests containing `complete`, `fully`, `all`, `audit`, or `refreshable`
 as exhaustive for their declared scope. Do not silently downgrade them to a
 sampled investigation.
@@ -49,7 +54,8 @@ sampled investigation.
 Use the requested harness, session ID, store root, export, or recency clue. Load
 only the matching adapter:
 
-- [OpenCode](references/opencode.md) for SQLite stores and exported OpenCode JSON.
+- [OpenCode](references/opencode.md) for the OpenCode V2 service API, V1 SQLite
+  stores, and exported OpenCode JSON.
 - [Claude Code](references/claude-code.md) for JSONL stores and nested subagents.
 
 For another harness or supplied transcript, inspect its live shape and apply the

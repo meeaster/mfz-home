@@ -1,4 +1,7 @@
 skills:
+  opencode-drive:
+    commit: 97a6bc19e700e330a267dac2433180bdce790095
+    digest: 23af5fe7cf0bdc49acc5bc9dc4189e44d724542027bf0a6b121a2509c91aa84d
   grilling:
     commit: 0986ebaf5d29e812162702b2633a2942c30200d2
     digest: c2295fb953f7598dd7b9df9da4c74b7fc06aeb38163f9353263e540b11d1ed3c
