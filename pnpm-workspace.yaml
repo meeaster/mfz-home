@@ -4,6 +4,30 @@ strictDepBuilds: true
 allowBuilds:
   esbuild: true
   msgpackr-extract: true
+packages:
+  - mcp/*
+  - opencode/plugins/session-cost-tui/v2
 minimumReleaseAgeExclude:
-  - '@opencode-ai/plugin@1.17.18'
-  - '@opencode-ai/sdk@1.17.18'
+  - '@opencode-ai/plugin@1.18.15 || 1.18.18'
+  - '@opencode-ai/sdk@1.18.15 || 1.18.18'
+  - '@opencode-ai/ai@0.0.0-next-17403'
+  - '@opencode-ai/client@0.0.0-next-17403'
+  - '@opencode-ai/plugin@0.0.0-next-17403'
+  - '@opencode-ai/protocol@0.0.0-next-17403'
+  - '@opencode-ai/schema@0.0.0-next-17403'
+  - '@opencode-ai/ai@0.0.0-next-17428'
+  - '@opencode-ai/client@0.0.0-next-17428'
+  - '@opencode-ai/plugin@0.0.0-next-17428'
+  - '@opencode-ai/protocol@0.0.0-next-17428'
+  - '@opencode-ai/schema@0.0.0-next-17428'
+  - '@opentui/core@0.5.2'
+  - '@opentui/core-darwin-arm64@0.5.2'
+  - '@opentui/core-darwin-x64@0.5.2'
+  - '@opentui/core-linux-arm64-musl@0.5.2'
+  - '@opentui/core-linux-arm64@0.5.2'
+  - '@opentui/core-linux-x64-musl@0.5.2'
+  - '@opentui/core-linux-x64@0.5.2'
+  - '@opentui/core-win32-arm64@0.5.2'
+  - '@opentui/core-win32-x64@0.5.2'
+  - '@opentui/keymap@0.5.2'
+  - '@opentui/solid@0.5.2'

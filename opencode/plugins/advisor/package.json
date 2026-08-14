@@ -4,6 +4,11 @@
   "type": "module",
   "exports": {
     "./server": "./server.ts",
-    "./tui": "./tui/index.tsx"
+    "./tui": "./tui/index.tsx",
+    "./v1/server": "./v1/server.ts",
+    "./v1/tui": "./v1/tui/index.tsx",
+    "./v1": "./v1/index.ts",
+    "./v2": "./v2/index.ts",
+    "./v2/server": "./v2/server.ts"
   }
 }

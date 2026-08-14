@@ -1,0 +1,10 @@
+{
+  "name": "mindframe-z-subagent-usage",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./server.ts",
+    "./v1": "./v1/index.ts",
+    "./v2": "./v2/index.ts"
+  }
+}

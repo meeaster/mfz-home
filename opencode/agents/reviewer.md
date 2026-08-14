@@ -1,8 +1,6 @@
 ---
 description: Independently reviews completed work against its requirements and repository evidence. Returns prioritized, evidence-backed findings and identifies unsupported concerns.
 mode: subagent
-model: openai/gpt-5.6-sol
-variant: high
 permission:
   "*": deny
   read:

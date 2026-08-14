@@ -1,6 +1,7 @@
 references:
   - name: opencode
     url: https://github.com/anomalyco/opencode.git
+    ref: v2
     description: "TypeScript/Bun monorepo for the OpenCode coding agent across terminal, desktop, and editor surfaces. Inspect it for CLI behavior, configuration, sessions, providers, MCP, plugins, tools, permissions, or agent workflows. Main CLI: packages/opencode/src/index.ts."
   - name: openspec
     url: https://github.com/Fission-AI/OpenSpec.git

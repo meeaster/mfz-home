@@ -1,6 +1,6 @@
 # Executor Context Probe Findings
 
-Probe date: 2026-07-10. Runtime: OpenCode `1.17.18`.
+Probe date: 2026-07-10. Runtime: OpenCode `1.18.15`.
 
 ## Confirmed
 

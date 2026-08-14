@@ -67,10 +67,6 @@ alias pip="sfw pip"
 alias uv="sfw uv"
 alias cargo="sfw cargo"
 
-opencode2() {
-  "$HOME/.local/bin/opencode2" "$@"
-}
-
 # Source framework/hooks after profile-specific plugin additions are appended.
 mfz_finalize_zsh() {
   if [ -r "$ZSH/oh-my-zsh.sh" ]; then

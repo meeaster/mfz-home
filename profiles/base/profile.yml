@@ -79,6 +79,10 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   context-transfer:
     agents: { opencode: true, claude-code: true, codex: true }
+  opencode-v2-plugin-authoring:
+    agents: { opencode: true, claude-code: true, codex: true }
+  opencode-drive:
+    agents: { opencode: true }
   session-derived-knowledge:
     agents: { opencode: true, claude-code: true, codex: true }
   vision-steward:
@@ -191,6 +195,14 @@ opencode:
         variants: [low, medium, high, xhigh]
         description: Quality-first escalation family for consequential decisions, independent criticism, and the hardest ambiguous design work. Use high for high-stakes review, adjudicating competing designs, and difficult reasoning where a missed issue is expensive. Use xhigh for broad, security-sensitive, irreversible, or still-unresolved architecture and for maximum-quality design exploration. Use a fresh context and, where possible, a different model family from the artifact's author. Do not use Sol for routine retrieval or ordinary implementation.
 opencode_v2:
+  config:
+    websearch:
+      provider: exa
+  cli:
+    theme:
+      name: dracula
+  tui_plugins:
+    - session-cost-tui
   commands:
     - apply-spec
     - code-like-luke
