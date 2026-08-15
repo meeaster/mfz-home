@@ -1,4 +1,11 @@
 skills:
+  - name: anti-slop
+    source: local
+    skill: active/anti-slop
+    description: >
+      Run the pinned upstream anti-slop Oxlint rules read-only against arbitrary
+      TypeScript or JavaScript code. User-invoked or use when a code-quality task
+      explicitly calls for anti-slop diagnostics.
   - name: code-like-luke
     source: local
     skill: active/code-like-luke

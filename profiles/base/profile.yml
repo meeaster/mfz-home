@@ -23,6 +23,8 @@ thread:
       - claude-code
       - opencode
 skills:
+  anti-slop:
+    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
   code-like-luke:
     agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
   agent-browser:
