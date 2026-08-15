@@ -1,4 +1,7 @@
 skills:
+  diagram-design:
+    commit: 09df49d8d1a1c7fb2efdfcdc7a2a0713534350a6
+    digest: 55a394535eb28adaf791017c27150e9a1c40d2640f907ee21678d88ac8edb6ce
   opencode-drive:
     commit: 97a6bc19e700e330a267dac2433180bdce790095
     digest: 23af5fe7cf0bdc49acc5bc9dc4189e44d724542027bf0a6b121a2509c91aa84d

@@ -378,6 +378,14 @@ skills:
     repo: https://github.com/nicobailon/visual-explainer
     ref: main
     subtree: plugins/visual-explainer
+  - name: diagram-design
+    description: Create branded architecture, flowchart, sequence, state, data,
+      timeline, process, and other diagrams as standalone HTML/SVG/PNG, or
+      redraw draw.io and Mermaid sources with accessible, editorial styling.
+    source: vendored
+    repo: https://github.com/cathrynlavery/diagram-design
+    ref: main
+    subtree: skills/diagram-design
   - name: openai-docs
     description: Use when the user asks how to build with OpenAI products or APIs
       and needs up-to-date official documentation with citations, help choosing
