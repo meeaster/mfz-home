@@ -33,17 +33,17 @@ skills:
     commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
     digest: bec152d2fbe46fc089394618c0601deccfa80c050da3c936b13a263a3da9796c
   domain-modeling:
-    commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
-    digest: f5fed75030c66626cb4725e80261497b35910cd58706383849093b22ac5d3f21
+    commit: 8b78b531ab965735c5dc74f6f7a219e1e37326df
+    digest: d0e88d4de46ea550c629583b1367d0d8c9c192e29bd32e5e4e905f87027575db
   home-assistant-best-practices:
     commit: 5c023edf38677ef7484aa8b0cc621bedcfcfcdae
     digest: ad2444283aa48a8e4dd4d86151322853b7776366ed38aad7e867b1e0ade0a258
   writing-for-agents:
-    commit: 0986ebaf5d29e812162702b2633a2942c30200d2
-    digest: 0daf01e9f80953acd202b552e2af498eec113fca020aa8ae2bfb1bf9272e75e4
+    commit: 8b78b531ab965735c5dc74f6f7a219e1e37326df
+    digest: 01e3bf80ddf80f8065518dc1c9c9d9ddc32385a98db5bf898b732647148a6b6c
   herdr:
-    commit: e7fc85bfdb51f89488430adbfe5bbced3be79c2f
-    digest: 43ab44b42fb69da5c6aefebce60dd4a763c0761a9b3b867a552ee6ff6f21d258
+    commit: 9e6c2b4e0957498b7da884ed2789fe28b9cde9cf
+    digest: c1abdac24909dcfe1c34d56b3c48dfc15108cdb9ff4a4015cba935105ada6540
   openai-docs:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     digest: d41587eb5078a178987ab2a69d0037643066907068c2b6552bba0039d6dde1c3
@@ -57,11 +57,11 @@ skills:
     commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
     digest: 714d10e50281927854f739efa2a023271f702ca7a4c57600a5a0f9abde56aab7
   impeccable:
-    commit: ae5e95101a6979e7f7973a4ff57680b3c7adc1ec
-    digest: 8a973975dc04602a326ed5b4b5d73d038bd186580e954e4442b981a9cb03cea3
+    commit: 7b646bafd60b9dd9828ce5c4c1a25691702c9e92
+    digest: 72abc56076e0e36561cb66ae7fe9ab8a54a273ba689dc1401ad7ffaf33b18143
   visual-explainer:
-    commit: 528b71feb85dab5d92b82c3554880826f50a75da
-    digest: ee391ff9c3630bcd9621d252ce06f5a66012ffbacb77bc25c7a946d12632d468
+    commit: ff8cd155811c0dfdb984aa4b11fa0faade729b76
+    digest: 70bc90f94c6b9f009017534b436bd200c3ebafdf126f634078969d9bb8641860
   skill-creator:
     commit: 9d2f1ae187231d8199c64b5b762e1bdf2244733d
     digest: 5ad0868be528859ba96a52cb368f0ced16605d5a9ed433a811d8c6d1fd5b2c4f
