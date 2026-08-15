@@ -80,3 +80,6 @@ skills:
   review-animations:
     commit: de33dbed000212b54400a33767d1e4d03654db2a
     digest: c20d32d37046ed44e25677d98b17f95b42c35e1fdbed0fe393a6e94833476406
+  effect:
+    commit: 0cace2ae0bd65e0cb03ab12860b62ae5e043f0df
+    digest: ef0d63633b5e255634227db445cf5e0d7e96b8123a7cb55c577721dafe27d0fb

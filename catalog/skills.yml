@@ -11,6 +11,15 @@ skills:
     skill: active/code-like-luke
     description: >
       Apply the Code Like Luke implementation and review guidance: inspect context first, keep the happy path obvious, use strong interfaces, enforce invariants, and avoid speculative abstractions.
+  - name: effect
+    description: >
+      Opinionated guide for building production TypeScript applications with
+      Effect v4. Use when implementing Effect workflows, services, layers,
+      schemas, configuration, schedules, caches, streams, HTTP clients, or tests.
+    source: vendored
+    repo: https://github.com/kitlangton/skills
+    ref: main
+    subtree: skills/effect
   - name: opencode-drive
     description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
     source: vendored

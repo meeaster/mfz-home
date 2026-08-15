@@ -27,6 +27,8 @@ skills:
     agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
   code-like-luke:
     agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
+  effect:
+    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
