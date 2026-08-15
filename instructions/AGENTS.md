@@ -28,6 +28,9 @@ For any file search or grep in the current git-indexed directory, use fff tools.
 - Treat `worker` as a user-authorized mutation lane. Do not create or resume one merely because work remains.
 - Treat `reviewer` as a user-authorized independent-judgment lane. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
 - A request to continue permits ongoing work, but does not by itself authorize a new or resumed `worker` or `reviewer`.
+- Before creating a subagent prompt, load `context-transfer` and use it to define what must cross the fresh-context boundary.
+- Give the subagent the exact accessible repository paths or other locators it needs, and name relevant skills for it to load; do not rely on conversation context, implicit paths, or skills the child cannot discover.
+- Carry the task scope, accepted decisions, constraints, authority boundary, expected outcome, verification commands, and stop conditions into the prompt. Include only context that changes the child’s execution.
 
 ## Personal Knowledge
 
