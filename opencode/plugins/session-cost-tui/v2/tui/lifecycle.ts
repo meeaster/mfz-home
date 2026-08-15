@@ -31,7 +31,7 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     timer = setTimeout(() => {
       void (options.estimate ?? estimateCost)(options.context, sessionID).then(
         (value) => active && current === generation && options.setEstimate(value),
-        (reason: unknown) => {
+        (reason: RejectionReason) => {
           if (!active || current !== generation) return;
           failed = true;
           options.setEstimate(undefined);
@@ -79,6 +79,8 @@ async function estimateCost(context: Context, sessionID: string) {
   return aggregateCost(usages, priceCatalog);
 }
 
-function errorMessage(reason: unknown) {
+type RejectionReason = Parameters<typeof String>[0];
+
+function errorMessage(reason: RejectionReason) {
   return reason instanceof Error ? reason.message : String(reason);
 }

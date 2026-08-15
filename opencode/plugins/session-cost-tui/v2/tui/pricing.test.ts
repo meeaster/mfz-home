@@ -3,12 +3,15 @@ import { describe, expect, it } from "vitest";
 import type { PricingUsage } from "./messages.js";
 import { aggregateCost, materializeModels, ratesFor, type Catalog, type Model } from "./pricing.js";
 
-const usage = (modelID: string, input: number, variant?: string): PricingUsage => ({
+const usage = (modelID: string, input: number, variant?: string): PricingUsage => {
+  const result: PricingUsage = {
   providerID: "openai",
   modelID,
-  ...(variant ? { variant } : {}),
   tokens: { input, output: 1_000_000, reasoning: 1_000_000, cacheRead: 1_000_000, cacheWrite: 1_000_000 }
-});
+  };
+  if (variant) result.variant = variant;
+  return result;
+};
 
 describe("session cost pricing", () => {
   it("selects the largest qualifying context tier regardless of order", () => {

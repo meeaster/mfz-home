@@ -57,10 +57,9 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
     !message.tokens
   ) return undefined;
 
-  return {
+  const usage: PricingUsage = {
     providerID: message.model.providerID,
     modelID: message.model.id,
-    ...(message.model.variant ? { variant: message.model.variant } : {}),
     tokens: {
       input: finite(message.tokens.input),
       output: finite(message.tokens.output),
@@ -69,8 +68,10 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
       cacheWrite: finite(message.tokens.cache?.write)
     }
   };
+  if (message.model.variant) usage.variant = message.model.variant;
+  return usage;
 }
 
 function finite(value: number | undefined) {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : 0;
+  return value !== undefined && Number.isFinite(value) && value >= 0 ? value : 0;
 }

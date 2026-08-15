@@ -31,6 +31,7 @@ export function loadCatalog(): Promise<Catalog> {
   if (!catalog) {
     catalog = fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10_000) }).then(async (response) => {
       if (!response.ok) throw new Error(`models.dev returned ${response.status}`);
+      // SAFETY: models.dev owns this endpoint's catalog contract; malformed data is caught by this promise chain and rendered as unavailable.
       return (await response.json()) as Catalog;
     });
   }
@@ -136,5 +137,5 @@ function price(usage: PricingUsage, rates: Rates) {
 }
 
 function finite(value: number | undefined) {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : 0;
+  return value !== undefined && Number.isFinite(value) && value >= 0 ? value : 0;
 }

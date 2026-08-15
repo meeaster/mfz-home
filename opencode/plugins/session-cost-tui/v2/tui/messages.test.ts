@@ -20,6 +20,7 @@ describe("pricingUsage", () => {
   it("rejects legacy and incomplete shapes", () => {
     expect(pricingUsage({ type: "user" })).toBeUndefined();
     expect(pricingUsage({ type: "assistant", time: { completed: 1 }, tokens: {}, model: {} })).toBeUndefined();
+    // SAFETY: This deliberately exercises the legacy shape at the untyped message boundary.
     expect(pricingUsage({ role: "assistant", providerID: "openai", modelID: "gpt-test" } as never)).toBeUndefined();
   });
 
@@ -27,7 +28,7 @@ describe("pricingUsage", () => {
     const calls: unknown[] = [];
     const client = {
       message: {
-        async list(input: unknown) {
+        async list(input: { sessionID: string; limit: number; order?: "asc"; cursor?: string }) {
           calls.push(input);
           return calls.length === 1
             ? { data: [{ type: "user" }, { type: "assistant" }], cursor: { next: "page-2" } }
@@ -35,6 +36,7 @@ describe("pricingUsage", () => {
         }
       }
     };
+    // SAFETY: The mock implements the subset of the generated client used by this test.
     const messages = await loadSessionMessages(client as never, "family-child");
     expect(messages).toHaveLength(3);
     expect(calls).toEqual([
@@ -47,6 +49,7 @@ describe("pricingUsage", () => {
     const client = {
       message: { list: async () => ({ data: [], cursor: { next: "same" } }) }
     };
+    // SAFETY: The mock implements the subset of the generated client used by this test.
     await expect(loadSessionMessages(client as never, "one")).rejects.toThrow("repeated cursor");
   });
 
@@ -62,6 +65,7 @@ describe("pricingUsage", () => {
         }
       }
     };
+    // SAFETY: The mock implements the subset of the generated client used by this test.
     expect(await loadFamilyMessages(client as never, ["root", "child"])).toHaveLength(4);
     expect(calls).toEqual(["root:first", "child:first", "root:root-next", "child:child-next"]);
   });

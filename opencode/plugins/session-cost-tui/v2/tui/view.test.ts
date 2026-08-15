@@ -5,15 +5,22 @@ import type { CostEstimate } from "./pricing.js";
 import { createCostLifecycle } from "./lifecycle.js";
 import { catalogRenderState } from "./render-state.js";
 
-type Handler = (event: { data: Record<string, unknown> }) => void;
+type Handler = (event: { data: { sessionID: string; parentID?: string } }) => void;
+type State = { estimate?: CostEstimate; error?: string };
+type TestContext = { data: { on: (type: string, handler: Handler) => () => number; session: { family: (id: string) => string[]; message: { list: () => never[] } } } };
+
+function asContext(value: TestContext): Context {
+  // SAFETY: The lifecycle only accesses the data API represented by this test contract.
+  return value as never;
+}
 
 function harness(estimate: (context: Context, sessionID: string) => Promise<CostEstimate>) {
   const handlers = new Map<string, Handler>();
   const cleanups: string[] = [];
-  const state: { estimate?: CostEstimate; error?: string } = {};
+  const state: State = {};
   let sessionID = "one";
   let family = ["one", "child"];
-  const context = {
+  const rawContext = {
     data: {
       on(type: string, handler: Handler) {
         handlers.set(type, handler);
@@ -24,7 +31,8 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
         message: { list: () => [] }
       }
     }
-  } as unknown as Context;
+  };
+  const context = asContext(rawContext);
   const lifecycle = createCostLifecycle({
     context,
     sessionID: () => sessionID,
@@ -46,7 +54,7 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
 const result = (amount: number): CostEstimate => ({ costs: [{ model: "test", amount }], unpriced: 0 });
 const deferred = <Value>() => {
   let resolve!: (value: Value) => void;
-  let reject!: (reason: unknown) => void;
+  let reject!: (reason: Error | string | number | boolean | null | undefined) => void;
   const promise = new Promise<Value>((yes, no) => { resolve = yes; reject = no; });
   return { promise, resolve, reject };
 };
