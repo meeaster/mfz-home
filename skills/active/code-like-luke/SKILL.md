@@ -1,5 +1,7 @@
 ---
-description: Implement with clear orchestration, strong interfaces, and happy-path-first design
+name: code-like-luke
+description: Use when implementing or reviewing code and the user requests Code Like Luke guidance, happy-path-first design, or a strict maintainability-oriented refactor.
+disable-model-invocation: true
 ---
 
 Code like Luke.

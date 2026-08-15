@@ -1,4 +1,9 @@
 skills:
+  - name: code-like-luke
+    source: local
+    skill: active/code-like-luke
+    description: >
+      Apply the Code Like Luke implementation and review guidance: inspect context first, keep the happy path obvious, use strong interfaces, enforce invariants, and avoid speculative abstractions.
   - name: opencode-drive
     description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
     source: vendored

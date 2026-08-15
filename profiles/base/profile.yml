@@ -23,6 +23,8 @@ thread:
       - claude-code
       - opencode
 skills:
+  code-like-luke:
+    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
@@ -175,7 +177,6 @@ opencode:
     - session-cost-tui
   commands:
     - apply-spec
-    - code-like-luke
     - implement-design
     - openspec-rolling-apply
     - rmslop
@@ -195,7 +196,12 @@ opencode:
         variants: [low, medium, high, xhigh]
         description: Quality-first escalation family for consequential decisions, independent criticism, and the hardest ambiguous design work. Use high for high-stakes review, adjudicating competing designs, and difficult reasoning where a missed issue is expensive. Use xhigh for broad, security-sensitive, irreversible, or still-unresolved architecture and for maximum-quality design exploration. Use a fresh context and, where possible, a different model family from the artifact's author. Do not use Sol for routine retrieval or ordinary implementation.
 opencode_v2:
+  global_instructions: true
   config:
+    agent:
+      explore:
+        model: openai/gpt-5.6-luna
+        variant: high
     websearch:
       provider: exa
   cli:
@@ -205,7 +211,6 @@ opencode_v2:
     - session-cost-tui
   commands:
     - apply-spec
-    - code-like-luke
     - implement-design
     - openspec-rolling-apply
     - rmslop
