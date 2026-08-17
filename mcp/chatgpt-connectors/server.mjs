@@ -75,8 +75,6 @@ class UpstreamClient {
 }
 
 class ConnectorProxy {
-  #toolsByName = new Map()
-
   constructor(options, upstream) {
     this.options = options
     this.upstream = upstream
@@ -124,12 +122,19 @@ class ConnectorProxy {
     const name = isRecord(request.params) && typeof request.params.name === "string" ? request.params.name : ""
     if (!name) return rpcError(request.id, -32602, "Tool name is required")
 
-    await this.#discoverTools()
-    const matches = this.#toolsByName.get(name) ?? []
-    if (matches.length === 0) return rpcError(request.id, -32602, "Tool is unknown, disabled, or stale")
-    if (matches.length > 1) return rpcError(request.id, -32602, "Tool name is ambiguous")
+    const discovered = await this.#discoverTools()
+    const mapping = discovered.toolsByName.get(name)
+    if (!mapping) return rpcError(request.id, -32602, "Tool is unknown, disabled, or stale")
 
-    return normalizeToolResult(requireResponse(await this.upstream.send(request)), matches[0])
+    return normalizeToolResult(
+      requireResponse(
+        await this.upstream.send({
+          ...request,
+          params: { ...request.params, name: mapping.upstreamName },
+        }),
+      ),
+      mapping.tool,
+    )
   }
 
   async #discoverTools() {
@@ -157,45 +162,49 @@ class ConnectorProxy {
       if (page === MAX_TOOL_PAGES - 1) throw new ProxyError("upstream_tool_page_limit")
     }
 
-    const enabledTools = allTools.filter((tool) => {
-      const connectorId = connectorIdFor(tool)
-      return connectorId !== undefined && this.options.connectors.has(connectorId)
-    })
+    const enabledTools = allTools.filter((tool) => connectorIdFor(tool) === this.options.connectorId)
     const toolsByName = new Map()
     for (const tool of enabledTools) {
-      if (!isRecord(tool) || typeof tool.name !== "string") continue
-      const matches = toolsByName.get(tool.name) ?? []
-      matches.push(tool)
-      toolsByName.set(tool.name, matches)
+      if (!isRecord(tool) || typeof tool.name !== "string" || !tool.name.startsWith(`${this.options.alias}.`)) {
+        throw new ProxyError("upstream_tool_prefix_mismatch")
+      }
+      const name = tool.name.slice(this.options.alias.length + 1)
+      if (!name || toolsByName.has(name)) throw new ProxyError("upstream_tool_name_collision")
+      toolsByName.set(name, { tool, upstreamName: tool.name })
     }
-    this.#toolsByName = toolsByName
-    return { tools: enabledTools, template }
+    const tools = enabledTools.map((tool) => ({ ...tool, name: tool.name.slice(this.options.alias.length + 1) }))
+    const discovered = { tools, toolsByName, template }
+    return discovered
   }
 }
 
 async function main() {
   const options = parseOptions(process.argv.slice(2))
   const credential = await loadCredential(options.authFile)
-  const upstream = new UpstreamClient(options, credential)
-
   if (options.probe) {
-    await runProbe(options, upstream)
+    await runProbe(options, credential)
     return
   }
 
-  const proxy = new ConnectorProxy(options, upstream)
+  const endpoints = new Map(
+    [...options.connectorAliases].map(([alias, connectorId]) => {
+      const endpoint = createEndpoint(options, credential, alias, connectorId)
+      return [endpoint.path, endpoint]
+    }),
+  )
   const server = createServer((request, response) => {
-    void handleHttpRequest(request, response, proxy)
+    void handleHttpRequest(request, response, endpoints)
   })
   await new Promise((resolveServer, reject) => {
     server.once("error", reject)
     server.listen(options.port, options.host, resolveServer)
   })
-  process.stderr.write(`chatgpt-connectors-mcp: listening on http://${options.host}:${options.port}/mcp\n`)
+  process.stderr.write(`chatgpt-connectors-mcp: listening on http://${options.host}:${options.port}/mcp/<connector-alias>\n`)
 }
 
-async function handleHttpRequest(request, response, proxy) {
-  if (request.method !== "POST" || request.url !== "/mcp") {
+async function handleHttpRequest(request, response, endpoints) {
+  const endpoint = endpoints.get(request.url)
+  if (request.method !== "POST" || !endpoint) {
     response.writeHead(404, { "content-type": "application/json" })
     response.end(JSON.stringify({ error: "not_found" }))
     return
@@ -209,7 +218,7 @@ async function handleHttpRequest(request, response, proxy) {
   try {
     const body = await readRequestBody(request)
     const parsed = JSON.parse(body)
-    const result = await proxy.handle(parsed)
+    const result = await endpoint.proxy.handle(parsed)
     if (result === undefined) {
       response.writeHead(202)
       response.end()
@@ -259,37 +268,48 @@ function isLocalOrigin(value) {
   }
 }
 
-async function runProbe(options, upstream) {
-  const initialize = requireResponse(
-    await upstream.send({
-      jsonrpc: "2.0",
-      id: 1,
-      method: "initialize",
-      params: { protocolVersion: PROTOCOL_VERSION, capabilities: {}, clientInfo: CLIENT_INFO },
-    }),
-  )
-  if (initialize.error) throw new ProxyError("upstream_initialize_failed")
-  await upstream.send({ jsonrpc: "2.0", method: "notifications/initialized", params: {} })
-
-  const proxy = new ConnectorProxy(options, upstream)
-  const listed = await proxy.handle({ jsonrpc: "2.0", id: 2, method: "tools/list", params: {} })
-  if (listed?.error || !isRecord(listed?.result) || !Array.isArray(listed.result.tools)) {
-    throw new ProxyError("upstream_tools_list_failed")
+async function runProbe(options, credential) {
+  const endpoints = [...options.connectorAliases].map(([alias, connectorId]) => createEndpoint(options, credential, alias, connectorId))
+  const results = []
+  for (const endpoint of endpoints) {
+    const initialize = requireResponse(
+      await endpoint.upstream.send({
+        jsonrpc: "2.0",
+        id: endpoint.upstream.nextRequestId(),
+        method: "initialize",
+        params: { protocolVersion: PROTOCOL_VERSION, capabilities: {}, clientInfo: CLIENT_INFO },
+      }),
+    )
+    if (initialize.error) throw new ProxyError("upstream_initialize_failed")
+    await endpoint.upstream.send({ jsonrpc: "2.0", method: "notifications/initialized", params: {} })
+    const listed = await endpoint.proxy.handle({ jsonrpc: "2.0", id: endpoint.upstream.nextRequestId(), method: "tools/list", params: {} })
+    if (listed?.error || !isRecord(listed?.result) || !Array.isArray(listed.result.tools)) throw new ProxyError("upstream_tools_list_failed")
+    const serverInfo = isRecord(initialize.result) && isRecord(initialize.result.serverInfo) ? initialize.result.serverInfo : {}
+    results.push({
+      alias: endpoint.alias,
+      serverName: serverInfo.name,
+      exposedToolCount: listed.result.tools.length,
+      protocolVersion: isRecord(initialize.result) ? initialize.result.protocolVersion : undefined,
+    })
   }
-  const serverInfo = isRecord(initialize.result) && isRecord(initialize.result.serverInfo) ? initialize.result.serverInfo : {}
   process.stdout.write(
     `${JSON.stringify(
       {
         initialize: "succeeded",
-        protocolVersion: isRecord(initialize.result) ? initialize.result.protocolVersion : undefined,
-        serverName: serverInfo.name,
+        protocolVersion: results[0]?.protocolVersion,
+        endpoints: results,
         enabledConnectors: [...options.connectorAliases.entries()].map(([alias, id]) => ({ alias, id })),
-        exposedToolCount: listed.result.tools.length,
       },
       null,
       2,
     )}\n`,
   )
+}
+
+function createEndpoint(options, credential, alias, connectorId) {
+  const endpointOptions = { ...options, alias, connectorId }
+  const upstream = new UpstreamClient(options, credential)
+  return { alias, path: `/mcp/${alias}`, upstream, proxy: new ConnectorProxy(endpointOptions, upstream) }
 }
 
 async function loadCredential(authFile) {

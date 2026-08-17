@@ -12,11 +12,6 @@ servers:
     description: Local fast file finder MCP.
     type: local
     command: [fff-mcp]
-  chatgpt-connectors:
-    description: Local proxy for explicitly enabled ChatGPT connectors using OpenCode OAuth.
-    type: remote
-    transport: http
-    url: http://127.0.0.1:8765/mcp
   deepwiki:
     description: Repository documentation and implementation detail MCP.
     type: remote

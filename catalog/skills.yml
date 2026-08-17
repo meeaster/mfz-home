@@ -237,6 +237,23 @@ skills:
     repo: https://github.com/mattpocock/skills
     ref: main
     subtree: skills/productivity/writing-for-agents
+  - name: technical-writing
+    description: >
+      Apply a layered technical-writing standard to documentation, RFCs,
+      READMEs, PR descriptions, and commit messages: choose the document mode,
+      write clear sentences, and remove ambiguity.
+    source: vendored
+    repo: https://github.com/cursor/plugins
+    ref: main
+    subtree: pstack/skills/technical-writing
+  - name: unslop
+    description: >
+      Remove formulaic AI-writing patterns while preserving meaning, intended
+      tone, concrete facts, and the writer's voice.
+    source: vendored
+    repo: https://github.com/cursor/plugins
+    ref: main
+    subtree: pstack/skills/unslop
   - name: skill-authoring
     source: local
     skill: active/skill-authoring

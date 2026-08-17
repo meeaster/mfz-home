@@ -24,11 +24,11 @@ thread:
       - opencode
 skills:
   anti-slop:
-    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
+    agents: { opencode: true, claude-code: true, codex: true }
   code-like-luke:
-    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
+    agents: { opencode: true, claude-code: true, codex: true }
   effect:
-    agents: { opencode: true, opencode-v2: true, claude-code: true, codex: true }
+    agents: { opencode: true, claude-code: true, codex: true }
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
@@ -85,6 +85,10 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   context-transfer:
     agents: { opencode: true, claude-code: true, codex: true }
+  technical-writing:
+    agents: { opencode: true, claude-code: true, codex: true }
+  unslop:
+    agents: { opencode: true, claude-code: true, codex: true }
   opencode-v2-plugin-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   opencode-drive:
@@ -131,15 +135,13 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   context7:
-    agents: [opencode, opencode-v2, claude-code, codex]
-  fff:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
   deepwiki:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
   openai-docs:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
   aws-knowledge:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
 opencode:
   config:
     lsp: true
@@ -156,7 +158,6 @@ opencode:
             "*": deny
             agent-sessions: allow
             claude-code-docs: allow
-          fff_*: allow
           context7_*: allow
           deepwiki_*: allow
           openai_docs_*: allow

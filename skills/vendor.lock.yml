@@ -44,6 +44,12 @@ skills:
   writing-for-agents:
     commit: 8b78b531ab965735c5dc74f6f7a219e1e37326df
     digest: 01e3bf80ddf80f8065518dc1c9c9d9ddc32385a98db5bf898b732647148a6b6c
+  technical-writing:
+    commit: 2a8044425c7bddf429c3bdedf3ab61e791d34d65
+    digest: 286e9b5685fe8e0974184f92728240f7909d82f0ebc79d12e73a0f32cbb33d11
+  unslop:
+    commit: 2a8044425c7bddf429c3bdedf3ab61e791d34d65
+    digest: 6287f9d77296b9787944278d3f8f8c487861c3888fac80a5841c9abafa33a422
   herdr:
     commit: 9e6c2b4e0957498b7da884ed2789fe28b9cde9cf
     digest: c1abdac24909dcfe1c34d56b3c48dfc15108cdb9ff4a4015cba935105ada6540

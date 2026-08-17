@@ -8,6 +8,7 @@ import { join, resolve } from "node:path"
 const ACCESS = "synthetic-access-token"
 const ACCOUNT = "synthetic-account-id"
 const ENABLED = "connector_enabled"
+const CALENDAR = "connector_calendar"
 const DISABLED = "connector_disabled"
 const executable = resolve(import.meta.dirname, "../../mcp/chatgpt-connectors/server.mjs")
 const requests: Array<{ method?: string; name?: string; authorized: boolean; account: boolean }> = []
@@ -19,7 +20,7 @@ const tools = [
   { name: "mail.search", inputSchema: { type: "object" }, annotations: { readOnlyHint: true }, _meta: { connector_id: ENABLED } },
   { name: "mail.send", inputSchema: { type: "object" }, _meta: { connector_id: ENABLED } },
   {
-    name: "teams.list_chats",
+    name: "mail.list_chats",
     inputSchema: { type: "object" },
     outputSchema: {
       type: "object",
@@ -28,7 +29,7 @@ const tools = [
     },
     _meta: { connector_id: ENABLED },
   },
-  { name: "calendar.search", inputSchema: { type: "object" }, _meta: { connector_id: DISABLED } },
+  { name: "calendar.search", inputSchema: { type: "object" }, _meta: { connector_id: CALENDAR } },
 ]
 
 const server = createServer(async (request, response) => {
@@ -56,6 +57,9 @@ const server = createServer(async (request, response) => {
     })
   }
   if (body.method === "tools/list") {
+    if (request.url === "/bad-prefix") {
+      return void respond(response, { jsonrpc: "2.0", id: body.id, result: { tools: [{ ...tools[0], name: "wrong.search" }] } })
+    }
     if (request.url === "/mcp-error") {
       return void respond(response, { jsonrpc: "2.0", id: body.id, error: { code: -32000, message: "synthetic upstream error" } })
     }
@@ -76,7 +80,7 @@ const server = createServer(async (request, response) => {
     return void respond(response, payload, 200, { "mcp-session-id": "fake-session" })
   }
   if (body.method === "tools/call") {
-    if (body.params?.name === "teams.list_chats") {
+    if (body.params?.name === "mail.list_chats") {
       return void respond(response, {
         jsonrpc: "2.0",
         id: body.id,
@@ -122,7 +126,7 @@ describe("chatgpt-connectors-mcp", () => {
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toContain("listening on")
     expect(result.responses).toHaveLength(2)
-    expect(result.responses[1].result.tools).toEqual(tools.slice(0, 3))
+    expect(result.responses[1].result.tools).toEqual(tools.slice(0, 3).map((tool) => ({ ...tool, name: tool.name.slice(5) })))
     expect(requests.every((request) => request.authorized && request.account)).toBe(true)
   })
 
@@ -131,7 +135,7 @@ describe("chatgpt-connectors-mcp", () => {
     const result = await runMcp("/json", [
       { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
       { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
-      { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "mail.send", arguments: { body: "synthetic" } } },
+      { jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "send", arguments: { body: "synthetic" } } },
     ])
 
     expect(result.responses[2].result.structuredContent).toEqual({ preserved: true })
@@ -142,7 +146,7 @@ describe("chatgpt-connectors-mcp", () => {
   test("wraps malformed upstream structured content when the advertised schema requires result", async () => {
     const result = await runMcp("/json", [
       { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
-      { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "teams.list_chats", arguments: { top: 1 } } },
+      { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "list_chats", arguments: { top: 1 } } },
     ])
 
     expect(result.responses[1].result.structuredContent).toEqual({ result: { chats: [] } })
@@ -163,10 +167,10 @@ describe("chatgpt-connectors-mcp", () => {
     requests.length = 0
     const result = await runMcp("/ambiguous", [
       { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
-      { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "mail.search", arguments: {} } },
+      { jsonrpc: "2.0", id: 2, method: "tools/call", params: { name: "search", arguments: {} } },
     ])
 
-    expect(result.responses[1].error.message).toBe("Tool name is ambiguous")
+    expect(result.responses[1].error.message).toBe("upstream_tool_name_collision")
     expect(requests.some((request) => request.method === "tools/call")).toBe(false)
   })
 
@@ -175,7 +179,29 @@ describe("chatgpt-connectors-mcp", () => {
       { jsonrpc: "2.0", id: 1, method: "initialize", params: {} },
       { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} },
     ])
-    expect(result.responses[1].result.tools).toEqual(tools.slice(0, 3))
+    expect(result.responses[1].result.tools).toEqual(tools.slice(0, 3).map((tool) => ({ ...tool, name: tool.name.slice(5) })))
+  })
+
+  test("routes endpoints independently and rejects the legacy aggregate route", async () => {
+    requests.length = 0
+    const args = [...baseArgs("/json"), "--connector", `calendar=${CALENDAR}`]
+    const result = await run(args, [
+      { route: "/mcp/mail", message: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} } },
+      { route: "/mcp/calendar", message: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} } },
+      { route: "/mcp", message: { jsonrpc: "2.0", id: 3, method: "tools/list", params: {} } },
+    ])
+    expect(result.responses[0].result.tools.map((tool: { name: string }) => tool.name)).toEqual(["search", "send", "list_chats"])
+    expect(result.responses[1].result.tools.map((tool: { name: string }) => tool.name)).toEqual(["search"])
+    expect(result.responses[2]).toEqual({ error: "not_found" })
+  })
+
+  test("fails only the endpoint with a matching tool missing its alias prefix", async () => {
+    const bad = await run([...baseArgs("/bad-prefix"), "--connector", `calendar=${CALENDAR}`], [
+      { route: "/mcp/mail", message: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} } },
+      { route: "/mcp/calendar", message: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} } },
+    ])
+    expect(bad.responses[0].error.message).toBe("upstream_tool_prefix_mismatch")
+    expect(bad.responses[1].result.tools).toEqual([])
   })
 
   test("reports redacted probe information", async () => {
@@ -185,8 +211,7 @@ describe("chatgpt-connectors-mcp", () => {
     expect(result.stdout).not.toContain(ACCOUNT)
     expect(JSON.parse(result.stdout)).toMatchObject({
       initialize: "succeeded",
-      serverName: "fake-upstream",
-      exposedToolCount: 3,
+      endpoints: [{ alias: "mail", serverName: "fake-upstream", exposedToolCount: 3 }],
       enabledConnectors: [{ alias: "mail", id: ENABLED }],
     })
   })
@@ -229,10 +254,10 @@ function baseArgs(path: string) {
 }
 
 async function runMcp(path: string, messages: unknown[]) {
-  return run(baseArgs(path), messages)
+  return run(baseArgs(path), messages, "/mcp/mail")
 }
 
-async function run(args: string[], messages: unknown[]) {
+async function run(args: string[], messages: unknown[], route = "/mcp/mail") {
   const port = 18765
   const child = spawn(process.execPath, [executable, ...args, "--port", String(port)], { stdio: ["ignore", "pipe", "pipe"] })
   let stdout = ""
@@ -244,16 +269,17 @@ async function run(args: string[], messages: unknown[]) {
     const [exitCode] = await exitPromise
     return { exitCode, stdout, stderr, responses: [] }
   }
-  if (!(await waitForServer(port, child))) {
+  if (!(await waitForServer(port, child, route))) {
     const [exitCode] = await exitPromise
     return { exitCode, stdout, stderr, responses: [] }
   }
   const responses = []
   for (const message of messages) {
-    const response = await fetch(`http://127.0.0.1:${port}/mcp`, {
+    const entry = message as { message?: unknown; route?: string }
+    const response = await fetch(`http://127.0.0.1:${port}${entry.route ?? route}`, {
       method: "POST",
       headers: { accept: "application/json, text/event-stream", "content-type": "application/json" },
-      body: JSON.stringify(message),
+      body: JSON.stringify(entry.message ?? message),
     })
     if (response.status !== 202) responses.push(await response.json())
   }
@@ -262,11 +288,11 @@ async function run(args: string[], messages: unknown[]) {
   return { exitCode: exitCode ?? 0, stdout, stderr, responses }
 }
 
-async function waitForServer(port: number, child: ReturnType<typeof spawn>) {
+async function waitForServer(port: number, child: ReturnType<typeof spawn>, route: string) {
   for (let attempt = 0; attempt < 50; attempt++) {
     if (child.exitCode !== null) return false
     try {
-      await fetch(`http://127.0.0.1:${port}/mcp`, { method: "GET" })
+      await fetch(`http://127.0.0.1:${port}${route}`, { method: "GET" })
       return true
     } catch {
       await new Promise((resolve) => setTimeout(resolve, 20))

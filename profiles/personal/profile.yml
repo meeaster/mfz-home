@@ -45,13 +45,13 @@ executor:
   bridge: false
 mcp:
   x-docs:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
   homeassistant:
-    agents: [opencode-v2]
+    agents: [opencode]
   robinhood:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
   sentry:
-    agents: [opencode, opencode-v2, claude-code, codex]
+    agents: [opencode, claude-code, codex]
 claude:
   settings:
     permissions:

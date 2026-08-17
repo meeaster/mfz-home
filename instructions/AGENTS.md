@@ -1,5 +1,3 @@
-For any file search or grep in the current git-indexed directory, use fff tools.
-
 ## Documentation Sources
 
 - For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
