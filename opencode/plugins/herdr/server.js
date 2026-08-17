@@ -23,15 +23,14 @@ function nextReportSeq() {
 }
 
 function sessionIDFromProperties(properties) {
-  return typeof properties?.sessionID === "string" && properties.sessionID
-    ? properties.sessionID
-    : undefined;
+  const sessionID = properties?.sessionID;
+  return sessionID?.constructor === String && sessionID ? sessionID : undefined;
 }
 
 function stateFromSessionStatus(status) {
   // session.status carries { type: "idle" | "busy" | "retry" }; older builds used a bare string.
-  const kind = typeof status === "string" ? status : status?.type;
-  if (typeof kind !== "string") return undefined;
+  const kind = status?.constructor === String ? status : status?.type;
+  if (kind?.constructor !== String) return undefined;
   switch (kind.toLowerCase()) {
     case "idle":
       return "idle";

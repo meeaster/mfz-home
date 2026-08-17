@@ -3,13 +3,13 @@ Description=OpenCode V2 service
 After=network.target
 
 [Service]
-Type=simple
+Type=oneshot
+RemainAfterExit=yes
 WorkingDirectory=/home/mark/workspace
 Environment=HOME=/home/mark
-Environment=PATH=/home/mark/.local/bin:/home/mark/.local/share/mise/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-ExecStart=/home/mark/.local/bin/opencode2 serve --service
-Restart=on-failure
-RestartSec=2
+Environment=PATH=/home/mark/.local/bin:/home/mark/.local/share/mise/shims:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=/usr/bin/zsh -c 'set -a; source "$HOME/.mindframe-z/secrets/zsh.env"; exec /home/mark/.opencode/bin/opencode2 service start'
+ExecStop=/home/mark/.opencode/bin/opencode2 service stop
 
 [Install]
 WantedBy=default.target

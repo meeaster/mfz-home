@@ -176,6 +176,7 @@ opencode:
         "*GH_TOKEN*": deny
   plugins:
     - advisor
+    - herdr
   tui_plugins:
     - advisor
     - session-cost-tui
@@ -213,6 +214,7 @@ opencode_v2:
       name: dracula
   tui_plugins:
     - session-cost-tui
+    - herdr
   commands:
     - apply-spec
     - implement-design

@@ -1,0 +1,11 @@
+{
+  "name": "mindframe-z-herdr-opencode-v2",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tui": "./tui/index.ts"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "0.0.0-next-17444"
+  }
+}

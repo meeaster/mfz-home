@@ -47,19 +47,11 @@ mcp:
   x-docs:
     agents: [opencode, opencode-v2, claude-code, codex]
   homeassistant:
-    agents: { enabled: [claude-code], disabled: [opencode, opencode-v2, codex] }
-  robinhood-trading:
+    agents: [opencode-v2]
+  robinhood:
     agents: [opencode, opencode-v2, claude-code, codex]
-    executor:
-      enabled: true
-      connections:
-        main: oauth
   sentry:
     agents: [opencode, opencode-v2, claude-code, codex]
-    executor:
-      enabled: true
-      connections:
-        main: oauth
 claude:
   settings:
     permissions:

@@ -33,7 +33,7 @@ yamllint = "1"
 "npm:sfw" = "2"
 "npm:executor" = "1"
 "npm:@fission-ai/openspec" = "1"
-"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
+"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"], trust_policy_excludes = ["@smithy/core@3.33.0", "@smithy/node-http-handler@4.11.0"] }
 "github:Infisical/agent-vault" = "0"
 "github:kitlangton/ghui" = "0"
 "npm:agent-browser" = "0"

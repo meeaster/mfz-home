@@ -1,0 +1,9 @@
+{
+  "name": "mindframe-z-herdr-opencode",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./server": "./server.js",
+    "./v2/tui": "./v2/tui/index.ts"
+  }
+}
