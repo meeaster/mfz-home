@@ -1,5 +1,15 @@
 # Log
 
+## 2026-08-18 - Unified V1 And V2 Session Cost
+
+- Kept one cost executable and added schema-specific internal adapters selected
+  by validated tables and the requested root session.
+- Added V2 recursive cost extraction from body-free `session_v2` and assistant
+  `session_message` usage fields while preserving the existing shared pricing
+  engine and V1 behavior.
+- Made schema selection explicit in output and fail on unknown or ambiguous
+  stores instead of inferring compatibility from a database filename.
+
 ## 2026-08-14 - OpenCode V2 API-First Source Selection
 
 - Added an explicit OpenCode V2 service-API branch using `opencode2 api` for

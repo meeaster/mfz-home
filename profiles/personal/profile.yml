@@ -79,6 +79,9 @@ opencode:
       worker:
         model: openai/gpt-5.6-luna
         variant: max
+      prototype:
+        model: openai/gpt-5.6-sol
+        variant: medium
       reviewer:
         model: openai/gpt-5.6-sol
         variant: high
@@ -91,6 +94,9 @@ opencode_v2:
       worker:
         model: openai/gpt-5.6-luna
         variant: max
+      prototype:
+        model: openai/gpt-5.6-sol
+        variant: medium
       reviewer:
         model: openai/gpt-5.6-sol
         variant: high

@@ -371,6 +371,126 @@ class OpenCodeSessionCostTest(unittest.TestCase):
     def _write_catalog(self, catalog: dict[str, object]) -> None:
         self.catalog.write_text(json.dumps(catalog), encoding="utf-8")
 
+    def _replace_with_v2_database(self) -> None:
+        connection = sqlite3.connect(self.database)
+        connection.executescript(
+            """
+            DROP TABLE part;
+            DROP TABLE message;
+            DROP TABLE session;
+            CREATE TABLE session_v2 (
+                id TEXT PRIMARY KEY,
+                parent_id TEXT,
+                title TEXT,
+                agent TEXT,
+                cost REAL NOT NULL
+            );
+            CREATE TABLE session_message (
+                id TEXT PRIMARY KEY,
+                session_id TEXT NOT NULL,
+                type TEXT NOT NULL,
+                seq INTEGER NOT NULL,
+                data TEXT NOT NULL
+            );
+            """
+        )
+        connection.executemany(
+            "INSERT INTO session_v2 (id, parent_id, title, agent, cost) VALUES (?, ?, ?, ?, ?)",
+            [
+                ("ses_root", None, "V2 root", "build", 0.1),
+                ("ses_child", "ses_root", "V2 child", None, 0.02),
+                ("ses_fork", None, "V2 fork", "build", 0.5),
+            ],
+        )
+
+        def assistant(
+            provider_id: str,
+            model_id: str,
+            tokens: dict[str, int] | None,
+            variant: str | None = None,
+        ) -> dict[str, Any]:
+            result: dict[str, Any] = {
+                "agent": "build",
+                "model": {"providerID": provider_id, "id": model_id},
+                "content": [{"type": "text", "text": "V2_TRANSCRIPT_SECRET"}],
+                "time": {"created": 1},
+            }
+            if variant is not None:
+                result["model"]["variant"] = variant
+            if tokens is not None:
+                result["cost"] = 0.001
+                result["tokens"] = {
+                    "input": tokens["input"],
+                    "output": tokens["output"],
+                    "reasoning": tokens["reasoning"],
+                    "cache": {
+                        "read": tokens["cache_read"],
+                        "write": tokens["cache_write"],
+                    },
+                }
+            return result
+
+        messages = [
+            (
+                "msg_root",
+                "ses_root",
+                "assistant",
+                1,
+                assistant(
+                    "provider-a",
+                    "model-a",
+                    {"input": 100, "output": 20, "reasoning": 5, "cache_read": 10, "cache_write": 3},
+                    "fast",
+                ),
+            ),
+            (
+                "msg_running",
+                "ses_root",
+                "assistant",
+                2,
+                assistant("provider-a", "model-a", None),
+            ),
+            (
+                "msg_user",
+                "ses_root",
+                "user",
+                3,
+                {"content": [{"type": "text", "text": "V2_USER_SECRET"}]},
+            ),
+            (
+                "msg_child",
+                "ses_child",
+                "assistant",
+                1,
+                assistant(
+                    "provider-b",
+                    "model-c",
+                    {"input": 7, "output": 8, "reasoning": 9, "cache_read": 6, "cache_write": 5},
+                    "reasoning",
+                ),
+            ),
+            (
+                "msg_fork",
+                "ses_fork",
+                "assistant",
+                1,
+                assistant(
+                    "provider-a",
+                    "model-b",
+                    {"input": 999, "output": 999, "reasoning": 999, "cache_read": 999, "cache_write": 999},
+                ),
+            ),
+        ]
+        connection.executemany(
+            "INSERT INTO session_message (id, session_id, type, seq, data) VALUES (?, ?, ?, ?, ?)",
+            [
+                (message_id, session_id, message_type, seq, json.dumps(data))
+                for message_id, session_id, message_type, seq, data in messages
+            ],
+        )
+        connection.commit()
+        connection.close()
+
     def _add_turn(
         self,
         part_id: str,
@@ -458,6 +578,7 @@ class OpenCodeSessionCostTest(unittest.TestCase):
 
         self.assertEqual("ses_root", result["root_session_id"])
         self.assertEqual("read-only", result["source"]["mode"])
+        self.assertEqual("v1", result["source"]["schema"])
         self.assertIn("all recursive descendants", result["scope"])
         self.assertEqual(3, result["total"]["session_count"])
         self.assertEqual(4, result["total"]["turn_count"])
@@ -712,6 +833,77 @@ class OpenCodeSessionCostTest(unittest.TestCase):
             ["ses_root", "ses_child", "ses_grandchild"],
             [session["id"] for session in result["sessions"]],
         )
+
+    def test_v2_schema_recursive_cost_and_body_exclusion(self) -> None:
+        self._replace_with_v2_database()
+
+        completed = self.run_calculator()
+        result = json.loads(completed.stdout)
+
+        self.assertEqual("v2", result["source"]["schema"])
+        self.assertEqual(["ses_root", "ses_child"], [item["id"] for item in result["sessions"]])
+        self.assertEqual(2, result["total"]["session_count"])
+        self.assertEqual(2, result["total"]["turn_count"])
+        self.assertEqual(
+            {
+                "input": 107,
+                "output": 28,
+                "cache_read": 16,
+                "cache_write": 8,
+                "reasoning": 14,
+                "context": 131,
+            },
+            result["total"]["tokens"],
+        )
+        self.assertEqual(0.12, result["total"]["stored_cost_usd"])
+        self.assertEqual("fast", result["sessions"][0]["breakdown"][0]["variant"])
+        self.assertNotIn("V2_TRANSCRIPT_SECRET", completed.stdout)
+        self.assertNotIn("V2_USER_SECRET", completed.stdout)
+
+    def test_v2_incomplete_usage_fails_without_body_output(self) -> None:
+        self._replace_with_v2_database()
+        connection = sqlite3.connect(self.database)
+        connection.execute(
+            "UPDATE session_message SET data = ? WHERE id = 'msg_running'",
+            (
+                json.dumps(
+                    {
+                        "model": {"providerID": "provider-a", "id": "model-a"},
+                        "content": [{"type": "text", "text": "V2_INCOMPLETE_SECRET"}],
+                        "cost": 0.1,
+                    }
+                ),
+            ),
+        )
+        connection.commit()
+        connection.close()
+
+        completed = self.run_calculator(check=False)
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn("tokens", completed.stderr)
+        self.assertNotIn("V2_INCOMPLETE_SECRET", completed.stderr)
+
+    def test_root_in_both_schemas_fails_as_ambiguous(self) -> None:
+        connection = sqlite3.connect(self.database)
+        connection.executescript(
+            """
+            CREATE TABLE session_v2 (
+                id TEXT PRIMARY KEY, parent_id TEXT, title TEXT, agent TEXT, cost REAL NOT NULL
+            );
+            CREATE TABLE session_message (
+                id TEXT PRIMARY KEY, session_id TEXT NOT NULL, type TEXT NOT NULL,
+                seq INTEGER NOT NULL, data TEXT NOT NULL
+            );
+            INSERT INTO session_v2 (id, parent_id, title, agent, cost)
+            VALUES ('ses_root', NULL, 'duplicate root', NULL, 0);
+            """
+        )
+        connection.commit()
+        connection.close()
+
+        completed = self.run_calculator(check=False)
+        self.assertNotEqual(0, completed.returncode)
+        self.assertIn("exists in both OpenCode V1 and V2 schemas", completed.stderr)
 
 
 if __name__ == "__main__":

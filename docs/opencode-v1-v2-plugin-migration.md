@@ -1,6 +1,11 @@
-# OpenCode V1 to V2 Plugin Migration
+# OpenCode V1 to V2 plugin migration
 
-Status: implementation reference for the `mfz-home` OpenCode plugin ports.
+Status: current implementation and agent handoff reference for the `mfz-home`
+OpenCode plugin ports.
+
+Evidence snapshot: 2026-08-18. The installed V2 runtime was
+`opencode2 v0.0.0-beta-17595`. OpenCode V2 is beta, so verify the installed
+runtime and the reference checkout again before each implementation phase.
 
 This document is for workers implementing or reviewing the V2 ports of:
 
@@ -11,28 +16,27 @@ This document is for workers implementing or reviewing the V2 ports of:
 `current-session` is also covered because it is currently enabled in the V1
 profile, but V2 makes its behavior unnecessary.
 
-## Source Of Truth
+## Source of truth
 
 Use the following sources in this order:
 
-1. The checked-in OpenCode V2 branch reference at
-   `/home/mark/workspace/references/opencode`, ref `origin/v2`, commit
-   `a6a712a3ac72248c9b2f2f883e752e6e18ef8c40` at the time this document was
-   written.
-2. The official migration guide:
-   <https://opencode.ai/v2/docs/migrate-v1>
-3. The current plugin implementations under
+1. The current plugin guide at
+   <https://opencode.ai/v2/docs/build/plugins.md> for server entrypoints,
+   hooks, configuration, and verification.
+2. The checked-in OpenCode V2 reference at
+   `/home/mark/workspace/references/opencode`. The checkout was on `v2` at
+   `1f61eb5ca951174456ddac0d8cb8153417c04e44` for this evidence snapshot.
+   Use the source for native TUI behavior and undocumented runtime details.
+3. The official migration guide at
+   <https://opencode.ai/v2/docs/migrate-v1>.
+4. The current plugin implementations under
    `/home/mark/workspace/repos/mfz-home/opencode/plugins`.
 
-The local reference checkout is on `dev`; inspect `origin/v2` with `git show`
-or an isolated worktree. Do not change the reference checkout as part of a
-plugin port.
+The OpenCode reference is read-only. Do not change it as part of a plugin port.
+The installed beta can differ from the reference checkout. A source inspection
+does not replace a fresh runtime probe.
 
-The branch API is more complete than the V2 API visible in some `dev` snapshots.
-Do not infer V2 capability from `dev` files when the same API exists under
-`origin/v2`.
-
-## Migration Rule
+## Migration rule
 
 V1 and V2 server plugins are different runtimes. A V1 plugin must not be
 loaded by V2, and a V2 plugin must not be assumed to load by V1. Keep the
@@ -57,7 +61,34 @@ opencode/plugins/<plugin>/v2/tui/
 Keep each version self-contained unless a later change demonstrates a clear,
 low-risk benefit from sharing a runtime-neutral helper.
 
-## V1 Plugin Shape
+## Current repository state
+
+The base profile keeps V1 and V2 selections separate in
+`profiles/base/profile.yml`:
+
+- V1 loads the Advisor server and TUI from the root compatibility exports.
+- V2 enables no server plugins.
+- V2 selects the `session-cost-tui` and `herdr` native TUI plugins.
+- Personal adds `current-session` and `subagent-usage` only to V1.
+
+The source tree contains these V2 implementations:
+
+- `advisor/v2/server.ts` is a warning-only quarantine stub. There is no V2
+  Advisor TUI.
+- `subagent-usage/v2/server.ts` is a warning-only quarantine stub. Its blocker
+  text still names an older SDK and must be revalidated before implementation.
+- `session-cost-tui/v2/` contains a native TUI implementation and focused
+  tests. Its development SDK is pinned to `0.0.0-next-17428`, which predates the
+  installed beta in this evidence snapshot.
+- `herdr/v2/` contains a native TUI implementation and focused tests. Its
+  development SDK is pinned to `0.0.0-next-17444`, which also predates the
+  installed beta.
+
+Treat the existing V2 TUI ports as repository patterns, not proof of current
+runtime compatibility. Re-run their typechecks and visible runtime probes
+against the elected beta before copying their contracts.
+
+## V1 plugin shape
 
 Current V1 server plugins use the object-style module API:
 
@@ -96,7 +127,7 @@ The current `mfz-home` plugins use these V1 surfaces:
 - V1 client methods such as `client.session.messages`
 - V1 TUI `api.slots.register`, `api.event`, `api.route`, and `api.state`
 
-## V2 Server Plugin Shape
+## V2 server plugin shape
 
 The V2 Promise API uses an explicit definition and imperative registration:
 
@@ -112,13 +143,12 @@ export default Plugin.define({
 });
 ```
 
-Reference: `origin/v2:packages/plugin/src/README.md` and
-`origin/v2:packages/plugin/src/promise/plugin.ts`.
+Reference: `packages/plugin/src/promise/plugin.ts` in the OpenCode reference.
 
 Plugin configuration is available as `ctx.options`. Registration calls return
 disposable registrations. A plugin may return cleanup code from `setup`.
 
-### V2 Context Domains
+### V2 context domains
 
 The V2 branch exposes these server domains through `ctx`:
 
@@ -129,6 +159,7 @@ The V2 branch exposes these server domains through `ctx`:
 - `command`
 - `event`
 - `integration`
+- `mcp`
 - `plugin`
 - `reference`
 - `session`
@@ -137,13 +168,13 @@ The V2 branch exposes these server domains through `ctx`:
 - `tool`
 - `websearch`
 
-The repository currently typechecks against `@opencode-ai/plugin@1.18.18`.
-That installed package exposes the V1 root plugin API (`tool`, `PluginModule`,
-and V1 hooks); it does not export the V2 `Plugin.define` API described by the
-pinned `origin/v2` reference. Keep V2 server ports quarantined until the
-runtime package actually ships and documents those surfaces.
+The home workspace still contains `@opencode-ai/plugin@1.18.18` for V1 and
+several pinned `0.0.0-next-*` packages for earlier V2 TUI work. None of those
+versions proves compatibility with the elected `opencode2` beta. Typecheck each
+V2 package against the SDK that matches the runtime under test, then verify the
+rendered plugin in a fresh process.
 
-### V2 Transform Hooks
+### V2 transform hooks
 
 Transforms modify stateful domains and are registered directly:
 
@@ -158,20 +189,30 @@ await ctx.agent.transform((agents) => {
 Available transform domains in the V2 branch include `agent`, `catalog`,
 `command`, `integration`, `reference`, and `skill`.
 
-### V2 Tool Registration
+### V2 tool registration
 
 Custom tools are added through `ctx.tool.transform`:
 
 ```ts
 await ctx.tool.transform((tools) => {
-  tools.add({
-    name: "example",
+  tools.add("example", {
     description: "...",
-    input: Schema.Struct({ value: Schema.String }),
-    output: Schema.Struct({ result: Schema.String }),
+    input: {
+      type: "object",
+      properties: { value: { type: "string" } },
+      required: ["value"],
+      additionalProperties: false,
+    },
+    output: {
+      type: "object",
+      properties: { result: { type: "string" } },
+      required: ["result"],
+      additionalProperties: false,
+    },
     execute: async ({ value }, context) => ({
       output: { result: value },
       content: value,
+      metadata: { source: "example" },
     }),
   });
 });
@@ -188,7 +229,11 @@ The V2 tool context contains:
 This is why `current-session` has no reason to remain a V2 plugin: any V2 tool
 can use its own execution context's `sessionID`.
 
-### V2 Tool Execution Hooks
+The result supports `output`, model-visible `content`, and machine-readable
+`metadata`. Advisor owns its tool executor, so it can return all three directly.
+It does not need an after-hook to mutate its own result.
+
+### V2 tool execution hooks
 
 Register lifecycle hooks with:
 
@@ -206,14 +251,18 @@ type Result =
   | { status: "error"; error: Tool.Error };
 ```
 
-Unlike V1, the result is not a mutable `output.output` string. A port must
-decide whether to return content through the V2 tool result, emit a separate
-message/event, or move the behavior into the tool implementation.
+Unlike V1, an after-hook cannot mutate an `output.output` string. A plugin that
+owns the tool must return its final content and metadata from the executor. A
+plugin that decorates another tool needs a separate supported delivery method.
 
-### V2 Session APIs And Hooks
+### V2 session APIs and hooks
 
-The V2 branch exposes session operations such as `get`, `create`, `prompt`,
-`generate`, `command`, `synthetic`, and `interrupt` through `ctx.session`.
+The public Promise domain exposes `create`, `get`, `prompt`, `generate`,
+`command`, `synthetic`, `interrupt`, `rename`, and `wait` through `ctx.session`.
+It does not expose `messages` in the evidence snapshot. The internal plugin
+runtime has `session.messages`, but the public Promise and Effect domains omit
+it. Do not import private Core services or fabricate a client to cross this
+boundary.
 
 The session context hook runs immediately before provider dispatch:
 
@@ -227,13 +276,21 @@ The mutable context includes `sessionID`, agent, model, system parts, messages,
 and available tools. This is the primary V2 replacement for V1
 `experimental.chat.system.transform`.
 
-Do not assume `chat.message` or `command.execute.before` has a one-to-one V2
-replacement. Advisor manual-mode behavior must be revalidated against V2 event,
-command, and session APIs rather than silently weakened.
+V2 has no direct replacement for V1 `chat.message` or
+`command.execute.before`. The public event stream now includes
+`session.inbox.enqueued`. Its payload contains the `inboxID` and the complete
+user item, including the evaluated prompt text. V2 command execution evaluates
+the command template and admits it as a normal user prompt.
 
-## V2 TUI Plugin Shape
+Advisor can therefore use one authorization path for `/consult-advisor` and
+clear natural-language requests. Subscribe to `session.inbox.enqueued`, inspect
+the user text, and bind one authorization to the requesting message. Before
+shipping this design, prove in the installed runtime that the event `inboxID`
+correlates with the `messageID` supplied to the Advisor tool executor.
 
-The pinned `origin/v2` reference describes a separate TUI definition API:
+## V2 TUI plugin shape
+
+V2 uses a separate native TUI definition API:
 
 ```ts
 import { Plugin } from "@opencode-ai/plugin/tui";
@@ -246,11 +303,13 @@ export default Plugin.define({
 });
 ```
 
-The installed `1.18.18` package does not provide a usable V2 TUI registration
-surface in this repository. This is reference material only; do not claim or
-enable V2 TUI registration based on it.
+The current runtime accepts a default export with a unique `id` and `setup`.
+Existing V2 ports in this repository use a structural definition with a
+type-only SDK import. A runtime `Plugin.define` import is also valid when the
+matching SDK resolves from the rendered entrypoint. In both cases, typechecking
+does not prove that the TUI plugin loads or renders.
 
-### V2 TUI Slot Registration
+### V2 TUI slot registration
 
 V1 uses `api.slots.register` with names such as `sidebar_content`. V2 claims
 stable slots with `ctx.ui.slot`:
@@ -269,7 +328,7 @@ The V2 slot input supplies the session identity for session-specific slots:
 
 V2 slot paths use dots, not V1 underscores.
 
-### V2 TUI Data
+### V2 TUI data
 
 The V2 TUI context provides local reactive data access, including:
 
@@ -283,18 +342,23 @@ Prefer native `data.session.cost` and `data.session.family` over rebuilding
 session traversal through raw client calls when those values meet the feature's
 requirements.
 
-## Feature Migration Matrix
+The TUI owns `~/.config/opencode/cli.json`. The server does not read it. A
+configured local package directory must contain a physical `tui/index.tsx` or
+`tui/index.ts` entrypoint. A package export alone does not replace that layout.
+
+## Feature migration matrix
 
 | V1 feature | V2 replacement | Port risk | Decision |
 | --- | --- | --- | --- |
 | `PluginModule` object | `Plugin.define({ id, setup })` | Low | Required adapter rewrite |
 | Returned `tool` map | `ctx.tool.transform(...tools.add(...))` | Medium | Required for custom tools |
-| `tool.execute.after` | `ctx.tool.hook("execute.after", ...)` | Medium | Result shape must be adapted |
+| Owned tool result | Return `output`, `content`, and `metadata` from the V2 executor | Low | Do not use an after-hook for Advisor's own result |
+| Decorating another tool | `ctx.tool.hook("execute.after", ...)` | High | The completed result is not mutable |
 | `context.sessionID` | V2 tool context `sessionID` | Low | Directly available |
-| `client.session.messages` | V2 session/client API | Medium | Verify exact method shape |
+| `client.session.messages` | No public server-plugin equivalent in the evidence snapshot | High | Resolve before porting transcript-dependent behavior |
 | `chat.params` | V2 session/AI SDK hooks | Medium | Re-map only if behavior needs it |
-| `chat.message` | No confirmed direct equivalent | High | Investigate; do not approximate silently |
-| `command.execute.before` | V2 command/session/event APIs | High | Revalidate advisor command flow |
+| `chat.message` | `session.inbox.enqueued` public event | Medium | Prove message identity and delivery ordering |
+| `command.execute.before` | Evaluated command prompt through `session.inbox.enqueued` | Medium | Use the same explicit-request authorization path |
 | `experimental.chat.system.transform` | `ctx.session.hook("context")` | Medium | Primary system-guidance port |
 | V1 general events | `ctx.event` / V2 data events | Medium | Map each event explicitly |
 | V1 TUI slots | `ctx.ui.slot` | Medium | Rewrite registration layer |
@@ -303,7 +367,7 @@ requirements.
 | V1 `tui.json` | V2 global `cli.json` | Low | Render separately and migrate once |
 | V1 plugin config tuple | V2 plugin object | Low | Config entry conversion |
 
-## Plugin-Specific Port Plans
+## Plugin-specific port plans
 
 ### `current-session`
 
@@ -324,7 +388,8 @@ Completion criteria:
 
 ### `subagent-usage`
 
-Current source: `opencode/plugins/subagent-usage/server.ts`.
+Behavioral source: `opencode/plugins/subagent-usage/v1/server.ts`.
+`opencode/plugins/subagent-usage/v2/server.ts` remains a quarantine stub.
 
 The V2 implementation may copy the following V1 logic as a starting point,
 then simplify or reshape it for native V2 behavior:
@@ -369,10 +434,11 @@ Required tests:
 
 ### `session-cost-tui`
 
-Current source: `opencode/plugins/session-cost-tui/index.tsx`.
+Behavioral source: `opencode/plugins/session-cost-tui/v1/index.tsx`.
+The native implementation is under `opencode/plugins/session-cost-tui/v2/`.
 
-The V2 implementation may copy the following V1 logic as a starting point,
-then use native V2 cost data where appropriate:
+The V2 implementation already ports the main view and data flow. Revalidate it
+against the elected beta, then preserve or revise this V1 logic as needed:
 
 - model catalog loading
 - variant and context-tier rate selection
@@ -408,13 +474,16 @@ Required tests:
 - V2 native cost versus API-estimate labeling
 - cleanup removes event listeners and pending timers
 
-### `advisor` Server
+### `advisor` server
 
-Current source: `opencode/plugins/advisor/server.ts`; the V2 implementation
-should begin as an independent copy of the advisor behavior and then be
-reshaped around native V2 APIs. Existing files such as `transcript.ts`,
-`targets.ts`, and `state.ts` are reference material, not required shared
-dependencies.
+The behavioral source is `opencode/plugins/advisor/v1/`. The root Advisor files
+are the active V1 compatibility copies. The checked-in
+`opencode/plugins/advisor/v2/server.ts` is a warning-only quarantine stub. It
+does not register a tool, inject policy, read transcripts, call an advisor, or
+persist continuation state. No V2 Advisor TUI exists yet.
+
+Build the V2 implementation independently under `opencode/plugins/advisor/v2/`.
+Use the V1 files as behavior reference, not runtime dependencies.
 
 Logic that may be copied from V1 as a starting point:
 
@@ -426,36 +495,59 @@ Logic that may be copied from V1 as a starting point:
 - pricing and usage metadata
 - advisor result filtering
 
-V2 adapter path:
+V2 contract spike:
+
+1. Verify `session.inbox.enqueued` payloads and ordering in
+   `opencode2 v0.0.0-beta-17595` or the elected replacement.
+2. Verify that an explicit `/consult-advisor` command arrives as the evaluated
+   user prompt and authorizes exactly one Advisor call.
+3. Verify that clear natural-language requests authorize one call while
+   negated, quoted, conditional, explanatory, and incidental mentions do not.
+4. Correlate the inbox `inboxID` with the Advisor tool context `messageID`.
+5. Return a probe tool result with `output`, `content`, and nested `metadata`,
+   then inspect its persisted session and TUI representations.
+6. Establish a supported server-side message-list operation that preserves
+   stable message identity, compaction records, and tool metadata.
+7. If the public plugin API still omits message listing, prefer exposing the
+   existing internal `session.messages` operation upstream. Do not ship a
+   context-snapshot approximation unless it passes restart, continuation,
+   filtering, and compaction tests without storing transcript bodies.
+
+Keep the V2 Advisor disabled until this spike passes. Transcript access is the
+remaining API blocker. The inbox, context-hook, and owned-tool-result contracts
+exist but still need runtime verification.
+
+V2 adapter path after the spike:
 
 1. Port the exported plugin entrypoint to `Plugin.define`.
 2. Register the advisor tool with `ctx.tool.transform`.
 3. Obtain the parent session from the V2 tool context's `sessionID`.
-4. Map the V1 tool result (`title`, output text, metadata) to the V2 tool
-   result contract (`output`, `content`). Preserve machine-readable usage
-   metadata through the V2-supported result shape.
+4. Map the V1 tool result to V2 `output`, `content`, and `metadata`. Preserve
+   machine-readable usage, target, mode, and continuation data.
 5. Replace V1 client calls with V2 session/client calls and verify response
    schemas.
 6. Move policy injection from
    `experimental.chat.system.transform` to
    `ctx.session.hook("context")`.
-7. Rebuild command and manual-mode detection around V2 command/event/session
-   behavior. This is a design task, not a mechanical rename.
+7. Subscribe to `session.inbox.enqueued` and bind explicit authorization to the
+   requesting user message.
 8. Preserve the safety invariant: manual mode must reject unsolicited advisor
    calls while allowing an explicit consultation request.
 9. Preserve continuation state keys, context epochs, locking, and atomic
    persistence. Do not store transcript bodies in state.
 10. Add a fresh-runtime probe before enabling the V2 advisor by default.
 
-Advisor-specific blockers to resolve with evidence:
+Required runtime evidence:
 
-- Whether V2 exposes enough command lifecycle information to identify an
-  explicit `/consult-advisor` request.
-- Whether a natural-language consultation request can be identified without a
-  V1 `chat.message` hook.
-- Whether `ctx.session.hook("context")` can inject the complete advisor policy
-  before every relevant provider request.
-- How V2 serializes tool output and metadata into later session messages.
+- `session.inbox.enqueued` authorizes the correct assistant response and does
+  not leak authorization across queued or steered user messages.
+- `ctx.session.hook("context")` injects the complete policy before every
+  relevant provider request.
+- The supported transcript operation retains the message identities and
+  compaction information required by continuation planning.
+- V2 preserves Advisor tool metadata in later session reads and TUI data.
+- Manual mode rejects an unsolicited call before transcript loading or target
+  contact.
 
 ### `advisor` TUI
 
@@ -478,7 +570,27 @@ Keep the following logic where possible:
 - pending transcript estimates
 - context reset presentation
 
-## Configuration And Loading
+### `advisor` phase order
+
+Work in this order. Do not enable a later phase to compensate for a failed
+earlier phase.
+
+1. Complete the contract spike. Keep the quarantine stub and all V2 Advisor
+   profile entries disabled.
+2. Port the server entrypoint, authorization, policy injection, transcript
+   access, target execution, result metadata, and continuation state. Run a
+   server-only canary.
+3. Port the native TUI under `advisor/v2/tui/`. Run a visible-slot canary with
+   a real session and a wide viewport.
+4. Add the V2 server and TUI package exports, then select them in
+   `opencode_v2`. Render and inspect the complete V2 snapshot.
+5. Enable Advisor for normal V2 use only after manual, auto, on, restart,
+   compaction, reload, and failure scenarios pass.
+
+The rollback is configuration-only until V1 retires. Remove the V2 Advisor
+profile entries and render again. Do not modify the preserved V1 selection.
+
+## Configuration and loading
 
 The official migration guide says V1 config and file locations remain readable
 by V2, but V1 plugin implementations do not work in V2. Native V2 plugin
@@ -499,12 +611,19 @@ V2 local plugin files belong under `.opencode/plugins/` when managed directly
 by OpenCode. `mfz-home` may keep its source layout under `opencode/plugins/`,
 provided the renderer emits only the selected runtime's compatible assets.
 
+A package that provides both plugin types needs distinct server and `tui`
+entrypoints. The native TUI loader resolves the package's `tui` subpath. For a
+local directory, keep the physical `tui/index.tsx` or `tui/index.ts` layout.
+Local plugins import dependencies directly; OpenCode does not install their
+dependencies. Declare each non-host runtime import in the package that owns the
+rendered entrypoint.
+
 V2 MCP servers use `mcp.servers`; V2 permissions use an ordered `permissions`
 array; V2 TUI settings use global `cli.json`. These are configuration concerns,
 not plugin implementation ports, but a V2 runtime render must not combine V1
 plugin files with V2 configuration.
 
-## Runtime Isolation
+## Runtime isolation
 
 Maintain separate rendered snapshots for inspection and rollback, but expose
 one active OpenCode config location to the user. A version selector may choose
@@ -523,38 +642,39 @@ The selector must switch the complete set:
 Never switch only the executable or only `opencode.jsonc`. That can leave a V1
 plugin implementation attached to V2 or vice versa.
 
-## Verification Protocol
+## Verification protocol
 
 Every V2 plugin port must pass these gates:
 
-1. Typecheck against the exact plugin package used by the runtime (`1.18.18` here).
+1. Record `opencode2 --version` and typecheck against its matching plugin SDK.
 2. Focused unit tests for shared logic and the V2 adapter.
 3. Render inspection showing only V2 plugin entries and V2-compatible files.
-4. Fresh runtime probe with `opencode2`, not a reused V1 process. The probe is
-   currently blocked until the V2 executable and matching V2 plugin package are
-   installed; use `mfz smoke-opencode-v2` once they are available.
+4. Fresh runtime probe with `opencode2`, not a reused V1 process.
 5. Tool or TUI behavior verification using observable output.
 6. Cleanup/reload verification where the plugin owns timers, listeners, or
    registrations.
 7. Failure-path verification proving plugin diagnostics do not break ordinary
    OpenCode work.
 
-For server plugins, a fresh headless probe should verify the expected
-`tool_use` event or equivalent V2 tool invocation. For TUI plugins, use a wide
-PTY with the relevant slot visible and verify mount, refresh, and unmount.
+For server plugins, run `opencode2 api get /api/plugin` to verify discovery,
+then use a fresh headless session to verify an observable tool invocation. The
+API endpoint does not report native TUI plugins. For TUI plugins, use a wide PTY
+with the relevant slot visible and verify mount, refresh, and unmount. For
+Advisor diagnostics, set `OPENCODE_ADVISOR_DEBUG=1` and inspect
+`~/.opencode/logs/advisor-tui.log`.
 
 Keep V1 runtime tests passing until the active runtime selector explicitly
 retires V1. Do not make the V2 port depend on V1-only types or generated
 configuration.
 
-## Worker Handoff Contract
+## Worker handoff contract
 
 Workers implementing these ports should:
 
 - read this document first;
-- inspect `origin/v2` at the pinned reference or a newer explicitly verified
-  commit;
+- record the installed `opencode2` version and inspect the matching V2 source;
 - read `opencode/AGENTS.md` and applicable repository guidance;
+- run the Advisor contract spike before replacing its quarantine stub;
 - keep V1 and V2 implementations independent; duplication is acceptable and
   preferred to a V1-shaped compatibility abstraction;
 - avoid editing rendered output under `~/.mindframe-z/configs/`;

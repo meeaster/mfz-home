@@ -2,7 +2,7 @@
 
 - For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
 - For GitHub repository internals, inspect a matching clone from `~/.mindframe-z/references.md` first. Use DeepWiki only when no useful clone exists, the source is insufficient, or the user requests it; verify version-sensitive claims against source.
-- Use one documentation source unless the user asks for a comparison. Prefer documentation MCPs over general web search.
+- Start with one authoritative documentation source. Add another when the first is insufficient, a consequential claim needs verification, or the user asks for a comparison. Prefer documentation MCPs over general web search.
 
 ## Git And CI
 
@@ -18,7 +18,7 @@
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
 - Bash permissions match exact shell text. Prefer narrow, reusable read-only commands; prefixes, wrappers, and chaining may require separate approval.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
-- Write repeatable tests for observable behavior rather than mocks of internal implementation details.
+- When tests are warranted, prefer repeatable tests for observable behavior over mocks of internal implementation details.
 
 ## Subagent Use
 
@@ -29,6 +29,7 @@
 - Before creating a subagent prompt, load `context-transfer` and use it to define what must cross the fresh-context boundary.
 - Give the subagent the exact accessible repository paths or other locators it needs, and name relevant skills for it to load; do not rely on conversation context, implicit paths, or skills the child cannot discover.
 - Carry the task scope, accepted decisions, constraints, authority boundary, expected outcome, verification commands, and stop conditions into the prompt. Include only context that changes the child’s execution.
+- In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode2 run` for testing the CLI, a separate process, isolation, or fresh top-level context.
 
 ## Personal Knowledge
 

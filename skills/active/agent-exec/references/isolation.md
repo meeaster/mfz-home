@@ -10,7 +10,8 @@ Create one root per run and put every writable user location under it:
 
 ```bash
 host_home="${HOME:?}"
-root="$(mktemp -d /tmp/agent-exec-<harness>.XXXXXX)"
+mkdir -p /tmp/opencode
+root="$(mktemp -d /tmp/opencode/agent-exec-<harness>.XXXXXX)"
 mkdir -p "$root"/{home,config,data,state,cache}
 ```
 
@@ -22,12 +23,6 @@ Choose the root lifetime before launch:
 - **Continuable:** retain the root and report it with the handle. Every resume command must reuse the same variables and root.
 
 Authentication is part of the boundary. A clean run may use a credential variable scoped to one command, a fresh login inside the clean root, or a copied host login. Copying auth is state reuse by design, but it still isolates subsequent reads, token refreshes, and writes from the host file. Copy regular files with mode `0600`; never symlink credentials into the clean root.
-
-Follow the target harness branch:
-
-- [Claude Code](claude-code.md)
-- [OpenCode](opencode.md)
-- [Codex](codex.md)
 
 ## Verify And Close
 

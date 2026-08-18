@@ -11,7 +11,8 @@ validation, observation merging, privacy, page and output ceilings, and both
 root option placements including `--db` after the subcommand. The cost fixture
 suite covers recursive descendants, per-turn model changes, context tiers,
 reasoning and cache pricing, missing prices, malformed source JSON, null agents,
-deterministic local catalogs, and transcript exclusion.
+V2 schema selection and incomplete usage, deterministic local catalogs, and
+transcript exclusion.
 
 ## OpenCode V2 Source Selection
 
@@ -177,10 +178,22 @@ breakdown for the main session and every subagent.
 
 **Assertions:** The agent runs the cost calculator directly without Bundle or
 transcript reads. The script traverses recursive descendants, attributes every
-step-finish turn to its exact assistant provider/model/variant, applies the
+persisted model step to its exact assistant provider/model/variant, applies the
 correct current models.dev context tier and token-category rates, reports total,
 per-session, and per-model estimates, preserves null session agents, and labels
 the current-catalog result as an estimate rather than an invoice.
+
+## OpenCode V2 Session Cost
+
+**Prompt:** Calculate the cost of this OpenCode V2 session and its subagents.
+
+**Assertions:** The same cost executable validates and selects the V2
+`session_v2` and `session_message` schema from the requested root, traverses only
+`parent_id` descendants, prices assistant messages with complete usage, ignores
+in-progress assistants without usage, rejects partial usage, reports
+`source.schema` as `v2`, and never selects message content, tool payloads, or
+reasoning bodies. A store containing the requested root in both supported schemas
+fails as ambiguous rather than guessing.
 
 ## Bounded Reconstruction
 

@@ -26,10 +26,14 @@ CONTEXT_OVER_200K = Decimal("200000")
 COST_QUANTUM = Decimal("0.000000000001")
 CATEGORIES = ("input", "output", "cache_read", "cache_write", "reasoning")
 
-REQUIRED_COLUMNS = {
+V1_REQUIRED_COLUMNS = {
     "session": {"id", "parent_id", "title", "agent", "cost"},
     "message": {"id", "session_id", "data"},
     "part": {"id", "message_id", "session_id", "data"},
+}
+V2_REQUIRED_COLUMNS = {
+    "session_v2": {"id", "parent_id", "title", "agent", "cost"},
+    "session_message": {"id", "session_id", "type", "seq", "data"},
 }
 
 
@@ -93,11 +97,11 @@ def connect_read_only(path: Path) -> sqlite3.Connection:
         raise CalculatorError(f"unable to open database read-only: {path}: {error}") from error
 
 
-def scope_sql(select_sql: str) -> str:
+def scope_sql(select_sql: str, session_table: str) -> str:
     return f"""
         WITH RECURSIVE scope(id, parent_id, depth, seen, order_key) AS (
             SELECT id, parent_id, 0, '|' || id || '|', id
-            FROM session
+            FROM {session_table}
             WHERE id = ?
             UNION ALL
             SELECT child.id,
@@ -105,7 +109,7 @@ def scope_sql(select_sql: str) -> str:
                    scope.depth + 1,
                    scope.seen || child.id || '|',
                    scope.order_key || '/' || child.id
-            FROM session AS child
+            FROM {session_table} AS child
             JOIN scope ON child.parent_id = scope.id
             WHERE instr(scope.seen, '|' || child.id || '|') = 0
         )
@@ -113,7 +117,7 @@ def scope_sql(select_sql: str) -> str:
     """
 
 
-def validate_schema(connection: sqlite3.Connection) -> None:
+def detect_schema(connection: sqlite3.Connection, root_id: str) -> str:
     try:
         tables = {
             row["name"]
@@ -121,20 +125,43 @@ def validate_schema(connection: sqlite3.Connection) -> None:
                 "SELECT name FROM sqlite_master WHERE type = 'table'"
             )
         }
-        for table, required in REQUIRED_COLUMNS.items():
-            if table not in tables:
-                raise CalculatorError(f"required table is missing: {table}")
-            columns = {
-                row["name"] for row in connection.execute(f"PRAGMA table_info({table})")
-            }
-            missing = required - columns
-            if missing:
-                raise CalculatorError(
-                    f"required columns missing from {table}: {', '.join(sorted(missing))}"
-                )
-        connection.execute(
-            "SELECT json_valid('{}'), json_extract('{}', '$.type')"
-        ).fetchone()
+        candidates: list[tuple[str, str, dict[str, set[str]]]] = []
+        for schema, session_table, required_tables in (
+            ("v1", "session", V1_REQUIRED_COLUMNS),
+            ("v2", "session_v2", V2_REQUIRED_COLUMNS),
+        ):
+            if not required_tables.keys() <= tables:
+                continue
+            candidates.append((schema, session_table, required_tables))
+        if not candidates:
+            raise CalculatorError(
+                "database is neither a recognized OpenCode V1 nor V2 session store"
+            )
+
+        matching: list[str] = []
+        for schema, session_table, required_tables in candidates:
+            for table, required in required_tables.items():
+                columns = {
+                    row["name"] for row in connection.execute(f"PRAGMA table_info({table})")
+                }
+                missing = required - columns
+                if missing:
+                    raise CalculatorError(
+                        f"required columns missing from {table}: {', '.join(sorted(missing))}"
+                    )
+            if connection.execute(
+                f"SELECT 1 FROM {session_table} WHERE id = ?", (root_id,)
+            ).fetchone():
+                matching.append(schema)
+
+        if not matching:
+            raise CalculatorError(f"session not found: {root_id}")
+        if len(matching) > 1:
+            raise CalculatorError(
+                f"session {root_id} exists in both OpenCode V1 and V2 schemas"
+            )
+        connection.execute("SELECT json_valid('{}'), json_extract('{}', '$.type')").fetchone()
+        return matching[0]
     except CalculatorError:
         raise
     except sqlite3.DatabaseError as error:
@@ -163,7 +190,7 @@ def database_number(row: sqlite3.Row, value_key: str, type_key: str, label: str)
     return decimal_value(row[value_key], label)
 
 
-def validate_json_documents(connection: sqlite3.Connection, root_id: str) -> None:
+def validate_v1_json_documents(connection: sqlite3.Connection, root_id: str) -> None:
     invalid = connection.execute(
         scope_sql(
             """
@@ -177,7 +204,8 @@ def validate_json_documents(connection: sqlite3.Connection, root_id: str) -> Non
             JOIN scope ON scope.id = p.session_id
             WHERE COALESCE(json_valid(p.data), 0) <> 1
             LIMIT 1
-            """
+            """,
+            "session",
         ),
         (root_id,),
     ).fetchone()
@@ -187,59 +215,56 @@ def validate_json_documents(connection: sqlite3.Connection, root_id: str) -> Non
         )
 
 
-def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
-    connection = connect_read_only(path)
-    try:
-        validate_schema(connection)
-        session_rows = connection.execute(
-            scope_sql(
-                """
-                SELECT s.id, s.parent_id, s.title, s.agent, s.cost,
-                       scope.depth, scope.order_key
-                FROM session AS s
-                JOIN scope ON scope.id = s.id
-                ORDER BY scope.order_key
-                """
-            ),
-            (root_id,),
-        ).fetchall()
-        if not session_rows:
-            raise CalculatorError(f"session not found: {root_id}")
+def read_v1_database(
+    connection: sqlite3.Connection, root_id: str
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    session_rows = connection.execute(
+        scope_sql(
+            """
+            SELECT s.id, s.parent_id, s.title, s.agent, s.cost,
+                   scope.depth, scope.order_key
+            FROM session AS s
+            JOIN scope ON scope.id = s.id
+            ORDER BY scope.order_key
+            """,
+            "session",
+        ),
+        (root_id,),
+    ).fetchall()
+    validate_v1_json_documents(connection, root_id)
 
-        validate_json_documents(connection, root_id)
+    sessions: list[dict[str, Any]] = []
+    session_ids: set[str] = set()
+    for row in session_rows:
+        session_id = row["id"]
+        if not isinstance(session_id, str) or not session_id:
+            raise CalculatorError("session contains a missing or invalid id")
+        if session_id in session_ids:
+            raise CalculatorError(f"session scope contains duplicate id: {session_id}")
+        session_ids.add(session_id)
+        parent_id = row["parent_id"]
+        if parent_id is not None and not isinstance(parent_id, str):
+            raise CalculatorError(f"session {session_id} has an invalid parent_id")
+        if not isinstance(row["title"], str) or (
+            row["agent"] is not None and not isinstance(row["agent"], str)
+        ):
+            raise CalculatorError(f"session {session_id} has invalid title or agent metadata")
+        sessions.append(
+            {
+                "id": session_id,
+                "parent_id": parent_id,
+                "title": row["title"],
+                "agent": row["agent"],
+                "depth": int(row["depth"]),
+                "stored_cost": decimal_value(
+                    row["cost"], f"session {session_id} stored cost", allow_text=True
+                ),
+            }
+        )
 
-        sessions: list[dict[str, Any]] = []
-        session_ids: set[str] = set()
-        for row in session_rows:
-            session_id = row["id"]
-            if not isinstance(session_id, str) or not session_id:
-                raise CalculatorError("session contains a missing or invalid id")
-            if session_id in session_ids:
-                raise CalculatorError(f"session scope contains duplicate id: {session_id}")
-            session_ids.add(session_id)
-            parent_id = row["parent_id"]
-            if parent_id is not None and not isinstance(parent_id, str):
-                raise CalculatorError(f"session {session_id} has an invalid parent_id")
-            if not isinstance(row["title"], str) or (
-                row["agent"] is not None and not isinstance(row["agent"], str)
-            ):
-                raise CalculatorError(f"session {session_id} has invalid title or agent metadata")
-            sessions.append(
-                {
-                    "id": session_id,
-                    "parent_id": parent_id,
-                    "title": row["title"],
-                    "agent": row["agent"],
-                    "depth": int(row["depth"]),
-                    "stored_cost": decimal_value(
-                        row["cost"], f"session {session_id} stored cost", allow_text=True
-                    ),
-                }
-            )
-
-        turn_rows = connection.execute(
-            scope_sql(
-                """
+    turn_rows = connection.execute(
+        scope_sql(
+            """
                 SELECT p.id AS part_id,
                        p.session_id,
                        p.message_id,
@@ -269,68 +294,220 @@ def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[s
                 LEFT JOIN message AS m ON m.id = p.message_id
                 WHERE json_extract(p.data, '$.type') = 'step-finish'
                 ORDER BY scope.order_key, p.id
-                """
+            """,
+            "session",
+        ),
+        (root_id,),
+    ).fetchall()
+
+    turns: list[dict[str, Any]] = []
+    for row in turn_rows:
+        part_id = row["part_id"]
+        if row["assistant_message_id"] is None:
+            raise CalculatorError(f"step-finish part {part_id} has no assistant message")
+        if row["role_type"] != "text" or row["role"] != "assistant":
+            raise CalculatorError(
+                f"step-finish part {part_id} is not joined to an assistant message"
+            )
+        if row["provider_type"] != "text" or not isinstance(row["provider_id"], str) or not row["provider_id"]:
+            raise CalculatorError(f"assistant message for part {part_id} has no providerID")
+        if row["model_type"] != "text" or not isinstance(row["model_id"], str) or not row["model_id"]:
+            raise CalculatorError(f"assistant message for part {part_id} has no modelID")
+        if row["variant"] is not None and row["variant_type"] != "text":
+            raise CalculatorError(f"assistant message for part {part_id} has an invalid variant")
+
+        # Validate the stored turn shape without selecting any body field.
+        database_number(row, "part_cost", "part_cost_type", f"step-finish part {part_id} cost")
+        tokens = {
+            "input": database_number(
+                row, "input_tokens", "input_type", f"step-finish part {part_id} input tokens"
             ),
-            (root_id,),
-        ).fetchall()
+            "output": database_number(
+                row, "output_tokens", "output_type", f"step-finish part {part_id} output tokens"
+            ),
+            "cache_read": database_number(
+                row,
+                "cache_read_tokens",
+                "cache_read_type",
+                f"step-finish part {part_id} cache_read tokens",
+            ),
+            "cache_write": database_number(
+                row,
+                "cache_write_tokens",
+                "cache_write_type",
+                f"step-finish part {part_id} cache_write tokens",
+            ),
+            "reasoning": database_number(
+                row,
+                "reasoning_tokens",
+                "reasoning_type",
+                f"step-finish part {part_id} reasoning tokens",
+            ),
+        }
+        turns.append(
+            {
+                "session_id": row["session_id"],
+                "provider_id": row["provider_id"],
+                "model_id": row["model_id"],
+                "variant": row["variant"],
+                "tokens": tokens,
+            }
+        )
 
-        turns: list[dict[str, Any]] = []
-        for row in turn_rows:
-            part_id = row["part_id"]
-            if row["assistant_message_id"] is None:
-                raise CalculatorError(f"step-finish part {part_id} has no assistant message")
-            if row["role_type"] != "text" or row["role"] != "assistant":
-                raise CalculatorError(
-                    f"step-finish part {part_id} is not joined to an assistant message"
-                )
-            if row["provider_type"] != "text" or not isinstance(row["provider_id"], str) or not row["provider_id"]:
-                raise CalculatorError(f"assistant message for part {part_id} has no providerID")
-            if row["model_type"] != "text" or not isinstance(row["model_id"], str) or not row["model_id"]:
-                raise CalculatorError(f"assistant message for part {part_id} has no modelID")
-            if row["variant"] is not None and row["variant_type"] != "text":
-                raise CalculatorError(f"assistant message for part {part_id} has an invalid variant")
+    return sessions, turns
 
-            # Validate the stored turn shape without selecting any body field.
-            database_number(row, "part_cost", "part_cost_type", f"step-finish part {part_id} cost")
-            tokens = {
-                "input": database_number(
-                    row, "input_tokens", "input_type", f"step-finish part {part_id} input tokens"
-                ),
-                "output": database_number(
-                    row, "output_tokens", "output_type", f"step-finish part {part_id} output tokens"
-                ),
-                "cache_read": database_number(
-                    row,
-                    "cache_read_tokens",
-                    "cache_read_type",
-                    f"step-finish part {part_id} cache_read tokens",
-                ),
-                "cache_write": database_number(
-                    row,
-                    "cache_write_tokens",
-                    "cache_write_type",
-                    f"step-finish part {part_id} cache_write tokens",
-                ),
-                "reasoning": database_number(
-                    row,
-                    "reasoning_tokens",
-                    "reasoning_type",
-                    f"step-finish part {part_id} reasoning tokens",
+
+def read_v2_database(
+    connection: sqlite3.Connection, root_id: str
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    session_rows = connection.execute(
+        scope_sql(
+            """
+            SELECT s.id, s.parent_id, s.title, s.agent, s.cost,
+                   scope.depth, scope.order_key
+            FROM session_v2 AS s
+            JOIN scope ON scope.id = s.id
+            ORDER BY scope.order_key
+            """,
+            "session_v2",
+        ),
+        (root_id,),
+    ).fetchall()
+
+    invalid = connection.execute(
+        scope_sql(
+            """
+            SELECT m.id AS record_id
+            FROM session_message AS m
+            JOIN scope ON scope.id = m.session_id
+            WHERE COALESCE(json_valid(m.data), 0) <> 1
+            LIMIT 1
+            """,
+            "session_v2",
+        ),
+        (root_id,),
+    ).fetchone()
+    if invalid is not None:
+        raise CalculatorError(
+            f"session_message {invalid['record_id']} contains malformed JSON"
+        )
+
+    sessions: list[dict[str, Any]] = []
+    session_ids: set[str] = set()
+    for row in session_rows:
+        session_id = row["id"]
+        if not isinstance(session_id, str) or not session_id:
+            raise CalculatorError("session contains a missing or invalid id")
+        if session_id in session_ids:
+            raise CalculatorError(f"session scope contains duplicate id: {session_id}")
+        session_ids.add(session_id)
+        parent_id = row["parent_id"]
+        if parent_id is not None and not isinstance(parent_id, str):
+            raise CalculatorError(f"session {session_id} has an invalid parent_id")
+        if row["title"] is not None and not isinstance(row["title"], str):
+            raise CalculatorError(f"session {session_id} has invalid title metadata")
+        if row["agent"] is not None and not isinstance(row["agent"], str):
+            raise CalculatorError(f"session {session_id} has invalid agent metadata")
+        sessions.append(
+            {
+                "id": session_id,
+                "parent_id": parent_id,
+                "title": row["title"] or "",
+                "agent": row["agent"],
+                "depth": int(row["depth"]),
+                "stored_cost": decimal_value(
+                    row["cost"], f"session {session_id} stored cost", allow_text=True
                 ),
             }
-            turns.append(
-                {
-                    "session_id": row["session_id"],
-                    "provider_id": row["provider_id"],
-                    "model_id": row["model_id"],
-                    "variant": row["variant"],
-                    "tokens": tokens,
-                }
-            )
+        )
 
+    turn_rows = connection.execute(
+        scope_sql(
+            """
+            SELECT m.id AS message_id,
+                   m.session_id,
+                   json_extract(m.data, '$.cost') AS message_cost,
+                   json_type(m.data, '$.cost') AS message_cost_type,
+                   json_extract(m.data, '$.tokens.input') AS input_tokens,
+                   json_type(m.data, '$.tokens.input') AS input_type,
+                   json_extract(m.data, '$.tokens.output') AS output_tokens,
+                   json_type(m.data, '$.tokens.output') AS output_type,
+                   json_extract(m.data, '$.tokens.reasoning') AS reasoning_tokens,
+                   json_type(m.data, '$.tokens.reasoning') AS reasoning_type,
+                   json_extract(m.data, '$.tokens.cache.read') AS cache_read_tokens,
+                   json_type(m.data, '$.tokens.cache.read') AS cache_read_type,
+                   json_extract(m.data, '$.tokens.cache.write') AS cache_write_tokens,
+                   json_type(m.data, '$.tokens.cache.write') AS cache_write_type,
+                   json_extract(m.data, '$.model.providerID') AS provider_id,
+                   json_type(m.data, '$.model.providerID') AS provider_type,
+                   json_extract(m.data, '$.model.id') AS model_id,
+                   json_type(m.data, '$.model.id') AS model_type,
+                   json_extract(m.data, '$.model.variant') AS variant,
+                   json_type(m.data, '$.model.variant') AS variant_type
+            FROM session_message AS m
+            JOIN scope ON scope.id = m.session_id
+            WHERE m.type = 'assistant'
+              AND (json_type(m.data, '$.cost') IS NOT NULL
+                   OR json_type(m.data, '$.tokens') IS NOT NULL)
+            ORDER BY scope.order_key, m.seq, m.id
+            """,
+            "session_v2",
+        ),
+        (root_id,),
+    ).fetchall()
+
+    turns: list[dict[str, Any]] = []
+    for row in turn_rows:
+        message_id = row["message_id"]
+        if row["provider_type"] != "text" or not row["provider_id"]:
+            raise CalculatorError(f"assistant message {message_id} has no model providerID")
+        if row["model_type"] != "text" or not row["model_id"]:
+            raise CalculatorError(f"assistant message {message_id} has no model id")
+        if row["variant"] is not None and row["variant_type"] != "text":
+            raise CalculatorError(f"assistant message {message_id} has an invalid model variant")
+        database_number(
+            row, "message_cost", "message_cost_type", f"assistant message {message_id} cost"
+        )
+        tokens = {
+            category: database_number(
+                row,
+                value_key,
+                type_key,
+                f"assistant message {message_id} {category} tokens",
+            )
+            for category, value_key, type_key in (
+                ("input", "input_tokens", "input_type"),
+                ("output", "output_tokens", "output_type"),
+                ("cache_read", "cache_read_tokens", "cache_read_type"),
+                ("cache_write", "cache_write_tokens", "cache_write_type"),
+                ("reasoning", "reasoning_tokens", "reasoning_type"),
+            )
+        }
+        turns.append(
+            {
+                "session_id": row["session_id"],
+                "provider_id": row["provider_id"],
+                "model_id": row["model_id"],
+                "variant": row["variant"],
+                "tokens": tokens,
+            }
+        )
+    return sessions, turns
+
+
+def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+    connection = connect_read_only(path)
+    try:
+        schema = detect_schema(connection, root_id)
+        sessions, turns = (
+            read_v1_database(connection, root_id)
+            if schema == "v1"
+            else read_v2_database(connection, root_id)
+        )
         connection.commit()
         source = {
             "harness": "opencode",
+            "schema": schema,
             "database": str(path),
             "mode": "read-only",
             "identity": f"{path.stat().st_dev}:{path.stat().st_ino}",
@@ -705,7 +882,7 @@ def calculate(
         )
         aggregate = aggregates.get(turn["session_id"])
         if aggregate is None:
-            raise CalculatorError(f"step-finish part belongs to unknown session: {turn['session_id']}")
+            raise CalculatorError(f"usage record belongs to unknown session: {turn['session_id']}")
         aggregate["turns"] += 1
         add_tokens(aggregate["tokens"], tokens)
         aggregate["cost"] += cost
@@ -763,7 +940,7 @@ def calculate(
         "calculation": {
             "currency": "USD",
             "rate_unit": "USD per 1M tokens",
-            "method": "Models.dev-first current-catalog estimate: each step-finish part uses its assistant message providerID/modelID, while variant is retained for attribution; an exact catalog model wins, otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost, which replaces mode base rates, replaces same-size tiers, adds new tiers, and replaces context_over_200k when supplied; the highest merged explicit tier with context > tier.size wins, then merged context_over_200k only when context > 200000, otherwise merged mode base rates.",
+            "method": "Models.dev-first current-catalog estimate: each persisted model step uses its assistant message providerID/modelID, while variant is retained for attribution; V1 reads step-finish parts and V2 reads assistant messages with complete usage; an exact catalog model wins, otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost, which replaces mode base rates, replaces same-size tiers, adds new tiers, and replaces context_over_200k when supplied; the highest merged explicit tier with context > tier.size wins, then merged context_over_200k only when context > 200000, otherwise merged mode base rates.",
             "cache_method": "Missing optional cache_read and cache_write rates are normalized to zero in the selected cost object.",
             "reasoning_method": "Use selected cost.reasoning when present; fall back to selected output pricing only when reasoning is absent.",
             "rounding": "Decimal arithmetic is aggregated before cost values are rounded to 12 decimal places for JSON presentation.",

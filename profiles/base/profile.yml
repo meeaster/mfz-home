@@ -165,6 +165,9 @@ opencode:
           x_docs_*: allow
           execute: allow
           executor_*: deny
+      prototype:
+        model: openai/gpt-5.6-terra
+        variant: max
     permission:
       question: deny
       read:
@@ -187,8 +190,10 @@ opencode:
     - openspec-rolling-apply
     - rmslop
   agents:
+    - prototype
     - research
     - reviewer
+    - session-analyst
     - worker
   delegate_general:
     models:
@@ -208,6 +213,9 @@ opencode_v2:
       explore:
         model: openai/gpt-5.6-luna
         variant: high
+      prototype:
+        model: openai/gpt-5.6-terra
+        variant: max
     websearch:
       provider: exa
   cli:
@@ -222,8 +230,10 @@ opencode_v2:
     - openspec-rolling-apply
     - rmslop
   agents:
+    - prototype
     - research
     - reviewer
+    - session-analyst
     - worker
 codex:
   config:

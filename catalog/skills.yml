@@ -187,7 +187,7 @@ skills:
     skill: active/agent-exec
     description: >
       Run another agent harness via its CLI. Use when the user explicitly asks
-      to run Codex, OpenCode, or Claude Code; continue a session from one of
+      to run Codex, OpenCode 2, or Claude Code; continue a session from one of
       those harnesses; or inspect a harness's available models or variants.
   - name: codex-imagegen
     source: local

@@ -6,8 +6,9 @@ The runtime skill has harness-specific disclosed references. OpenCode V2
 archaeology additionally requires a running `opencode2` service and its `api`
 command. OpenCode V1 structural extraction additionally requires Python 3 with
 the standard-library `sqlite3` module and a SQLite store compatible with the live schema checks in
-`scripts/opencode-session-evidence.py`. OpenCode cost estimation additionally
-uses standard-library `urllib`, `decimal`, and `hashlib` with either the live
+`scripts/opencode-session-evidence.py`. OpenCode cost estimation supports
+validated V1 and V2 SQLite stores and additionally uses standard-library
+`urllib`, `decimal`, and `hashlib` with either the live
 `https://models.dev/api.json` endpoint or a bounded local snapshot. Claude Code
 extraction uses `jq` against live JSONL layouts.
 
@@ -21,8 +22,10 @@ the starter-prefix fingerprint. Do not add artifact-specific fields to that
 state or to the extractor output contract.
 
 The cost calculator is current-price estimation, not stored billing authority.
-It prices each `step-finish` from the joined assistant message model, recursively
-includes descendants, uses exact provider/model keys or an explicit OpenCode
+It selects the adapter by validated schema plus root-session identity. V1 prices
+each `step-finish` from the joined assistant message; V2 prices each assistant
+message with complete usage. Both recursively include `parent_id` descendants,
+use exact provider/model keys or an explicit OpenCode
 model-mode suffix, and fails when a consumed required token category lacks
 published pricing. Exact catalog models take precedence over explicit synthetic
 mode IDs; context tiers and legacy over-200K rates are applied per turn;
@@ -97,10 +100,11 @@ preserve exact part IDs without the verbose per-record projection. Tool-context
 fixtures cover ownership, dual pins,
 equal timestamps, multipart requests, post-target exclusion, content opt-in,
 privacy, ceilings, option placement, wrong-role rejection, and ISO metadata. Cost
-fixtures cover recursive topology, per-turn attribution, model changes, synthetic
+fixtures cover V1 and V2 schema selection, recursive topology, per-turn attribution, model changes, synthetic
 mode IDs distinct from reasoning variants, context tiers, reasoning fallback and
 explicit rates, cache categories, stored-cost comparison, missing pricing,
-malformed JSON, null agents, deterministic local catalogs, and body exclusion.
+malformed JSON, null agents, incomplete V2 usage, deterministic local catalogs,
+and body exclusion.
 The active-pin fixture mutates message and part rows between `limit=1` pages and
 expects an unchanged-cursor re-pin response. A final-probe fixture deletes a
 pinned row and expects bounded-count guard failure. Live-store checks cover

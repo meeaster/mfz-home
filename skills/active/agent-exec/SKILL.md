@@ -1,7 +1,7 @@
 ---
 name: agent-exec
 description: >
-  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
+  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode 2, or Claude Code;
   continue a session from one of those harnesses; or inspect a harness's available models or variants.
 ---
 
@@ -11,15 +11,21 @@ Agent exec drives another agent CLI and preserves the continuation handle. It is
 
 CLI delegation normally starts the target harness's primary/main agent, not a nested subagent in that harness. Only use a harness-specific agent flag when the named agent is valid for direct CLI runs; parent-session subagents and child-harness run agents are different concepts.
 
-## Native Subagents
+## Native Subagents And OpenCode 2 Testing
 
 For a request to use a named subagent available in the current environment, such as `explore`, `general`, or `research`, use the native task tool. Reserve agent exec for explicitly running an external harness CLI or resuming its session.
+
+Inside OpenCode 2, do not launch a child merely to obtain current runtime state. Ensure the edit has reached a watched source first; Mindframe-Z home changes require `mfz apply`. After reload settles, the current session reselects reloadable agent definitions, skills, tools, permissions, instructions, references, MCP state, and plugin state before its next physical model attempt. An in-flight model request keeps its captured state, but a later step in the same run can observe the reload.
+
+Use a fresh native subagent when fresh context is part of the test: initial session behavior, default-agent selection, subagent-specific configuration, or freedom from previously loaded skill text and durable conversation history. Reinvoke an edited skill to load its current body; the older loaded text remains in the conversation. Before deciding that a new session, TUI, private server, or restart is required, follow [references/opencode-reload.md](references/opencode-reload.md).
+
+Use an external `opencode2` run when the user explicitly requests the CLI, or when the behavior under test is the installed CLI, client-to-server connection, a private server, clean-room state, or a fresh top-level session needed to escape the current session's subagent depth or permissions. Nested subagents are limited to depth 1 by default, but the limit and permissions are configurable; do not describe nesting as an absolute OpenCode 2 restriction.
 
 ## Steps
 
 1. Identify the target harness.
 
-   Use the user's named CLI, model, or session handle to choose Claude Code, OpenCode, or Codex. If the target is unclear, ask one short question. Done when the harness and intended mode are explicit.
+   Use the user's named CLI, model, or session handle to choose Claude Code, OpenCode 2, or Codex. If the target is unclear, ask one short question. Done when the harness and intended mode are explicit.
 
 2. Build a context packet.
 
@@ -27,11 +33,11 @@ For a request to use a named subagent available in the current environment, such
 
 3. Choose fresh or continuation.
 
-   Prefer explicit handles over "latest". Continue only when the user asks to continue/resume or gives a handle. Avoid `latest`/`--continue` when parallel runs may exist. When the user requests an isolated, clean-room, disposable, or configuration-free local run, follow [ISOLATION.md](ISOLATION.md) before launching. Done when the exact continuation command or fresh-run command, including any required isolation environment, is chosen.
+   Prefer explicit handles over "latest". Continue only when the user asks to continue/resume or gives a handle. Avoid `latest`/`--continue` when parallel runs may exist. When the user requests an isolated, clean-room, disposable, or configuration-free local run, follow [references/isolation.md](references/isolation.md) and the selected harness reference before launching. Done when the exact continuation command or fresh-run command, including any required isolation environment, is chosen.
 
 4. Choose the model and effort.
 
-   Use the user's explicit model, effort, or variant when provided. Otherwise use the target harness default for routine work, and raise effort/variant for hard debugging, architecture, review, or multi-file implementation. For Claude Code, remember that the documented default effort is already high on most current models. Done when both model and reasoning depth are either explicit or intentionally omitted to use defaults.
+   Use the user's explicit model, effort, or variant when provided. Otherwise use the target harness default for routine work, and raise effort/variant for hard debugging, architecture, review, or multi-file implementation. Done when both model and reasoning depth are either explicit or intentionally omitted to use defaults.
 
 5. Choose permissions from verbs.
 
@@ -52,7 +58,7 @@ For a request to use a named subagent available in the current environment, such
 ## Nested Harness Caveats
 
 - A parent harness may block child CLI execution through its own permission system. If the child command is denied before it runs, report the blocked command and required permission instead of implying the target harness failed.
-- A child harness launched from a sandboxed parent may not have the same writable home, state, cache, auth, or network access as an interactive shell. Treat an incidental temp-directory retry as a clean-room run and follow [ISOLATION.md](ISOLATION.md), rather than redirecting only one state path and accidentally mixing environments.
+- A child harness launched from a sandboxed parent may not have the same writable home, state, cache, auth, or network access as an interactive shell. Treat an incidental temp-directory retry as a clean-room run and follow [references/isolation.md](references/isolation.md), rather than redirecting only one state path and accidentally mixing environments.
 - Preserve the complete isolation environment in the continuation command. A handle created under a clean root belongs to that root and may resolve to a different or missing session under the default environment.
 - Do not treat a captured handle as a successful answer. A session/thread can be created before the child model returns any assistant message; inspect the child output or export before reporting success.
 
@@ -92,108 +98,13 @@ Packet rules:
 - Redact secrets and private transcript content that the target does not need.
 - For multi-step work, delegate one fresh-context-sized slice at a time.
 
-## Claude Code
+## Harness Guidance
 
-For a local clean-room run, follow the isolation branch in [claude-code.md](claude-code.md) in addition to the command guidance below.
+After identifying the target, read exactly one harness reference before choosing its command:
 
-Select model and effort before running. Use `--model <alias-or-full-name>` for explicit model selection. Useful aliases include `default`, `best`, `fable` for hardest long-running work, `opus` for complex reasoning, `sonnet` for daily coding, `haiku` for simple/cheap work, `sonnet[1m]` or `opus[1m]` for long context, and `opusplan` for Opus planning plus Sonnet execution. Use `--effort <level>` with `low`, `medium`, `high`, `xhigh`, `max`, or `ultracode` when supported. Prefer the model's default effort for normal delegated work, `high` or `xhigh` for difficult implementation/review/debugging, `ultracode` for substantive Claude Code workflow orchestration, and `max` only when the user asks for the strongest pass or the task clearly warrants the cost.
-
-Do not disable tools with `--tools ""` during normal delegation; that prevents Claude Code from loading configured tools and skills such as `claude-code-docs`. Only restrict tools when the user explicitly asks for a tool-free run or when the safety posture requires it. For `haiku` and other simple/cheap Claude runs, omit `--effort` unless the user explicitly asks for it or local docs confirm the chosen model supports the requested effort.
-
-Fresh synchronous run:
-
-```bash
-claude -p "<context packet>" --output-format json --model <model>
-```
-
-Fresh background run:
-
-```bash
-claude --bg "<context packet>" --model <model>
-claude agents --json --all
-```
-
-Continue explicit session:
-
-```bash
-claude -r <session_id> "<context packet>" --output-format json --model <model>
-```
-
-Continue latest in the current directory:
-
-```bash
-claude -c -p "<context packet>" --output-format json --model <model>
-```
-
-Add `--effort <level>` only when the selected Claude model supports it and the task warrants an explicit override. Omit `--model` only when intentionally using configured defaults. For read-only review, add `--permission-mode plan` or explicit denied tools if the local Claude configuration does not already prevent edits. Capture `session_id` from JSON output and check `modelUsage` for the actual model used; aliases, entitlements, or organization restrictions can substitute a different model, and JSON output may suppress the warning. Prefer `claude agents --json --all` for background status. Avoid parsing `claude logs` unless the user wants human-readable terminal output; it may contain TUI control sequences.
-
-Claude Code has no supported per-session deletion for ordinary foreground `-p` sessions; retain and report a disposable probe's `session_id`.
-
-## OpenCode
-
-For a local clean-room run, follow the isolation branch in [opencode.md](opencode.md) in addition to the command guidance below.
-
-Inspect models and variants before selecting a non-default OpenCode model:
-
-```bash
-opencode models <provider> --verbose
-```
-
-Use the configured OpenCode default for routine delegation. Choose `--model <provider/model>` only when the user names a target, you need a stronger reviewer/implementer, or you need a cheaper/faster worker. Add `--variant <variant>` only when the provider exposes reasoning effort or speed variants relevant to the task.
-
-Fresh run:
-
-```bash
-opencode run --title "<short trackable title>" --model <provider/model> --variant <variant> "<context packet>"
-```
-
-Continue explicit session:
-
-```bash
-opencode run --session <sessionID> "<context packet>"
-```
-
-Omit `--model` and `--variant` when intentionally using configured defaults. Use `--agent <agent>` when the user asks for a specific OpenCode primary/all agent or when that agent's permissions encode the needed read-only/write-capable posture; if `opencode run` warns that the named agent is only a subagent, retry with a valid run agent or omit `--agent`. OpenCode `run` does not make a command read-only by itself; enforce read-only work through the selected agent/config plus the context packet. Avoid `opencode run --continue` unless the user explicitly wants the latest session and there is no risk of concurrent OpenCode runs in the same repo.
-
-Use default output when you only need the child agent's final answer; when stdout is not a TTY, OpenCode prints completed assistant text without the raw event stream. Use a unique `--title`, then recover the handle with `opencode session list --format json --max-count <n>` if the session ID is needed. Use `--format json` only when you need event-level data or guaranteed session ID capture from stdout.
-
-OpenCode `--format json` emits JSON events, not a single final result object. The useful answer is usually in the last assistant `text` event; return that concise text plus `sessionID`. If the caller needs the child answer itself to be JSON, say so in the context packet and validate or report if the final `text` is not JSON.
-
-Delete a disposable OpenCode test/probe session with `opencode session delete <sessionID>` after capturing its evidence.
-
-## Codex
-
-For a local clean-room run, follow the isolation branch in [codex.md](codex.md) in addition to the command guidance below.
-
-Select model and reasoning effort before running. Use `--model <model>` for explicit model selection; start with the current strongest recommended Codex model, currently `gpt-5.5`, for most Codex work and a faster mini model, currently `gpt-5.4-mini`, for lower-cost lighter subagent work. Use `codex debug models` when you need the current model catalog. Use `-c model_reasoning_effort="<effort>"` for effort when the chosen model supports it. Prefer `medium` for normal delegated work, `high` for complex implementation/review/debugging, and `low` when the task is straightforward and speed matters most.
-
-Fresh read-only run:
-
-```bash
-codex exec --json --sandbox read-only --model <model> -c model_reasoning_effort="<effort>" "<context packet>"
-```
-
-Fresh write-capable run:
-
-```bash
-codex exec --json --sandbox workspace-write --model <model> -c model_reasoning_effort="<effort>" "<context packet>"
-```
-
-Continue explicit thread:
-
-```bash
-codex exec resume --json <thread_id> --model <model> -c model_reasoning_effort="<effort>" "<context packet>"
-```
-
-Continue latest recorded thread:
-
-```bash
-codex exec resume --json --last --model <model> -c model_reasoning_effort="<effort>" "<context packet>"
-```
-
-Omit `--model` or `-c model_reasoning_effort=...` only when intentionally using configured or persisted thread defaults. Capture `thread_id` from the `thread.started` JSON event. `codex exec` does not use `--ask-for-approval`; use sandbox choice as the main scripted safety control.
-
-Delete a disposable Codex test/probe thread with `codex delete <thread_id>` after capturing its evidence.
+- [Claude Code](references/claude-code.md) for Claude models, effort, permissions, output, continuation, cleanup, and clean-room state.
+- [OpenCode 2](references/opencode.md) for models, agents, output events, continuation, cleanup, shared or private servers, and clean-room state.
+- [Codex](references/codex.md) for models, reasoning effort, sandboxing, output, continuation, cleanup, and clean-room state.
 
 ## Failure Handling
 

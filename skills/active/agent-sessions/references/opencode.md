@@ -1,9 +1,11 @@
 # OpenCode Sessions
 
-OpenCode session archaeology has two storage surfaces:
+OpenCode session archaeology has these evidence surfaces:
 
 - OpenCode V2: the running background service API, accessed through `opencode2`.
 - OpenCode V1 or a supplied legacy store: SQLite or an exported JSON transcript.
+- OpenCode V1 or V2 cost: a validated read-only SQLite store supplied to the
+  body-free cost calculator.
 
 Identify the active surface before reading content. V2 session records do not use
 the V1 `session`, `message`, and `part` table contract.
@@ -45,17 +47,18 @@ fields needed for the question, exclude reasoning bodies, and avoid dumping the
 full API response into the conversation. The V2 API also exposes session export
 at `/api/session/<session-id>/export` when an export is explicitly requested.
 
-V2's documented default database is `~/.local/share/opencode/opencode-next.db`,
-with `OPENCODE_DB` as an override. This is an implementation fallback, not the
-primary archaeology interface: the active service may use an override or a
-runtime-managed location. Do not guess the database path, and do not use
-`opencode db path` as a V2 probe when the installed V2 CLI does not provide that
-command.
+V2 filesystem servers select their database from the server's explicit database
+option or `OPENCODE_DB`; otherwise they use an `opencode*.db` file under the
+configured data root. This is not the primary transcript interface: the active
+service may use a wrapper, channel-specific name, runtime-managed location, or a
+non-filesystem database. Resolve the actual path from supplied or launcher
+configuration instead of guessing it. Do not use `opencode db path` as a V2 probe
+when the installed V2 CLI does not provide that command.
 
-The bundled SQLite evidence and cost scripts currently target the V1-compatible
-schema. Do not run them against V2 unless a schema check confirms that exact
-contract. V2 cost work requires API/export-specific extraction until a dedicated
-V2 cost adapter is added.
+The bundled evidence extractor targets the V1-compatible schema and must not run
+against V2. The cost calculator is separate: it detects and validates either the
+V1 `session`/`message`/`part` schema or the V2
+`session_v2`/`session_message` schema before reading body-free usage fields.
 
 ## SQLite Store
 
@@ -368,8 +371,8 @@ Read a child transcript only when its result, behavior, or coverage is material.
 
 ## Session API Cost
 
-Calculate current-catalog API cost for one OpenCode session and every recursive
-descendant without reading transcript, tool, or reasoning bodies:
+Calculate current-catalog API cost for one OpenCode V1 or V2 session and every
+recursive descendant without reading transcript, tool, or reasoning bodies:
 
 ```bash
 python3 <skill-dir>/scripts/opencode-session-cost.py \
@@ -377,12 +380,19 @@ python3 <skill-dir>/scripts/opencode-session-cost.py \
   ses_parent
 ```
 
+The calculator selects V1 or V2 only after validating the schema and finding the
+requested root session in exactly one supported session table. It reports the
+selection as `source.schema` and fails on unknown or ambiguous stores. V1 usage
+comes from step-finish parts joined to assistant messages. V2 usage comes from
+assistant `session_message` rows with complete `cost` and `tokens`; incomplete
+running messages are excluded, while partial usage records fail validation.
+
 The calculator fetches `https://models.dev/api.json` by default. Use
 `--models-file /path/to/api.json` for a reproducible offline pricing snapshot and
 `--pretty` only for human inspection. It opens SQLite read-only, traverses the
-cycle-guarded descendant tree, and prices every `step-finish` record from its
-assistant message's exact `providerID`, `modelID`, and `variant`; it never prices
-an entire session from the session's latest model.
+cycle-guarded descendant tree through the selected schema's `parent_id`, and
+prices every persisted model step from its exact `providerID`, model ID, and
+variant; it never prices an entire session from the session's latest model.
 
 An exact catalog model ID wins. Otherwise an OpenCode synthetic
 `<base-model>-<mode>` ID resolves the matching
