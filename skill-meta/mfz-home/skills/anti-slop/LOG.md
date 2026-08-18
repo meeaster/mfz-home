@@ -1,5 +1,10 @@
 # Log
 
+## 2026-08-18 - Default JavaScript And TypeScript Checkpoint
+
+- Made anti-slop the final verification checkpoint after every JavaScript or TypeScript edit batch.
+- Kept the launcher read-only while allowing the surrounding authorized implementation workflow to address diagnostics.
+
 ## 2026-08-15 - Global Read-only Launcher
 
 - Replaced the upstream repository-mutating installation workflow with a global launcher.

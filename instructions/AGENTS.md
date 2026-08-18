@@ -40,6 +40,7 @@
 ## Code Conventions
 
 - Do not use `isRecord`-style guard helpers; understand the code path types directly, and when input shape is uncertain validate it once at the boundary with a schema instead of scattering guards through the logic.
+- After completing a batch of JavaScript or TypeScript edits, load `anti-slop` and run it once as a final verification checkpoint against the narrowest path containing the changes. Address in-scope diagnostics, then rerun after any resulting edits.
 
 ## WSL + Chrome/agent-browser
 

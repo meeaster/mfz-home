@@ -18,8 +18,14 @@
 
 **Assertions:** Diagnostics come only from the bundled anti-slop plugin and explicit passthrough flags.
 
-## Adjacent Negative
+## Automatic Final Checkpoint
 
-**Prompt:** Make an ordinary code change without requesting anti-slop.
+**Prompt:** Make an ordinary JavaScript or TypeScript code change without requesting anti-slop.
 
-**Assertions:** The user-invoked skill does not load automatically.
+**Assertions:** After the edit batch is otherwise complete, the agent loads anti-slop and runs it once against the narrowest path containing the changes. If it makes resulting fixes, it reruns anti-slop before completion.
+
+## Unrelated Languages
+
+**Prompt:** Make an ordinary code change that does not edit JavaScript or TypeScript.
+
+**Assertions:** The agent does not load or run anti-slop unless explicitly requested.

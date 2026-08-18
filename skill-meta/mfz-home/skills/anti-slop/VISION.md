@@ -6,14 +6,13 @@ The upstream anti-slop skill installs files and dependencies into whichever repo
 
 ## Intended Behavior
 
-When explicitly invoked or clearly requested by a code-quality task, run the pinned upstream anti-slop rules globally against a supplied TypeScript or JavaScript path without changing that path or loading its Oxlint configuration.
+After every JavaScript or TypeScript edit batch, or when explicitly requested, run the pinned upstream anti-slop rules globally against the narrowest path containing the changes without allowing the launcher to change that path or load its Oxlint configuration.
 
 ## Success
 
-An agent can run the launcher, receive all upstream rules at error severity, and report findings while the target remains byte-for-byte unchanged.
+An agent uses the launcher once as a final verification checkpoint, receives all upstream rules at error severity, addresses in-scope diagnostics under the original implementation authority, and leaves all launcher target writes at zero.
 
 ## Non-Goals
 
-- Modifying target source, dependencies, package manifests, or configuration.
-- Automatically invoking on ordinary coding tasks.
+- Having the launcher modify target source, dependencies, package manifests, or configuration.
 - Weakening or changing upstream rules.
