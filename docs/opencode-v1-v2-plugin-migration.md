@@ -67,16 +67,16 @@ The base profile keeps V1 and V2 selections separate in
 `profiles/base/profile.yml`:
 
 - V1 loads the Advisor server and TUI from the root compatibility exports.
-- V2 enables no server plugins.
+- The Personal V2 profile enables the `subagent-usage` server plugin.
 - V2 selects the `session-cost-tui` and `herdr` native TUI plugins.
-- Personal adds `current-session` and `subagent-usage` only to V1.
+- Personal keeps `current-session` in V1 and enables `subagent-usage` in both runtimes.
 
 The source tree contains these V2 implementations:
 
 - `advisor/v2/server.ts` is a warning-only quarantine stub. There is no V2
   Advisor TUI.
-- `subagent-usage/v2/server.ts` is a warning-only quarantine stub. Its blocker
-  text still names an older SDK and must be revalidated before implementation.
+- `subagent-usage/v2/server.ts` reports per-invocation cost, lifetime child-session
+  cost, and the latest child input context to the parent model.
 - `session-cost-tui/v2/` contains a native TUI implementation and focused
   tests. Its development SDK is pinned to `0.0.0-next-17428`, which predates the
   installed beta in this evidence snapshot.
@@ -353,7 +353,7 @@ configured local package directory must contain a physical `tui/index.tsx` or
 | `PluginModule` object | `Plugin.define({ id, setup })` | Low | Required adapter rewrite |
 | Returned `tool` map | `ctx.tool.transform(...tools.add(...))` | Medium | Required for custom tools |
 | Owned tool result | Return `output`, `content`, and `metadata` from the V2 executor | Low | Do not use an after-hook for Advisor's own result |
-| Decorating another tool | `ctx.tool.hook("execute.after", ...)` | High | The completed result is not mutable |
+| Decorating another tool | `ctx.tool.hook("execute.after", ...)` | Medium | Replace the completed result with a modified copy |
 | `context.sessionID` | V2 tool context `sessionID` | Low | Directly available |
 | `client.session.messages` | No public server-plugin equivalent in the evidence snapshot | High | Resolve before porting transcript-dependent behavior |
 | `chat.params` | V2 session/AI SDK hooks | Medium | Re-map only if behavior needs it |
@@ -389,48 +389,20 @@ Completion criteria:
 ### `subagent-usage`
 
 Behavioral source: `opencode/plugins/subagent-usage/v1/server.ts`.
-`opencode/plugins/subagent-usage/v2/server.ts` remains a quarantine stub.
+The native implementation is under `opencode/plugins/subagent-usage/v2/`.
 
-The V2 implementation may copy the following V1 logic as a starting point,
-then simplify or reshape it for native V2 behavior:
+It listens to V2 `subagent` tool hooks and session usage events. A completed
+foreground result receives one compact `subagent-usage` element containing the
+cost of that invocation, the lifetime cost of the direct child session, and the
+latest input-side context. OpenCode's existing result already carries the child
+session ID and completion state, so the plugin does not repeat them. Background,
+failed, incomplete, and ambiguously overlapping calls remain unchanged.
 
-- `summarizeUsage`
-- context-limit calculation
-- `usageGuidance`
-- `backgroundGuidance`
-
-V1 adapter behavior:
-
-- listen to `tool.execute.after`
-- filter `input.tool === "task"`
-- read child session ID from `output.metadata.sessionId`
-- load child messages through `client.session.messages`
-- append guidance to mutable `output.output`
-
-V2 adapter path:
-
-1. Register `ctx.tool.hook("execute.after")`.
-2. Filter the V2 task tool.
-3. Confirm where V2 stores the child session ID for completed and background
-   task results. Do not assume the V1 `metadata.sessionId` shape.
-4. Load child messages through the V2 session/client API.
-5. Preserve the usage calculation and formatting behavior in the V2
-   implementation. Sharing the source module is optional.
-6. Decide how guidance is surfaced because V2 after-hooks do not expose a
-   mutable output string. Prefer a V2-supported result/content mechanism; if
-   after-hook output cannot be changed, move the guidance to a task result
-   wrapper or a narrowly scoped synthetic message.
-7. Keep failures non-fatal: usage reporting must never turn a completed task
-   into an error.
-
-Required tests:
-
-- completed task with child session ID
-- background task
-- missing child ID
-- child message lookup failure
-- V2 completed and error hook variants
-- context exactly at and above the 200,000-token limit
+Invocation and session costs use models.dev rates instead of OpenCode's stored
+cost, which can remain zero for routed models. Ordinary steps retain their exact
+model attribution; projection-only token usage, including internal compaction,
+uses the child session's current model. Current context is the latest child
+step's input plus cache-read and cache-write tokens.
 
 ### `session-cost-tui`
 
