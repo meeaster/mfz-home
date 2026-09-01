@@ -76,6 +76,18 @@ identifies the boundary.
 it in a manifest visible from the plugin entrypoint, and restarts or reloads as
 the official documentation requires.
 
+## Optional Registry Fields
+
+**Prompt:** My OpenCode V2 plugin adds skills whose optional `slash` and `description` values are undefined. The model list now times out.
+
+**Assertions:** The agent finds the first plugin reload schema error, recognizes that present-but-undefined properties differ from omitted properties, starts with required fields, and conditionally adds `slash` and `description` only when defined. `Object.hasOwn` returns `false` for the absent properties before registry insertion. The agent then verifies plugin reload and model listing in a fresh runtime.
+
+## Recursive Event Consumer
+
+**Prompt:** My OpenCode V2 advisor plugin listens for completed sessions and generates a review in its own top-level session. After hot reload, the model and provider picker times out even though the plugin is active.
+
+**Assertions:** The agent inspects the first repeated generation and `/api/model` timeout in the server log. It identifies the plugin-owned review session as part of the same event stream and excludes that persisted session ID before generating another review. It does not rely on `parentID` because the owned session is top-level. The agent closes the exact async iterator during cleanup, awaits the consumer, and verifies that one completion causes one review after reload. A plugin-owned completion causes no review, and `/api/model` succeeds after the runtime test.
+
 ## Adjacent V1 Work
 
 **Prompt:** Change the V1 OpenCode plugin configuration.

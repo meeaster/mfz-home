@@ -151,8 +151,8 @@ For the independent review, use one fresh native `task` call with a short milest
 `subagent_type: reviewer`, no `task_id`, and the complete review charter as `prompt`. Require it to load
 `thermo-nuclear-code-quality-review`, then review only the accepted task IDs, changed paths, OpenSpec
 anchors, observable criteria, complete relevant diff or patch evidence, and existing validation results
-accumulated since the last review checkpoint. The reviewer is deny-by-default and cannot run shell
-commands, edit, or delegate; the coordinator must supply the evidence needed to judge the milestone.
+accumulated since the last review checkpoint. The reviewer can run read-only shell inspection
+commands, but must not edit or delegate; the coordinator must supply the evidence needed to judge the milestone.
 
 Every finding must state a concrete trigger and be classified as:
 

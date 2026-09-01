@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the daily OpenCode v2 pull request review
+
+[Service]
+Type=oneshot
+WorkingDirectory=/home/mark/workspace/references/opencode
+Environment=HOME=/home/mark
+Environment=PATH=/home/mark/.local/share/mise/shims:/home/mark/.local/bin:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+StandardInput=file:/home/mark/.config/opencode/jobs/opencode-v2-pr-review.md
+ExecStart=/home/mark/.opencode/bin/opencode2 run --auto --session ses_fc3c5bf1fffejuszN98FNWiG1K --model openai/gpt-5.6-luna#high --agent build

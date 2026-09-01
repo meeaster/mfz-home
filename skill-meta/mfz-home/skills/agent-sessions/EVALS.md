@@ -14,17 +14,45 @@ reasoning and cache pricing, missing prices, malformed source JSON, null agents,
 V2 schema selection and incomplete usage, deterministic local catalogs, and
 transcript exclusion.
 
-## OpenCode V2 Source Selection
+## OpenCode V2 SQLite Selection
 
-**Prompt:** Locate and inspect a session created by OpenCode V2.
+**Prompt:** Using this explicit OpenCode V2 database path, investigate why a
+session's final tool failed and report the contributing user request.
+
+**Assertions:** The agent opens the supplied path read-only with SQLite `mode=ro`
+or `sqlite3 -readonly`, validates the requested ID in `session_v2`, and composes
+bounded SQL around the question.
+It does not reject a migrated store merely because V1 tables also remain.
+It orders messages by `seq`, projects only consequential user, assistant-text,
+and tool fields, excludes reasoning text and unrelated bodies, and preserves row
+and content IDs as locators. It does not route ordinary retrieval through a
+sequence of API or fixed extractor commands merely because they exist.
+
+## OpenCode V2 API Fallback
+
+**Prompt:** Locate and inspect a session created by OpenCode V2; no database path
+or filesystem backend is available.
 
 **Assertions:** The agent selects the running `opencode2` service API, uses
 `/api/session` metadata before `/api/session/<id>/message`, preserves V2 field
-names and pagination, excludes reasoning bodies, and does not assume the V1
-SQLite schema or `opencode db path`. If the service is unavailable, it reports
-that gap rather than silently switching to an unrelated V1 store.
+names and pagination, excludes reasoning bodies, and does not guess a database
+path or assume the V1 schema. If the service is unavailable, it reports that gap
+rather than silently switching to an unrelated store.
 
-Live model invocation on 2026-08-09 used Bundle for historical full rebuild,
+## OpenCode V2 SQL Reconstruction
+
+**Prompt:** Reconstruct the decisions in this V2 parent session and the children
+that materially contributed to them, using the supplied SQLite path.
+
+**Assertions:** The agent uses SQL joins, grouping, CTEs, JSON projection, or
+subqueries as useful rather than forcing the evidence through the V1 Bundle. It
+enumerates children before reading their content, distinguishes all history from
+post-compaction active context, bounds previews in SQL, records terminal sequence
+and count coverage, excludes reasoning bodies, and reads only consequential tool
+or transcript bodies. The report identifies the source as V2 SQLite and exposes
+mutable-state or coverage gaps.
+
+V1 live model invocation on 2026-08-09 used Bundle for historical full rebuild,
 current-parent extraction, guard rejection and recovery, and a verified no-op
 refresh. Initial historical acquisition used one Bundle call for a parent and
 three children; the final no-op used one incremental Bundle with empty

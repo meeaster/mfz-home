@@ -39,3 +39,17 @@
 - Recorded the deployment-safe structural TUI form: type-only SDK imports may
   keep the matching SDK in `devDependencies` when rendered runtime code has no
   SDK import.
+
+## 2026-08-21 - Registry Schema Failure
+
+- Recorded that optional plugin contribution fields must be omitted when absent because a present `undefined` value can fail the host Effect schema.
+- Made the construction rule explicit: start with required fields, conditionally add defined optionals, and verify omitted fields with `Object.hasOwn` before registration.
+- Required validation before registry insertion and fresh runtime checks beyond plugin status.
+- Added model listing as a cross-service probe after a plugin reload. This catches reload failures that leave model-catalog initialization unavailable.
+
+## 2026-08-26 - Event Feedback And Reload Cleanup
+
+- Recorded a live failure in which an advisor plugin reviewed its own top-level advisor session and started recursive model generations.
+- Required event-driven plugins to identify and exclude plugin-owned output before starting more work. A `parentID` check is insufficient for an owned top-level session.
+- Required cleanup to close the exact async iterator and await the consumer task. This follows the working V2 subscription pattern and prevents hot reload from retaining duplicate consumers.
+- Extended runtime verification beyond active plugin status. One trigger must cause one action after reload, plugin-owned completion must cause none, and `/api/model` must remain available after the action.

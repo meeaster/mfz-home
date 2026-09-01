@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule the daily OpenCode v2 pull request review
+
+[Timer]
+OnCalendar=*-*-* 08:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

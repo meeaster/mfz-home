@@ -1,5 +1,11 @@
 # Log
 
+## 2026-08-28 - Inherited Inspection Permissions
+
+- Replaced the deny-by-default allowlist with inherited global permissions plus explicit denies for `apply_patch`, `edit`, and `write`.
+- Allowed shell access so the reviewer can inspect diffs, run focused checks, and gather repository evidence without routing every command through the parent.
+- Accepted that OpenCode permissions do not sandbox shell commands; the reviewer remains behaviorally read-only, while file-editing tools are mechanically denied.
+
 ## 2026-08-08 - Initial Reviewer Design
 
 - Chose the role-based name `reviewer` so independent judgment remains the stable behavior while Sol/high remains replaceable configuration policy.

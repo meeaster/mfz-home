@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "mindframe-z-pstack",
+  "private": true,
+  "description": "Skills-first OpenCode V2 adaptation of pstack",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./index.ts"
+  },
+  "scripts": {
+    "check": "pnpm run typecheck && pnpm run test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "devDependencies": {
+    "@opencode-ai/plugin": "0.0.0-beta-18743",
+    "@types/node": "24.13.2",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
+  }
+}

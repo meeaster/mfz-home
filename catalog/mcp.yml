@@ -51,6 +51,23 @@ servers:
     type: remote
     transport: http
     url: http://192.168.30.39:9583/{env:HA_MCP_SECRET_PATH}
+  unifi-network:
+    description: UniFi Network MCP server for managing the UniFi gateway, networks, clients, and firewall.
+    type: local
+    transport: stdio
+    command: [unifi-network-mcp]
+    env:
+      UNIFI_NETWORK_HOST: "{env:UNIFI_NETWORK_HOST}"
+      UNIFI_NETWORK_USERNAME: "{env:UNIFI_NETWORK_USERNAME}"
+      UNIFI_NETWORK_PASSWORD: "{env:UNIFI_NETWORK_PASSWORD}"
+  truenas:
+    description: TrueNAS MCP server for storage, datasets, shares, apps, monitoring, and maintenance.
+    type: local
+    transport: stdio
+    command: [truenas-mcp]
+    env:
+      TRUENAS_URL: "{env:TRUENAS_URL}"
+      TRUENAS_API_KEY: "{env:TRUENAS_API_KEY}"
   x-docs:
     description: X API documentation search MCP server (hosted).
     type: remote

@@ -13,6 +13,7 @@ managed by `mfz apply` and rewritten on every run.
 - Before configuring anything here (profiles, catalog entries, skills, MCP,
   instructions, dotfiles), run `mfz guide`; before adding or changing skills,
   run `mfz guide skills`.
+- Before adding or changing a recurring OpenCode job, run `mfz guide cron`.
 - Edit source files in this repo, then run plain `mfz apply`; it follows the active home and profile from `~/.mindframe-z/config.yml`.
 - Reserve `--root`, `--home`, and `--profile` for isolated test commands with an explicit test home.
 - Never edit rendered output (`~/.mindframe-z/configs/` or globally linked

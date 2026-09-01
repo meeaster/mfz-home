@@ -125,6 +125,30 @@ Every scenario confirms that:
 
 **Assertions:** The agent defines assertions before running; isolates mutable task files while retaining the skill configuration under test; captures the session; inspects artifacts and tool traces; distinguishes behavioral defects, evaluation defects, environment noise, and ordinary recovery; makes only the smallest authorized change; reruns the same scenario; checks an adjacent regression scenario; and cleans up disposable session state after preserving evidence.
 
+## Subagent Prompt Neutrality
+
+**Prompt:** Give a worker an ordinary implementation or review request in an isolated workspace without naming the skill.
+
+**Assertions:** The prompt contains the requested outcome and operational safety boundaries only. It does not prohibit implementation choices, prescribe abstractions, require tests or tools, or state the principles being evaluated. The worker's choices are judged from artifacts, diffs, traces, and verification rather than its explanation.
+
+## Staged Subagent Evaluation
+
+**Prompt:** Have one worker implement a first version, then have a fresh worker continue the same isolated workspace after a normal follow-up requirement.
+
+**Assertions:** The first and second sessions are independently captured; the follow-up request is not a coaching prompt; the combined diff shows whether structure changed when real variation arrived; existing files and user artifacts remain within scope; and the result is compared against the assertions for both stages.
+
+## Complexity And Variation Coverage
+
+**Prompt:** Evaluate the skill with small, medium, and high-complexity requests, including direct work, existing code, persisted state, ambiguous requirements, and feature-rich requests.
+
+**Assertions:** The scenario set measures proportionality across complexity rather than rewarding one preferred implementation size. The agent chooses its own tests, tools, abstractions, and verification. Results record when complexity was justified, deferred, or excessive.
+
+## Subagent Baseline And Causality
+
+**Prompt:** Compare a skill-loaded run with a no-skill or previous-revision run when the question is incremental value.
+
+**Assertions:** The paired runs use the same fixture, request, model, harness, effort, configuration, and observable assertions. Differences are classified as skill effect, model variance, environment noise, evaluation defect, or inconclusive evidence; self-reported skill use is not treated as proof.
+
 ## Optional Baseline
 
 **Prompt:** Ask whether a new skill or revision provides value beyond the behavior available without it or in the previous revision.

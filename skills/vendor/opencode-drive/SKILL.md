@@ -1,55 +1,509 @@
 ---
 name: opencode-drive
-description: Use when an agent needs drive OpenCode via a script or interact with an isolated instance
+description: Use when an agent needs to drive OpenCode with an Effect program or interact with an isolated instance
 ---
 
 # OpenCode Drive
 
-Use `opencode-drive` to launch an isolated OpenCode instance and control it via commands or a script.
+Use `opencode-drive` to launch an isolated OpenCode instance and control its TUI and simulated LLM.
 
-Default to scripts for complete walkthroughs. Use live interaction only when you need to connect to an existing instance or iterate on its UI.
+Default to a one-shot Effect program. Use `defineScript` for named, visible,
+restartable, or manual-launch workflows; it is also Effect-only. Use live
+commands only for interactive development against a persistent or visible
+instance.
 
-## Scripted usage
+## Catalog State IDs
 
-Type-check scripts before running them:
+Browse and copy OpenCode terminal state IDs from:
 
-```bash
-opencode-drive check ./drive.ts
-opencode-drive start --name unique-run --script ./drive.ts
+```text
+https://dev.opencode.ai/lab/catalog
 ```
 
-Use a unique name for headless instances. Stop instances when finished:
+Replayable flow states expose canonical `<flow-id>/<state-id>` addresses, for example:
 
-```bash
-opencode-drive stop --name unique-run
+```text
+patch-success-lifecycle/permission-prompt
 ```
 
-Scripts can use `defineScript` from `opencode-drive`:
+Reproduce one from an `opencode-drive` source checkout:
+
+```bash
+bun run catalog:reproduce -- patch-success-lifecycle/permission-prompt \
+  --opencode /path/to/opencode \
+  --output /tmp/permission-prompt.frame.json
+```
+
+The command executes the registered recipe only through that checkpoint and writes an `opencode-terminal-frame-v1` artifact. Only flows in `apps/catalog/scenarios/index.ts` are replayable. Browse-only flows and screen cards copy standalone capture IDs instead; do not invent a flow prefix. Use a protocol-compatible OpenCode checkout, ideally the source revision shown by the selected capture set.
+
+To compare a committed local OpenCode branch against current v2 across every catalog state:
+
+```bash
+bun run catalog:capture -- \
+  --opencode /path/to/opencode \
+  --revision origin/v2 \
+  --revision HEAD
+```
+
+Add repeated `--theme` flags to capture the same commit pair under multiple themes. Capture resolves detached immutable worktrees, retains earlier sets, and sorts sets by commit time. Uncommitted changes are excluded by design.
+
+## Effect Programs
+
+Write `drive.ts` as a default-exported, fully provided Effect, then run it directly:
 
 ```ts
-import { defineScript } from "opencode-drive"
+import { Effect } from "effect"
+import { Llm, OpenCodeDriver } from "opencode-drive"
 
+export default OpenCodeDriver.use(
+  {
+    project: {
+      git: true,
+      files: {
+        "src/value.ts": "export const value = 1\n",
+      },
+    },
+  },
+  ({ ui, llm }) =>
+    Effect.gen(function* () {
+      yield* llm.queue(Llm.text("The value is 1."))
+      yield* ui.submit("Read src/value.ts")
+      yield* ui.waitFor("The value is 1.")
+      yield* ui.screenshot("result")
+    }),
+)
+```
+
+```bash
+opencode-drive run ./drive.ts
+```
+
+`run` type-checks the module before importing it and requires its default export to be an `Effect<unknown, unknown, never>`. It accepts exactly one module path; it does not accept `--command.*` flags or application arguments after `--`.
+
+`OpenCodeDriver.use` is the normal lifecycle boundary. It creates an isolated project, starts the server and primary TUI, races the program against backend failure, settles queued LLM work, closes all TUIs, exports recordings, and removes the artifact directory unless `keepArtifacts: true` is set. Settlement failures fail the program.
+
+Use `OpenCodeDriver.make` only when explicit settlement is necessary. It requires a scope, and the program must call `driver.settle()` before leaving that scope.
+
+### Deterministic Project DSL
+
+Declare the project, semantic OpenCode configuration, and TUI configuration in `OpenCodeDriver.use` options:
+
+```ts
+export default OpenCodeDriver.use(
+  {
+    project: {
+      git: true,
+      files: { "README.md": "# Fixture\n" },
+    },
+    config: {
+      autoupdate: false,
+      username: "Drive",
+    },
+    tuiConfig: {
+      theme: "system",
+      scroll_speed: 1,
+    },
+    setup: ({ fs, config, tuiConfig }) =>
+      Effect.gen(function* () {
+        yield* fs.writeFile("src/setup.ts", "export const ready = true\n")
+        config.username = "Setup wins"
+        tuiConfig.scroll_speed = 2
+      }),
+  },
+  ({ ui }) => ui.screenshot("home"),
+)
+```
+
+The DSL is applied in this order:
+
+1. `project.files` is written into the isolated project.
+2. `config` and `tuiConfig` are deeply merged over `.opencode/opencode.jsonc` and `.opencode/tui.jsonc` fixture values. Objects merge recursively; arrays and scalar values replace existing values.
+3. `setup` runs and may write project files or mutate the merged `config` and `tuiConfig` objects. Its mutations take final precedence.
+4. Drive writes both configs as stable, formatted JSON. With `project.git: true`, it creates a repository and commits the complete pre-launch state with fixed Git identity and timestamps.
+
+`fs.writeFile` is rooted inside the simulated project and creates parent directories. `project.git: true` refuses to replace existing Git metadata; omit it when prepared fixtures already include a repository.
+
+### UI And LLM
+
+UI operations are Effects:
+
+- `ui.submit(text)` types and presses Enter.
+- `ui.state()`, `ui.capture()`, and `ui.matches(text)` inspect the terminal. `ui.capture()` returns the raw terminal frame as data.
+- `ui.snapshot()` returns the versioned semantic tree; `ui.getNode(query, options?)` polls for one exact semantic match.
+- `ui.waitFor(textOrPredicate, options?)` polls until a match.
+- `ui.getElement(query, options?)`, `ui.focus(...)`, and `ui.click(...)` target interactive elements.
+- `ui.screenshot(name?)` asks OpenCode for the raw frame, saves it as a PNG inside Drive, and returns its absolute path. It requires no media-directory configuration.
+- `ui.resize({ cols, rows })`, `ui.press(...)`, and `ui.arrow(...)` control the TUI.
+
+Build deterministic simulated responses with the `Llm` namespace and schedule them through the driver's `llm` controller:
+
+```ts
+yield* llm.queue(
+  Llm.reasoning("Checking the fixture"),
+  Llm.pause(20),
+  Llm.text("The value is 1.", { delay: 2, chunkSize: 15 }),
+)
+```
+
+`llm.queue(...)` declares the next response without waiting. `llm.send(...)`
+waits for the next request and completes its response. For ongoing responses,
+the handler passed to `llm.serve` returns an Effect `Stream`; registering the
+handler is an Effect. Available outputs include `text`, `reasoning`, `pause`,
+`toolCall`, `raw`, `finish`, and `disconnect`; a normal response gets
+`finish("stop")` when no terminal output is supplied.
+
+```ts
+import { Stream } from "effect"
+import { Llm } from "opencode-drive"
+
+yield* llm.serve((_request, index) =>
+  Stream.make(Llm.text(`Response ${index + 1}`)),
+)
+```
+
+Use the capability names literally: `opencode` is the generated OpenCode SDK,
+`tui` is the primary frontend process, `ui` is `tui.ui`, and `tuis` launches
+additional frontend processes.
+
+Additional TUIs share the server and LLM controller:
+
+```ts
+const secondary = yield* tuis.launch({
+  viewport: { cols: 120, rows: 40 },
+  recording: true,
+})
+yield* secondary.ui.screenshot("secondary")
+```
+
+### Annotated Recordings
+
+With `tui: { recording: true }`, label moments during the run and the exported
+MP4 gets a burned-in footer (segment label bottom-left, elapsed timecode and
+"drive" branding bottom-right):
+
+```ts
+yield* tui.recording.mark("typing a prompt — 600ms wire latency")
+// ... drive the UI ...
+yield* tui.recording.mark("") // clears the label
+const video = yield* tui.recording.finish()
+```
+
+For programmatic exports, `exportRecording` accepts `annotations` (labelled
+raw-timeline instants), `clips` (`{ fromMs, toMs, speed?, holdMs?, label? }`
+segments that trim/re-speed/freeze, concatenated in order), and `footer`
+(`false` suppresses it; `{ brand }` overrides the branding). See
+`test/manual/tui-regressions/optimistic-create-demo.ts` for a complete
+before/after demo recording script.
+
+### Network Chaos
+
+Set `network: true` in `defineScript` to route every TUI through a chaos TCP
+proxy (the TUI is pinned with `--server`, so reconnects always cross the
+proxy). The Drive control plane and the `opencode` SDK stay clean; only the
+TUI's HTTP and SSE traffic degrades.
+
+```ts
 export default defineScript({
-  async setup({ fs, config }) {
-    config.autoupdate = false
-    await fs.writeFile("src/example.ts", "export const value = 1\n")
-  },
-  async run({ ui, llm }) {
-    await ui.submit("Open src/example.ts")
-    await llm.send(llm.text("The file exports `value`."))
-    await ui.waitFor("The file exports `value`.")
-  },
+  network: true,
+  run: ({ ui, network }) =>
+    Effect.gen(function* () {
+      yield* network.set({ latencyMs: 400, jitterMs: 200 })
+      yield* network.set({ blackhole: true }) // buffer all bytes until clear
+      yield* network.set({ refuseNew: true }) // refuse new connections
+      yield* network.killConnections() // drop every open connection
+      yield* network.clear() // heal; buffered bytes flush
+    }),
 })
 ```
 
-Use `opencode-drive init --name <name>` to prepare an isolated home and project, `send` for ordered UI commands, `responses` to control simulated model output, `screenshot` to capture the UI, `dir` to locate artifacts, and `prune` to remove failed-run artifacts.
+A quiet blackhole does not raise the TUI's reconnect overlay; that needs a
+dropped connection (`killConnections`) while traffic is pending.
 
-## Live interaction
+### Script-Writing Rules Of Thumb
 
-```bash
-opencode-drive start --name unique-run
-opencode-drive send --name unique-run --command.ui.type '{"text":"Explain this project"}' --command.ui.enter
-opencode-drive stop --name unique-run
+- Timeout severity is split: `UiWaitTimeoutError` (a `waitFor`/`getElement`/
+  `getNode` deadline passed) is catchable — branch on "did X appear in time?"
+  with `Effect.catchTag("UiWaitTimeoutError", ...)`. `UiTimeoutError` (an
+  unanswered UI RPC) aborts the whole run even when caught.
+- LLM request bodies carry the entire conversation. Route reply markers by
+  which appears **last** in the serialized body (`lastIndexOf`), never by the
+  first `includes` hit.
+- The server projection (`opencode.message.list`) is the ground truth for
+  whether a prompt landed. The screen and the instance's
+  `prompt-history.jsonl` can both mislead.
+- `ctrl+c` on an empty composer exits the TUI and kills the run
+  (`RpcClientDefect: connection closed`); use `ctrl+u` to clear leftover
+  composer text.
+- Effect v4: it is `Effect.catch`, not `Effect.catchAll`.
+- Isolated-instance state lives under `$artifacts/home/...`; screenshots land
+  under the run's `output/.../generation-N/` directory.
+- Set `OPENCODE_DRIVE_MEDIA_DIR=$PWD/.drive-output` (gitignored) when running
+  probes from an agent: the default media root sits under the system tmpdir
+  with a per-run id in the path, so every run triggers a fresh
+  outside-the-project permission prompt.
+- Interrupting a busy session takes **two** escape presses within 5 seconds
+  (the first arms, the second fires `session.interrupt`). A single
+  `ui.press("escape")` is a no-op for interruption.
+- `server.kill()` mid-stream abandons the in-flight served reply (a deliberate
+  detach, not a run failure); `server.launch()` attaches the LLM stub to the
+  replacement service. Pass `OPENCODE_DRIVE_DB=...` so both generations share
+  a database.
+
+### Reports And Paths
+
+`OpenCodeDriver` exports a branded `AbsolutePath` schema and a compact `RunReport` containing the artifact root, retention, recording paths, and endpoint compatibility. It also exports `decodeAbsolutePath` and `decodeRunReport` for validating unknown values.
+
+`driver.settle()` returns the report with its recording paths. Use `OpenCodeDriver.useReport(options, run)` when a safe lifecycle program also needs the report alongside its result.
+
+Drive prefers protocol negotiation and reports explicit legacy fallback. Set `opencode.compatibility` to `"required"` when protocol skew must fail before the program runs. Additional built-in tool adapters remain follow-ups.
+
+### Arbitrary Dynamic Tools
+
+Use runtime `tools.attach` for tools that do not have a shipped Drive adapter.
+Attachment replaces the complete dynamic set without affecting configured
+static adapters. Take invocations by the model call ID, while Drive owns
+producer IDs, progress sequences, reconnect replay, and exactly-one terminal
+commitment.
+
+```ts
+yield* tools.attach({
+  tools: [
+    {
+      name: "lookup",
+      description: "Look up a value",
+      inputSchema: {
+        type: "object",
+        properties: { query: { type: "string" } },
+        required: ["query"],
+      },
+      options: { codemode: false },
+    },
+  ],
+})
+
+const lookup = yield* tools.take("call_lookup")
+yield* lookup.progress({ structured: { phase: "searching" } })
+yield* lookup.finish({
+  structured: { answer: 42 },
+  content: [{ type: "text", text: "42" }],
+})
 ```
 
-The driver requires Bun 1.3.14 or newer. Recording export additionally requires `ffmpeg`.
+Use `awaitCancelled()` to observe native interruption. Do not synthesize
+cancellation or expose transport sequence numbers. Dynamic effective names may
+not collide with configured `shell`, `webfetch`, or `websearch` adapters.
+
+### Simulated Shell Execution
+
+Declare the built-in tools Drive should intercept, then control each invocation
+from the running program. Unregistered tools remain real. Calls may be accepted
+in arrival order or by the stable ID supplied in `Llm.toolCall`, so parallel
+invocations can progress and settle independently.
+
+```ts
+import { Effect } from "effect"
+import { Llm, OpenCodeDriver } from "opencode-drive"
+
+export default OpenCodeDriver.use({ tools: ["shell"] }, ({ tools, llm, ui }) =>
+  Effect.gen(function* () {
+    const shells = yield* tools.control("shell")
+    yield* llm.queue(
+      Llm.toolCall({
+        index: 0,
+        id: "call_shell",
+        name: "shell",
+        input: { command: "compile" },
+      }),
+      Llm.finish("tool-calls"),
+    )
+    yield* ui.submit("Compile the project")
+    const shell = yield* shells.take("call_shell")
+    yield* shell.progress(`Running ${shell.input.command}\n`)
+    yield* shell.succeed({ output: "Controlled success\n", exit: 0 })
+  }),
+)
+```
+
+The same declaration and runtime `tools` capability are available in
+`defineScript`. Supported adapters are `shell`, `webfetch`, and `websearch`.
+Each progress value replaces the visible tool output, so send accumulated text
+when earlier lines should remain visible. Calls settle exactly once;
+`awaitInterrupted()` observes session interruption or transport disconnection.
+
+The callback form remains available for fixed behavior that does not need
+runtime orchestration:
+
+```ts
+import { Effect } from "effect"
+import { Tool } from "opencode-drive"
+
+const tools = (registry: Tool.Registry) => {
+  registry.handle("shell", ({ input, progress }) =>
+    Effect.gen(function* () {
+      yield* progress(`Running ${input.command}\n`)
+      return { output: "Controlled success\n", exit: 0 }
+    }),
+  )
+}
+```
+
+Foreground callback handler Effects are interrupted when OpenCode interrupts
+the session, the transport disconnects, or Drive shuts down. Detached
+background shell handlers continue after their launch response and are
+interrupted when Drive shuts down.
+
+## Effect Scripts
+
+Use `defineScript` with `start --script` when the workflow must have a stable
+instance name, be visible, rerun on `restart`, or explicitly launch and kill
+its server and TUIs. `setup` and `run` return Effects. Operations on `fs`,
+`ui`, `llm`, `tools`, `server`, and `tuis` also return Effects; there is no
+Promise API or compatibility shim.
+
+```ts
+import { Effect } from "effect"
+import { defineScript, Llm } from "opencode-drive"
+
+export default defineScript({
+  config: { autoupdate: false },
+  tuiConfig: { theme: "system" },
+  project: {
+    git: true,
+    files: { "src/value.ts": "export const value = 1\n" },
+  },
+  run: ({ ui, llm }) =>
+    Effect.gen(function* () {
+      yield* llm.queue(Llm.text("The value is 1."))
+      yield* ui.submit("Read src/value.ts")
+      yield* ui.waitFor("The value is 1.")
+    }),
+})
+```
+
+Always type-check a script before starting it:
+
+```bash
+opencode-drive check ./drive.ts
+opencode-drive start --name demo --script ./drive.ts
+```
+
+For a new script, run `opencode-drive script init ./drive.ts` once. It creates a
+canonical Effect-native starter and refuses to overwrite an existing file.
+`check` adds focused migration guidance when it finds Promise-style script
+callbacks.
+
+The script DSL applies `project`, `config`, `tuiConfig`, and `setup` with the same deterministic ordering described above. Automatic scripts run again after `opencode-drive restart --name demo`.
+
+Use `launch: "manual"` only when the workflow must control server and TUI restarts itself. In manual mode `tui` and `ui` are `null`; run `server.launch()` before `tuis.launch(name)`. Only one server may run at a time, `server.kill()` permits relaunch, and a closed TUI name may be reused.
+
+```ts
+export default defineScript({
+  launch: "manual",
+  run: ({ server, tuis }) =>
+    Effect.gen(function* () {
+      yield* server.launch()
+      const alice = yield* tuis.launch("alice", { recording: true })
+      yield* alice.ui.screenshot("alice")
+      yield* alice.close()
+    }),
+})
+```
+
+Cancellation uses Effect interruption. Interrupting the script or an
+operation's fiber interrupts in-flight work and runs scoped finalizers; do not
+introduce `AbortSignal` or Promise cancellation wrappers.
+
+## Prepare An Instance
+
+Use `init` only when files must be copied into an isolated home or project before a named live or scripted instance starts:
+
+```bash
+artifacts=$(opencode-drive init --name demo)
+cp -R ./fixtures/home/. "$artifacts/"
+cp -R ./fixtures/project/. "$artifacts/files/"
+opencode-drive start --name demo --dev ~/projects/opencode
+```
+
+The simulated project is under `$artifacts/files`. A later `start --name demo` reuses the prepared artifacts; otherwise `start` initializes them automatically.
+
+Drive uses an in-memory OpenCode database by default. For a script that restarts
+the OpenCode service and must recover the same sessions, set
+`OPENCODE_DRIVE_DB` to a file-backed path. Relative paths resolve inside the
+isolated run's OpenCode data directory:
+
+```bash
+OPENCODE_DRIVE_DB=restart.sqlite \
+  opencode-drive start --name restart-demo --script ./restart.ts
+```
+
+## Live Interaction
+
+Use live commands to inspect or iterate on a persistent instance. Headless `start` requires a unique `--name`; visible instances may omit it. Headless `start` detaches after the instance is ready, so do not add `&`. Always stop the instance when finished.
+
+```bash
+opencode-drive start --name demo
+
+opencode-drive send --name demo \
+  --command.ui.type '{"text":"Explain this project"}' \
+  --command.ui.enter
+
+opencode-drive send --name demo --command.ui.state
+opencode-drive send --name demo --command.ui.capture
+opencode-drive send --name demo --command.ui.screenshot
+opencode-drive stop --name demo
+```
+
+Image commands have one simple distinction:
+
+- `--command.ui.capture` prints the raw terminal frame as JSON.
+- `--command.ui.screenshot` saves that frame as a PNG and prints its absolute path.
+
+Drive chooses the PNG directory. Do not configure a media directory or expect the OpenCode endpoint to provide one. Run `--command.ui.screenshot` as its own `send` invocation when the path is needed on stdout; a multi-command batch reports only whether the batch succeeded.
+
+`send` executes command flags from left to right. JSON-valued commands take one JSON argument. Supported commands are:
+
+- `--command.ui.type '{"text":"..."}'`
+- `--command.ui.press '{"key":"p","modifiers":{"ctrl":true}}'`
+- `--command.ui.enter`
+- `--command.ui.arrow '{"direction":"down"}'`
+- `--command.ui.focus '{"target":12}'`
+- `--command.ui.click '{"target":12,"x":4,"y":1}'`
+- `--command.ui.resize '{"cols":120,"rows":40}'`
+- `--command.ui.screenshot` or `--command.ui.screenshot '{"name":"home"}'`
+- `--command.ui.state`
+- `--command.ui.snapshot`
+- `--command.ui.capture`
+- `--command.ui.matches '{"text":"OpenCode"}'`
+- `--command.ui.recording.finish`
+
+Use `meta` for the terminal Alt modifier. For example:
+`--command.ui.press '{"key":"down","modifiers":{"meta":true}}'`.
+
+Start with `--record` to record a headless live instance. `stop` finishes the recording, exports the MP4, performs owner cleanup, and prints the path.
+
+Add `--keypress-overlay` when the video should show KeyCastr-style pills for
+the agent's semantic hotkeys, Enter presses, and arrow navigation. It requires
+`--record`; batched typed text is deliberately omitted.
+
+```bash
+opencode-drive start --name demo --record --keypress-overlay
+opencode-drive stop --name demo
+```
+
+`dir` prints a live instance's artifact directory, and `list` lists active instances:
+
+```bash
+opencode-drive dir --name demo
+opencode-drive list
+```
+
+## Prune
+
+`prune` removes inactive artifact directories. To remove one instance's artifacts, pass the instance name supplied to `init` or `start`, not the generated `run-*` artifact directory name:
+
+```bash
+opencode-drive prune --name demo
+
+# Force removal of all artifact directories, including active ones.
+opencode-drive prune --force
+```

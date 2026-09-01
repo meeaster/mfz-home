@@ -52,6 +52,22 @@ installed OpenCode release or its matching source when loader behavior changes.
   server Promise/Effect contracts. At `0.0.0-next-17428`, the native TUI
   definition exposes `setup` and no TUI Effect entrypoint.
 
+## Schema Boundaries
+
+- Treat plugin registries as external schema boundaries. Build a contribution from required fields, then conditionally assign each optional field after `value !== undefined`. An object property set to `undefined` is present at runtime and can fail an Effect schema whose optional field accepts omission but not `undefined`.
+- Before registration, verify that each absent optional field is absent as an own property. For example, `Object.hasOwn(skill, "slash")` must be `false` when the parsed value is absent. TypeScript optional-property syntax does not enforce this runtime distinction.
+- Decode or otherwise validate generated skills, agents, commands, and tools before adding them to a registry. Type assertions and successful compilation do not prove that the runtime schema accepts the object.
+- A malformed contribution can abort the complete plugin reload. The resulting symptom may appear outside the plugin. For example, a rejected skill field can prevent model-catalog initialization and make model endpoints time out.
+- When model discovery fails after a plugin change, inspect the server log for the first plugin reload or schema error. Fix that error before investigating providers, credentials, or model configuration.
+
+## Event Consumers And Reentrancy
+
+- Treat a plugin's own sessions, generated responses, synthetic messages, and tool calls as input to the same global event stream. An event-driven plugin must identify and exclude its output before starting work. A guard keyed only by the session currently under review does not stop recursion when the plugin creates a different top-level session.
+- Persist or otherwise retain the IDs of plugin-owned sessions so the exclusion survives a server restart. Apply any intended parent-session exclusion separately. A plugin-owned top-level session has no `parentID`, so a child-session check alone does not exclude it.
+- Acquire a long-lived event stream once and keep its async iterator. Cleanup must close that exact iterator with `await iterator.return?.()` and then await the consumer task. Use an `AbortSignal` only when the matching SDK contract proves that the subscription accepts it and closes the stream. A locally aborted controller does not prove that the remote iterator stopped.
+- Expect hot reload to expose cleanup defects. After a reload, trigger one representative event and verify that it causes one plugin action. Duplicate generations or synthetic messages indicate that an earlier consumer is still active.
+- Test the plugin's feedback boundary, not only its pure parsing logic. A regression check must show that a completion from the plugin-owned session does not start another generation. Then query `/api/model`; recursive generation can exhaust initialization or request capacity and make the model picker fail even while `/api/plugin` reports the plugin as active.
+
 ## Native TUI Verification
 
 - Use a fresh isolated TUI process with a real route and viewport that mounts
@@ -65,6 +81,7 @@ installed OpenCode release or its matching source when loader behavior changes.
   may not mark plugin status failed or emit a stack.
 - Test a fresh process after dependency or entrypoint changes. Hot reload may
   retain or restore the last good generation and is supplemental evidence only.
+- After a server-plugin reload and one representative plugin action, exercise model listing or another unrelated initialization-dependent endpoint. This catches rejected contributions and runaway event consumers even when plugin status reports an active generation.
 
 ## Version Check
 

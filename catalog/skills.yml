@@ -3,14 +3,17 @@ skills:
     source: local
     skill: active/anti-slop
     description: >
-      Run the pinned upstream anti-slop Oxlint rules read-only as the final
-      verification checkpoint after JavaScript or TypeScript edits, or when
-      explicitly requested.
-  - name: code-like-luke
+      Load concise preflight guidance before JavaScript or TypeScript edits,
+      then run the pinned upstream anti-slop Oxlint rules read-only as the final
+      checkpoint or when explicitly requested.
+  - name: development-principles
     source: local
-    skill: active/code-like-luke
+    skill: active/development-principles
     description: >
-      Apply the Code Like Luke implementation and review guidance: inspect context first, keep the happy path obvious, use strong interfaces, enforce invariants, and avoid speculative abstractions.
+      Use when designing, implementing, testing, refactoring, coordinating, or
+      reviewing software work. Guides happy-path-first design, evidence-based
+      complexity, phase-aware scope, stable-boundary tests, and bounded
+      code-health improvement.
   - name: effect
     description: >
       Opinionated guide for building production TypeScript applications with
@@ -23,9 +26,9 @@ skills:
   - name: opencode-drive
     description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
     source: vendored
-    repo: https://github.com/anomalyco/opencode.git
-    ref: v2
-    subtree: .opencode/skills/opencode-drive
+    repo: https://github.com/anomalyco/opencode-drive.git
+    ref: main
+    subtree: skills/opencode-drive
   - name: grill-with-docs
     description: >
       Grill a codebase with questions about how something works, finding related

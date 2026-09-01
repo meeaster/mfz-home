@@ -7,15 +7,18 @@ allowBuilds:
 packages:
   - mcp/*
   - opencode/plugins/herdr/v2
+  - opencode/plugins/omp-advisor
+  - opencode/plugins/pstack
   - opencode/plugins/session-cost-tui/v2
   - opencode/plugins/subagent-usage/v2
+  - opencode/plugins/work-ledger
 minimumReleaseAgeExclude:
-  - '@opencode-ai/plugin@0.0.0-beta-17595 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444 || 1.18.15 || 1.18.18'
+  - '@opencode-ai/plugin@0.0.0-beta-17595 || 0.0.0-beta-17728 || 0.0.0-beta-17823 || 0.0.0-beta-18155 || 0.0.0-beta-18286 || 0.0.0-beta-18684 || 0.0.0-beta-18743 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444 || 1.18.15 || 1.18.18'
   - '@opencode-ai/sdk@1.18.15 || 1.18.18'
-  - '@opencode-ai/ai@0.0.0-beta-17595 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
-  - '@opencode-ai/client@0.0.0-beta-17595 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
-  - '@opencode-ai/protocol@0.0.0-beta-17595 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
-  - '@opencode-ai/schema@0.0.0-beta-17595 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
+  - '@opencode-ai/ai@0.0.0-beta-17595 || 0.0.0-beta-17728 || 0.0.0-beta-17823 || 0.0.0-beta-18286 || 0.0.0-beta-18684 || 0.0.0-beta-18743 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
+  - '@opencode-ai/client@0.0.0-beta-17595 || 0.0.0-beta-17728 || 0.0.0-beta-17823 || 0.0.0-beta-18286 || 0.0.0-beta-18684 || 0.0.0-beta-18743 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
+  - '@opencode-ai/protocol@0.0.0-beta-17595 || 0.0.0-beta-17728 || 0.0.0-beta-17823 || 0.0.0-beta-18286 || 0.0.0-beta-18684 || 0.0.0-beta-18743 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
+  - '@opencode-ai/schema@0.0.0-beta-17595 || 0.0.0-beta-17728 || 0.0.0-beta-17823 || 0.0.0-beta-18286 || 0.0.0-beta-18684 || 0.0.0-beta-18743 || 0.0.0-next-17403 || 0.0.0-next-17428 || 0.0.0-next-17444'
   - '@opentui/core@0.5.2'
   - '@opentui/core-darwin-arm64@0.5.2'
   - '@opentui/core-darwin-x64@0.5.2'

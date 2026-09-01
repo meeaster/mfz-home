@@ -5,8 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run opencode",
-    "typecheck": "tsc --noEmit",
-    "smoke:work-context": "node scripts/work-context-smoke.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@opentui/keymap": "0.4.3",

@@ -10,7 +10,7 @@ After every JavaScript or TypeScript edit batch, or when explicitly requested, r
 
 ## Success
 
-An agent uses the launcher once as a final verification checkpoint, receives all upstream rules at error severity, addresses in-scope diagnostics under the original implementation authority, and leaves all launcher target writes at zero.
+An agent uses the launcher as a final verification checkpoint, receives all upstream rules at error severity, addresses in-scope diagnostics under the original implementation authority, rejects source directives that suppress those rules in changed code, and leaves all launcher target writes at zero.
 
 ## Non-Goals
 

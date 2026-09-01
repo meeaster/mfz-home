@@ -2,8 +2,9 @@
 
 ## Dependencies
 
-The runtime skill has harness-specific disclosed references. OpenCode V2
-archaeology additionally requires a running `opencode2` service and its `api`
+The runtime skill has harness-specific disclosed references. OpenCode V1 and V2
+filesystem archaeology requires SQLite JSON support and an explicit database
+path; V2 API fallback requires a running `opencode2` service and its `api`
 command. OpenCode V1 structural extraction additionally requires Python 3 with
 the standard-library `sqlite3` module and a SQLite store compatible with the live schema checks in
 `scripts/opencode-session-evidence.py`. OpenCode cost estimation supports
@@ -45,8 +46,8 @@ authority, and lifecycle behavior.
 3. Inspect known dependent skills before changing shared evidence or cursor
    semantics.
 4. Confirm current harness storage shapes from live or fixture evidence. For
-   OpenCode, check V2 service API availability before selecting the V1 SQLite
-   adapter.
+   OpenCode, validate an explicit SQLite path before choosing V1 or V2 SQL; use
+   the V2 API when the path or backend is unavailable.
 5. Make the smallest change and update affected evaluation scenarios.
 6. Run the extractor against a fixture and a read-only live store when available.
 7. Verify positive and adjacent-negative invocation when the description changes.
@@ -55,12 +56,15 @@ authority, and lifecycle behavior.
 ## Efficiency Review
 
 Measure efficiency by evidence obtained per record body read, not by minimizing
-coverage. Prefer one multi-session Bundle transaction, aggregate queries, keyset
-pages, bounded previews, selective child traversal, and reasoning exclusion.
-Model-driven reconstruction uses the reconstruction view directly; surrounding
-Outline calls, result-shape probes, and repeated grouped structural queries are
-defects. Normal use executes bundled scripts without reading their source. Narrow
-tool investigation follows the known ID rather than selecting a recent window.
+coverage. For V2 filesystem stores, prefer question-shaped SQL with aggregate
+queries, joins, JSON projections, keyset pages, bounded previews, selective child
+traversal, and reasoning exclusion. Repeated CLI calls that merely reproduce a
+single SQL query are defects. For V1 deterministic extraction, prefer one
+multi-session Bundle transaction. Model-driven V1 reconstruction uses the
+reconstruction view directly; surrounding Outline calls, result-shape probes, and
+repeated grouped structural queries are defects. Normal adapter use executes
+bundled scripts without reading their source. Narrow V1 tool investigation
+follows the known ID rather than selecting a recent window.
 The deterministic `tool-context` branch owns that exact tool/request read and
 must remain single-transaction, dual-pinned, multipart-aware, and body-bounded.
 Bundle must traverse every Delta page to its pin, merge independent observations,
@@ -72,10 +76,13 @@ adding more prose.
 
 ## Schema Drift
 
-The OpenCode extractor must fail with a precise missing-table or missing-column
-message rather than guessing. Update its schema assumptions only after inspecting
-the new live schema and preserving read-only access. Claude Code instructions
-must continue treating layout descriptions as maps to confirm, not guarantees.
+OpenCode SQL use must validate V1 versus V2 tables and resolve a known session ID
+to one schema before selecting a query plan. Both table families can coexist in a
+migrated store; table presence alone is not ambiguity.
+The V1 extractor must fail with a precise missing-table or missing-column message
+rather than guessing. Update schema assumptions only after inspecting the new live
+shape and preserving read-only access. Claude Code instructions must continue
+treating layout descriptions as maps to confirm, not guarantees.
 
 ## Verification
 
@@ -109,8 +116,10 @@ The active-pin fixture mutates message and part rows between `limit=1` pages and
 expects an unchanged-cursor re-pin response. A final-probe fixture deletes a
 pinned row and expects bounded-count guard failure. Live-store checks cover
 current OpenCode V1 schema compatibility and mutable running tools. V2
-source-selection checks cover API-first routing, V2 metadata names, message
-endpoints, pagination, reasoning exclusion, and the documented database fallback.
+source-selection checks cover SQL-first routing for an explicit filesystem path,
+`session_v2` and `session_message` shape, sequence ordering, JSON projection,
+compaction boundaries, reasoning exclusion, and API fallback for an unavailable
+path or backend.
 Reusable
 local checks begin with:
 

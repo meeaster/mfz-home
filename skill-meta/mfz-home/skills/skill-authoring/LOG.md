@@ -1,5 +1,11 @@
 # Log
 
+## 2026-08-19 - Subagent Evaluation Guidance
+
+- Added prompt-neutral subagent evaluation guidance after greenfield, existing-repository, and staged-worker trials.
+- Limited prompts to user requests and operational safety boundaries so the skill, rather than scenario prohibitions, guides implementation choices and verification.
+- Added guidance for fresh independent workers, sequential follow-up workers, complexity variation, artifact and trace evidence, and causal baselines.
+
 ## 2026-07-25 - Initial Design
 
 - Chose user invocation because skill authoring is deliberate work and should not consume invocation context on unrelated turns.

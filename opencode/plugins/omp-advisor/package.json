@@ -1,0 +1,10 @@
+{
+  "name": "mindframe-z-omp-advisor",
+  "private": true,
+  "type": "module",
+  "exports": ".",
+  "devDependencies": {
+    "@opencode-ai/plugin": "0.0.0-beta-18286",
+    "zod": "4.4.3"
+  }
+}

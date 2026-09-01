@@ -4,13 +4,13 @@ Record the OpenCode version, rendered profile revision, model, review prompt, se
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `reviewer` as a visible subagent using `openai/gpt-5.6-sol` at `high`; the rendered agent has an empty prompt; permissions deny by default; read, search, source lookup, skill loading, and session identification remain available; mutation, shell, code-mode execution, advisor, todo, and delegation tools are disabled; and agent-level rules preserve the configured credential and secret-path denies.
+**Assertions:** OpenCode lists `reviewer` as a visible subagent using `openai/gpt-5.6-sol` at `high`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; and `apply_patch`, `edit`, and `write` are denied by agent-level rules.
 
 ## Independent Review
 
 **Prompt:** Supply completed work, governing requirements, changed scope, material risks, established validation, and a required evidence-backed finding format.
 
-**Assertions:** A native child session starts with Sol/high, reads the named evidence using only the allowlisted capabilities, performs no edits, and returns prioritized findings with concrete triggers and file or artifact references. The parent adjudicates the findings rather than accepting them automatically.
+**Assertions:** A native child session starts with Sol/high, reads the named evidence, uses shell commands when useful, performs no edits, and returns prioritized findings with concrete triggers and file or artifact references. The parent adjudicates the findings rather than accepting them automatically.
 
 ## Unsupported Concern
 

@@ -2,19 +2,159 @@
 
 OpenCode session archaeology has these evidence surfaces:
 
-- OpenCode V2: the running background service API, accessed through `opencode2`.
-- OpenCode V1 or a supplied legacy store: SQLite or an exported JSON transcript.
-- OpenCode V1 or V2 cost: a validated read-only SQLite store supplied to the
-  body-free cost calculator.
+- OpenCode V1 or V2 filesystem runtime: an explicit SQLite database opened
+  read-only.
+- OpenCode V2 with an unknown or non-filesystem backend: the running service API,
+  accessed through `opencode2`.
+- Exported OpenCode JSON.
+- OpenCode V1 or V2 cost: a validated SQLite store supplied to the body-free cost
+  calculator.
 
-Identify the active surface before reading content. V2 session records do not use
-the V1 `session`, `message`, and `part` table contract.
+Choose the source rather than treating one as universally authoritative:
+
+- Use SQL first for question-driven read-only archaeology when an explicit
+  filesystem database path is available.
+- Use the API for quick metadata, when the path or backend is unknown, or when
+  authorization, location context, active execution, compaction context, durable
+  events, validated hydration, or another service-owned semantic matters.
+- Use bundled adapters when their repeatable validation, pinning, traversal,
+  privacy, or cost-attribution guarantees are part of the request.
+
+Validate the schema before choosing queries. V2 uses `session_v2` and
+`session_message`; V1 uses `session`, `message`, and `part`. Never apply one
+shape's queries or cursors to the other.
+
+## Read-only SQLite
+
+Resolve the actual absolute path from user input or launcher configuration. A V2
+filesystem server selects its database from its explicit database option or
+`OPENCODE_DB`; otherwise it uses an `opencode*.db` file under its configured data
+root. Relative paths are runtime-context dependent, and alternate V2 runtimes can
+use injected or non-filesystem databases, so do not guess a path from a session
+ID or filename convention.
+
+Open a filesystem store without migrations or other writes:
+
+```bash
+sqlite3 -json 'file:/absolute/path/opencode.db?mode=ro' "SELECT ..."
+```
+
+Keep live `-wal` and `-shm` sidecars visible. Use `immutable=1` only for a stable
+snapshot that has no external writer and no live WAL state; it is not a stronger
+form of read-only access for an active database.
+
+Inspect storage shape without selecting transcript bodies:
+
+```sql
+SELECT name
+FROM sqlite_schema
+WHERE type = 'table'
+  AND name IN ('session_v2', 'session_message', 'session', 'message', 'part')
+ORDER BY name;
+```
+
+Use `PRAGMA table_info(<validated_table>)` only after this branch identifies the
+candidate schema. A migrated database can contain both table families. Resolve a
+known session ID against `session_v2.id` and `session.id`, then use the one family
+that contains it. If both contain the requested ID, report ambiguity. For a
+metadata search without an ID, search each validated session table separately and
+label every candidate with its schema. Treat an unknown or partial shape as a
+visible gap.
+
+## V2 SQL
+
+V2 stores session metadata in `session_v2`. `parent_id` identifies children;
+forks separately use `fork_session_id` and JSON `fork_boundary`. Model, metadata,
+revert, permission, and fork fields are JSON text. Session rows also contain
+aggregate cost and token columns plus created, updated, compacting, archived, and
+execution-claim timestamps.
+
+V2 stores every message in `session_message(id, session_id, type, seq,
+time_created, time_updated, data)`. Message order and API pagination use `seq`,
+not timestamp order. There is no V2 `part` table: assistant text, reasoning, and
+tool records are entries in `data.content`.
+
+Start with metadata and structural counts, adapting projections to the question:
+
+```sql
+SELECT id, parent_id, title, directory, project_id, workspace_id,
+       time_created, time_updated, time_compacting, time_archived,
+       agent, model, cost, tokens_input, tokens_output, tokens_reasoning,
+       tokens_cache_read, tokens_cache_write
+FROM session_v2
+WHERE id = :session_id;
+
+SELECT type, count(*) AS messages, min(seq) AS first_seq, max(seq) AS last_seq
+FROM session_message
+WHERE session_id = :session_id
+GROUP BY type
+ORDER BY type;
+
+SELECT id, parent_id, title, time_created, time_updated
+FROM session_v2
+WHERE parent_id = :session_id
+ORDER BY time_created, id;
+```
+
+Project message fields instead of returning whole `data` values. Top-level user,
+synthetic, system, and skill text is at `$.text`. Assistant content needs
+`json_each`; exclude reasoning rows before selecting their text:
+
+```sql
+SELECT seq, id, type, time_created, time_updated,
+       substr(json_extract(data, '$.text'), 1, :preview_chars) AS text_preview
+FROM session_message
+WHERE session_id = :session_id
+  AND type IN ('user', 'synthetic', 'system', 'skill')
+  AND seq > :after_seq
+ORDER BY seq
+LIMIT :limit;
+
+SELECT m.seq, m.id AS message_id,
+       json_extract(item.value, '$.id') AS content_id,
+       json_extract(item.value, '$.type') AS content_type,
+       json_extract(item.value, '$.name') AS tool,
+       json_extract(item.value, '$.state.status') AS tool_status,
+       CASE WHEN json_extract(item.value, '$.type') = 'text'
+            THEN substr(json_extract(item.value, '$.text'), 1, :preview_chars)
+       END AS text_preview
+FROM session_message AS m, json_each(m.data, '$.content') AS item
+WHERE m.session_id = :session_id
+  AND m.type = 'assistant'
+  AND json_extract(item.value, '$.type') != 'reasoning'
+  AND m.seq > :after_seq
+ORDER BY m.seq, CAST(item.key AS INTEGER)
+LIMIT :limit;
+```
+
+Tool input, output/content, errors, provider metadata, and full text are content
+bodies. Select them only for IDs or sequence ranges that can change the answer,
+and bound text with `substr` in SQL. Reasoning is assistant content with
+`type = 'reasoning'`; count or locate it through its type and owning message but
+never select `$.text` from that item.
+
+Compaction is a message with `type = 'compaction'`; its status is
+`json_extract(data, '$.status')`. All-history archaeology reads the requested
+sequence range. Active-context analysis starts at the greatest `seq` whose
+compaction status is `completed`. State which interpretation the report uses.
+
+For exploratory investigation, use SQL's joins, grouping, CTEs, JSON functions,
+and correlated subqueries to answer the actual question. Keep result sets bounded
+and preserve `session_id`, `id`, `seq`, and JSON content IDs as locators. Use
+keyset conditions such as `seq > :after_seq`, not `OFFSET`, when paging.
+
+For exhaustive coverage on an active database, run the scoped reads in one
+read-only transaction when practical. Otherwise capture the terminal `seq` and
+scoped counts before reading, apply that upper bound to every page, and recheck
+them before reporting. If they moved, retry or report mutable state rather than
+combining snapshots.
 
 ## OpenCode V2 Service API
 
-Use the service API first when `opencode2` is installed or the user identifies a
-V2 session. The API uses the managed service's authentication and location
-context; do not read service passwords or construct unauthenticated requests.
+Use the service API when SQL's prerequisites are absent or service semantics are
+the subject. The API uses the managed service's authentication, backend, schema
+decoding, and location context; do not read service passwords or construct
+unauthenticated requests.
 
 List sessions without reading transcript bodies:
 
@@ -47,20 +187,12 @@ fields needed for the question, exclude reasoning bodies, and avoid dumping the
 full API response into the conversation. The V2 API also exposes session export
 at `/api/session/<session-id>/export` when an export is explicitly requested.
 
-V2 filesystem servers select their database from the server's explicit database
-option or `OPENCODE_DB`; otherwise they use an `opencode*.db` file under the
-configured data root. This is not the primary transcript interface: the active
-service may use a wrapper, channel-specific name, runtime-managed location, or a
-non-filesystem database. Resolve the actual path from supplied or launcher
-configuration instead of guessing it. Do not use `opencode db path` as a V2 probe
-when the installed V2 CLI does not provide that command.
-
 The bundled evidence extractor targets the V1-compatible schema and must not run
 against V2. The cost calculator is separate: it detects and validates either the
 V1 `session`/`message`/`part` schema or the V2
 `session_v2`/`session_message` schema before reading body-free usage fields.
 
-## SQLite Store
+## V1 SQLite Store
 
 Locate the standard database without opening it for queries:
 
@@ -78,7 +210,7 @@ sqlite3 -json 'file:/path/to/opencode.db?mode=ro' "SELECT ..."
 Use `immutable=1` only for a read-only snapshot without live WAL or SHM sidecars.
 For a user-supplied store root, use that artifact rather than the harness default.
 
-## Efficient Outline
+## V1 Efficient Outline
 
 Resolve script paths from the loaded skill's base directory. The bundled script
 validates the live `session`, `message`, `part`, and optional `session_message`
@@ -108,7 +240,7 @@ When any Outline collection reports `has_more`, rerun with its matching
 `--nonterminal-after` continuation cursor. Aggregate categories are returned as
 complete grouped counts and remain subject to the total output ceiling.
 
-## Efficient Bundle
+## V1 Efficient Bundle
 
 For model-driven reconstruction or audit of a parent and its direct children,
 prefer one reconstruction-view Bundle over repeated Outline, Delta, and topology
@@ -241,9 +373,9 @@ After any targeted post-Bundle content reads, reuse the original result's exact
 evidence confirm the same structural state; gaps require rebuild handling, while
 returned records are post-pin movement rather than evidence from the accepted pin.
 
-## Incremental Evidence
+## V1 Incremental Evidence
 
-OpenCode has independent message and part streams. Preserve four cursors from
+OpenCode V1 has independent message and part streams. Preserve four cursors from
 the outline:
 
 - message creation `(time_created, id)`;
@@ -293,7 +425,7 @@ Creation time alone is not a stable cursor: use `id` as the tie-breaker. Creatio
 cursors find appended records; update cursors detect existing messages or tools
 whose finish, status, or output later changed.
 
-## Locate
+## V1 Locate
 
 Search exact IDs and bounded title matches without transcript bodies:
 
@@ -308,7 +440,7 @@ resolve remaining ambiguity. Search prompt or tool evidence only when metadata
 cannot resolve the candidate, project the minimum relevant JSON field, and limit
 the result before reading any matched body.
 
-## Targeted Reads
+## V1 Targeted Reads
 
 Use `(time_created, id)` ordering and keyset pagination rather than `OFFSET`:
 

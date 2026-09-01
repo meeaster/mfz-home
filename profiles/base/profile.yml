@@ -25,7 +25,7 @@ thread:
 skills:
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
-  code-like-luke:
+  development-principles:
     agents: { opencode: true, claude-code: true, codex: true }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -180,7 +180,6 @@ opencode:
         "*GH_TOKEN*": deny
   plugins:
     - advisor
-    - herdr
   tui_plugins:
     - advisor
     - session-cost-tui
@@ -209,6 +208,8 @@ opencode:
 opencode_v2:
   global_instructions: true
   config:
+    experimental:
+      subagent_depth: 2
     agent:
       explore:
         model: openai/gpt-5.6-luna
@@ -223,7 +224,6 @@ opencode_v2:
       name: dracula
   tui_plugins:
     - session-cost-tui
-    - herdr
   commands:
     - apply-spec
     - implement-design
@@ -233,6 +233,7 @@ opencode_v2:
     - prototype
     - research
     - reviewer
+    - scheduled-worker
     - session-analyst
     - worker
 codex:

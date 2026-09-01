@@ -2,7 +2,7 @@
 
 ## Sources
 
-The canonical API source is `https://opencode.ai/v2/docs/build/plugins.md`.
+The canonical API source is `https://opencode.ai/v2/docs/build/plugins`.
 The runtime supplement records behavior verified from the matching OpenCode V2
 source and installed CLI; it is not an API replacement.
 
@@ -18,13 +18,11 @@ source and installed CLI; it is not an API replacement.
    and visible-slot plugins. Use fresh processes and retain renderer evidence.
 4. Keep host module aliases, dependency boundaries, physical package layout,
    and CLI-file ownership only while source and runtime evidence agree.
-5. Update lifecycle-selection, migration, package-directory, dependency, and
+5. Recheck registry schemas with an omitted optional property and a present `undefined` property. Preserve the distinction only while the matching runtime rejects the latter.
+6. Recheck the matching event subscription contract, iterator cleanup behavior, hot reload disposal, and event delivery from plugin-owned top-level sessions. Preserve the exact-iterator cleanup and self-output exclusion rules while runtime evidence supports them.
+7. Update lifecycle-selection, migration, package-directory, dependency, and
    crash-diagnosis scenarios when behavior changes.
 
 ## Verification
 
-Check frontmatter, catalog registration, profile enablement, and every local
-reference link. Test representative server and TUI plugin requests against a
-fresh V2 runtime. For native TUI work, inspect active state and execute a visible
-contribution; neither agent summary, TypeScript compilation, nor active status
-alone proves rendering.
+Check frontmatter, catalog registration, profile enablement, and every local reference link. Test representative server and TUI plugin requests against a fresh V2 runtime. For event-driven server plugins, trigger one action before and after reload, confirm that plugin-owned output does not retrigger the plugin, and query `/api/model`. For native TUI work, inspect active state and execute a visible contribution; neither agent summary, TypeScript compilation, nor active status alone proves rendering.

@@ -6,6 +6,7 @@
 - `references/openai-skill-creation.md` is the required agent-agnostic planning adaptation for examples, freedom, reusable resources, and layered validation.
 - `references/opencode-commands.md` owns the conditional OpenCode command format, substitution, and invocation guidance. Refresh it against the OpenCode reference repository when command behavior changes.
 - `references/testing-workflow.md` owns the harness-neutral live-evidence contract, not CLI commands or session-store mechanics.
+- Subagent evaluation guidance in `SKILL.md` owns prompt neutrality, fresh versus staged workers, complexity variation, and evidence boundaries; keep harness execution mechanics in `references/testing-workflow.md`.
 
 Keep each role distinct. Skill Authoring owns behavior, authority, authoring record resolution, the four-file lifecycle, and evidence. Writing for Agents owns runtime writing quality. The OpenAI adaptation owns examples, degrees of freedom, reusable-resource planning, and layered validation.
 

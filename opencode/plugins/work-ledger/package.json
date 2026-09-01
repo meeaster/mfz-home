@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "name": "mindframe-z-work-ledger",
+  "private": true,
+  "description": "Session-to-ledger bindings for the OpenCode V2 server and TUI",
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./index.ts",
+    "./tui": "./src/tui.ts"
+  },
+  "scripts": {
+    "check": "pnpm run typecheck && pnpm run test",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "0.0.0-beta-17823",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.13.2",
+    "effect": "4.0.0-rc.112",
+    "opencode-drive": "2.0.0",
+    "typescript": "6.0.3",
+    "vitest": "4.1.9"
+  }
+}

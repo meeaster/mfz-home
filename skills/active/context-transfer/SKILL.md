@@ -69,19 +69,13 @@ the consumer's context and irrelevant production context has none.
 
 ## 3. Shape For The Consumer
 
-For a primarily human consumer, lead with the point, significance, confidence,
-and requested decision or action. Explain unfamiliar context proportionally and
-keep mechanical detail only when it helps the human use or evaluate the artifact.
+For a primarily human or mixed consumer, read
+[`references/human-consumers.md`](references/human-consumers.md).
 
 For a primarily agent consumer, preserve exact inputs, accessible paths or
 locators, versions, constraints, authority boundaries, expected outcomes,
 verification, and stop conditions needed for reliable action. Greater detail is
 useful only when it changes execution.
-
-For mixed or likely secondary consumption, let the primary consumer control the
-artifact. Add clear structure and explicit claims that help another consumer
-without turning a human report into an agent runbook or an agent plan into an
-essay.
 
 The consumer axis and environment axis are independent. Local paths can be the
 best references for an agent guaranteed the same workspace and broken references
@@ -117,23 +111,9 @@ leaves a required dependency hidden.
 
 ## 5. Produce Through The Owning Workflow
 
-When another skill owns the artifact, apply this transfer contract within that
-skill's format, storage, review, authority, and publication workflow. Its
-authority contract governs whether the requested work remains local or may write
-to an external draft or destination. Do not replace its artifact-specific
-semantics with a generic template.
-
-When no specialized workflow owns the artifact, create the smallest content-
-shaped artifact that fulfills the intended use in the requested destination.
-Distinguish source facts, interpretation, proposals, and uncertainty whenever
-flattening them would mislead the consumer. Keep production history out unless
-the artifact's purpose requires it. On this generic path, an explicit request to
-draft or revise authorizes only that draft or local edit. Without separate
-explicit authority, do not commit, push, send, upload, publish, or call an
-external write API.
-
-**Done when:** the artifact satisfies both its transfer contract and its owning
-format without duplicated or conflicting process.
+For artifact workflow ownership, generic artifact creation, or write authority,
+read
+[`references/artifact-workflows.md`](references/artifact-workflows.md).
 
 ## 6. Run The Cold-Consumer Test
 

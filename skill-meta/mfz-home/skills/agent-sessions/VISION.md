@@ -17,11 +17,12 @@ investigates, reconstructs, audits, or incrementally reads sessions through a
 common coverage discipline and harness-specific adapters. It begins with cheap
 structure, spends transcript tokens according to the requested mode, preserves
 evidence locators and topology, and exposes incomplete or mutable state.
-For OpenCode it can also derive a body-free, per-turn cost estimate from persisted
-usage and an explicit models.dev pricing snapshot. The body-free cost adapter
-detects validated V1 and V2 SQLite schemas. OpenCode V2 transcript archaeology
-remains API-first; V1 SQLite extraction and V2 service API evidence remain
-distinct adapters.
+For OpenCode it uses flexible read-only SQL for question-driven archaeology when
+an explicit filesystem database is available, while retaining the service API as
+the backend-independent semantic boundary and deterministic adapters for
+correctness-sensitive workflows. It can also derive a body-free, per-turn cost
+estimate from persisted usage and an explicit models.dev pricing snapshot. The
+body-free cost adapter detects validated V1 and V2 SQLite schemas.
 
 Dependent skills may use its evidence to produce briefs, captures, handoffs,
 evaluations, or other artifacts. Those skills retain ownership of synthesis,
@@ -41,6 +42,10 @@ transcript ingestion. An exhaustive request cannot finish while requested scope
 is silently unverified. A dependent workflow can resume from stable, per-stream
 creation and update cursors without rereading prior content or missing changed
 messages or running tools.
+A filesystem-backed OpenCode investigation can use joins, grouping, JSON
+projection, and subqueries shaped around the question instead of paying for a
+fixed CLI extraction sequence, while unknown and non-filesystem backends still
+route through the service API.
 A cost request receives one total plus main-session, descendant-session, and
 per-model breakdowns without reconstructing transcript content or pretending
 current catalog prices are a historical invoice.

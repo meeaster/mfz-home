@@ -1,5 +1,22 @@
 # Log
 
+## 2026-08-19 - SQL-First OpenCode V2 Archaeology
+
+- Made read-only SQL the normal question-driven evidence interface when an
+  explicit filesystem database path is available, while retaining the V2 API for
+  unknown or non-filesystem backends and service-owned semantics.
+- Documented the current `session_v2` and JSON-backed `session_message` schema,
+  sequence ordering, compaction boundary, WAL-safe read-only access, bounded JSON
+  projection, and reasoning exclusion.
+- Resolve a requested session ID to V1 or V2 instead of treating coexisting table
+  families in a migrated database as an ambiguity.
+- Kept the V1 evidence extractor scoped to `session`, `message`, and `part`, and
+  retained deterministic adapters for pinning, exhaustive traversal, privacy,
+  and cost attribution rather than forcing exploratory V2 retrieval through CLI
+  commands.
+- Added behavioral scenarios that distinguish SQL-first V2 investigation and
+  reconstruction from justified API fallback.
+
 ## 2026-08-18 - Unified V1 And V2 Session Cost
 
 - Kept one cost executable and added schema-specific internal adapters selected

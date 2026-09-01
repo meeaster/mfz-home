@@ -32,6 +32,16 @@ paths as guaranteed context, preserves exact files, symbols, commands,
 constraints, verification, and stop conditions, and does not replace actionable
 local references with less useful generic prose.
 
+## Native Subagent Prompt
+
+**Prompt:** Delegate a bounded repository task to a native subagent that does not
+share the parent conversation.
+
+**Assertions:** The agent loads `context-transfer`, carries the exact inputs,
+accessible paths, assumptions, constraints, authority, expected outcome,
+verification, and stop conditions needed by the subagent, and does not open the
+human-consumer or artifact-workflow references.
+
 ## Agent On Another Machine
 
 **Prompt:** Prepare the same plan for an agent with a fresh clone on another

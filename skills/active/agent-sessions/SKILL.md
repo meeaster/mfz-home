@@ -38,11 +38,14 @@ Choose the least expensive mode that can answer the request:
 - **Cost** recalculates current-catalog API cost for one session and its recursive
   descendants without reading transcript bodies.
 
-For OpenCode V2 transcript archaeology, use the running service API as the
-authoritative session source. The cost calculator is a body-free exception: it
-detects validated V1 or V2 SQLite schemas from an explicit database path. The V1
-evidence extractor remains V1-only; do not apply its table, cursor, or
-message-shape assumptions to V2 sessions.
+For OpenCode, choose the evidence source from the task and live backend. When an
+explicit filesystem SQLite path is available, use read-only SQL as the normal
+interface for locating, outlining, investigating, and reconstructing sessions.
+Use the service API when the path or backend is unknown, or when the question
+depends on service-owned semantics. Use bundled adapters when their validation,
+pinning, traversal, or attribution invariants matter. The V1 evidence extractor
+remains V1-only; V2 uses `session_v2` and JSON-backed `session_message` rather
+than the V1 `session`, `message`, and `part` contract.
 
 Treat requests containing `complete`, `fully`, `all`, `audit`, or `refreshable`
 as exhaustive for their declared scope. Do not silently downgrade them to a
@@ -55,8 +58,8 @@ sampled investigation.
 Use the requested harness, session ID, store root, export, or recency clue. Load
 only the matching adapter:
 
-- [OpenCode](references/opencode.md) for the OpenCode V2 service API, V1 and V2
-  cost stores, V1 evidence stores, and exported OpenCode JSON.
+- [OpenCode](references/opencode.md) for V1 and V2 SQLite, the V2 service API,
+  bundled adapters, and exported OpenCode JSON.
 - [Claude Code](references/claude-code.md) for JSONL stores and nested subagents.
 
 For another harness or supplied transcript, inspect its live shape and apply the
@@ -89,18 +92,26 @@ as incomplete and must not become the final answer.
 
 Pull structural summaries before content: identity, timestamps, counts, record
 types, tool/status aggregates, child metadata, boundaries, final records, and
-short previews. Prefer bundled extractors or structured queries over repeated
-ad hoc reads.
+short previews. For an explicit OpenCode SQLite store, inspect its schema once,
+then compose bounded read-only SQL around the question instead of translating
+every investigation into fixed CLI commands. Query extracted JSON fields and
+short previews; count and locate reasoning without selecting its text.
 
-For model-driven reconstruction or audit of an OpenCode parent plus direct
-children, use one compact Bundle `reconstruction` view as the first and only
-structural pass. It already owns Outline, topology discovery, grouped counts,
-compactions, mutable-state checks, and internal Delta pagination for that pin.
-Use exact record IDs for consequential content missing from the projection; do
-not repeat those structural queries. A dependent artifact workflow that consumes
-the four raw streams uses Bundle `full` instead.
+For V2 SQLite, order messages by `seq`, distinguish all history from the active
+context after the latest completed compaction, and keep one read transaction when
+the requested coverage needs a stable snapshot. For exploratory questions, let
+SQL joins, grouping, JSON projection, and subqueries follow the evidence rather
+than imposing a predetermined extraction shape.
 
-For a narrow OpenCode tool question, Outline identifies the part and one
+For V1 model-driven reconstruction or audit of a parent plus direct children,
+use one compact Bundle `reconstruction` view as the first and only structural
+pass. It owns Outline, topology discovery, grouped counts, compactions,
+mutable-state checks, and internal Delta pagination for that pin. Use exact
+record IDs for consequential content missing from the projection; do not repeat
+those structural queries. A dependent artifact workflow that consumes the four
+raw streams uses Bundle `full` instead.
+
+For a narrow V1 OpenCode tool question, Outline identifies the part and one
 `tool-context` call returns that exact tool, its owning message, and the nearest
 preceding multipart user request under one pin. Do not re-read those records.
 
@@ -126,9 +137,12 @@ verify every requested session and relevant child, every bounded page, every
 boundary, terminal cursor, and mutable running state. Do not equate a supported
 narrative with complete requested coverage.
 
-After any post-Bundle content read, reuse the original exact Bundle state once
-before finalizing. A session-wide text or tool query is not a targeted read:
-follow explicit record IDs and correct any broader query before reporting.
+For an exhaustive SQL read of an active store, keep the evidence in one read
+transaction or recheck the terminal sequence and scoped counts before finalizing;
+report movement as a gap rather than mixing snapshots. After any post-Bundle
+content read, reuse the original exact Bundle state once before finalizing. A
+session-wide text or tool query after Bundle is not a targeted read: follow exact
+record IDs and correct any broader query before reporting.
 
 **Done when:** no requested ledger item remains silently unverified.
 

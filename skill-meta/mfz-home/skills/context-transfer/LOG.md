@@ -27,3 +27,10 @@
   without a specialized owner.
 - Refreshed Jira Writer and Confluence Writer evaluations for their current TWG
   workflows without adding host-specific behavior to the runtime skill.
+
+## 2026-08-24 - Disclose Consumer And Workflow Branches
+
+- Kept the transfer contract, agent-consumer guidance, proportional references,
+  and cold-consumer test in the main skill for routine subagent prompts.
+- Moved existing human-consumer and artifact-workflow prose into conditional
+  references without changing its behavior.

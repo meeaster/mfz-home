@@ -2,11 +2,7 @@
 
 ## Problem
 
-OpenCode V2 plugins have a beta API and separate server and native TUI loading
-paths. Agents can accidentally apply V1 patterns, misplace plugin-local runtime
-dependencies, duplicate host-provided dependencies, transfer the server Effect
-contract to native TUI plugins, or replace CLI-owned configuration while trying
-to make a local plugin load.
+OpenCode V2 plugins have a beta API and separate server and native TUI loading paths. Agents can accidentally apply V1 patterns, misplace plugin-local runtime dependencies, duplicate host-provided dependencies, transfer the server Effect contract to native TUI plugins, register values that fail the host schema, leak event consumers across reloads, recursively react to plugin-owned output, or replace CLI-owned configuration while trying to make a local plugin load.
 
 ## Intended Behavior
 
@@ -18,10 +14,7 @@ and review of server and native TUI plugins.
 
 ## Success
 
-An agent selects the right V2 surface, reads the current API before coding,
-preserves configuration ownership, makes dependencies resolve from the rendered
-entrypoint, and verifies fresh server behavior or an executed TUI contribution
-rather than treating typechecking or plugin status as proof.
+An agent selects the right V2 surface, reads the current API before coding, preserves configuration ownership, makes dependencies resolve from the rendered entrypoint, and verifies fresh server behavior or an executed TUI contribution rather than treating typechecking or plugin status as proof. Plugin-generated values satisfy the matching runtime schema without present-but-undefined optional properties. Event-driven plugins close their exact subscriptions, exclude their own output, remain single-action after reload, and leave model discovery healthy after real execution.
 
 ## Non-Goals
 

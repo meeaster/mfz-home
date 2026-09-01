@@ -10,7 +10,7 @@ Consequential work sometimes needs an independent quality-first judgment, but mo
 
 The agent has no custom system prompt. It inherits OpenCode's provider prompt and ordinary environment context. Its configured Sol/high model is the current quality-first review policy, while the role-based name remains stable if that policy changes.
 
-The reviewer returns prioritized, evidence-backed findings and identifies unsupported concerns. It does not implement fixes, own acceptance, expand requirements, or commission another agent. Permissions deny by default and allow only read, search, source lookup, skill loading, and session identification. The parent supplies the review boundary and validation evidence, then adjudicates findings and decides whether remediation is warranted.
+The reviewer returns prioritized, evidence-backed findings and identifies unsupported concerns. It does not implement fixes, own acceptance, expand requirements, or commission another agent. It inherits global capabilities, including shell access for efficient inspection, while agent-specific rules deny file-editing tools. The parent supplies the review boundary and available validation evidence, then adjudicates findings and decides whether remediation is warranted.
 
 Review cadence belongs to the invoking workflow. Risk, accumulated scope, subsystem boundaries, or final verification may justify a review; the existence of a worker result alone does not.
 

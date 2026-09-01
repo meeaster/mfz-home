@@ -110,6 +110,20 @@ When the user asks to execute a live harness scenario, verify runtime behavior f
 
 Complete this phase when every applicable scenario has a result or an explicit untested status and every remaining sentence is behaviorally justified.
 
+### Evaluate With Subagents
+
+Use subagents when independent implementation work, fresh context, or a staged change will produce stronger evidence than one continuous run.
+
+- Prompt the task as a normal user would. State the requested outcome, relevant context, and only operational guardrails such as an isolated workspace, no credentials, and no real external side effects.
+- Do not name the skill, prescribe its principles, prohibit specific implementation choices, or require particular tests, tools, abstractions, or verification commands when those choices are part of the behavior under evaluation.
+- Keep the fixture, harness, model, effort, skill revision, and assertions aligned when comparing runs. Change one evaluation variable at a time.
+- Use a fresh subagent for an independent run. For a staged scenario, let the first subagent establish the starting implementation, then give a second subagent an ordinary follow-up request in the same isolated workspace. Inspect the combined diff and each session rather than treating the second agent's summary as proof.
+- Vary task complexity and requirement shape. Include small direct changes, ambiguous or feature-rich requests, existing code, persisted data, and follow-up requirements that create real variation.
+- Let the agent choose whether tests, type checks, benchmarks, schemas, abstractions, or other verification are warranted. Judge the resulting evidence, not compliance with a test script embedded in the prompt.
+- Inspect artifacts, diffs, command traces, and preserved files. Record what the agent did, what it avoided, and whether the behavior matches the scenario's observable assertions.
+- Treat self-reported skill use as a claim, not evidence. Confirm loading from the trace when invocation behavior matters, and confirm execution from artifacts and commands.
+- Classify findings as skill benefit, skill harm, model variance, evaluation defect, environment noise, or inconclusive evidence. Revise the skill only for a supported steering defect, then rerun the same scenario and an adjacent regression scenario.
+
 ## 6. Hand Off
 
 For implementation, present the created or changed files, behavioral rationale, validation performed, unresolved uncertainty, and any installation or promotion work still requiring approval.

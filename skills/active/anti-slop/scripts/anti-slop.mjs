@@ -8,15 +8,22 @@ const skillDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const sourceDir = join(skillDir, "vendor", "anti-slop");
 const args = process.argv.slice(2);
 if (args.length === 0 || args[0] === "--help") {
-	console.error("Usage: anti-slop.mjs <target-path>");
+	console.error("Usage: anti-slop.mjs <target-path> [--effect]");
 	process.exit(args.length === 0 ? 2 : 0);
 }
 
-const target = resolve(args.shift());
-if (args.length > 0) {
-	console.error(`anti-slop: unsupported argument: ${args[0]}`);
+const effect = args.includes("--effect");
+const positionalArgs = args.filter((arg) => arg !== "--effect");
+const unsupportedArg = positionalArgs.find((arg) => arg.startsWith("--"));
+if (unsupportedArg !== undefined) {
+  console.error(`anti-slop: unsupported argument: ${unsupportedArg}`);
+  process.exit(2);
+}
+if (positionalArgs.length !== 1) {
+	console.error(`anti-slop: expected one target path${positionalArgs.length > 1 ? `, got ${positionalArgs.length}` : ""}`);
 	process.exit(2);
 }
+const target = resolve(positionalArgs[0]);
 if (!existsSync(target)) {
   console.error(`anti-slop: target does not exist: ${target}`);
   process.exit(2);
@@ -26,6 +33,7 @@ const tempDir = mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "anti-slop-"));
 const config = join(tempDir, "oxlint.json");
 const runtimeDir = join(tempDir, "plugin");
 const plugin = join(runtimeDir, "index.ts");
+const effectPlugin = join(runtimeDir, "effect", "index.ts");
 const rules = [
   "no-chained-type-assertions",
   "no-conditional-empty-object-spread",
@@ -54,11 +62,16 @@ if (!misePackageRoot || !oxlint) {
   process.exit(2);
 }
 cpSync(sourceDir, runtimeDir, { recursive: true });
+if (effect) {
+  cpSync(join(sourceDir, "effect"), join(runtimeDir, "effect"), { recursive: true });
+}
 mkdirSync(join(runtimeDir, "node_modules", "@oxlint"), { recursive: true });
 symlinkSync(join(misePackageRoot, "node_modules", "@oxlint", "plugins"), join(runtimeDir, "node_modules", "@oxlint", "plugins"));
+const enabledRules = Object.fromEntries(rules.map((rule) => [`anti-slop/${rule}`, "error"]));
+if (effect) enabledRules["anti-slop-effect/no-service-constructor-imports"] = "error";
 writeFileSync(config, JSON.stringify({
-  jsPlugins: [plugin],
-  rules: Object.fromEntries(rules.map((rule) => [`anti-slop/${rule}`, "error"])),
+  jsPlugins: effect ? [plugin, effectPlugin] : [plugin],
+  rules: enabledRules,
 }, null, 2));
 
 let exitCode = 1;

@@ -3,6 +3,9 @@ description: Executes bounded implementation, focused remediation, difficult inv
 mode: subagent
 permission:
   todowrite: deny
-  task: deny
+  task:
+    "*": deny
+    explore: allow
+    research: allow
   delegate_general: deny
 ---

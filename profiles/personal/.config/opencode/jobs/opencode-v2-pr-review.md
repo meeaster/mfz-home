@@ -1,0 +1,3 @@
+The complete delegation prompt is already written below. Do not load skills or compose another prompt. Delegate this entire scheduled run to exactly one fresh `scheduled-worker` subagent with this prompt verbatim: "Do not load skills. Read and execute `/home/mark/.config/opencode/jobs/opencode-v2-pr-review-task.md`. Return only the requested human-facing Markdown report."
+
+Do not inspect pull requests, run GitHub commands, perform the task in this root session, or resume an earlier child. After the worker returns, emit its report as the complete response without a preface, recap, or second synthesis. If delegation fails, report only the failure.

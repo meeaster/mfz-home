@@ -1,3 +1,7 @@
+## Host Environment
+
+You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `tasklist.exe`, anything on Windows `PATH`) are reachable from this shell; invoke them directly for Windows-side work.
+
 ## Documentation Sources
 
 - For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
@@ -16,17 +20,16 @@
 - Flag documentation made obsolete by code changes and avoid hardcoded counts.
 - Push back on flawed assumptions and ask when intent is unclear.
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
-- Bash permissions match exact shell text. Prefer narrow, reusable read-only commands; prefixes, wrappers, and chaining may require separate approval.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
-- When tests are warranted, prefer repeatable tests for observable behavior over mocks of internal implementation details.
+- Load `development-principles` whenever designing, implementing, testing, refactoring, coordinating, or reviewing software work. Apply it proportionally after repository instructions and accepted requirements; it guides the development loop but does not override them.
 
 ## Subagent Use
 
 - Use `explore` and `research` proactively for bounded, read-only discovery or evidence gathering when they materially reduce uncertainty.
 - Treat `worker` as a user-authorized mutation lane. Do not create or resume one merely because work remains.
-- Treat `reviewer` as a user-authorized independent-judgment lane. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
+- Treat `reviewer` as a user-authorized independent-judgment lane. When it reviews code, require it to load `thermo-nuclear-code-quality-review` and use that skill as its review guidance. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
 - A request to continue permits ongoing work, but does not by itself authorize a new or resumed `worker` or `reviewer`.
-- Before creating a subagent prompt, load `context-transfer` and use it to define what must cross the fresh-context boundary.
+- Before creating a subagent prompt, ensure `context-transfer` has been loaded in the current session, then use it to define what must cross the fresh-context boundary. Do not reload it unless its guidance may have changed since it was loaded.
 - Give the subagent the exact accessible repository paths or other locators it needs, and name relevant skills for it to load; do not rely on conversation context, implicit paths, or skills the child cannot discover.
 - Carry the task scope, accepted decisions, constraints, authority boundary, expected outcome, verification commands, and stop conditions into the prompt. Include only context that changes the child’s execution.
 - In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode2 run` for testing the CLI, a separate process, isolation, or fresh top-level context.
@@ -40,7 +43,7 @@
 ## Code Conventions
 
 - Do not use `isRecord`-style guard helpers; understand the code path types directly, and when input shape is uncertain validate it once at the boundary with a schema instead of scattering guards through the logic.
-- After completing a batch of JavaScript or TypeScript edits, load `anti-slop` and run it once as a final verification checkpoint against the narrowest path containing the changes. Address in-scope diagnostics, then rerun after any resulting edits.
+- Before editing JavaScript or TypeScript, load `anti-slop` for its short preflight heuristics. After completing the batch, including delegated or subagent work, run it against the narrowest changed source or test path. The checkpoint must be clean for in-scope code: address diagnostics, remove source directives that suppress anti-slop rules, and rerun after edits. Do not scan dependencies or generated output, widen the change merely to silence a diagnostic, or claim a clean checkpoint while an in-scope suppression remains.
 
 ## WSL + Chrome/agent-browser
 

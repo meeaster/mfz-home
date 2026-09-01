@@ -96,3 +96,6 @@ references:
   - name: buzz
     url: https://github.com/block/buzz.git
     description: "Rust workspace and desktop, web, and mobile clients for a Nostr-based collaboration relay connecting people, coding agents, channels, workflows, Git, and media. Inspect it for relay behavior, ACP agent integration, event ingestion and fan-out, mobile pairing, or self-hosted deployment. Main crates: buzz-relay and buzz-acp."
+  - name: opencode-plugins
+    url: https://github.com/kitlangton/opencode-plugins.git
+    description: "TypeScript/Bun monorepo for OpenCode V2 TUI plugins. Inspect it for pull-request and CI tracking in the sidebar, session recap behavior, plugin packaging, or local hot-reload development. Main packages: packages/pr-tracker and packages/session-recap."
