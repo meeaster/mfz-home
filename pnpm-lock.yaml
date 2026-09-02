@@ -81,8 +81,8 @@ importers:
   opencode/plugins/subagent-usage:
     devDependencies:
       '@opencode-ai/plugin':
-        specifier: 0.0.0-beta-18743
-        version: 0.0.0-beta-18743(@opentui/core@0.5.2(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(solid-js@1.9.10)
+        specifier: 0.0.0-beta-18866
+        version: 0.0.0-beta-18866(@opentui/core@0.5.2(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(solid-js@1.9.10)
 
   opencode/plugins/work-ledger:
     dependencies:
@@ -422,6 +422,9 @@ packages:
   '@opencode-ai/ai@0.0.0-beta-18743':
     resolution: {integrity: sha512-CB/E7RGAGJze8HJt/2F0qNDcHBSmMYA6UboJepY7QpBhJ6uFmhak8ufcECFUoQ/ofbjDSH99E5uH1RLHpvVIjQ==}
 
+  '@opencode-ai/ai@0.0.0-beta-18866':
+    resolution: {integrity: sha512-Id2GgVEQ7qPPUq8vtWvg3BMSbclztw/Fbt2XTbboAFuwf4Z/+VUS6k99KUvE1jXl3IxX7S/7V7nVUUvZhB8ckA==}
+
   '@opencode-ai/client@0.0.0-beta-17823':
     resolution: {integrity: sha512-pM/5ZthFe4o+j42EIzG31QsucQhY5pLikoC58fT+J5LIbvvkDaKn1pPxGqeh31B61LSv3qiD+FbYOzesH8b7dQ==}
     peerDependencies:
@@ -446,6 +449,17 @@ packages:
 
   '@opencode-ai/client@0.0.0-beta-18743':
     resolution: {integrity: sha512-iNWpgNw/YsboXkrVn6VtUvclhh9UVF6zIoLEdvgtLeaZ/dUovALECH1+xwG9u5e4GgK3x37mjKweSozjjMKwFA==}
+    peerDependencies:
+      effect: 4.0.0-rc.112
+      solid-js: '>=1.9.0'
+    peerDependenciesMeta:
+      effect:
+        optional: true
+      solid-js:
+        optional: true
+
+  '@opencode-ai/client@0.0.0-beta-18866':
+    resolution: {integrity: sha512-tDo7t4+mmcSlGkhmkGGQCCAOiF0x+44yBkdypKCyfKMT4kfLNQqy4FNY2J9nQiz1RzeT6kXZXltJsMDvCYtSQw==}
     peerDependencies:
       effect: 4.0.0-rc.112
       solid-js: '>=1.9.0'
@@ -520,6 +534,23 @@ packages:
       solid-js:
         optional: true
 
+  '@opencode-ai/plugin@0.0.0-beta-18866':
+    resolution: {integrity: sha512-ABqNR38oremmn5MFC81bQEdrtkQ/0n72PjFGaCYnuyXPVK77ySkg+WlKAmtyVoZjLc8SNK9Ju48h2Kk9BeAXhg==}
+    peerDependencies:
+      '@opencode-ai/theme': 0.0.0-beta-18866
+      '@opentui/core': '>=0.5.9'
+      '@opentui/solid': '>=0.5.9'
+      solid-js: '>=1.9.0'
+    peerDependenciesMeta:
+      '@opencode-ai/theme':
+        optional: true
+      '@opentui/core':
+        optional: true
+      '@opentui/solid':
+        optional: true
+      solid-js:
+        optional: true
+
   '@opencode-ai/plugin@1.18.18':
     resolution: {integrity: sha512-vqQeqJtn9c+J+tIQDzYk88xip/NVNN1hym1ATmckxo6zINHAoXoul4Sw/jgnvL00rLsfAvhja28qax4h3g/5Jg==}
     peerDependencies:
@@ -543,6 +574,9 @@ packages:
   '@opencode-ai/protocol@0.0.0-beta-18743':
     resolution: {integrity: sha512-hE/tg0ag+l+UYoWrnw3i9gaatVVIhP8/b+Hdz/vII5PvqV+pjzGNyUZUGqOqDVYS96fOPaNjeh+XRgQ+iQP7eA==}
 
+  '@opencode-ai/protocol@0.0.0-beta-18866':
+    resolution: {integrity: sha512-8HUhu6IqUb7Q5gdA96T3INorXQ9NSGGfRzHNCYBmv4vtDPefO5HtRdEtkMG8tZqqLwAQsgeBw1lsD5QqSyHaCQ==}
+
   '@opencode-ai/protocol@0.0.0-dev-18535':
     resolution: {integrity: sha512-hNk03O1c6cHFaQrArbL7ATEIPptFmlvBkIfsesXhiJG3jBwtZg/JX8937+5XHMI/55c6BGW0QQl45QXelTHw2w==}
 
@@ -554,6 +588,9 @@ packages:
 
   '@opencode-ai/schema@0.0.0-beta-18743':
     resolution: {integrity: sha512-w+Df3oNf0HvLxyfY6vpw8dB8EMhjdF96bjUePOMDLEzich6lFb5IBuzyd4T0jG9wMSfbDi01CTz7ZZYKM2+IwQ==}
+
+  '@opencode-ai/schema@0.0.0-beta-18866':
+    resolution: {integrity: sha512-mKNtEABrXqU0WzubeAaCrfex3rndHRqVD/dqWKuH/UV6hOe7eDENG5fenJ3aj3OJEqjvEpkbDNRMReJPlmy8wA==}
 
   '@opencode-ai/schema@0.0.0-dev-18535':
     resolution: {integrity: sha512-O4oUxyMESm+IVKvP2/DM+mi4fGzzaAto9K0QzQxwcC3Pv1jd1CUfn69p6FywVUn60hI4EIlr+FoXcyHyaCltZA==}
@@ -2248,6 +2285,17 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@opencode-ai/ai@0.0.0-beta-18866':
+    dependencies:
+      '@opencode-ai/schema': 0.0.0-beta-18866
+      '@smithy/eventstream-codec': 4.2.14
+      '@smithy/util-utf8': 4.2.2
+      aws4fetch: 1.0.20
+      effect: 4.0.0-rc.112
+      google-auth-library: 10.5.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@opencode-ai/client@0.0.0-beta-17823(effect@4.0.0-rc.110)(solid-js@1.9.10)':
     dependencies:
       '@opencode-ai/protocol': 0.0.0-beta-17823
@@ -2279,6 +2327,14 @@ snapshots:
     optionalDependencies:
       effect: 4.0.0-rc.112
       solid-js: 1.9.12
+
+  '@opencode-ai/client@0.0.0-beta-18866(effect@4.0.0-rc.112)(solid-js@1.9.10)':
+    dependencies:
+      '@opencode-ai/protocol': 0.0.0-beta-18866
+      '@opencode-ai/schema': 0.0.0-beta-18866
+    optionalDependencies:
+      effect: 4.0.0-rc.112
+      solid-js: 1.9.10
 
   '@opencode-ai/client@0.0.0-dev-18535(effect@4.0.0-rc.112)(solid-js@1.9.10)':
     dependencies:
@@ -2358,6 +2414,23 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@opencode-ai/plugin@0.0.0-beta-18866(@opentui/core@0.5.2(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(solid-js@1.9.10)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@opencode-ai/ai': 0.0.0-beta-18866
+      '@opencode-ai/client': 0.0.0-beta-18866(effect@4.0.0-rc.112)(solid-js@1.9.10)
+      '@opencode-ai/protocol': 0.0.0-beta-18866
+      '@opencode-ai/schema': 0.0.0-beta-18866
+      '@standard-schema/spec': 1.1.0
+      effect: 4.0.0-rc.112
+      zod: 4.1.8
+    optionalDependencies:
+      '@opentui/core': 0.5.2(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      '@opentui/solid': 0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      solid-js: 1.9.10
+    transitivePeerDependencies:
+      - supports-color
+
   '@opencode-ai/plugin@1.18.18(@opentui/core@0.5.2(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/keymap@0.4.3(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))':
     dependencies:
       '@ai-sdk/provider': 3.0.8
@@ -2384,6 +2457,11 @@ snapshots:
       '@opencode-ai/schema': 0.0.0-beta-18743
       effect: 4.0.0-rc.112
 
+  '@opencode-ai/protocol@0.0.0-beta-18866':
+    dependencies:
+      '@opencode-ai/schema': 0.0.0-beta-18866
+      effect: 4.0.0-rc.112
+
   '@opencode-ai/protocol@0.0.0-dev-18535':
     dependencies:
       '@opencode-ai/schema': 0.0.0-dev-18535
@@ -2400,6 +2478,11 @@ snapshots:
       effect: 4.0.0-rc.111
 
   '@opencode-ai/schema@0.0.0-beta-18743':
+    dependencies:
+      '@standard-schema/spec': 1.1.0
+      effect: 4.0.0-rc.112
+
+  '@opencode-ai/schema@0.0.0-beta-18866':
     dependencies:
       '@standard-schema/spec': 1.1.0
       effect: 4.0.0-rc.112

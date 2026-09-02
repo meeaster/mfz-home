@@ -255,7 +255,8 @@ The current native agent assignments are:
 
 ```text
 worker: openai/gpt-5.6-luna@max
-reviewer: openai/gpt-5.6-sol@high
+reviewer: openai/gpt-5.6-sol@high (Personal), openai/gpt-5.6-terra@high (Work)
+pr-reviewer: openai/gpt-5.6-sol@high
 explore: openai/gpt-5.6-luna@high
 research: openai/gpt-5.6-luna@high
 session-analyst: openai/gpt-5.6-luna@high
@@ -264,11 +265,13 @@ prototype: openai/gpt-5.6-terra@max (base), openai/gpt-5.6-sol@medium (Personal)
 
 Agent descriptions route by task shape rather than model rank. The model and
 variant remain configuration policy: `worker` is the bounded execution lane,
-`reviewer` is the independent quality-first judgment lane, `explore` and
-`research` retain their specialized discovery scopes, `session-analyst`
-executes the read-only Agent Sessions evidence workflow, and `prototype` builds
-throwaway decision artifacts through the existing `prototype` skill. Workflow
-prompts own task-specific briefs, review cadence, and acceptance.
+`reviewer` is the focused independent judgment lane, `pr-reviewer` performs
+holistic due diligence when a pull request's intent, design, or validation must
+be reconstructed and challenged, `explore` and `research` retain their
+specialized discovery scopes, `session-analyst` executes the read-only Agent
+Sessions evidence workflow, and `prototype` builds throwaway decision artifacts
+through the existing `prototype` skill. Workflow prompts own task-specific
+briefs, review cadence, and acceptance.
 
 The permanent `prototype` assignment comes from a matched five-candidate
 evaluation recorded in `docs/prototype-agent-evaluation.md`. The temporary

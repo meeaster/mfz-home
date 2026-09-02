@@ -14,6 +14,13 @@ skills:
       reviewing software work. Guides happy-path-first design, evidence-based
       complexity, phase-aware scope, stable-boundary tests, and bounded
       code-health improvement.
+  - name: pr-review
+    source: local
+    skill: active/pr-review
+    description: >
+      Perform holistic merge due diligence on an unfamiliar or unobserved pull
+      request by reconstructing intent, challenging requirement and architecture
+      fit, testing simplification, and assessing validation evidence.
   - name: effect
     description: >
       Opinionated guide for building production TypeScript applications with

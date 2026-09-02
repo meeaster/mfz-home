@@ -1,4 +1,4 @@
-import type { Plugin } from "@opencode-ai/plugin";
+import { Plugin } from "@opencode-ai/plugin";
 
 import { loadCatalog, priceTokens, type Catalog, type ModelRef, type Tokens } from "./pricing.js";
 
@@ -49,44 +49,48 @@ export function appendUsageContent(
   return `${content}\n${usage}`;
 }
 
-export default {
-  id: "subagent-usage",
-  setup: async (context) => {
-    const invocations = new Map<string, Invocation>();
-    const claimedChildren = new Map<string, string>();
-    const models = new Map<string, ModelRef>();
-    const pricedSessions = new Map<string, number>();
-    const events = context.event.subscribe()[Symbol.asyncIterator]();
-    const consume = (async () => {
-      for (;;) {
-        const next = await events.next();
-        if (next.done) return;
-        const event = next.value;
-        if (event.type === "session.step.started") {
-          models.set(event.data.assistantMessageID, event.data.model);
-          continue;
-        }
-        if (event.type === "session.usage.updated") {
-          for (const invocation of invocations.values()) {
-            if (!invocation.childID || invocation.childID === event.data.sessionID) {
-              invocation.projections.set(event.data.sessionID, event.data.tokens);
-            }
-          }
-          continue;
-        }
-        const usage =
-          event.type === "session.step.ended"
-            ? usageFor(event.data.sessionID, event.data.assistantMessageID, event.data.tokens, true, models)
-            : event.type === "session.step.failed" && event.data.cost !== undefined && event.data.tokens !== undefined
-              ? usageFor(event.data.sessionID, event.data.assistantMessageID, event.data.tokens, false, models)
-              : undefined;
-        if (!usage) continue;
-        for (const invocation of invocations.values()) {
-          if (!invocation.childID || invocation.childID === usage.sessionID) invocation.usage.push(usage);
-        }
+export async function setupSubagentUsage(
+  context: Plugin.Context,
+  loadCatalogFn: () => Promise<Catalog> = loadCatalog,
+) {
+  const invocations = new Map<string, Invocation>();
+  const claimedChildren = new Map<string, string>();
+  const models = new Map<string, ModelRef>();
+  const currentModels = new Map<string, ModelRef>();
+  const pricedSessions = new Map<string, number>();
+  const controller = new AbortController();
+  const events = context.event.subscribe({ signal: controller.signal });
+  const consume = (async () => {
+    for await (const event of events) {
+      if (event.type === "session.step.started") {
+        models.set(event.data.assistantMessageID, event.data.model);
+        currentModels.set(event.data.sessionID, event.data.model);
+        continue;
       }
-    })().catch(() => undefined);
-
+      if (event.type === "session.usage.updated") {
+        for (const invocation of invocations.values()) {
+          if (!invocation.childID || invocation.childID === event.data.sessionID) {
+            invocation.projections.set(event.data.sessionID, event.data.tokens);
+          }
+        }
+        continue;
+      }
+      const usage =
+        event.type === "session.step.ended"
+          ? usageFor(event.data.sessionID, event.data.assistantMessageID, event.data.tokens, true, models)
+          : event.type === "session.step.failed" && event.data.cost !== undefined && event.data.tokens !== undefined
+            ? usageFor(event.data.sessionID, event.data.assistantMessageID, event.data.tokens, false, models)
+            : undefined;
+      if (!usage) continue;
+      for (const invocation of invocations.values()) {
+        if (!invocation.childID || invocation.childID === usage.sessionID) invocation.usage.push(usage);
+      }
+    }
+  })();
+  void consume.catch((error) => {
+    if (!controller.signal.aborted) console.error("[subagent-usage] event stream failed", error);
+  });
+  const registrations = [
     await context.tool.hook("execute.before", async (event) => {
       if (event.tool !== "subagent") return;
       // SAFETY: The built-in subagent schema owns this input after the tool-name check.
@@ -112,8 +116,7 @@ export default {
         if (baseline.model) invocation.baseline.model = baseline.model;
       }
       invocations.set(event.id, invocation);
-    });
-
+    }),
     await context.tool.hook("execute.after", async (event) => {
       if (event.tool !== "subagent") return;
       const invocation = invocations.get(event.id);
@@ -129,10 +132,12 @@ export default {
         if (invocation.ambiguous) return;
 
         const session = await context.session.get({ sessionID: childID }).catch(() => undefined);
-        if (!session?.model) return;
-        const priceCatalog = await loadCatalog().catch(() => undefined);
+        if (!session) return;
+        const currentModel = session.model ?? currentModels.get(childID);
+        if (!currentModel) return;
+        const priceCatalog = await loadCatalogFn().catch(() => undefined);
         if (!priceCatalog) return;
-        const settled = await settle(invocation, childID, session.model, priceCatalog, pricedSessions.get(childID));
+        const settled = await settle(invocation, childID, currentModel, priceCatalog, pricedSessions.get(childID));
         if (!settled) return;
         pricedSessions.set(childID, settled.sessionCost);
         const tag = usageTag(settled.invocationCost, settled.sessionCost, settled.currentContext);
@@ -146,14 +151,19 @@ export default {
         }
         invocations.delete(event.id);
       }
-    });
+    }),
+  ];
 
-    return async () => {
-      await events.return?.();
-      await consume;
-    };
-  },
-} satisfies Plugin.Plugin;
+  return async () => {
+    controller.abort();
+    await Promise.all([consume, ...registrations.map((registration) => registration.dispose())]);
+  };
+}
+
+export default Plugin.define({
+  id: "subagent-usage",
+  setup: setupSubagentUsage,
+});
 
 async function settle(
   invocation: Invocation,

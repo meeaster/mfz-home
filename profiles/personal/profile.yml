@@ -79,7 +79,6 @@ opencode_v2:
   plugins:
     - omp-advisor
     - pstack
-    - subagent-usage
     - work-ledger
   plugin_options:
     work-ledger:

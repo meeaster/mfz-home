@@ -5,6 +5,7 @@ go = "1"
 python = "3.14"
 rust = "1"
 zig = "0.15"
+"cargo:terminal-control" = "1.1.1"
 aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.15"
@@ -45,7 +46,7 @@ bat = "0"
 
 [settings]
 minimum_release_age = "3d"
-minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:executor", "npm:opencode-drive", "herdr"]
+minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:executor", "npm:opencode-drive", "herdr", "cargo:terminal-control"]
 
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'

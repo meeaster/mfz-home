@@ -3,8 +3,8 @@
 Status: current implementation and agent handoff reference for the `mfz-home`
 OpenCode plugin ports.
 
-Evidence snapshot: 2026-08-18. The installed V2 runtime was
-`opencode2 v0.0.0-beta-17595`. OpenCode V2 is beta, so verify the installed
+Evidence snapshot: 2026-09-02. The installed V2 runtime was
+`opencode2 v0.0.0-beta-18866`. OpenCode V2 is beta, so verify the installed
 runtime and the reference checkout again before each implementation phase.
 
 This document is for workers implementing or reviewing the V2 ports of:
@@ -13,8 +13,8 @@ This document is for workers implementing or reviewing the V2 ports of:
 - `subagent-usage`
 - `session-cost-tui`
 
-`current-session` is also covered because it is currently enabled in the V1
-profile, but V2 makes its behavior unnecessary.
+`current-session` is also covered as a historical V1 port; V2 makes its
+behavior unnecessary.
 
 ## Source of truth
 
@@ -25,7 +25,7 @@ Use the following sources in this order:
    hooks, configuration, and verification.
 2. The checked-in OpenCode V2 reference at
    `/home/mark/workspace/references/opencode`. The checkout was on `v2` at
-   `1f61eb5ca951174456ddac0d8cb8153417c04e44` for this evidence snapshot.
+   `5ee7f19875e0c1ec2877ead7e4642c5b5461ac00` for this evidence snapshot.
    Use the source for native TUI behavior and undocumented runtime details.
 3. The official migration guide at
    <https://opencode.ai/v2/docs/migrate-v1>.
@@ -63,26 +63,22 @@ low-risk benefit from sharing a runtime-neutral helper.
 
 ## Current repository state
 
-The base profile keeps V1 and V2 selections separate in
-`profiles/base/profile.yml`:
+The base profile selects the shared V2 `subagent-usage` server plugin and
+`session-cost-tui` native TUI in `profiles/base/profile.yml`. Personal-only V2
+plugins remain selected from the Personal profile.
 
-- V1 loads the Advisor server and TUI from the root compatibility exports.
-- The Personal V2 profile enables the `subagent-usage` server plugin.
-- V2 selects the `session-cost-tui` and `herdr` native TUI plugins.
-- Personal keeps `current-session` in V1 and enables `subagent-usage` in both runtimes.
+The source tree contains these active and archived V2 implementations:
 
-The source tree contains these V2 implementations:
-
-- `advisor/v2/server.ts` is a warning-only quarantine stub. There is no V2
-  Advisor TUI.
-- `subagent-usage/v2/server.ts` reports per-invocation cost, lifetime child-session
-  cost, and the latest child input context to the parent model.
-- `session-cost-tui/` contains the native V2 TUI implementation and focused
-  tests. Its development SDK is pinned to the installed `opencode2`
-  `0.0.0-beta-18743` build.
-- `herdr/v2/` contains a native TUI implementation and focused tests. Its
-  development SDK is pinned to `0.0.0-next-17444`, which also predates the
-  installed beta.
+- `opencode/plugins/archive/advisor/v2/server.ts` is a warning-only quarantine
+  stub. There is no active V2 Advisor TUI.
+- `opencode/plugins/subagent-usage/server.ts` reports per-invocation cost,
+  lifetime child-session cost, and the latest child input context to the parent
+  model.
+- `opencode/plugins/session-cost-tui/` contains the native TUI implementation
+  and focused tests. Its development SDK is pinned to the installed
+  `opencode2` `0.0.0-beta-18743` build.
+- `opencode/plugins/archive/herdr/` contains the archived native TUI
+  implementation. Its V2 package metadata predates the installed beta.
 
 Treat the existing V2 TUI ports as repository patterns, not proof of current
 runtime compatibility. Re-run their typechecks and visible runtime probes
@@ -169,10 +165,11 @@ The V2 branch exposes these server domains through `ctx`:
 - `websearch`
 
 The home workspace still contains `@opencode-ai/plugin@1.18.18` for V1 and
-several pinned `0.0.0-next-*` packages for earlier V2 TUI work. None of those
-versions proves compatibility with the elected `opencode2` beta. Typecheck each
-V2 package against the SDK that matches the runtime under test, then verify the
-rendered plugin in a fresh process.
+several pinned `0.0.0-next-*` packages for earlier V2 TUI work. The
+`subagent-usage` package is pinned to `0.0.0-beta-18866` to match the installed
+`opencode2` beta. None of those older versions proves compatibility with the
+elected runtime. Typecheck each V2 package against the SDK that matches the
+runtime under test, then verify the rendered plugin in a fresh process.
 
 ### V2 transform hooks
 
@@ -371,7 +368,7 @@ configured local package directory must contain a physical `tui/index.tsx` or
 
 ### `current-session`
 
-Current source: `opencode/plugins/current-session/server.ts`.
+The historical `current-session` port is not in the active source tree.
 
 V1 registers `current_session_id` solely to return `context.sessionID`.
 
@@ -388,8 +385,9 @@ Completion criteria:
 
 ### `subagent-usage`
 
-Behavioral source: `opencode/plugins/subagent-usage/v1/server.ts`.
-The native implementation is under `opencode/plugins/subagent-usage/v2/`.
+The active implementation is `opencode/plugins/subagent-usage/server.ts`. Its
+default export uses `Plugin.define`, and `index.ts` exports that Promise-plugin
+entrypoint.
 
 It listens to V2 `subagent` tool hooks and session usage events. A completed
 foreground result receives one compact `subagent-usage` element containing the
@@ -401,8 +399,14 @@ failed, incomplete, and ambiguously overlapping calls remain unchanged.
 Invocation and session costs use models.dev rates instead of OpenCode's stored
 cost, which can remain zero for routed models. Ordinary steps retain their exact
 model attribution; projection-only token usage, including internal compaction,
-uses the child session's current model. Current context is the latest child
-step's input plus cache-read and cache-write tokens.
+uses the child session's current model. When a child `Session.Info` omits
+`model`, the implementation uses the model carried by `session.step.started`.
+Current context is the latest child step's input plus cache-read and cache-write
+tokens.
+
+The setup owns an abort signal for its event subscription. Cleanup aborts the
+subscription, waits for the event consumer, and disposes both hook registrations.
+An unexpected event-consumer failure reaches cleanup instead of being discarded.
 
 ### `session-cost-tui`
 
@@ -447,14 +451,14 @@ Required tests:
 
 ### `advisor` server
 
-The behavioral source is `opencode/plugins/advisor/v1/`. The root Advisor files
-are the active V1 compatibility copies. The checked-in
-`opencode/plugins/advisor/v2/server.ts` is a warning-only quarantine stub. It
-does not register a tool, inject policy, read transcripts, call an advisor, or
-persist continuation state. No V2 Advisor TUI exists yet.
+The behavioral source is `opencode/plugins/archive/advisor/v1/`. The Advisor
+files are archived V1 compatibility copies. The checked-in
+`opencode/plugins/archive/advisor/v2/server.ts` is a warning-only quarantine
+stub. It does not register a tool, inject policy, read transcripts, call an
+advisor, or persist continuation state. No active V2 Advisor TUI exists yet.
 
 Build the V2 implementation independently under `opencode/plugins/advisor/v2/`.
-Use the V1 files as behavior reference, not runtime dependencies.
+Use the archived V1 files as behavior reference, not runtime dependencies.
 
 Logic that may be copied from V1 as a starting point:
 
