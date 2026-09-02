@@ -1,137 +1,58 @@
 # Maintenance
 
-## Dependencies
+## Dependencies and provenance
 
-The runtime skill has harness-specific disclosed references. OpenCode V1 and V2
-filesystem archaeology requires SQLite JSON support and an explicit database
-path; V2 API fallback requires a running `opencode2` service and its `api`
-command. OpenCode V1 structural extraction additionally requires Python 3 with
-the standard-library `sqlite3` module and a SQLite store compatible with the live schema checks in
-`scripts/opencode-session-evidence.py`. OpenCode cost estimation supports
-validated V1 and V2 SQLite stores and additionally uses standard-library
-`urllib`, `decimal`, and `hashlib` with either the live
-`https://models.dev/api.json` endpoint or a bounded local snapshot. Claude Code
-extraction uses `jq` against live JSONL layouts.
+The runtime skill has disclosed references for OpenCode, Claude Code, and shared analysis. OpenCode filesystem archaeology requires SQLite JSON support. API fallback requires the configured authenticated `opencode2 api` client. Claude Code extraction uses `jq` against current JSONL layouts.
 
-OpenCode Bundle state is generic: it stores the source identity, parent ID,
-known child IDs, four cursors, counts, and terminal identities per session. A
-refresh also stores `sha256` prefix fingerprints for the message-created and
-part-created streams. It compares those historical creation prefixes and
-terminal identities before advancing state. Every fingerprint must correspond to
-the creation cursor in its emitted state entry; incomplete initial state uses
-the starter-prefix fingerprint. Do not add artifact-specific fields to that
-state or to the extractor output contract.
+The OpenCode storage, path, compaction, projection, API, and event semantics are pinned to source revision `5ee7f19875e0c1ec2877ead7e4642c5b5461ac00` in `/home/mark/workspace/references/opencode`:
 
-The cost calculator is current-price estimation, not stored billing authority.
-It selects the adapter by validated schema plus root-session identity. V1 prices
-each `step-finish` from the joined assistant message; V2 prices each assistant
-message with complete usage. Both recursively include `parent_id` descendants,
-use exact provider/model keys or an explicit OpenCode
-model-mode suffix, and fails when a consumed required token category lacks
-published pricing. Exact catalog models take precedence over explicit synthetic
-mode IDs; context tiers and legacy over-200K rates are applied per turn;
-optional cache rates default to zero and explicit reasoning rates override the
-output-rate fallback. Preserve local-catalog SHA-256 metadata for reproducible
-evaluations; the live endpoint is unversioned.
+- `packages/core/src/session/sql.ts`
+- `packages/core/src/database/schema.gen.ts`
+- `packages/core/src/database/database.ts`
+- `packages/util/src/global-roots.ts`
+- `packages/cli/src/server-process.ts`
+- `packages/core/src/session/history.ts`
+- `packages/core/src/session/projector.ts`
+- `packages/protocol/src/groups/session.ts`
+- `packages/protocol/src/groups/message.ts`
+- `packages/server/src/handlers/message.ts`
+- `packages/core/src/bus.ts`
 
-Dependent skills may rely on the shared mode, coverage, topology, locator, and
-cursor semantics. They must retain their own synthesis, storage, merge, privacy,
-authority, and lifecycle behavior.
+Refresh these claims before changing table names, columns, path resolution, API pagination, compaction boundaries, update semantics, event durability, or fork behavior.
 
-## Change Procedure
+## Deterministic adapter contract
 
-1. Read the runtime package and authoring record.
-2. Classify the change as invocation, common coverage semantics, analysis,
-   OpenCode adaptation, Claude Code adaptation, or deterministic extraction.
-3. Inspect known dependent skills before changing shared evidence or cursor
-   semantics.
-4. Confirm current harness storage shapes from live or fixture evidence. For
-   OpenCode, validate an explicit SQLite path before choosing V1 or V2 SQL; use
-   the V2 API when the path or backend is unavailable.
-5. Make the smallest change and update affected evaluation scenarios.
-6. Run the extractor against a fixture and a read-only live store when available.
-7. Verify positive and adjacent-negative invocation when the description changes.
-8. Record consequential decisions or reversals in `LOG.md`.
+`scripts/opencode-session-evidence.py` is a narrow V2 refresh adapter. It exposes `snapshot` and `delta`; ordinary archaeology remains adaptive SQL or API work.
 
-## Efficiency Review
+The checkpoint version is `2`. It owns source identity, parent and direct-child scope, topology, per-session terminal sequence, message count, maximum update, session update, completed compaction, active-context start, structural prefix and metadata guards, fork provenance, and optional event and inbox watermarks.
 
-Measure efficiency by evidence obtained per record body read, not by minimizing
-coverage. For V2 filesystem stores, prefer question-shaped SQL with aggregate
-queries, joins, JSON projections, keyset pages, bounded previews, selective child
-traversal, and reasoning exclusion. Repeated CLI calls that merely reproduce a
-single SQL query are defects. For V1 deterministic extraction, prefer one
-multi-session Bundle transaction. Model-driven V1 reconstruction uses the
-reconstruction view directly; surrounding Outline calls, result-shape probes, and
-repeated grouped structural queries are defects. Normal adapter use executes
-bundled scripts without reading their source. Narrow V1 tool investigation
-follows the known ID rather than selecting a recent window.
-The deterministic `tool-context` branch owns that exact tool/request read and
-must remain single-transaction, dual-pinned, multipart-aware, and body-bounded.
-Bundle must traverse every Delta page to its pin, merge independent observations,
-check historical prefixes and terminal identities, and fail on per-record or
-total-output ceilings rather than silently omitting coverage. Direct-child
-discovery must be SQL-bounded and avoid oversized metadata `IN` lists. Investigate
-large repeated query sequences or output truncation as skill defects before
-adding more prose.
+Delta is append-only. Validate the old projected prefix before returning new messages. Any historical, topology, source, or active-context change returns `rebuild_required` without mixed evidence. Optional persisted events supplement projected-state validation but never replace it.
 
-## Schema Drift
+The adapter output excludes reasoning bodies, tool bodies, event payloads, and secrets. Keep message and output ceilings fail-closed. Preserve deterministic compact JSON and one SQLite read transaction.
 
-OpenCode SQL use must validate V1 versus V2 tables and resolve a known session ID
-to one schema before selecting a query plan. Both table families can coexist in a
-migrated store; table presence alone is not ambiguity.
-The V1 extractor must fail with a precise missing-table or missing-column message
-rather than guessing. Update schema assumptions only after inspecting the new live
-shape and preserving read-only access. Claude Code instructions must continue
-treating layout descriptions as maps to confirm, not guarantees.
+## Cost contract
+
+`scripts/opencode-session-cost.py` accepts only V2 stores. It reads complete assistant usage, follows recursive `parent_id` descendants, guards cycles, and excludes content. Preserve exact provider, model, and variant attribution. Keep current models.dev pricing distinct from stored cost and provider billing.
+
+## Change procedure
+
+1. Read the runtime package, this record, dependent Session Brief state handling, and current OpenCode source.
+2. Define the affected behavior, authority boundary, failure cases, adjacent cases, and observable evaluations.
+3. Change tests and implementation together. Preserve the split between adaptive analysis and deterministic refresh.
+4. Run focused compilation and suites.
+5. Run a bounded read-only live check when a current V2 database is available. Compare API metadata without exposing message bodies when authenticated API access is available.
+6. Reconcile runtime prose, this record, and rendered output.
+7. Add consequential decisions or reversals to `LOG.md`; preserve historical entries.
 
 ## Verification
 
-Static review confirms valid frontmatter, lowercase disclosed references, working
-links, coherent package and authoring records, and no artifact-specific behavior
-in the shared runtime. The fixture suite covers Locate, topology classification,
-output-level structural privacy, Delta truncation signaling, consecutive
-small-page refreshes with an intervening update, compaction fields, reasoning
-exclusion, inclusive active-source pins, hard output limits, and schema failure.
-It also covers initial parent-plus-child Bundle extraction, generic state no-op
-refresh, missing known children with preserved state, compensated historical
-replacement with a nonterminal in-prefix row and unchanged terminal/count,
-strict malformed-state rejection including terminal identity shape, merged
-creation/update observations including conflicting versions, complete `limit=1`
-page traversal, canonical compacted parent metadata and record-size coverage,
-default text-only privacy, per-stream and total-output ceilings, initial
-requires-repin starter-state reuse, root output-option placement, and `--db`
-after the subcommand. Reconstruction-view fixtures cover deduplication, selection
-counts, task and non-completed tool filtering, truncation markers, explicit view
-identity, and additive UTC ISO metadata. Grouped completed-tool locator fixtures
-preserve exact part IDs without the verbose per-record projection. Tool-context
-fixtures cover ownership, dual pins,
-equal timestamps, multipart requests, post-target exclusion, content opt-in,
-privacy, ceilings, option placement, wrong-role rejection, and ISO metadata. Cost
-fixtures cover V1 and V2 schema selection, recursive topology, per-turn attribution, model changes, synthetic
-mode IDs distinct from reasoning variants, context tiers, reasoning fallback and
-explicit rates, cache categories, stored-cost comparison, missing pricing,
-malformed JSON, null agents, incomplete V2 usage, deterministic local catalogs,
-and body exclusion.
-The active-pin fixture mutates message and part rows between `limit=1` pages and
-expects an unchanged-cursor re-pin response. A final-probe fixture deletes a
-pinned row and expects bounded-count guard failure. Live-store checks cover
-current OpenCode V1 schema compatibility and mutable running tools. V2
-source-selection checks cover SQL-first routing for an explicit filesystem path,
-`session_v2` and `session_message` shape, sequence ordering, JSON projection,
-compaction boundaries, reasoning exclusion, and API fallback for an unavailable
-path or backend.
-Reusable
-local checks begin with:
+Run:
 
 ```bash
-python3 -m py_compile skills/active/agent-sessions/scripts/opencode-session-evidence.py
+python3 -m py_compile skills/active/agent-sessions/scripts/opencode-session-evidence.py skills/active/agent-sessions/scripts/opencode-session-cost.py skill-meta/mfz-home/skills/agent-sessions/test_opencode_session_evidence.py skill-meta/mfz-home/skills/agent-sessions/test_opencode_session_cost.py
 python3 skill-meta/mfz-home/skills/agent-sessions/test_opencode_session_evidence.py
-python3 skills/active/agent-sessions/scripts/opencode-session-evidence.py --db <db> locate <query>
-python3 skills/active/agent-sessions/scripts/opencode-session-evidence.py --db <db> outline <session-id>
-python3 skills/active/agent-sessions/scripts/opencode-session-evidence.py --db <db> bundle <parent-id> --view reconstruction
-python3 skills/active/agent-sessions/scripts/opencode-session-cost.py --db <db> --models-file <api.json> <session-id>
 python3 skill-meta/mfz-home/skills/agent-sessions/test_opencode_session_cost.py
+python3 skills/active/agent-sessions/scripts/opencode-session-evidence.py --help
 ```
 
-Live behavioral evaluation inspects the resulting session trace rather than
-relying on the evaluated agent's self-report.
+Static review confirms valid frontmatter, working disclosed-reference links, V2-only active OpenCode behavior, Claude routing, native locator rules, and no artifact lifecycle in the shared evidence skill.

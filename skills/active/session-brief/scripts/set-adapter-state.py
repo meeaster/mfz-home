@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Inject the exact compact Bundle next_state into a Session Brief."""
+"""Inject an adapter envelope's exact compact checkpoint into a Session Brief."""
 
 from __future__ import annotations
 
@@ -35,44 +35,44 @@ def _object_without_duplicates(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
     return result
 
 
-def _read_bundle_state(path: Path) -> str:
+def _read_adapter_checkpoint(path: Path) -> str:
     try:
         raw = path.read_bytes()
     except OSError as error:
-        raise InjectionError(f"unable to read Bundle output {path}: {error}") from error
+        raise InjectionError(f"unable to read adapter output {path}: {error}") from error
     try:
         text = raw.decode("utf-8")
     except UnicodeDecodeError as error:
-        raise InjectionError(f"Bundle output {path} is not valid UTF-8: {error}") from error
+        raise InjectionError(f"adapter output {path} is not valid UTF-8: {error}") from error
 
     try:
-        bundle = json.loads(
+        envelope = json.loads(
             text,
             parse_constant=_reject_json_constant,
             object_pairs_hook=_object_without_duplicates,
         )
     except json.JSONDecodeError as error:
         raise InjectionError(
-            f"Bundle output {path} is not valid JSON: {error.msg} "
+            f"adapter output {path} is not valid JSON: {error.msg} "
             f"at line {error.lineno}, column {error.colno}"
         ) from error
     except ValueError as error:
-        raise InjectionError(f"Bundle output {path} is not valid standard JSON: {error}") from error
+        raise InjectionError(f"adapter output {path} is not valid standard JSON: {error}") from error
 
-    if not isinstance(bundle, dict):
+    if not isinstance(envelope, dict):
         raise InjectionError(
-            f"Bundle output {path} must be a JSON object containing top-level next_state"
+            f"adapter output {path} must be a JSON object containing top-level checkpoint"
         )
-    if "next_state" not in bundle:
-        raise InjectionError(f'Bundle output {path} is missing top-level "next_state"')
-    next_state = bundle["next_state"]
-    if not isinstance(next_state, dict):
-        raise InjectionError(f'Bundle output {path} top-level "next_state" must be a JSON object')
+    if "checkpoint" not in envelope:
+        raise InjectionError(f'adapter output {path} is missing top-level "checkpoint"')
+    checkpoint = envelope["checkpoint"]
+    if not isinstance(checkpoint, dict):
+        raise InjectionError(f'adapter output {path} top-level "checkpoint" must be a JSON object')
 
     try:
-        return json.dumps(next_state, separators=(",", ":"))
+        return json.dumps(checkpoint, separators=(",", ":"))
     except (TypeError, ValueError) as error:
-        raise InjectionError(f'Bundle output {path} "next_state" cannot be serialized: {error}') from error
+        raise InjectionError(f'adapter output {path} "checkpoint" cannot be serialized: {error}') from error
 
 
 def _line_content(line: bytes) -> bytes:
@@ -238,17 +238,17 @@ def main(argv: list[str] | None = None) -> int:
     if argv is None:
         argv = sys.argv[1:]
     if len(argv) != 2:
-        print(f"usage: {Path(sys.argv[0]).name} BRIEF_PATH BUNDLE_OUTPUT_PATH", file=sys.stderr)
+        print(f"usage: {Path(sys.argv[0]).name} BRIEF_PATH ADAPTER_OUTPUT_PATH", file=sys.stderr)
         return 2
 
     brief_path = Path(argv[0])
-    bundle_path = Path(argv[1])
+    output_path = Path(argv[1])
     try:
         if brief_path.is_symlink():
             raise InjectionError(
                 f"brief {brief_path} is a symlink; refusing to follow or replace it"
             )
-        compact_state = _read_bundle_state(bundle_path)
+        compact_state = _read_adapter_checkpoint(output_path)
         try:
             brief_document = brief_path.read_bytes()
         except OSError as error:
@@ -259,14 +259,14 @@ def main(argv: list[str] | None = None) -> int:
             raise InjectionError(f"brief {brief_path} is not valid UTF-8: {error}") from error
         updated_document = _replace_state(brief_document, brief_path, compact_state)
         if updated_document == brief_document:
-            print(f"{brief_path}: unchanged (adapter state already matches Bundle next_state)")
+            print(f"{brief_path}: unchanged (adapter state already matches checkpoint)")
             return 0
         _atomic_write(brief_path, updated_document)
     except InjectionError as error:
         print(f"error: {error}", file=sys.stderr)
         return 1
 
-    print(f"{brief_path}: updated adapter state from Bundle next_state")
+    print(f"{brief_path}: updated adapter state from checkpoint")
     return 0
 
 

@@ -1,5 +1,13 @@
 # Log
 
+## 2026-09-02 - OpenCode adapter-version-2 checkpoints
+
+- Kept outer Session Brief `state_version: 2` and added harness-specific adapter-version validation.
+- Replaced OpenCode incremental state with the V2 snapshot adapter checkpoint. Unsupported or legacy state now starts a full rebuild without conversion.
+- Changed controlled transport to read the adapter envelope's top-level `checkpoint` while preserving atomic replacement and safety checks.
+- Replaced the global OpenCode-style authority locator rule with per-harness validation. OpenCode now uses session ID, sequence, message ID, and optional content identity or index.
+- Preserved non-OpenCode checkpoint and locator behavior, valid narrative, creation time, and extraction history across rebuild.
+
 ## 2026-08-08 - Initial Session Brief Design
 
 - Chose a model-invoked skill because users may request the artifact naturally and

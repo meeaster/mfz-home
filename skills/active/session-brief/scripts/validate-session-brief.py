@@ -10,16 +10,33 @@ from pathlib import Path
 from typing import Any
 
 
-STREAMS = (
-    "message_created",
-    "message_updated",
-    "part_created",
-    "part_updated",
+OPENCODE_ADAPTER_VERSION = 2
+OPENCODE_CHECKPOINT_FIELDS = {
+    "adapter",
+    "version",
+    "source",
+    "parent_session_id",
+    "known_child_ids",
+    "topology_guard",
+    "sessions",
+    "event_watermarks",
+    "inbox_watermarks",
+}
+OPENCODE_SESSION_FIELDS = {
+    "terminal_seq",
+    "message_count",
+    "max_message_updated",
+    "session_updated",
+    "latest_completed_compaction_seq",
+    "active_context_start_seq",
+    "prefix_guard",
+    "metadata_guard",
+    "fork_provenance",
+}
+OPENCODE_PARENT_LOCATOR = re.compile(
+    r"\[source: parent/session=[A-Za-z0-9][A-Za-z0-9._:-]*;seq=[0-9]+;message=[A-Za-z0-9][A-Za-z0-9._:-]*(?:;content=(?:[A-Za-z0-9][A-Za-z0-9._:-]*)|;content-index=[0-9]+)?\]"
 )
-PREFIX_STREAMS = ("message_created", "part_created")
-DIRECT_PARENT_LOCATOR = re.compile(
-    r"\[source: parent/(?:msg|prt)_[A-Za-z0-9][A-Za-z0-9._:-]*\]"
-)
+GENERIC_PARENT_LOCATOR = re.compile(r"\[source: parent/[^]\r\n]+\]")
 KEY_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_.-]*$")
 HEADING_PATTERN = re.compile(r"^\s{0,3}(#{1,6})\s+(.+?)\s*$")
 FENCE_PATTERN = re.compile(r"^\s{0,3}(`{3,}|~{3,})(.*)$")
@@ -620,26 +637,42 @@ def _validate_truth_table(
             errors.append("missing source activity requires coverage.complete to be false")
 
 
+def _sha256(value: Any) -> bool:
+    return isinstance(value, str) and bool(FINGERPRINT_PATTERN.fullmatch(value))
+
+
 def _validate_opencode_state(
     state: dict[str, Any],
     source_session_id: str,
+    adapter_version: Any,
     guard_facts: dict[str, Any] | None,
     errors: list[str],
 ) -> None:
-    expected_fields = {
-        "version",
-        "source_identity",
-        "parent_session_id",
-        "known_child_ids",
-        "sessions",
-    }
-    if set(state) != expected_fields:
-        errors.append("extraction.adapter_state_json OpenCode state must contain exactly version, source_identity, parent_session_id, known_child_ids, and sessions")
+    if adapter_version != OPENCODE_ADAPTER_VERSION:
+        errors.append(
+            "source.adapter_version must be 2 for OpenCode incremental refresh; full rebuild required"
+        )
+    if set(state) != OPENCODE_CHECKPOINT_FIELDS:
+        errors.append(
+            "extraction.adapter_state_json OpenCode V2 checkpoint has an unsupported shape; full rebuild required"
+        )
+    if state.get("adapter") != "opencode-session-evidence":
+        errors.append("extraction.adapter_state_json.adapter must be opencode-session-evidence")
     version = state.get("version")
-    if isinstance(version, bool) or not isinstance(version, int) or version != 1:
-        errors.append("extraction.adapter_state_json OpenCode generic state version must be 1")
-    source_identity = state.get("source_identity")
-    _string(source_identity, "extraction.adapter_state_json.source_identity", errors, True)
+    if isinstance(version, bool) or not isinstance(version, int) or version != OPENCODE_ADAPTER_VERSION:
+        errors.append(
+            "extraction.adapter_state_json OpenCode adapter version must be 2; full rebuild required"
+        )
+    source = state.get("source")
+    if not isinstance(source, dict) or set(source) != {"identity", "database", "schema"}:
+        errors.append(
+            "extraction.adapter_state_json.source must contain identity, database, and schema"
+        )
+    else:
+        _string(source.get("identity"), "extraction.adapter_state_json.source.identity", errors, True)
+        _string(source.get("database"), "extraction.adapter_state_json.source.database", errors, True)
+        if source.get("schema") != "v2":
+            errors.append("extraction.adapter_state_json.source.schema must be v2")
     if state.get("parent_session_id") != source_session_id:
         errors.append(
             "extraction.adapter_state_json.parent_session_id must match source.session_id"
@@ -648,88 +681,86 @@ def _validate_opencode_state(
     if not isinstance(known_children, list) or any(
         not isinstance(child, str) or not child.strip() for child in known_children
     ):
-        errors.append("extraction.adapter_state_json.known_child_ids must be a list of non-empty strings")
+        errors.append(
+            "extraction.adapter_state_json.known_child_ids must be a list of non-empty strings"
+        )
         known_children = []
     elif len(set(known_children)) != len(known_children):
         errors.append("extraction.adapter_state_json.known_child_ids must be unique")
     if source_session_id in known_children:
-        errors.append("extraction.adapter_state_json.known_child_ids must not contain the parent session")
+        errors.append(
+            "extraction.adapter_state_json.known_child_ids must not contain the parent session"
+        )
+    if not _sha256(state.get("topology_guard")):
+        errors.append("extraction.adapter_state_json.topology_guard must use sha256:<64-hex>")
+    for field in ("event_watermarks", "inbox_watermarks"):
+        watermarks = state.get(field)
+        if not isinstance(watermarks, dict):
+            errors.append(f"extraction.adapter_state_json.{field} must be a mapping")
+        elif any(
+            value is not None
+            and (isinstance(value, bool) or not isinstance(value, int) or value < 0)
+            for value in watermarks.values()
+        ):
+            errors.append(
+                f"extraction.adapter_state_json.{field} values must be nonnegative integers or null"
+            )
+
     state_sessions = state.get("sessions")
     if not isinstance(state_sessions, dict):
         errors.append("extraction.adapter_state_json.sessions must be a mapping")
         state_sessions = None
     expected_sessions = {source_session_id, *known_children}
     if state_sessions is not None and set(state_sessions) != expected_sessions:
-        errors.append("extraction.adapter_state_json.sessions must exactly match the parent and known child IDs")
+        errors.append(
+            "extraction.adapter_state_json.sessions must exactly match the parent and known child IDs"
+        )
     guard_sessions = guard_facts.get("sessions") if guard_facts else None
     if guard_sessions is not None and state_sessions is not None and set(guard_sessions) != set(state_sessions):
-        errors.append("extraction.guards.sessions must exactly match OpenCode adapter state sessions")
+        errors.append(
+            "extraction.guards.sessions must exactly match OpenCode adapter state sessions"
+        )
     if state_sessions is None:
         return
 
-    entry_fields = {"cursors", "counts", "terminal_identities", "prefix_fingerprints"}
     for session_id, entry in state_sessions.items():
-        path = f"extraction.adapter_state_json.sessions.{session_id}"
+        entry_path = f"extraction.adapter_state_json.sessions.{session_id}"
         if not isinstance(entry, dict):
-            errors.append(f"{path} must be a mapping")
+            errors.append(f"{entry_path} must be a mapping")
             continue
-        if set(entry) != entry_fields:
-            errors.append(f"{path} must contain cursors, counts, terminal_identities, and prefix_fingerprints")
-        cursors = entry.get("cursors")
-        if not isinstance(cursors, dict) or set(cursors) != set(STREAMS):
-            errors.append(f"{path}.cursors must contain all four Bundle stream cursors")
-            cursors = None
-        if cursors is not None:
-            for stream in STREAMS:
-                cursor = cursors.get(stream)
-                cursor_path = f"{path}.cursors.{stream}"
-                if not isinstance(cursor, dict) or set(cursor) != {"time", "id"}:
-                    errors.append(f"{cursor_path} must contain exactly time and id")
-                    continue
-                if (
-                    isinstance(cursor["time"], bool)
-                    or not isinstance(cursor["time"], int)
-                    or cursor["time"] < 0
-                    or not isinstance(cursor["id"], str)
-                ):
-                    errors.append(f"{cursor_path} must contain a nonnegative integer time and string id")
-
-        counts = entry.get("counts")
-        if not isinstance(counts, dict) or set(counts) != {"messages", "parts"}:
-            errors.append(f"{path}.counts must contain messages and parts")
-        elif any(
-            isinstance(counts[name], bool) or not isinstance(counts[name], int) or counts[name] < 0
-            for name in ("messages", "parts")
+        if set(entry) != OPENCODE_SESSION_FIELDS:
+            errors.append(f"{entry_path} has an unsupported OpenCode V2 checkpoint shape")
+        for field in (
+            "terminal_seq",
+            "message_count",
+            "max_message_updated",
+            "session_updated",
         ):
-            errors.append(f"{path}.counts messages and parts must be nonnegative integers")
-
-        identities = entry.get("terminal_identities")
-        if not isinstance(identities, dict) or set(identities) != set(STREAMS):
-            errors.append(f"{path}.terminal_identities must contain all four Bundle streams")
-            identities = None
-        if identities is not None:
-            for stream in STREAMS:
-                identity = identities.get(stream)
-                if identity is not None and (not isinstance(identity, str) or not identity):
-                    errors.append(f"{path}.terminal_identities.{stream} must be a string or null")
-                if cursors is not None:
-                    cursor = cursors.get(stream)
-                    if isinstance(cursor, dict) and isinstance(cursor.get("id"), str):
-                        cursor_id = cursor["id"]
-                        if cursor_id and identity != cursor_id:
-                            errors.append(f"{path}.terminal_identities.{stream} must match its cursor id")
-                        if not cursor_id and identity is not None:
-                            errors.append(f"{path}.terminal_identities.{stream} must be null for an empty cursor")
-
-        fingerprints = entry.get("prefix_fingerprints")
-        if not isinstance(fingerprints, dict) or set(fingerprints) != set(PREFIX_STREAMS):
-            errors.append(f"{path}.prefix_fingerprints must contain message_created and part_created")
-        elif any(
-            not isinstance(fingerprints[stream], str)
-            or not FINGERPRINT_PATTERN.fullmatch(fingerprints[stream])
-            for stream in PREFIX_STREAMS
-        ):
-            errors.append(f"{path}.prefix_fingerprints must use sha256:<64-hex> values")
+            value = entry.get(field)
+            minimum = -1 if field == "terminal_seq" else 0
+            if isinstance(value, bool) or not isinstance(value, int) or value < minimum:
+                errors.append(f"{entry_path}.{field} must be an integer >= {minimum}")
+        for field in ("latest_completed_compaction_seq", "active_context_start_seq"):
+            value = entry.get(field)
+            if value is not None and (
+                isinstance(value, bool) or not isinstance(value, int) or value < 0
+            ):
+                errors.append(f"{entry_path}.{field} must be a nonnegative integer or null")
+        if entry.get("latest_completed_compaction_seq") != entry.get("active_context_start_seq"):
+            errors.append(
+                f"{entry_path}.active_context_start_seq must match latest_completed_compaction_seq"
+            )
+        for field in ("prefix_guard", "metadata_guard"):
+            if not _sha256(entry.get(field)):
+                errors.append(f"{entry_path}.{field} must use sha256:<64-hex>")
+        fork = entry.get("fork_provenance")
+        if fork is not None:
+            if not isinstance(fork, dict) or set(fork) != {"session_id", "boundary"}:
+                errors.append(
+                    f"{entry_path}.fork_provenance must be null or contain session_id and boundary"
+                )
+            elif not isinstance(fork.get("session_id"), str) or not fork["session_id"]:
+                errors.append(f"{entry_path}.fork_provenance.session_id must be non-empty")
 
 
 def _fenced_indices(body: list[tuple[int, str]], errors: list[str]) -> set[int]:
@@ -782,7 +813,7 @@ def _section_ranges(
     return ranges
 
 
-def _validate_narrative(body: list[tuple[int, str]], errors: list[str]) -> None:
+def _validate_narrative(body: list[tuple[int, str]], harness: str | None, errors: list[str]) -> None:
     fenced = _fenced_indices(body, errors)
     ranges = _section_ranges(body, fenced)
     for required in ("Purpose And Context", "Current State", "Extraction History"):
@@ -846,9 +877,17 @@ def _validate_narrative(body: list[tuple[int, str]], errors: list[str]) -> None:
                     blank_after_current = False
             for line, item_lines in items:
                 item_text = " ".join(item_lines)
-                if not DIRECT_PARENT_LOCATOR.search(item_text):
+                locator_pattern = (
+                    OPENCODE_PARENT_LOCATOR if harness == "opencode" else GENERIC_PARENT_LOCATOR
+                )
+                if not locator_pattern.search(item_text):
+                    example = (
+                        "[source: parent/session=ses_x;seq=1;message=msg_x]"
+                        if harness == "opencode"
+                        else "[source: parent/<adapter-locator>]"
+                    )
                     errors.append(
-                        f"{section} list item on line {line} needs direct parent evidence like [source: parent/msg_x]"
+                        f"{section} list item on line {line} needs direct parent evidence like {example}"
                     )
 
 
@@ -950,6 +989,7 @@ def validate_text(text: str) -> list[str]:
 
     extraction = _mapping(frontmatter.get("extraction"), "extraction", errors)
     adapter_state: dict[str, Any] | None = None
+    adapter_version: Any = source.get("adapter_version") if source is not None else None
     guard_facts: dict[str, Any] | None = None
     if extraction is not None:
         _allowed_keys(extraction, "extraction", EXTRACTION_KEYS, errors)
@@ -996,7 +1036,7 @@ def validate_text(text: str) -> list[str]:
             )
 
     if harness == "opencode" and source_session_id is not None and adapter_state is not None:
-        _validate_opencode_state(adapter_state, source_session_id, guard_facts, errors)
+        _validate_opencode_state(adapter_state, source_session_id, adapter_version, guard_facts, errors)
     elif harness != "opencode" and source_session_id is not None and guard_facts is not None:
         if source_session_id not in (guard_facts["sessions"] or {}):
             errors.append(
@@ -1015,7 +1055,7 @@ def validate_text(text: str) -> list[str]:
             errors,
         )
 
-    _validate_narrative(body, errors)
+    _validate_narrative(body, harness, errors)
     return errors
 
 

@@ -1,5 +1,13 @@
 # Log
 
+## 2026-09-02 - OpenCode V2-only session evidence
+
+- Removed active support for the earlier OpenCode storage contract and made `session_v2` plus `session_message` the only SQLite source.
+- Split adaptive SQL and API archaeology from the deterministic refresh adapter. The adapter now exposes only V2 snapshot and append-only delta.
+- Added compact source, topology, sequence, update, compaction, fork, and projected-prefix checkpoint guards. Unsupported historical or topology change now requires rebuild without mixed evidence.
+- Made cost attribution V2-only while preserving recursive descendants, cycle guards, pricing behavior, and body exclusion.
+- Preserved Claude Code and harness-neutral analysis behavior.
+
 ## 2026-08-19 - SQL-First OpenCode V2 Archaeology
 
 - Made read-only SQL the normal question-driven evidence interface when an

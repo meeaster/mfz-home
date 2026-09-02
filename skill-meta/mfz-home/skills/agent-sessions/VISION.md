@@ -2,63 +2,42 @@
 
 ## Problem
 
-Agent harnesses retain rich session evidence, but their stores are large,
-version-sensitive, and shaped differently. Unstructured transcript reads waste
-tokens, obscure coverage gaps, and can mistake a supported summary for a complete
-reconstruction. Artifact-specific workflows also need a shared way to retrieve
-session evidence without inheriting one artifact format or lifecycle.
-OpenCode's persisted zero or historical cost also cannot answer what a session
-and its recursive subagents would cost under a current published model catalog.
+Agent harnesses retain rich session evidence, but their stores are large, version-sensitive, and shaped differently. Broad transcript reads waste tokens, obscure gaps, and can turn a supported narrative into a false claim of complete coverage. Refreshable consumers need deterministic source positions without forcing ordinary archaeology through one fixed extraction format.
 
-## Intended Behavior
+OpenCode also stores usage and aggregate cost separately from current model pricing. A cost request needs body-free recursive attribution rather than transcript reconstruction.
 
-Agent Sessions is the general session-evidence layer. It locates, outlines,
-investigates, reconstructs, audits, or incrementally reads sessions through a
-common coverage discipline and harness-specific adapters. It begins with cheap
-structure, spends transcript tokens according to the requested mode, preserves
-evidence locators and topology, and exposes incomplete or mutable state.
-For OpenCode it uses flexible read-only SQL for question-driven archaeology when
-an explicit filesystem database is available, while retaining the service API as
-the backend-independent semantic boundary and deterministic adapters for
-correctness-sensitive workflows. It can also derive a body-free, per-turn cost
-estimate from persisted usage and an explicit models.dev pricing snapshot. The
-body-free cost adapter detects validated V1 and V2 SQLite schemas.
+## Intended behavior
 
-Dependent skills may use its evidence to produce briefs, captures, handoffs,
-evaluations, or other artifacts. Those skills retain ownership of synthesis,
-format, destination, merging, authority, and lifecycle.
+Agent Sessions is the general session-evidence layer. It locates, outlines, investigates, reconstructs, audits, incrementally reads, and prices sessions through one coverage discipline and native harness semantics.
 
-## Portability
+For OpenCode, current V2 behavior has two deliberate paths:
 
-The core workflow is harness-neutral. Adapters may depend on local harness stores,
-CLIs, or standard runtimes and must confirm their live storage shape. Supporting
-scripts are optimizations rather than assumptions that every harness shares one
-schema.
+- Adaptive bounded SQL or authenticated API analysis owns locate, outline, investigate, reconstruct, and audit.
+- A narrow deterministic adapter owns parent-and-direct-child snapshot and append-only delta for refreshable consumers.
+
+The OpenCode SQLite path resolves from an explicit path, `OPENCODE_DB`, or the current channel data filename. SQLite opens read-only with WAL and SHM state visible. Unknown paths and non-filesystem backends route to the authenticated API.
+
+The deterministic adapter preserves `session_message.seq` ordering, ancestry and fork provenance, all-history and active-context boundaries, stable message and content locators, privacy exclusions, and compact source and prefix guards. It accepts only verified pure appends. Historical message change, deletion, replacement, topology change, source replacement, or active-context movement requires a full rebuild.
+
+The cost calculator uses only OpenCode V2 projected usage, recursively follows `parent_id`, guards cycles, and estimates current catalog cost by stored provider, model, and variant without selecting content bodies.
+
+Claude Code and unknown harnesses retain their native stores, locators, and incremental semantics. Dependent workflows own artifact form, synthesis, merge, destination, authority, and lifecycle.
+
+## Invocation and boundaries
+
+The model invokes Agent Sessions for prior-session archaeology or cost. Current-session implementation, conversational summaries, handoffs, durable knowledge, threads, and artifact creation remain with their owning workflows.
+
+The skill reads sources only. It never migrates, repairs, vacuums, edits, or deletes a session store. It excludes reasoning bodies, secrets, and irrelevant content.
 
 ## Success
 
-A narrow question receives a bounded evidence-backed answer without broad
-transcript ingestion. An exhaustive request cannot finish while requested scope
-is silently unverified. A dependent workflow can resume from stable, per-stream
-creation and update cursors without rereading prior content or missing changed
-messages or running tools.
-A filesystem-backed OpenCode investigation can use joins, grouping, JSON
-projection, and subqueries shaped around the question instead of paying for a
-fixed CLI extraction sequence, while unknown and non-filesystem backends still
-route through the service API.
-A cost request receives one total plus main-session, descendant-session, and
-per-model breakdowns without reconstructing transcript content or pretending
-current catalog prices are a historical invoice.
+A narrow request gets a bounded answer with native locators. An exhaustive request cannot finish with silent gaps. An OpenCode refresh consumer receives a deterministic checkpoint and either an accepted append-only delta or an explicit rebuild result. Cost output includes recursive per-session and per-model estimates and labels current pricing as an estimate rather than billing evidence.
 
-## Non-Goals
+## Non-goals
 
-- Owning the format or persistence of Session Briefs, handoffs, captures, or
-  maintained knowledge.
-- Treating every session request as a complete audit.
-- Normalizing every harness into one physical storage schema.
+- Normalizing every harness into one storage schema.
+- Making the snapshot adapter the universal analysis interface.
+- Treating optional event payload persistence as a complete mutation stream.
 - Reading or exposing hidden reasoning.
-- Mutating, migrating, compacting, or repairing harness session stores.
-- Reproducing large transcript or tool-output bodies when locators and targeted
-  evidence answer the request.
-- Treating current models.dev prices as authoritative historical billing records
-  or provider invoices.
+- Owning Session Briefs, captures, handoffs, or maintained knowledge.
+- Reproducing provider invoices or historical prices.
