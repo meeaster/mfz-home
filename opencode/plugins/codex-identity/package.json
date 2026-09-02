@@ -1,8 +1,0 @@
-{
-  "name": "mindframe-z-codex-identity",
-  "private": true,
-  "type": "module",
-  "exports": {
-    "./server": "./server.ts"
-  }
-}

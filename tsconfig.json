@@ -10,5 +10,5 @@
     "types": ["node"]
   },
   "include": ["opencode/**/*.ts", "opencode/**/*.tsx", "vitest.config.ts"],
-  "exclude": ["opencode/plugins/*/drive/**"]
+  "exclude": ["opencode/plugins/*/drive/**", "opencode/plugins/archive/**"]
 }

@@ -2,6 +2,29 @@ name: base
 description: Shared base config for all profiles.
 instructions:
   - instructions/AGENTS.md
+instruction_references:
+  - name: browser
+    path: instructions/BROWSER.md
+    description: Browser automation, website interaction, authenticated Chrome, or user-managed login
+  - name: personal-knowledge
+    path: instructions/PERSONAL_KNOWLEDGE.md
+    description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
+capability_groups:
+  - name: agent-tooling
+    title: Agent Tooling
+    summary: Agent harnesses, configuration engines, workflow frameworks, and skill sources.
+  - name: public-safety-aws
+    title: Public Safety AWS
+    summary: Public Safety AWS provisioning, images, customer deployments, and cloud operations.
+  - name: public-safety-observability
+    title: Public Safety Observability
+    summary: Public Safety monitoring, Datadog operations, agent deployment, and observability sources.
+  - name: public-safety-products
+    title: Public Safety Products
+    summary: Public Safety product and integration implementation repositories.
+  - name: knowledge-and-artifacts
+    title: Knowledge and Artifacts
+    summary: Specifications, knowledge, evidence, work artifacts, and workspace coordination paths.
 references:
   - opencode
   - openspec
@@ -38,7 +61,7 @@ skills:
   adversarial-code-review:
     agents: { opencode: true, claude-code: true, codex: true }
   impeccable:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
   mise:
     agents: { opencode: false, claude-code: false, codex: false }
   agent-sessions:
@@ -132,7 +155,9 @@ skills:
   pr-writer:
     agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
+  ui-ux-design:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   context7:
     agents: [opencode, claude-code, codex]
@@ -142,69 +167,6 @@ mcp:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
     agents: [opencode, claude-code, codex]
-opencode:
-  config:
-    lsp: true
-    tools:
-      websearch: true
-    reference:
-      opencode: https://github.com/anomalyco/opencode
-    agent:
-      explore:
-        model: openai/gpt-5.6-luna
-        variant: high
-        permission:
-          skill:
-            "*": deny
-            agent-sessions: allow
-            claude-code-docs: allow
-          context7_*: allow
-          deepwiki_*: allow
-          openai_docs_*: allow
-          aws_knowledge_*: allow
-          x_docs_*: allow
-          execute: allow
-          executor_*: deny
-      prototype:
-        model: openai/gpt-5.6-terra
-        variant: max
-    permission:
-      question: deny
-      read:
-        "~/.aws/**": deny
-      bash:
-        "*": ask
-        "*/.aws/*": deny
-        "*EXA_API_KEY*": deny
-        "*GITHUB_TOKEN*": deny
-        "*GH_TOKEN*": deny
-  plugins:
-    - advisor
-  tui_plugins:
-    - advisor
-    - session-cost-tui
-  commands:
-    - apply-spec
-    - implement-design
-    - openspec-rolling-apply
-    - rmslop
-  agents:
-    - prototype
-    - research
-    - reviewer
-    - session-analyst
-    - worker
-  delegate_general:
-    models:
-      - id: openai/gpt-5.6-luna
-        variants: [low, medium, high, xhigh, max]
-        description: Default low-cost family for evidence gathering and well-specified execution. Use high for codebase exploration, documentation and source research, extraction, summaries, and mechanical checks. Use xhigh only when optimizing a clear implementation for lower latency or token use. Use max for most implementation, difficult but bounded investigation, and design or specification work where requirements and decision criteria are substantially settled. Escalate genuinely ambiguous design or unresolved product and architecture choices to Terra.
-      - id: openai/gpt-5.6-terra
-        variants: [low, medium, high, xhigh, max]
-        description: Primary collaborative design family for low-evidence or ambiguous problems. Use max when the work is discovering unknowns, reframing the problem, generating genuinely distinct options, evaluating tradeoffs, challenging assumptions, or designing OpenSpec proposals and specifications before the direction is settled. Prefer Luna max once the design is bounded and ready to specify or implement. Escalate to Sol when omission risk or decision consequences justify maximum capability.
-      - id: openai/gpt-5.6-sol
-        variants: [low, medium, high, xhigh]
-        description: Quality-first escalation family for consequential decisions, independent criticism, and the hardest ambiguous design work. Use high for high-stakes review, adjudicating competing designs, and difficult reasoning where a missed issue is expensive. Use xhigh for broad, security-sensitive, irreversible, or still-unresolved architecture and for maximum-quality design exploration. Use a fresh context and, where possible, a different model family from the artifact's author. Do not use Sol for routine retrieval or ordinary implementation.
 opencode_v2:
   global_instructions: true
   config:
@@ -214,11 +176,17 @@ opencode_v2:
       explore:
         model: openai/gpt-5.6-luna
         variant: high
+      triage:
+        model: openai/gpt-5.6-luna
+        variant: max
       prototype:
         model: openai/gpt-5.6-terra
         variant: max
-    websearch:
-      provider: exa
+      ui-ux-designer:
+        model: openai/gpt-5.6-sol
+        variant: medium
+  websearch:
+    provider: exa
   cli:
     theme:
       name: dracula
@@ -227,15 +195,19 @@ opencode_v2:
   commands:
     - apply-spec
     - implement-design
+    - orchestrate
     - openspec-rolling-apply
     - rmslop
   agents:
+    - inspect
     - prototype
     - research
     - reviewer
     - scheduled-worker
     - session-analyst
+    - triage
     - worker
+    - ui-ux-designer
 codex:
   config:
     tui:
@@ -308,10 +280,22 @@ claude:
 
 extra_folders:
   - path: ~/workspace
+    group: knowledge-and-artifacts
+    summary: Workspace root
+    signals: [cross-repository work, specifications, knowledge]
     description: Workspace root for cross-repository project work and shared specifications, knowledge, references, artifacts, and scratch material.
   - path: ~/workspace/repos/mfz-home
+    group: agent-tooling
+    summary: Personal Mindframe-Z home
+    signals: [Mindframe-Z, Personal profile, agent configuration]
     description: Personal mindframe-z home for shared base and Personal profile configuration.
   - path: ~/.mindframe-z
+    group: agent-tooling
+    summary: Generated Mindframe-Z state
+    signals: [Mindframe-Z, generated configuration, capability indexes]
     description: mindframe-z configuration and generated indexes.
   - path: ~/.agent/diagrams
+    group: knowledge-and-artifacts
+    summary: Agent diagram artifacts
+    signals: [diagrams, SVG, architecture visuals]
     description: Agent diagram files and exports.

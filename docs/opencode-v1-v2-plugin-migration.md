@@ -77,9 +77,9 @@ The source tree contains these V2 implementations:
   Advisor TUI.
 - `subagent-usage/v2/server.ts` reports per-invocation cost, lifetime child-session
   cost, and the latest child input context to the parent model.
-- `session-cost-tui/v2/` contains a native TUI implementation and focused
-  tests. Its development SDK is pinned to `0.0.0-next-17428`, which predates the
-  installed beta in this evidence snapshot.
+- `session-cost-tui/` contains the native V2 TUI implementation and focused
+  tests. Its development SDK is pinned to the installed `opencode2`
+  `0.0.0-beta-18743` build.
 - `herdr/v2/` contains a native TUI implementation and focused tests. Its
   development SDK is pinned to `0.0.0-next-17444`, which also predates the
   installed beta.
@@ -406,11 +406,10 @@ step's input plus cache-read and cache-write tokens.
 
 ### `session-cost-tui`
 
-Behavioral source: `opencode/plugins/session-cost-tui/v1/index.tsx`.
-The native implementation is under `opencode/plugins/session-cost-tui/v2/`.
+The native implementation is under `opencode/plugins/session-cost-tui/`.
 
-The V2 implementation already ports the main view and data flow. Revalidate it
-against the elected beta, then preserve or revise this V1 logic as needed:
+The implementation owns the V2 view and data flow. Revalidate it against the
+elected beta as needed:
 
 - model catalog loading
 - variant and context-tier rate selection

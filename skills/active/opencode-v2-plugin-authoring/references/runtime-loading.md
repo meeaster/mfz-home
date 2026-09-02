@@ -41,15 +41,11 @@ installed OpenCode release or its matching source when loader behavior changes.
   managed entry while preserving unrelated settings and entries; do not replace
   or symlink the file. Verify this surface from the installed release because
   native TUI configuration remains beta.
-- Tested local values include `file://`, absolute, and relative package paths,
-  explicit entry files, object entries, and immediate `plugins/tui/*.tsx`
-  discovery files.
-- For a configured local directory, the tested loader resolves the physical
-  `<package>/tui` path. Use `tui/index.tsx`. Package `exports["./tui"]` is useful
-  metadata but does not replace that physical layout; root-only `tui.tsx` or
-  `index.tsx` entrypoints do not satisfy directory loading.
+- In `0.0.0-beta-18743`, a configured local file entry can appear in `/plugins` but the TUI provider skips it before import. Register a local TUI directory instead.
+- The configured-directory loader requires physical root `index.*` and `tui.*` files, then imports the root `tui.*` entrypoint. If the implementation remains under `tui/index.tsx`, add a root `tui.tsx` wrapper and a root `index.ts` marker.
+- `exports["./tui"]` is package metadata only for local directory loading. A renderer or configuration manager must register the directory URL, not the nested `tui/index.tsx` file URL. Automatically discovered local TUI directories use the same root entrypoint shape.
 - TUI plugins use the native `@opencode-ai/plugin/tui` contract, not the V1 or
-  server Promise/Effect contracts. At `0.0.0-next-17428`, the native TUI
+  server Promise/Effect contracts. At `0.0.0-beta-18743`, the native TUI
   definition exposes `setup` and no TUI Effect entrypoint.
 
 ## Schema Boundaries

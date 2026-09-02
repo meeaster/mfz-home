@@ -18,10 +18,12 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - If you need to use `/tmp`, use `/tmp/opencode` instead.
 - Prefer exact dependency versions and packages older than 7 days.
 - Flag documentation made obsolete by code changes and avoid hardcoded counts.
+- For Impeccable detector scans, use `impeccable detect ...`; do not invoke the rendered skill's `scripts/detect.mjs` directly.
+- Before enumerating repository files or matches, scope by path and type, exclude dependencies and generated output, and prefer dedicated glob or grep tools. Request broad shell output only when the complete inventory is necessary.
 - Push back on flawed assumptions and ask when intent is unclear.
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
-- Load `development-principles` whenever designing, implementing, testing, refactoring, coordinating, or reviewing software work. Apply it proportionally after repository instructions and accepted requirements; it guides the development loop but does not override them.
+- Load `development-principles` when making or evaluating a software design, implementation, test, refactor, or formal code review. For repository inventory, status checks, operational investigation, and source research, load it only when the work crosses into design or implementation judgment. Apply it after repository instructions and accepted requirements.
 
 ## Subagent Use
 
@@ -29,26 +31,12 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - Treat `worker` as a user-authorized mutation lane. Do not create or resume one merely because work remains.
 - Treat `reviewer` as a user-authorized independent-judgment lane. When it reviews code, require it to load `thermo-nuclear-code-quality-review` and use that skill as its review guidance. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
 - A request to continue permits ongoing work, but does not by itself authorize a new or resumed `worker` or `reviewer`.
-- Before creating a subagent prompt, ensure `context-transfer` has been loaded in the current session, then use it to define what must cross the fresh-context boundary. Do not reload it unless its guidance may have changed since it was loaded.
-- Give the subagent the exact accessible repository paths or other locators it needs, and name relevant skills for it to load; do not rely on conversation context, implicit paths, or skills the child cannot discover.
-- Carry the task scope, accepted decisions, constraints, authority boundary, expected outcome, verification commands, and stop conditions into the prompt. Include only context that changes the child’s execution.
+- Fresh subagents do not share the parent conversation. Give them an intent-rich brief with the objective and why it matters, relevant user priorities and tradeoffs, accepted decisions, exact evidence and accessible paths, constraints and exclusions, authority limits, expected deliverable, verification, and stop conditions. Distill rather than transcribe, and name relevant skills for the child to load.
+- Load `context-transfer` when audience, access, privacy, portability, publication, or lossless specialist handoff materially changes what must cross the boundary.
+- When dispatching `ui-ux-designer`, tell it to load `ui-ux-design` before acting.
 - In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode2 run` for testing the CLI, a separate process, isolation, or fresh top-level context.
-
-## Personal Knowledge
-
-- When private Personal context is relevant, start with the matching entry point under `/home/mark/workspace/knowledge/personal-knowledge`: `.openwiki/wiki/quickstart.md` for accepted synthesis, `practices/index.md` for current guidance, `session-captures/index.md` for capture boundaries, `threads/index.md` for retrospective evidence, or the relevant `work-units/` entry for continuity. Load only what is relevant.
-- Canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`. Use the `session-derived-knowledge` skill for a new or revised Session Capture or Practice, then follow the destination's `AGENTS.md`.
-- Session Captures are evidence, not automatically current guidance; Practices may guide future work but do not override source systems. Treat this material as private derived context: preserve provenance and uncertainty, keep source systems authoritative, and do not copy it into Work without explicit approval.
 
 ## Code Conventions
 
 - Do not use `isRecord`-style guard helpers; understand the code path types directly, and when input shape is uncertain validate it once at the boundary with a schema instead of scattering guards through the logic.
 - Before editing JavaScript or TypeScript, load `anti-slop` for its short preflight heuristics. After completing the batch, including delegated or subagent work, run it against the narrowest changed source or test path. The checkpoint must be clean for in-scope code: address diagnostics, remove source directives that suppress anti-slop rules, and rerun after edits. Do not scan dependencies or generated output, widen the change merely to silence a diagnostic, or claim a clean checkpoint while an in-scope suppression remains.
-
-## WSL + Chrome/agent-browser
-
-Use WSL's standard Google Chrome, not Chrome for Testing. The shared authenticated browser profile is `~/.agent-browser/profiles/personal`; it contains private login state and must never be inspected, printed, copied, or committed.
-
-- Default automation: launch a visible WSLg browser with `agent-browser --headed --executable-path /usr/bin/google-chrome --profile "$HOME/.agent-browser/profiles/personal"`. Use this profile on every agent-browser command in the session.
-- Existing browser: use `agent-browser --auto-connect` only when a WSL Chrome instance was deliberately launched with `--remote-debugging-port=9222`. Inspect its tabs and select the task tab before interacting. Do not use the Windows Chrome bridge.
-- User-managed login: when the user asks for a browser without CDP or needs Google authentication, launch WSL Chrome with `google-chrome --user-data-dir="$HOME/.agent-browser/profiles/personal" <target-url>` and no remote-debugging flags. The user completes authentication in the visible window. Close that window before agent-browser reopens the same profile.

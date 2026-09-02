@@ -506,5 +506,13 @@ skills:
       writing chart code, choosing chart colors, building a stat tile / meter /
       KPI row, or laying out a dashboard. Teaches a design-system-agnostic
       method: a form heuristic, a color formula with a runnable validator, mark
-      specs, and interaction rules, plus a validated default palette to swap for
-      your brand.
+       specs, and interaction rules, plus a validated default palette to swap for
+       your brand.
+  - name: ui-ux-design
+    source: local
+    skill: active/ui-ux-design
+    description: >
+      Shape an implementation-ready UI/UX design direction or critique. Use when
+      an interface needs a deliberate information hierarchy, component and state
+      design, responsive behavior, accessibility requirements, or a design brief
+      for an implementation agent. Loads Impeccable and conditionally Dataviz.

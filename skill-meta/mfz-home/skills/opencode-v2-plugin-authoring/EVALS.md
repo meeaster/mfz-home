@@ -1,7 +1,6 @@
 # OpenCode V2 Plugin Authoring Evaluations
 
-**Status:** Static scenarios defined; native TUI loading and rendering patterns
-were exercised with isolated OpenCode Drive runs on `0.0.0-next-17428`.
+**Status:** Static scenarios defined. Native TUI directory loading and visible rendering were revalidated against `opencode2 v0.0.0-beta-18743` in a fresh standalone TUI. Earlier Drive controls covered `0.0.0-next-17428`.
 
 ## Create A Server Plugin
 
@@ -24,10 +23,7 @@ existing Effect architecture justify the additional runtime dependency.
 
 **Prompt:** Port this V1 sidebar plugin to OpenCode2 without deleting V1.
 
-**Assertions:** The agent preserves V1, reads the native TUI contract, uses the
-physical `tui/index.tsx` entrypoint, confirms the matching SDK, preserves
-CLI-owned settings while adding the TUI plugin entry, and tests a fresh visible
-slot rather than relying on typechecking or `/plugins` status.
+**Assertions:** The agent preserves V1, reads the native TUI contract, packages the plugin as a local directory with root `index.*` and `tui.*` entrypoints, confirms the matching SDK, preserves CLI-owned settings while adding the directory entry to `cli.json`, and tests a fresh visible slot rather than relying on typechecking or `/plugins` status.
 
 ## Host Imports
 
@@ -42,11 +38,13 @@ tree does not bundle a private UI runtime.
 
 **Prompt:** Package this native TUI plugin as a local directory plugin.
 
-**Assertions:** The agent creates physical `tui/index.tsx`, treats
-`exports["./tui"]` as metadata rather than the local-directory resolver, chooses
-either a runtime-resolvable `Plugin.define` SDK import or a structural definition
-with type-only SDK imports, and proves the exact rendered package in a fresh
-process.
+**Assertions:** The agent creates physical root `index.*` and `tui.*` entrypoints, treats `exports["./tui"]` as metadata rather than the local-directory resolver, chooses either a runtime-resolvable `Plugin.define` SDK import or a structural definition with type-only SDK imports, and proves the exact rendered directory package in a fresh process.
+
+## Diagnose a configured local TUI
+
+**Prompt:** The native TUI plugin appears in `/plugins` but never renders.
+
+**Assertions:** The agent checks the matching release loader, distinguishes config listing from import and setup, uses a minimal visible-slot control, identifies configured local file entries as a negative case, verifies root `index.*` and `tui.*` files plus a directory URL, and reruns the target contribution in a fresh visible route.
 
 ## TUI Effect Request
 

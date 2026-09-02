@@ -72,10 +72,11 @@ the consumer's context and irrelevant production context has none.
 For a primarily human or mixed consumer, read
 [`references/human-consumers.md`](references/human-consumers.md).
 
-For a primarily agent consumer, preserve exact inputs, accessible paths or
-locators, versions, constraints, authority boundaries, expected outcomes,
-verification, and stop conditions needed for reliable action. Greater detail is
-useful only when it changes execution.
+For a primarily agent consumer whose transfer complexity caused this skill to
+load, read [`references/agent-briefs.md`](references/agent-briefs.md). For a
+specialist artifact that must remain the implementation authority, read
+[`references/specialist-handoffs.md`](references/specialist-handoffs.md) instead.
+Load only the branch that applies.
 
 The consumer axis and environment axis are independent. Local paths can be the
 best references for an agent guaranteed the same workspace and broken references

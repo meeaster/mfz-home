@@ -1,8 +1,0 @@
-{
-  "name": "mindframe-z-current-session",
-  "private": true,
-  "type": "module",
-  "exports": {
-    "./server": "./server.ts"
-  }
-}

@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "vitest"
-import { chmod, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises"
+import { mkdir, mkdtemp, rm } from "node:fs/promises"
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http"
+import { DatabaseSync } from "node:sqlite"
 import { once } from "node:events"
 import { spawn } from "node:child_process"
 import { join, resolve } from "node:path"
@@ -13,7 +14,7 @@ const DISABLED = "connector_disabled"
 const executable = resolve(import.meta.dirname, "../../mcp/chatgpt-connectors/server.mjs")
 const requests: Array<{ method?: string; name?: string; authorized: boolean; account: boolean }> = []
 let directory: string
-let authFile: string
+let databaseFile: string
 let upstream: string
 
 const tools = [
@@ -99,8 +100,8 @@ const server = createServer(async (request, response) => {
 beforeAll(async () => {
   await mkdir("/tmp/opencode", { recursive: true })
   directory = await mkdtemp("/tmp/opencode/chatgpt-connectors-mcp-")
-  authFile = join(directory, "auth.json")
-  await writeAuth(authFile)
+  databaseFile = join(directory, "opencode.db")
+  writeCredentialDatabase(databaseFile)
   server.listen(0, "127.0.0.1")
   await once(server, "listening")
   const address = server.address()
@@ -186,7 +187,7 @@ describe("chatgpt-connectors-mcp", () => {
     requests.length = 0
     const args = [...baseArgs("/json"), "--connector", `calendar=${CALENDAR}`]
     const result = await run(args, [
-      { route: "/mcp/mail", message: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} } },
+      { route: "/mcp/mail?codemode=false", message: { jsonrpc: "2.0", id: 1, method: "tools/list", params: {} } },
       { route: "/mcp/calendar", message: { jsonrpc: "2.0", id: 2, method: "tools/list", params: {} } },
       { route: "/mcp", message: { jsonrpc: "2.0", id: 3, method: "tools/list", params: {} } },
     ])
@@ -234,23 +235,17 @@ describe("chatgpt-connectors-mcp", () => {
     expect(result.responses[0].error.message).toBe(expected)
   })
 
-  test("rejects insecure auth file permissions and malformed auth", async () => {
-    await chmod(authFile, 0o644)
-    const insecure = await run(baseArgs("/json"), [])
-    expect(insecure.exitCode).toBe(1)
-    expect(insecure.stderr).toContain("auth_file_permissions_too_open")
-
-    await chmod(authFile, 0o600)
-    await writeFile(authFile, JSON.stringify({ openai: { type: "api" } }))
+  test("rejects malformed V2 credentials", async () => {
+    updateCredential({ type: "api", key: "not-used" })
     const malformed = await run(baseArgs("/json"), [])
     expect(malformed.exitCode).toBe(1)
     expect(malformed.stderr).toContain("opencode_oauth_not_found")
-    await writeAuth(authFile)
+    updateCredential(v2Credential())
   })
 })
 
 function baseArgs(path: string) {
-  return ["--auth-file", authFile, "--upstream", `${upstream}${path}`, "--connector", `mail=${ENABLED}`]
+  return ["--database-file", databaseFile, "--upstream", `${upstream}${path}`, "--connector", `mail=${ENABLED}`]
 }
 
 async function runMcp(path: string, messages: unknown[]) {
@@ -301,13 +296,38 @@ async function waitForServer(port: number, child: ReturnType<typeof spawn>, rout
   throw new Error("MCP server did not start")
 }
 
-async function writeAuth(path: string) {
-  await writeFile(
-    path,
-    JSON.stringify({ openai: { type: "oauth", access: ACCESS, refresh: "unused", expires: Date.now() + 60_000, accountId: ACCOUNT } }),
-    { mode: 0o600 },
-  )
-  await chmod(path, 0o600)
+function writeCredentialDatabase(path: string) {
+  const database = new DatabaseSync(path)
+  database.exec(`
+    CREATE TABLE credential (
+      id TEXT PRIMARY KEY,
+      integration_id TEXT,
+      label TEXT NOT NULL,
+      value TEXT NOT NULL,
+      connector_id TEXT,
+      method_id TEXT,
+      active INTEGER,
+      time_created INTEGER NOT NULL,
+      time_updated INTEGER NOT NULL
+    )
+  `)
+  const now = Date.now()
+  database
+    .prepare(
+      "INSERT INTO credential (id, integration_id, label, value, active, time_created, time_updated) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .run("credential-1", "openai", "default", JSON.stringify(v2Credential()), 1, now, now)
+  database.close()
+}
+
+function updateCredential(value: unknown) {
+  const database = new DatabaseSync(databaseFile)
+  database.prepare("UPDATE credential SET value = ?, time_updated = ? WHERE id = ?").run(JSON.stringify(value), Date.now(), "credential-1")
+  database.close()
+}
+
+function v2Credential() {
+  return { type: "oauth", methodID: "chatgpt-browser", refresh: "unused", access: ACCESS, expires: Date.now() + 60_000, metadata: { accountID: ACCOUNT } }
 }
 
 async function readBody(request: IncomingMessage) {

@@ -12,7 +12,8 @@ format, authority, validation, and publication contracts.
 
 1. Read every package artifact before changing behavior.
 2. Classify the issue as invocation, transfer-contract inference, context
-   selection, consumer shaping, reference proportionality, or cold-consumer
+   selection, parent-to-agent task framing, specialist-artifact preservation,
+   consumer shaping, reference proportionality, or cold-consumer
    validation.
 3. Inspect every declared dependent skill before changing shared semantics or
    reference routing.

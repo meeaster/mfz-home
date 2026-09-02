@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-import { lstat, readFile } from "node:fs/promises"
+import { lstat } from "node:fs/promises"
 import { createServer } from "node:http"
 import { homedir } from "node:os"
 import { resolve } from "node:path"
+import { DatabaseSync } from "node:sqlite"
 
 const DEFAULT_UPSTREAM = "https://chatgpt.com/backend-api/ps/mcp"
-const DEFAULT_AUTH_FILE = "~/.local/share/opencode/auth.json"
+const DEFAULT_DATABASE_FILE = "~/.local/share/opencode/opencode.db"
+const OPENAI_INTEGRATION_ID = "openai"
 const PROTOCOL_VERSION = "2025-06-18"
 const CLIENT_INFO = { name: "chatgpt-connectors-mcp", version: "0.1.0" }
 const MAX_TOOL_PAGES = 100
@@ -18,9 +20,9 @@ class UpstreamClient {
   #sessionId
   #requestId = 1_000_000
 
-  constructor(options, credential) {
+  constructor(options, credentialStore) {
     this.options = options
-    this.credential = credential
+    this.credentialStore = credentialStore
   }
 
   nextRequestId() {
@@ -28,11 +30,12 @@ class UpstreamClient {
   }
 
   async send(message) {
+    const credential = this.credentialStore.read()
     const headers = new Headers({
       Accept: "application/json, text/event-stream",
       "Content-Type": "application/json",
-      Authorization: `Bearer ${this.credential.access}`,
-      "ChatGPT-Account-Id": this.credential.accountId,
+      Authorization: `Bearer ${credential.access}`,
+      "ChatGPT-Account-Id": credential.accountId,
       "X-OpenAI-Product-Sku": "codex",
       originator: "chatgpt-connectors-mcp",
     })
@@ -180,15 +183,16 @@ class ConnectorProxy {
 
 async function main() {
   const options = parseOptions(process.argv.slice(2))
-  const credential = await loadCredential(options.authFile)
+  const credentialStore = await openCredentialStore(options.databaseFile)
+  credentialStore.read()
   if (options.probe) {
-    await runProbe(options, credential)
+    await runProbe(options, credentialStore)
     return
   }
 
   const endpoints = new Map(
     [...options.connectorAliases].map(([alias, connectorId]) => {
-      const endpoint = createEndpoint(options, credential, alias, connectorId)
+      const endpoint = createEndpoint(options, credentialStore, alias, connectorId)
       return [endpoint.path, endpoint]
     }),
   )
@@ -203,7 +207,8 @@ async function main() {
 }
 
 async function handleHttpRequest(request, response, endpoints) {
-  const endpoint = endpoints.get(request.url)
+  const pathname = new URL(request.url ?? "/", "http://localhost").pathname
+  const endpoint = endpoints.get(pathname)
   if (request.method !== "POST" || !endpoint) {
     response.writeHead(404, { "content-type": "application/json" })
     response.end(JSON.stringify({ error: "not_found" }))
@@ -268,8 +273,8 @@ function isLocalOrigin(value) {
   }
 }
 
-async function runProbe(options, credential) {
-  const endpoints = [...options.connectorAliases].map(([alias, connectorId]) => createEndpoint(options, credential, alias, connectorId))
+async function runProbe(options, credentialStore) {
+  const endpoints = [...options.connectorAliases].map(([alias, connectorId]) => createEndpoint(options, credentialStore, alias, connectorId))
   const results = []
   for (const endpoint of endpoints) {
     const initialize = requireResponse(
@@ -306,42 +311,80 @@ async function runProbe(options, credential) {
   )
 }
 
-function createEndpoint(options, credential, alias, connectorId) {
+function createEndpoint(options, credentialStore, alias, connectorId) {
   const endpointOptions = { ...options, alias, connectorId }
-  const upstream = new UpstreamClient(options, credential)
+  const upstream = new UpstreamClient(options, credentialStore)
   return { alias, path: `/mcp/${alias}`, upstream, proxy: new ConnectorProxy(endpointOptions, upstream) }
 }
 
-async function loadCredential(authFile) {
+async function openCredentialStore(databaseFile) {
   let metadata
   try {
-    metadata = await lstat(authFile)
+    metadata = await lstat(databaseFile)
   } catch (error) {
-    if (error?.code === "ENOENT") throw new ProxyError("auth_file_not_found")
-    throw new ProxyError("auth_file_unreadable")
+    if (error?.code === "ENOENT") throw new ProxyError("opencode_database_not_found")
+    throw new ProxyError("opencode_database_unreadable")
   }
-  if (!metadata.isFile()) throw new ProxyError("auth_path_not_regular_file")
-  if (typeof process.getuid === "function" && metadata.uid !== process.getuid()) throw new ProxyError("auth_file_wrong_owner")
-  if ((metadata.mode & 0o077) !== 0) throw new ProxyError("auth_file_permissions_too_open")
+  if (!metadata.isFile()) throw new ProxyError("opencode_database_not_regular_file")
+  if (typeof process.getuid === "function" && metadata.uid !== process.getuid()) throw new ProxyError("opencode_database_wrong_owner")
 
-  let parsed
   try {
-    parsed = JSON.parse(await readFile(authFile, "utf8"))
+    return new CredentialStore(databaseFile)
   } catch {
-    throw new ProxyError("auth_file_invalid_json")
+    throw new ProxyError("opencode_database_unreadable")
   }
-  const auth = isRecord(parsed) ? parsed.openai : undefined
-  if (!isRecord(auth) || auth.type !== "oauth") throw new ProxyError("opencode_oauth_not_found")
-  if (typeof auth.access !== "string" || auth.access.length === 0) throw new ProxyError("opencode_access_not_found")
-  if (typeof auth.accountId !== "string" || auth.accountId.length === 0) throw new ProxyError("opencode_account_not_found")
-  if (typeof auth.expires !== "number") throw new ProxyError("opencode_expiry_not_found")
-  if (auth.expires <= Date.now()) throw new ProxyError("opencode_access_expired_reauthenticate")
-  return { access: auth.access, accountId: auth.accountId }
+}
+
+class CredentialStore {
+  #database
+  #select
+
+  constructor(databaseFile) {
+    let database
+    try {
+      database = new DatabaseSync(databaseFile, { readOnly: true, timeout: 5_000 })
+      this.#select = database.prepare(
+        "SELECT value FROM credential WHERE integration_id = ? ORDER BY active ASC, time_created ASC, id ASC",
+      )
+    } catch {
+      database?.close()
+      throw new ProxyError("opencode_database_unreadable")
+    }
+    this.#database = database
+  }
+
+  read() {
+    let row
+    try {
+      row = this.#select.all(OPENAI_INTEGRATION_ID).at(-1)
+    } catch {
+      throw new ProxyError("opencode_database_query_failed")
+    }
+    if (!row || typeof row.value !== "string") throw new ProxyError("opencode_oauth_not_found")
+
+    let value
+    try {
+      value = JSON.parse(row.value)
+    } catch {
+      throw new ProxyError("opencode_credential_invalid_json")
+    }
+    if (typeof value !== "object" || value === null || Array.isArray(value) || value.type !== "oauth")
+      throw new ProxyError("opencode_oauth_not_found")
+    if (typeof value.access !== "string" || value.access.length === 0) throw new ProxyError("opencode_access_not_found")
+    const accountId =
+      typeof value.metadata === "object" && value.metadata !== null && !Array.isArray(value.metadata)
+        ? value.metadata.accountID
+        : undefined
+    if (typeof accountId !== "string" || accountId.length === 0) throw new ProxyError("opencode_account_not_found")
+    if (typeof value.expires !== "number") throw new ProxyError("opencode_expiry_not_found")
+    if (value.expires <= Date.now()) throw new ProxyError("opencode_access_expired_reauthenticate")
+    return { access: value.access, accountId }
+  }
 }
 
 function parseOptions(args) {
   const connectorAliases = new Map()
-  let authFile = DEFAULT_AUTH_FILE
+  let databaseFile = process.env.OPENCODE_DB ?? DEFAULT_DATABASE_FILE
   let upstream = DEFAULT_UPSTREAM
   let timeoutMs = 30_000
   let probe = false
@@ -356,7 +399,7 @@ function parseOptions(args) {
     }
     const value = args[++index]
     if (value === undefined) throw new ProxyError(`missing_value_for_${argument.slice(2).replaceAll("-", "_")}`)
-    if (argument === "--auth-file") authFile = value
+    if (argument === "--database-file") databaseFile = value
     else if (argument === "--upstream") upstream = value
     else if (argument === "--timeout-ms") timeoutMs = Number(value)
     else if (argument === "--host") host = value
@@ -375,7 +418,7 @@ function parseOptions(args) {
   if (!Number.isInteger(port) || port < 1 || port > 65535) throw new ProxyError("invalid_port")
   if (host !== "127.0.0.1" && host !== "localhost" && host !== "::1") throw new ProxyError("invalid_listen_host")
   return {
-    authFile: expandHome(authFile),
+    databaseFile: expandHome(databaseFile),
     upstream,
     timeoutMs,
     probe,

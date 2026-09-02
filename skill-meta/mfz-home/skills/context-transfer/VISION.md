@@ -19,6 +19,16 @@ The skill can operate directly for a generic artifact or serve as shared behavio
 inside an artifact-specific skill. The owning workflow retains control of format,
 storage, review, and publication.
 
+When a specialist artifact is an implementation authority, Context Transfer
+preserves it losslessly and keeps parent corrections separate and explicit.
+
+The always-loaded agent contract handles routine fresh-agent dispatches without
+loading this skill. When audience, access, privacy, portability, publication, or
+lossless handoff makes the boundary consequential, Context Transfer preserves
+the user's objective, rationale, and decision criteria through one disclosed
+consumer branch while leaving implementation freedom proportional to variance
+risk.
+
 ## Portability
 
 The skill itself has no required platform, artifact type, repository layout,
@@ -38,6 +48,8 @@ neither hides required assumptions nor carries irrelevant production history.
 - Making every artifact globally standalone or suitable for every possible reader.
 - Requiring citations for every distilled observation.
 - Replacing artifact-specific authority, privacy, validation, or lifecycle rules.
+- Rewriting a specialist implementation artifact into an unmarked parent summary.
+- Flattening a user's rationale and priorities into a deliverable-only task list.
 - Publishing, sending, committing, or uploading a draft without separate
   authority from the owning workflow or user.
 - Treating likely secondary AI consumption as permission to ignore the primary

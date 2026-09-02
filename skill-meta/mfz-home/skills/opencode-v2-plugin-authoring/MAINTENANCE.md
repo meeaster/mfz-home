@@ -14,14 +14,12 @@ source and installed CLI; it is not an API replacement.
    local-directory resolution, consumed CLI configuration, render boundaries,
    host runtime aliases, and whether the TUI definition has gained an Effect
    entrypoint.
-3. Re-run isolated Drive controls for file, directory, SDK-importing, reactive,
-   and visible-slot plugins. Use fresh processes and retain renderer evidence.
+3. Re-run fresh controls for a configured local file negative case, a root-shaped directory positive case, SDK-importing and reactive plugins, and a visible-slot contribution. Use OpenCode Drive when available and retain rendered-package evidence.
 4. Keep host module aliases, dependency boundaries, physical package layout,
    and CLI-file ownership only while source and runtime evidence agree.
 5. Recheck registry schemas with an omitted optional property and a present `undefined` property. Preserve the distinction only while the matching runtime rejects the latter.
 6. Recheck the matching event subscription contract, iterator cleanup behavior, hot reload disposal, and event delivery from plugin-owned top-level sessions. Preserve the exact-iterator cleanup and self-output exclusion rules while runtime evidence supports them.
-7. Update lifecycle-selection, migration, package-directory, dependency, and
-   crash-diagnosis scenarios when behavior changes.
+7. Update lifecycle-selection, migration, package-directory, local-entry diagnosis, dependency, and crash-diagnosis scenarios when behavior changes.
 
 ## Verification
 

@@ -53,3 +53,10 @@
 - Required event-driven plugins to identify and exclude plugin-owned output before starting more work. A `parentID` check is insufficient for an owned top-level session.
 - Required cleanup to close the exact async iterator and await the consumer task. This follows the working V2 subscription pattern and prevents hot reload from retaining duplicate consumers.
 - Extended runtime verification beyond active plugin status. One trigger must cause one action after reload, plugin-owned completion must cause none, and `/api/model` must remain available after the action.
+
+## 2026-09-01 - Native TUI directory loading evidence
+
+- Revalidated the native TUI loader with `opencode2 v0.0.0-beta-18743`.
+- A configured local `tui/index.tsx` file appeared in plugin listings but was not imported or activated. A configured directory with root `index.ts` and `tui.tsx` imported, ran setup, and rendered a minimal visible contribution.
+- Updated the session-cost TUI package with a root marker and wrapper, changed the renderer to register the directory URL, and verified a fresh resumed-session TUI rendered `Session cost` and `Total` with no plugin failure.
+- Replaced the prior `tui/index.tsx` directory-loading claim, added the configured-file negative case to the evaluations, and updated the refresh procedure.

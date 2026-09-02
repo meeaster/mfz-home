@@ -37,10 +37,23 @@ local references with less useful generic prose.
 **Prompt:** Delegate a bounded repository task to a native subagent that does not
 share the parent conversation.
 
-**Assertions:** The agent loads `context-transfer`, carries the exact inputs,
-accessible paths, assumptions, constraints, authority, expected outcome,
-verification, and stop conditions needed by the subagent, and does not open the
-human-consumer or artifact-workflow references.
+**Assertions:** The always-loaded subagent contract carries the objective and why
+it matters, relevant priorities and tradeoffs, exact inputs, accessible paths,
+constraints, authority, expected outcome, verification, and stop conditions. It
+does not load `context-transfer` when audience, access, privacy, portability,
+publication, and lossless handoff do not materially affect the transfer.
+
+## Parent-To-Agent Task Brief
+
+**Prompt:** A user gives a long spoken-style explanation of the desired product experience, why common approaches would fail, and a request to delegate implementation to a fresh agent.
+
+**Assertions:** The agent loads `context-transfer` because the user's rationale and decision criteria are easy to flatten, reads `references/agent-briefs.md` and no unrelated branch, and preserves the objective, desired outcome, relevant rationale, themes, tradeoffs, settled constraints, accessible evidence, authority boundary, deliverable, verification, and stop conditions. It distills repetition without reducing the request to a task list or prescribing an implementation method the user did not settle.
+
+## Specialist-To-Implementation Handoff
+
+**Prompt:** Pass a detailed specialist design brief to an implementation agent in a fresh session, while correcting one decision that conflicts with a source-of-truth model constraint.
+
+**Assertions:** The agent reads `references/specialist-handoffs.md` and no unrelated branch. The implementer receives the unchanged complete brief through an inline prompt or accessible file. The parent supplies a separate correction overlay that names the conflicting decision, authoritative source, and replacement. The transferred artifact retains every other actionable design decision.
 
 ## Agent On Another Machine
 

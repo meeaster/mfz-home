@@ -3,21 +3,33 @@ references:
     url: https://github.com/anomalyco/opencode.git
     ref: v2
     description: "TypeScript/Bun monorepo for the OpenCode coding agent across terminal, desktop, and editor surfaces. Inspect it for CLI behavior, configuration, sessions, providers, MCP, plugins, tools, permissions, or agent workflows. Main CLI: packages/opencode/src/index.ts."
+    group: agent-tooling
+    summary: OpenCode
+    signals: [OpenCode, agent harness, plugins]
   - name: openspec
     url: https://github.com/Fission-AI/OpenSpec.git
     description: "TypeScript CLI and framework for spec-driven development. Inspect it for change proposals, requirements and scenarios, implementation plans, apply/verify/archive workflows, schema behavior, or shared planning stores. Primary package: @fission-ai/openspec."
+    group: agent-tooling
+    summary: OpenSpec
+    signals: [OpenSpec, specifications, change proposals]
   - name: compound-engineering-plugin
     url: https://github.com/EveryInc/compound-engineering-plugin.git
     description: "Cross-harness agent plugin providing skills for planning, implementation, debugging, simplification, review, and reusable engineering knowledge. Inspect it when designing agent workflows, resolving bugs, reviewing changes, or capturing project learnings. Main entrypoint: src/index.ts."
   - name: mise
     url: https://github.com/jdx/mise.git
     description: "Rust CLI for managing development tools, project environments, and tasks from mise.toml. Inspect it for tool versions, reproducible shells or CI, environment loading, task execution, activation, or version-manager workflows."
+    group: agent-tooling
+    summary: Mise
+    signals: [mise, tool versions, tasks]
   - name: hunk
     url: https://github.com/modem-dev/hunk.git
     description: "Bun/TypeScript terminal UI for reviewing Git, Jujutsu, Sapling, raw-file, and patch changesets. Inspect it for diff navigation, watch mode, inline annotations, live agent sessions, pager integration, or terminal diff components. Entrypoint: bin/hunk.cjs."
   - name: herdr
     url: https://github.com/ogulcancelik/herdr.git
     description: "Rust terminal multiplexer and workspace manager for AI coding agents. Inspect it for persistent panes and sessions, detachable orchestration, workspace control, remote reattachment, socket automation, plugins, or PTY behavior."
+    group: agent-tooling
+    summary: Herdr
+    signals: [Herdr, terminal multiplexer, agent workspace]
   - name: vercel-skills
     url: https://github.com/vercel-labs/skills.git
     description: "TypeScript/Node CLI for distributing reusable SKILL.md instructions across coding agents. Inspect it for discovery, installation, updates, Git or local sources, project versus global scope, agent detection, locks, or skill lifecycle commands."
@@ -30,6 +42,9 @@ references:
   - name: executor
     url: https://github.com/rhyssullivan/executor.git
     description: "Bun/TypeScript integration and tool-execution layer for AI agents across MCP, OpenAPI, GraphQL, and other schema sources. Inspect it for tool catalogues, connections, authentication, approval policy, deferred execution, the Executor CLI, or self-hosting."
+    group: agent-tooling
+    summary: Executor
+    signals: [Executor, MCP, tool integration]
   - name: datadog-agent
     url: https://github.com/datadog/datadog-agent.git
     description: Go/Bazel monorepo for the Datadog Agent v6 and v7, including the agent runtime, component bundles, packaging, and developer docs. Main developer docs live under docs/dev and comp/README.md lists component packages and their pkg.go.dev entrypoints
@@ -54,6 +69,9 @@ references:
   - name: mattpocock-skills
     url: https://github.com/mattpocock/skills.git
     description: "Shell/Markdown collection of composable AI engineering skills. Inspect it for repeatable workflows covering requirements, domain terminology, test-driven development, debugging, review, architecture, triage, handoff, or other agent practices."
+    group: agent-tooling
+    summary: Agent workflow skills
+    signals: [agent skills, TDD, debugging]
   - name: ccstatusline
     url: https://github.com/sirmalloc/ccstatusline.git
     description: "TypeScript/Bun CLI and Ink TUI for Claude Code status lines. Inspect it for model, context, usage or Git displays, Powerline layouts, input JSON, settings, customization, or rendering behavior. Main entrypoint: src/ccstatusline.ts."
@@ -63,39 +81,72 @@ references:
   - name: codex
     url: https://github.com/openai/codex.git
     description: "Rust workspace for OpenAI's Codex CLI coding agent. Inspect it for CLI or TUI behavior, configuration loading, models, sessions, tools, sandboxing, approvals, MCP, hooks, or extensions. Main crates: codex-rs/core, tui, cli, and mcp-server."
+    group: agent-tooling
+    summary: Codex
+    signals: [Codex, agent harness, sandbox]
   - name: openai-skills
     url: https://github.com/openai/skills.git
     description: "Markdown/Python repository of OpenAI-maintained agent skills. Inspect it when comparing skill packaging, creator guidance, evaluation workflows, scripts, or Codex-specific metadata. Main entrypoints: skills/.system/skill-creator/SKILL.md and skills/.curated/."
+    group: agent-tooling
+    summary: OpenAI skills
+    signals: [agent skills, skill packaging, evaluations]
   - name: openai-plugins
     url: https://github.com/openai/plugins.git
     description: "OpenAI repository of Codex plugin packages. Inspect it for current plugin and skill packaging, manifests, agents, bundled resources, and skill-only plugin examples. Main entrypoint: plugins/."
+    group: agent-tooling
+    summary: OpenAI plugins
+    signals: [Codex plugins, plugin packaging, manifests]
   - name: sideshow
     url: https://github.com/modem-dev/sideshow.git
     description: "TypeScript live visual surface for terminal coding agents. Inspect it for browser-rendered diagrams, UI sketches, Markdown, diffs, terminal output, Mermaid, JSON, code, or CLI/MCP/HTTP agent integration. See docs/connecting-agents.md."
   - name: axis
     url: https://github.com/netlify/axis.git
     description: "TypeScript CLI and library for scenario-based evaluation of AI agents against services, sites, or developer platforms. Inspect it for agent tasks, transcripts, rubric scoring, baseline comparisons, MCP or skill integration, and custom adapters."
+    group: agent-tooling
+    summary: Axis
+    signals: [agent evaluation, scenarios, benchmarks]
   - name: openwiki
     url: https://github.com/langchain-ai/openwiki.git
     description: "TypeScript/Ink agentic CLI for generating and maintaining repository documentation or personal knowledge wikis. Inspect it for codebase context, recurring updates, connector ingestion, OKF-compatible Markdown, Mermaid-backed synthesis, or wiki workflows."
+    group: agent-tooling
+    summary: OpenWiki
+    signals: [OpenWiki, repository wiki, knowledge synthesis]
   - name: deepagents
     url: https://github.com/langchain-ai/deepagents.git
     description: "Python/LangGraph agent harness centered on create_deep_agent. Inspect it for planning, filesystem backends, subagents, context management, skills, memory, human approval, customizable agents, or durable multi-step orchestration."
+    group: agent-tooling
+    summary: Deep Agents for Python
+    signals: [Deep Agents, LangGraph, subagents]
   - name: deepagentsjs
     url: https://github.com/langchain-ai/deepagentsjs.git
     description: "TypeScript/LangGraph runtime exposing createDeepAgent. Inspect it for planning, filesystem work, isolated subagents, skills, permissions, context management, Node or browser agents, and longer-running tool-using workflows."
+    group: agent-tooling
+    summary: Deep Agents for TypeScript
+    signals: [Deep Agents, LangGraph, TypeScript agents]
   - name: vercel-ai
     url: https://github.com/vercel/ai.git
     description: "TypeScript monorepo for the Vercel AI SDK. Inspect it for provider-independent model calls, streaming, structured output, tool loops, agents, provider adapters, harness integrations, chatbots, or React and Next.js AI interfaces."
+    group: agent-tooling
+    summary: Vercel AI SDK
+    signals: [AI SDK, model streaming, tool loops]
   - name: eve
     url: https://github.com/vercel/eve.git
     description: "TypeScript filesystem-first framework for durable backend agents defined by project files. Inspect it for agent scaffolding, instructions, tools, skills, channels, schedules, recurring execution, sandbox backends, authentication, or deployment. Main package: packages/eve."
+    group: agent-tooling
+    summary: Eve
+    signals: [durable agents, schedules, sandbox backends]
   - name: deep-swe
     url: https://github.com/datacurve-ai/deep-swe.git
     description: "Benchmark task corpus and Harbor/Pier fixtures for repository-grounded, long-horizon coding-agent evaluations. Inspect it for isolated task environments, held-out verifiers, patch extraction, trajectory analysis, or cross-language repair benchmarks. Main tasks: tasks/."
   - name: buzz
     url: https://github.com/block/buzz.git
     description: "Rust workspace and desktop, web, and mobile clients for a Nostr-based collaboration relay connecting people, coding agents, channels, workflows, Git, and media. Inspect it for relay behavior, ACP agent integration, event ingestion and fan-out, mobile pairing, or self-hosted deployment. Main crates: buzz-relay and buzz-acp."
+    group: agent-tooling
+    summary: Buzz
+    signals: [agent collaboration, ACP, relay]
   - name: opencode-plugins
     url: https://github.com/kitlangton/opencode-plugins.git
     description: "TypeScript/Bun monorepo for OpenCode V2 TUI plugins. Inspect it for pull-request and CI tracking in the sidebar, session recap behavior, plugin packaging, or local hot-reload development. Main packages: packages/pr-tracker and packages/session-recap."
+    group: agent-tooling
+    summary: OpenCode plugins
+    signals: [OpenCode, TUI plugins, session recap]

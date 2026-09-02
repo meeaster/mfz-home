@@ -1,5 +1,17 @@
 # Log
 
+## 2026-08-18 - Intent-Rich Agent Briefs
+
+- Added a parent-to-agent dispatch branch after a detailed user narrative was reduced to a deliverable-focused subagent prompt.
+- Defined the parent brief as preserving decision-relevant goals, rationale, themes, and tradeoffs rather than transcribing conversation or prescribing unrequested implementation methods.
+- Kept the branch separate from specialist-to-implementation preservation because the parent must establish the initial task frame before a specialist artifact exists.
+
+## 2026-08-18 - Specialist Artifact Preservation
+
+- Added a generic specialist-to-implementation handoff branch after a UI/UX design brief was reduced to a lossy implementation summary.
+- Preserved Context Transfer's proportionality rule for ordinary artifacts while requiring lossless transfer for actionable specialist artifacts.
+- Kept correction overlays separate from the specialist artifact so conflicts remain visible and reviewable.
+
 ## 2026-08-05 - Initial Design
 
 - Chose model invocation because users directly request cross-context reports and
