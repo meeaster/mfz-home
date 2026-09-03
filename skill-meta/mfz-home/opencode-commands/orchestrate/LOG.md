@@ -177,3 +177,17 @@
 - Added qualitative context-pressure guidance without numeric thresholds. A narrow worker may finish successfully after compaction; a broad plan that survives compaction with unrelated streams, repeated discovery, or no validated intermediate outcome stops through the existing blocker packet.
 - Grounded the revision in post-hoc analysis `ses_f9a931650ffedb3OQbY9CXSBZg` of parent `ses_f9b7445b8ffeSMUeszW1oWFIhh`: one worker spanning materially different `omp-advisor` and `pstack` plugin domains reached about 251k effective context, compacted once, later failed another compaction after 274 tools and six failures, and returned no validation handoff; a fresh narrower retained-plugin worker also compacted near 251k and succeeded. Separate bounded profile follow-ups completed without compaction, showing that file or change count is not a sizing rule and compaction is pressure rather than proof of failure.
 - Preserved parallel autonomous read-only source gathering and the direct one-worker path for explicitly requested coordinated multi-repository commit and push. Publication remains sequential, non-atomic, repository-specific, and unsplit by repository count alone.
+
+## 2026-09-02 - Raw conversational invocation input
+
+- Reframed command arguments as the user's raw current prompt rather than prematurely naming them as a settled task.
+- Moved the single unwrapped `$ARGUMENTS` placeholder to the command's end under `## User prompt`, keeping the user's current message recent and distinct from the orchestration policy.
+- Made questions, corrections, partial thoughts, brainstorming, spoken-style exploration, and prior-context-dependent input explicit while preserving natural conversational interpretation.
+- Preserved all orchestration routing, continuity, authority, model inheritance, and validation behavior; mentioning possible implementation still grants no mutation authority.
+
+## 2026-09-03 - Bounded continuation across mechanism changes
+
+- Corrected the fresh-per-unit rule after the coordinator treated a resolved provenance and placement incompatibility as a new authoring unit even though the same objective, artifacts, checkout, generated evidence, authority, and validation context remained useful.
+- Made a clean stop on one bounded decision continuity-biased when the user's answer preserves the underlying work unit and retained context has material value, including changes to mechanism, provenance, implementation route, placement, or blocker resolution.
+- Added the concrete seven-generated-skill case: when formal vendoring is incompatible and no repository mutation occurred, choosing to refresh the same skills in their existing local location should resume the existing `agent-author`.
+- Preserved fresh diagnosis after looping implementation, fresh independent review, fresh genuinely distinct mutation units, substantial-preparation separation, and all authority gates.

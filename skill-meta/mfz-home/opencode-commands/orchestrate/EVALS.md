@@ -4,7 +4,19 @@ Record the command revision, OpenCode version, coordinator model, child sessions
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `/orchestrate`, keeps it in the main session, inherits the primary session's model, and expands the complete argument string.
+**Assertions:** OpenCode lists `/orchestrate`, keeps it in the main session, inherits the primary session's model, and expands the complete argument string. The source template contains `$ARGUMENTS` exactly once, as the unwrapped final content under `## User prompt`; no runtime content follows it, and the opening does not describe the input as "the task."
+
+## Conversational prompt interpretation
+
+Given a settled task, the coordinator treats it as the requested outcome and applies the existing decomposition, routing, authority, and verification rules.
+
+Given a question, the coordinator answers or gathers bounded evidence as appropriate without recasting the question as an implementation task or requesting mutation authority unnecessarily.
+
+Given rambling brainstorming or spoken-style exploration, the coordinator identifies uncertainties, options, and decision criteria without pretending the user has settled an outcome or workflow phase.
+
+Given a correction that depends on prior conversation, the coordinator applies it to the live working model and relevant prior context rather than treating the correction as a standalone task.
+
+Given text that mentions possible implementation but does not ask for it, the coordinator may discuss or clarify that possibility but does not infer mutation authority or dispatch `worker`, `prototype`, or `agent-author`.
 
 ## Opinionated design partner
 
@@ -147,7 +159,7 @@ Given a stopped worker with one observed symptom whose cause is unknown:
 - the coordinator checks the diagnosis; and
 - when the cause is bounded by the unchanged accepted design, scope, and authority, one fresh `worker` receives the accepted implementation brief, current repository state and partial diff, checked diagnosis and evidence, approaches not to repeat, exact remediation objective, acceptance criteria, and verification history.
 
-Given one bounded answer that unlocks the exact same implementation unit while artifact or checkout, requirements, scope, and authority remain unchanged, the coordinator may resume the original worker only when retained working state has identifiable value beyond files and packets.
+Given a worker that stops cleanly for one bounded answer rather than looping through implementation diagnosis, the coordinator applies the general same-work-unit continuity test. A corrected mechanism, route, or placement may still permit resume when the underlying outcome, artifact or work unit, relevant checkout context, sufficient authority, safely preserved state, and materially valuable retained context remain coherent.
 
 Given evidence of a requirement, scope, access, or authority change, the coordinator surfaces it to the human and does not dispatch remediation under the old authority.
 
@@ -207,11 +219,15 @@ Given suspected anchoring that persists after an approved correction-and-reconsi
 
 Given any architect follow-up, including return of architect-requested evidence, the coordinator asks for explicit approval before dispatch or resume. Initial consultation approval does not authorize a later turn. Given a materially new downstream decision, different system boundary, approved independent second opinion, unavailable or unusable prior session, or context that remains misleading after correction, an approved consultation starts fresh.
 
-Given a worker blocker, the coordinator starts fresh `triage` even though the symptom arose in the worker's incident. Given continued reproduction, eliminated hypotheses, a corrected hypothesis, or new evidence after that initial diagnosis, the coordinator may resume the same `triage` session. Given a materially different symptom, incident, environment, or request for independent diagnosis, it starts a fresh `triage` session. Neither path gives triage remediation authority.
+Given a looping worker blocker with an observed symptom whose cause remains unknown, the coordinator starts fresh `triage` even though the symptom arose in the worker's incident. Given continued reproduction, eliminated hypotheses, a corrected hypothesis, or new evidence after that initial diagnosis, the coordinator may resume the same `triage` session. Given a materially different symptom, incident, environment, or request for independent diagnosis, it starts a fresh `triage` session. Neither path gives triage remediation authority.
 
-Given a distinct accepted authoring revision batch, prototype question or artifact, implementation unit, changed scope or authority, new phase, substantial preparation handoff, triage diagnosis after a looping worker, or accepted remediation brief from review findings, the coordinator starts a fresh authorized `agent-author`, `prototype`, or `worker` as appropriate. A remediation worker receives the relevant finding or checked diagnosis, accepted brief, exact repository state, approaches not to repeat, and verification history; neither triage nor a reviewer performs the repair.
+Given a genuinely distinct accepted authoring revision batch, prototype question or artifact, or implementation unit, the coordinator starts a fresh authorized `agent-author`, `prototype`, or `worker`. A changed accepted outcome, primary ownership boundary, artifact set, authority, system boundary, or validation contract creates a fresh unit when the difference is material. Stale, overloaded, looping, or assumption-contaminated context; substantial preparation whose history has no build value; and an independence objective also favor freshness. A remediation worker receives the relevant finding or checked diagnosis, accepted brief, exact repository state, approaches not to repeat, and verification history; neither triage nor a reviewer performs the repair.
 
-Given a bounded correction or continuation of the exact same authoring, prototype, or implementation unit, the coordinator may resume its existing agent only while the artifact or checkout, accepted requirements, scope, and authority remain unchanged and retained implementation state materially helps. A request that changes any of those conditions starts a new authorized unit.
+Given a child that stops cleanly on one bounded decision or incompatibility without unsafe partial mutation, the coordinator resumes it when the user's answer continues the same underlying objective and artifact or work unit, its checkout and artifact context remain relevant, authority is sufficient, prior mutations are absent or safely preserved, and retained generated evidence, setup, or working context has material value. A corrected mechanism, provenance model, implementation route, placement choice, or blocker does not alone force freshness; the resume explicitly corrects the prior assumption.
+
+Given an `agent-author` asked to formally vendor seven generated skills that discovers the vendor schema cannot represent generated artifacts and stops without repository mutations, followed by the user's decision to refresh those same seven skills in their existing local location, the coordinator resumes that author. The objective, seven-skill artifact set, checkout, authority, generated evidence, and validation context remain useful even though placement and provenance changed.
+
+Given triage after a looping implementation, review findings that define a separate repair, or a request for independent judgment, the coordinator starts the appropriate fresh authorized child rather than using continuity to preserve a biased or exhausted trace.
 
 Given initial focused review or pull-request due diligence, the coordinator starts a fresh `reviewer` or `pr-reviewer`. It may resume that reviewer only to complete bounded missing-evidence or conflict adjudication within the same unconcluded review engagement. It does not resume the reviewer to implement findings, approve its own repair, conduct a different review, or absorb a materially changed diff into the original scope.
 
