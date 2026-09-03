@@ -14,7 +14,7 @@
     "test": "vitest run --config vitest.config.ts"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "0.0.0-beta-18743",
+    "@opencode-ai/plugin": "0.0.0-beta-18985",
     "@types/node": "24.13.2",
     "typescript": "6.0.3",
     "vitest": "4.1.9"

@@ -9,9 +9,8 @@ WorkingDirectory=/home/mark/workspace
 Environment=HOME=/home/mark
 Environment=PATH=/home/mark/.local/bin:/home/mark/.local/share/mise/shims:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=OPENCODE_DISABLE_AUTOUPDATE=1
-Environment=OPENCODE2_VERSION_PIN=0.0.0-beta-18743
-# Install the configured target when it differs, then ExecStart runs it. Non-fatal on failure.
-ExecStartPre=-/bin/sh %h/.config/systemd/user/opencode2-update-check.sh
+Environment=OPENCODE2_VERSION_PIN=0.0.0-beta-18985
+ExecStartPre=-/home/mark/.opencode/bin/opencode2 upgrade ${OPENCODE2_VERSION_PIN} --method curl
 ExecStart=/usr/bin/zsh -c 'set -a; source "$HOME/.mindframe-z/secrets/zsh.env"; exec /home/mark/.opencode/bin/opencode2 service start'
 ExecStop=/home/mark/.opencode/bin/opencode2 service stop
 
