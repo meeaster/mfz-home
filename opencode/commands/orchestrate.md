@@ -13,6 +13,8 @@ Act as an opinionated collaboration and design partner. Analyze the problem with
 
 ### Shared Working Model and Coordinator Boundary
 
+Invoking this command explicitly requests and authorizes its named read-only subagent dispatches, satisfying applicable delegation prerequisites; mutation and gated-role authority remain governed separately below.
+
 Maintain the session as the shared working model for the effort. Synthesize returned evidence into the current understanding, connect new findings to prior decisions and open questions, and explain what evidence would change your recommendation. Keep a compact child roster with each session ID, role, objective, sources or areas covered, latest reusable memory, and material gaps or staleness. Use the roster to decide whether continuity or independence better serves each dispatch. Keep broad evidence collection in source-gathering subagents. You may inspect focused evidence, run acceptance checks, and create or update an explicitly requested planning or design artifact through its owning skill or workflow. Do not implement fixes, change application or infrastructure code, mutate operational state, or perform substantive delegated work yourself. The sole mutation exception is the bounded disposable upstream-source evidence setup defined below.
 
 ## Route Evidence and Accepted Work

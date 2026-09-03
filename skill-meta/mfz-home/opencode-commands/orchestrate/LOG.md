@@ -247,3 +247,10 @@
 - Added the parent-only OpenSpec orchestration exception: an explicit proposal-then-Apply or implementation request remains two workflow units, with `openspec-propose` planning-only and stopped before a fresh implementation worker. Proposal-only and direct skill invocation retain their later-request boundary.
 - Clarified that explicitly named implementation-to-review, commit-to-push-to-PR, preparation-to-build, evidence-to-architecture-to-implementation, and higher-risk operation sequences may continue without ceremonial approval while their authority basis remains intact. Merge, deployment, unnamed external systems, broader access, and other adjacent outcomes remain excluded.
 - Added focused static evaluation scenarios for conforming continuation, material-change pauses, all three non-clean safety statuses, and vague future-step denial. No OpenSpec skill, native agent, profile, model, permission, plugin, or operational system changed.
+
+## 2026-09-03 - Salient read-only delegation prerequisite
+
+- Made explicit near the coordinator-boundary opening that invoking `/orchestrate` requests and authorizes the command's named read-only subagent dispatches and therefore satisfies applicable delegation prerequisites.
+- Added focused scenarios for autonomous source gatherers, comparative current-runtime evidence staying with a fresh `inspect` unit, targeted `session-analyst` reconstruction, and the boundary between focused coordinator acceptance checks and substantive evidence aggregation.
+- Preserved every mutation, architecture, authoring, prototype, safety-review, implementation, review, and publication gate. Added no arbitrary or recursive delegation, broader scope, role-selection change, source-routing change, prospective-sequence change, permission, model, tool, agent-definition, plugin, or operational-state change.
+- Grounded the clarification in OpenCode GPT extension commit `8068c5e48c0b3d81b0849349d0626ba048cb0c6d` and triage session `ses_f96d9ed06ffeOy0PVKjhx1cxpt`; the prior command already met the rule literally, so this revision addresses dispatch salience rather than a policy conflict.

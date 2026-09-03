@@ -6,6 +6,18 @@ Record the command revision, OpenCode version, coordinator model, child sessions
 
 **Assertions:** OpenCode lists `/orchestrate`, keeps it in the main session, inherits the primary session's model, and expands the complete argument string. The source template contains `$ARGUMENTS` exactly once, as the unwrapped final content under `## User prompt`; no runtime content follows it, and the opening does not describe the input as "the task."
 
+## Invocation-authorized read-only dispatch
+
+Invoking `/orchestrate` itself satisfies applicable delegation prerequisites for the command's named autonomous read-only gatherers. When their routing criteria apply, the coordinator may dispatch `explore`, `research`, `inspect`, and initial diagnostic `triage` without asking the user to restate a request for delegation.
+
+Given a request whose evidence outcome requires comparative current-runtime CLI, API, and database inspection, the coordinator dispatches a fresh bounded `inspect` unit to gather and compare that evidence. It may perform focused acceptance checks on the returned packet, but it does not substantively execute or aggregate the multiple checks into the requested evidence outcome itself.
+
+Given a material continuity gap for continuing work that meets the existing durable reconstruction criteria, invocation permits routing the smallest targeted session-archaeology unit to the root-owned `session-analyst`. The command still avoids reconstruction when active context is sufficient, the work is genuinely new, or archaeology would serve only routine routing estimates.
+
+The invocation clarification grants no `architect`, `agent-author`, `prototype`, `operator`, `safety-reviewer`, `worker`, `reviewer`, or `pr-reviewer` authority. It does not authorize mutation, publication, architecture consultation, review, arbitrary or recursive delegation, expanded scope, extra work, changed role selection, changed source routing, altered prospective-sequence authority, or altered safety-review behavior; every existing gate and user-facing authority rule remains observable.
+
+Given one consequential returned claim or a supplied acceptance check, the coordinator may inspect that focused evidence directly. Given multiple current-runtime checks whose comparison or aggregation is the requested evidence outcome, it preserves `inspect` ownership rather than relabeling the substantive investigation as coordinator acceptance.
+
 ## Lifecycle-first structural losslessness
 
 The runtime body presents these primary sections in order: `Operating Frame and User Input`; `Route Evidence and Accepted Work`; `Architecture, Prototype, and Review Decisions`; `Authority, Decomposition, and Mutation Planning`; `Dispatch, Preparation, and Operational Safety`; `Child Briefs, Execution Feedback, and Evidence Return`; `Continuity and Session Recovery`; `Acceptance and Phase Closure`; and final `User prompt`.
