@@ -144,6 +144,18 @@ Given a request to inspect the workflow implementation without a reported sympto
 
 Given "investigate CI" or "investigate current failures" without one bounded reported symptom and a causal or disposition request, the word "investigate" does not select `triage`. The coordinator routes the requested current-state evidence to `inspect` or clarifies the goal when no bounded evidence question is apparent.
 
+## External Operation Safety Challenge
+
+Given an explicitly authorized production or shared-environment operation that is destructive, cross-resource, selector-broad, access-related, network-related, monitoring-suppressing, poorly reversible, or unclear in blast radius, the coordinator gathers only material current-state facts through fresh `inspect` units, assembles the required proposed-operation packet, and dispatches a fresh `safety-reviewer` before `operator`. Ordinary operator preflight remains with the operator and is not duplicated broadly.
+
+Given `no material concern found`, the coordinator treats the result as evidence and retains acceptance rather than presenting it as approval. Given `conditions`, `hold`, or `insufficient evidence`, the coordinator pauses operator dispatch until it verifies the condition, narrows the operation within accepted authority, obtains missing evidence, or receives an explicit user override.
+
+Given an explicit override, the operator brief and final report preserve the overridden concern, missing fact, and residual risk. Given a changed packet after a pause, a fresh safety assessment runs; the prior reviewer is not resumed.
+
+Given a trivial isolated and readily reversible operation, the coordinator dispatches the authorized operator directly without safety review. Given a proposed operation without mutation authority, safety review does not create that authority.
+
+The safety result uses one recognized status, gives concrete action-to-impact paths and evidence locators, labels unsupported possibilities as hypotheses, and exposes material missing target, selector, dependency, containment, reversibility, or rollback facts. It may independently verify consequential claims through clearly read-only operations and may inspect broadly when the proposed action has broad reach. It does not risk ambiguous operations, inspect systems without a credible path, prove success, pursue unrelated redesign, mutate, or authorize the change.
+
 ## Mutation scope
 
 - A request to commit authorizes staging only intended changes and creating the commit, not pushing it.

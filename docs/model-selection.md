@@ -257,6 +257,7 @@ The current native agent assignments are:
 ```text
 worker: openai/gpt-5.6-luna@max
 operator: openai/gpt-5.6-luna@high (base)
+safety-reviewer: openai/gpt-5.6-luna@high (base)
 reviewer: openai/gpt-5.6-sol@high (Personal), openai/gpt-5.6-terra@high (Work)
 pr-reviewer: openai/gpt-5.6-sol@high
 explore: openai/gpt-5.6-luna@high
@@ -265,7 +266,7 @@ session-analyst: openai/gpt-5.6-luna@high
 prototype: openai/gpt-5.6-terra@max (base), openai/gpt-5.6-sol@medium (Personal)
 ```
 
-Agent descriptions route by task shape rather than model rank. The model and variant remain replaceable configuration policy: `worker` is the application implementation, substantive code, focused remediation, difficult implementation investigation, and novel troubleshooting lane; `operator` is the settled procedural and operational mutation lane for configuration, source control, supported CLI workflows, infrastructure, deployments, environment preparation, and external-system state; `reviewer` is the focused independent judgment lane; `pr-reviewer` performs holistic due diligence when a pull request's intent, design, or validation must be reconstructed and challenged; `explore` and `research` retain their specialized discovery scopes; `session-analyst` executes the read-only Agent Sessions evidence workflow; and `prototype` builds throwaway decision artifacts through the existing `prototype` skill. Workflow prompts own task-specific briefs, review cadence, and acceptance.
+Agent descriptions route by task shape rather than model rank. The model and variant remain replaceable configuration policy: `worker` is the application implementation, substantive code, focused remediation, difficult implementation investigation, and novel troubleshooting lane; `operator` is the settled procedural and operational mutation lane for configuration, source control, supported CLI workflows, infrastructure, deployments, environment preparation, and external-system state; `safety-reviewer` is the compact independent pre-mutation collateral-impact challenge for higher-risk external operations; `reviewer` is the focused independent completed-work judgment lane; `pr-reviewer` performs holistic due diligence when a pull request's intent, design, or validation must be reconstructed and challenged; `explore` and `research` retain their specialized discovery scopes; `session-analyst` executes the read-only Agent Sessions evidence workflow; and `prototype` builds throwaway decision artifacts through the existing `prototype` skill. Workflow prompts own task-specific briefs, review cadence, and acceptance.
 
 The operator assignment is a cost-policy hypothesis, not a capability-equivalence claim. Current traces show procedural work being sent to Luna/max and support trying Luna/high for that task shape, but there is no matched A/B evidence that Luna/high and Luna/max produce equivalent outcomes. Preserve worker Luna/max and evaluate representative operator runs before changing either assignment.
 

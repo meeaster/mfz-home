@@ -186,6 +186,9 @@ opencode_v2:
       operator:
         model: openai/gpt-5.6-luna
         variant: high
+      safety-reviewer:
+        model: openai/gpt-5.6-luna
+        variant: high
       triage:
         model: openai/gpt-5.6-terra
         variant: high
@@ -222,6 +225,7 @@ opencode_v2:
     - pr-reviewer
     - research
     - reviewer
+    - safety-reviewer
     - scheduled-worker
     - session-analyst
     - triage

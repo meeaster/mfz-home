@@ -217,3 +217,16 @@
 - Made the requested outcome decisive before evidence-source routing: one bounded reported failure or symptom with a causal, diagnostic, root-cause, or disposition ask starts fresh `triage`.
 - Kept `inspect` for supporting current CI, log, runtime, status, result, inventory, and command-derived facts, and kept `explore` and `research` under their existing evidence-source rules.
 - Recorded that "investigate" alone is not a triage trigger and added adjacent regression cases without changing agent definitions, authority gates, or the wider orchestration model.
+
+## 2026-09-03 - Pre-Mutation Safety Challenge
+
+- Added a fresh `safety-reviewer` evidence step before operator dispatch for production, shared, destructive, cross-resource, broad-selector, IAM/access, networking/routing, monitoring-suppression, poorly reversible, or unclear-blast-radius external operations.
+- Kept current-state gathering with fresh `inspect` units and ordinary immediate preflight and mutation with `operator`; the coordinator sends only a concrete operation packet and materially needed evidence to the safety reviewer.
+- Made `conditions`, `hold`, and `insufficient evidence` pause operator dispatch while preserving an explicit user override path whose concern and residual risk remain visible.
+- Kept `no material concern found` advisory rather than authorizing, retained coordinator acceptance, and excluded trivial isolated reversible operations from the extra lane.
+- Required fresh reassessment after material packet changes and added no model-matrix testing, live cloud scenario, architecture consultation, or independent completed-work review.
+
+### Read-only inspection correction
+
+- Allowed the safety reviewer to verify consequential packet claims through clearly read-only Bash and inherited integration operations while keeping mutation and delegation denied.
+- Replaced the blanket broad-inventory and architecture exclusions with path-based scope: investigate credible blast-radius paths, including broad inspection for genuinely broad operations, and omit unrelated systems or design preferences.
