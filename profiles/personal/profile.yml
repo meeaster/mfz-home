@@ -69,24 +69,15 @@ mcp:
     agents: [opencode, claude-code, codex]
   sentry:
     agents: [opencode, claude-code, codex]
+  cloudflare:
+    agents: [opencode, claude-code, codex]
+  cloudflare-docs:
+    agents: [opencode, claude-code, codex]
 claude:
   settings:
     permissions:
       defaultMode: auto
 opencode_v2:
-  dependencies:
-    zod: 4.4.3
-  plugins:
-    - omp-advisor
-    - pstack
-    - work-ledger
-  plugin_options:
-    work-ledger:
-      root: ~/workspace/knowledge/personal-knowledge/ledgers
-  tui_plugins:
-    - work-ledger
-  agents:
-    - omp-advisor
   config:
     agent:
       compaction:
@@ -101,3 +92,6 @@ opencode_v2:
       reviewer:
         model: openai/gpt-5.6-sol
         variant: high
+      triage:
+        model: openai/gpt-5.6-sol
+        variant: medium

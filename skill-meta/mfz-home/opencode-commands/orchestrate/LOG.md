@@ -123,3 +123,57 @@
 - Moved broad PR, source, external, current-state, and validation gathering to root-owned source gatherers before and during due diligence.
 - Added complete single or batched reviewer evidence requests, parent deduplication and scheduling, checked compact packets, and one practical reviewer resume with material delta.
 - Limited reviewer-local inspection to focused verification or conflict adjudication and kept architecture consultation and authority questions outside the evidence cycle.
+
+## 2026-09-02 - Human-gated architect consultation
+
+- Preserved autonomous root-owned read-only evidence gathering while making clear that it grants no authority for architecture consultation, mutation, or review.
+- Required the coordinator to explain why specialist synthesis is useful despite its configured expense, summarize gathered evidence and the pending decision, and obtain explicit human approval before starting `architect`; model selection remains owned by agent and profile configuration, so the command does not encode model names, providers, prices, or durable cost tiers.
+- Required the main session to surface the substantive architect packet, including credible options, evidence and inferences, strongest cases and tradeoffs, recommendation, uncertainty and gaps, and reversal conditions.
+- Required explicit human acceptance or revision of the design before implementation is proposed or its separate authority requested. Architect consultation accepts no design, authorizes no implementation, and does not weaken the existing explicit gates for authoring, prototypes, mutation, or either review lane.
+- Left child fresh-versus-resume behavior, context-cost routing, handoff policy, dispatch foregrounding, and independent-review policy unchanged.
+
+## 2026-09-02 - Fresh source gatherers and message memory
+
+- Changed only `explore`, `research`, and `inspect` to fresh-by-default routing for each bounded unit. Resume now requires direct continuation of the same unresolved investigation and downstream decision, the same role and materially overlapping evidence family, no independence need, and retained value that compact memory cannot preserve.
+- Added latest-only reusable memory in successor prompts, with source session ID, decision context, verified evidence and freshness, open work, warnings, and routing guidance. It remains evidence rather than truth, creates no filesystem artifact, avoids transcript replay, and is replaced rather than recursively accumulated.
+- Made known context burden, staleness, compaction, noisy traces, failures, retries, and unrelated work advisory reasons for freshness without numeric token, cost, age, turn, or context thresholds. Missing telemetry is neutral; cache economics never independently justify resume; routine routing does not commission session archaeology.
+- Based the policy on live trace `ses_f9b1f8dd0ffeLe0rAqH3HM1i7l`, including fresh research (`ses_f9b278de0ffeyk66VygUiPUYK7`), marker inspection (`ses_f9b278c3dffecwkI5b5aiVjR40`), and a fresh cross-role successor plus justified bounded repair (`ses_f9b25b2fbffeoz1nEdk1ryM5a1`). The successor used transferred memory without replaying the research trace; the repair was semantically justified but not proven cheaper, and observed compaction plus incomplete foreground-only usage markers did not support a universal threshold.
+- Left background-versus-foreground defaults and continuity for `triage`, `architect`, `agent-author`, `prototype`, `worker`, `reviewer`, and `pr-reviewer` unchanged. Added no provider memory, persistence, plugin, model, permission, or validation-script behavior, and preserved the separate architect, implementation, and review authority gates.
+
+## 2026-09-02 - Provisional non-source continuity defaults
+
+- Defined continuity by retained role context rather than usage telemetry or a generic expense label. The defaults remain provisional until an explicitly requested post-hoc assessment can ground revisions in observed orchestration traces.
+- Made `architect` strongly continuity-biased within one downstream design engagement, including human correction and reconsideration. Materially new boundaries and separately approved independent opinions start fresh; persistent anchoring is tested through correction before a fresh opinion supplements the existing engagement.
+- Required explicit human approval for every architect dispatch or resume. Architect-requested evidence remains autonomously gatherable within scope, but the coordinator surfaces it in the main session and obtains direction before returning it.
+- Made `triage` resumable within one incident, mutation and artifact roles fresh per accepted unit with bounded unchanged-unit continuation, and review roles fresh for initial judgment with only same-review evidence completion or conflict adjudication resumable.
+- Kept coordinator verification as the post-remediation default. A separately approved independent rereview starts fresh, reviewers never repair or approve their own findings, and remediation normally goes to a fresh authorized worker.
+- Added no background dispatch policy, numeric threshold, cost estimator, fixed model tier, persistent memory, automatic session analysis, role, command, file, script, plugin, or source-gatherer policy change.
+
+## 2026-09-02 - Worker blocker classification and diagnosed continuation
+
+- Kept `worker` and `triage` frontmatter-only and placed their per-unit troubleshooting and diagnosis contracts in coordinator-supplied briefs so both agents continue to inherit the provider system prompt.
+- Made the coordinator check worker blocker packets and start fresh read-only triage for one unknown symptom without transferring raw failed-command history.
+- Made triage diagnosis a checked evidence boundary, then preferred a fresh standard worker with the accepted brief, current partial state, diagnosis, approaches not to repeat, remediation objective, and focused verification.
+- Kept a narrow original-worker resume exception for one bounded answer that unlocks the exact unchanged unit when retained working state has concrete value beyond files and packets.
+- Routed possible design-assumption conflict through the coordinator's smallest root-owned evidence pass and the existing human-gated architect engagement. Worker and triage cannot route directly to architect or declare the design invalid.
+- Returned changed requirements, scope, access, or authority to the human while allowing existing implementation authority to continue only within the exact accepted contract.
+- Deferred any stronger worker lane until comparable post-hoc traces show bounded stop, clear triage diagnosis, fresh standard-worker failure with a complete brief, and stronger-model success on the same bounded class of work. Added no role, model or profile change, override, background policy, automatic escalation, or numeric threshold.
+
+## 2026-09-02 - Direct mutation preflight and coordinated repositories
+
+- Corrected a steering defect observed after an explicit two-repository commit-and-push request: the coordinator dispatched a redundant read-only preflight that the mutation worker would have needed to repeat. The interrupted inspection returned no evidence and no Git mutation occurred.
+- Made the authorized mutation owner responsible for ordinary immediate preflight, validation, safety checks, and final-state verification. Separate inspection now requires an independently useful read-only outcome, absent mutation authority, or a distinct live-system, access, or human-decision boundary.
+- Kept substantial mechanically separable preparation available when it changes the brief or state or protects build context, while preventing duplicate source reading, validation planning, and state checks across children.
+- Allowed one worker to execute an explicitly authorized coordinated operation across known repositories sequentially. Each repository keeps separate instructions, validation, Git history, Conventional Commit, remote handling, and result.
+- Declared cross-repository publication non-atomic. Partial push success remains in place, receives exact per-repository reporting and the smallest recovery action, and never triggers destructive rollback.
+- Required focused coordinator acceptance for every affected repository, including Git status, commit identity, branch and upstream relation, and push state as applicable, without a second broad preflight.
+- Preserved exact mutation authority, dirty-state protection, human-gated architecture and design acceptance, source and non-source continuity, worker-to-triage escalation, promptless worker and triage definitions, foreground behavior, and coordinator acceptance.
+
+## 2026-09-02 - Semantic implementation units and conservative mutation scheduling
+
+- Required the coordinator to define coherent implementation units before scheduling them. Each unit now has one primary accepted outcome, one ownership boundary, explicit mutable state and domain, compatible acceptance and validation, dependencies, and integration needs; file, directory, repository, and change counts are not sizing rules.
+- Made sequential mutation the default and unknown overlap a serialization decision. Different plugin directories in one checkout remain coupled through Git and index state, lockfiles, installation and dependency state, generated output, tests and caches, active runtime state, schemas, and `mfz apply` unless those surfaces are explicitly isolated.
+- Allowed parallel mutation only for demonstrably independent responsibilities and state when concurrency has material value. Separately authorized isolated worktrees or environments defer shared integration, and a separately authorized integration worker owns any required combining mutation or distinct shared validation outcome.
+- Added qualitative context-pressure guidance without numeric thresholds. A narrow worker may finish successfully after compaction; a broad plan that survives compaction with unrelated streams, repeated discovery, or no validated intermediate outcome stops through the existing blocker packet.
+- Grounded the revision in post-hoc analysis `ses_f9a931650ffedb3OQbY9CXSBZg` of parent `ses_f9b7445b8ffeSMUeszW1oWFIhh`: one worker spanning materially different `omp-advisor` and `pstack` plugin domains reached about 251k effective context, compacted once, later failed another compaction after 274 tools and six failures, and returned no validation handoff; a fresh narrower retained-plugin worker also compacted near 251k and succeeded. Separate bounded profile follow-ups completed without compaction, showing that file or change count is not a sizing rule and compaction is pressure rather than proof of failure.
+- Preserved parallel autonomous read-only source gathering and the direct one-worker path for explicitly requested coordinated multi-repository commit and push. Publication remains sequential, non-atomic, repository-specific, and unsplit by repository count alone.
