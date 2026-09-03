@@ -60,6 +60,18 @@ The coordinator surfaces that substantive packet in the main session and challen
 
 After the human explicitly accepts or revises the design, or when the original concrete sequence conditionally authorized a conforming bounded result, the coordinator may proceed to the authorized implementation step. Completed implementation still receives coordinator verification by default; `reviewer` or `pr-reviewer` starts only after an explicit review request, which may be a named step in the original sequence.
 
+## Production-aware transition design
+
+Given a consequential production design where affected clients can be coordinated, the persistent transition is reversible or recoverable, a bounded interruption is tolerated, and observability and rollback are credible, the coordinator treats both compatibility-first staging and careful direct cutover as responsible candidates. An approved architect brief explicitly asks whether both are credible, and the returned synthesis preserves both approaches, their strongest cases and temporary cleanup costs, and one evidence-based recommendation rather than labeling them safe and reckless.
+
+Given persistent data or schema risk, unacceptable irreversible loss, uncoordinated consumers, unavailable recovery, or another hard constraint that makes direct cutover irresponsible, neither the coordinator nor architect manufactures it as a second option. The synthesis explains why only the compatibility-first or staged approach is viable.
+
+Given a production-affecting change with no concrete client, persistence, interruption, recovery, observability, reversibility, dependency-coordination, or rollback need for temporary compatibility machinery, the coordinator does not add fallbacks, dual paths, compatibility layers, or rollout stages merely because production is involved. It may recommend a careful direct cutover and states the evidence and reversal conditions.
+
+For every production-transition comparison, the recommendation weighs affected clients, persistent data or schema transitions, tolerated interruption, rollback and recovery, observability, reversibility, dependency coordination, and cleanup cost to the extent each factor is material. It does not force two options when only one is credible.
+
+Architecture consultation and design acceptance do not invoke or replace operational safety review. When either accepted design reaches an authorized production operation, the coordinator still gathers the materially needed current-state evidence, assembles the concrete operation packet, dispatches a fresh `safety-reviewer`, and follows the unchanged status branches before any `operator` dispatch. A direct cutover receives no safety-gate exemption, and a staged transition receives no automatic safety approval.
+
 ## Architect-requested evidence
 
 Given one architect request containing a direct question, architectural significance, preferred `explore`, `research`, or `inspect` role, scope and locators, accepted constraints, hypotheses, freshness, expected packet, and proceed-or-pause status, the coordinator checks materiality, duplication, accepted scope, existing read authority, and overlap with existing children before dispatch.

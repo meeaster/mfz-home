@@ -254,3 +254,10 @@
 - Added focused scenarios for autonomous source gatherers, comparative current-runtime evidence staying with a fresh `inspect` unit, targeted `session-analyst` reconstruction, and the boundary between focused coordinator acceptance checks and substantive evidence aggregation.
 - Preserved every mutation, architecture, authoring, prototype, safety-review, implementation, review, and publication gate. Added no arbitrary or recursive delegation, broader scope, role-selection change, source-routing change, prospective-sequence change, permission, model, tool, agent-definition, plugin, or operational-state change.
 - Grounded the clarification in OpenCode GPT extension commit `8068c5e48c0b3d81b0849349d0626ba048cb0c6d` and triage session `ses_f96d9ed06ffeOy0PVKjhx1cxpt`; the prior command already met the rule literally, so this revision addresses dispatch salience rather than a policy conflict.
+
+## 2026-09-03 - Production-aware transition design
+
+- Separated architecture conservatism from operational safety: production is now a material design input rather than an automatic mandate for compatibility layers, fallbacks, dual paths, or staged rollout.
+- Required the coordinator and an approved architect to compare compatibility-first staging with careful direct cutover when both are responsible and consequential, using affected clients, persistent transitions, interruption tolerance, rollback and recovery, observability, reversibility, dependency coordination, and cleanup cost.
+- Kept option generation evidence-bound: hard constraints can rule out direct cutover, while absent concrete need prevents ceremonial compatibility machinery.
+- Preserved architect consultation authority, human design acceptance, prospective sequence authority, and the complete fresh safety-reviewer gate before every resulting production operator dispatch.
