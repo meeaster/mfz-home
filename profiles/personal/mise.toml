@@ -1,7 +1,7 @@
 [tools]
 node = "26"
 websocat = "1"
-usage = "3"
+usage = "6"
 "github:xdevplatform/xurl" = "1"
 
 [tools."github:truenas/truenas-mcp"]
@@ -10,7 +10,7 @@ asset_pattern = "truenas-mcp-linux-amd64.tar.gz"
 bin = "truenas-mcp"
 
 [tools."pipx:unifi-network-mcp"]
-version = "0.27.1"
+version = "0"
 uvx = false
 
 [env]

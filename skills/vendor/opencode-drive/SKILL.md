@@ -100,14 +100,14 @@ export default OpenCodeDriver.use(
       username: "Drive",
     },
     tuiConfig: {
-      theme: "system",
-      scroll_speed: 1,
+      theme: { name: "opencode", mode: "dark" },
+      scroll: { speed: 1 },
     },
     setup: ({ fs, config, tuiConfig }) =>
       Effect.gen(function* () {
         yield* fs.writeFile("src/setup.ts", "export const ready = true\n")
         config.username = "Setup wins"
-        tuiConfig.scroll_speed = 2
+        tuiConfig.scroll = { speed: 2 }
       }),
   },
   ({ ui }) => ui.screenshot("home"),
@@ -117,11 +117,17 @@ export default OpenCodeDriver.use(
 The DSL is applied in this order:
 
 1. `project.files` is written into the isolated project.
-2. `config` and `tuiConfig` are deeply merged over `.opencode/opencode.jsonc` and `.opencode/tui.jsonc` fixture values. Objects merge recursively; arrays and scalar values replace existing values.
+2. `config` and `tuiConfig` are deeply merged over `.opencode/opencode.jsonc` and `.opencode/cli.json` fixture values. Objects merge recursively; arrays and scalar values replace existing values.
 3. `setup` runs and may write project files or mutate the merged `config` and `tuiConfig` objects. Its mutations take final precedence.
 4. Drive writes both configs as stable, formatted JSON. With `project.git: true`, it creates a repository and commits the complete pre-launch state with fixed Git identity and timestamps.
 
 `fs.writeFile` is rooted inside the simulated project and creates parent directories. `project.git: true` refuses to replace existing Git metadata; omit it when prepared fixtures already include a repository.
+
+`tuiConfig` contains current V2 CLI settings despite retaining its public option
+name. Drive pins `OPENCODE_CONFIG_DIR` to the isolated project's `.opencode`, so
+`cli.json` is the fixture's global terminal configuration. Do not write legacy
+`tui.jsonc`, or write `cli.json` manually in `setup` instead of mutating
+`tuiConfig`: the normalized object is written after setup finishes.
 
 ### UI And LLM
 
@@ -195,6 +201,31 @@ segments that trim/re-speed/freeze, concatenated in order), and `footer`
 `test/manual/tui-regressions/optimistic-create-demo.ts` for a complete
 before/after demo recording script.
 
+#### Pull Request Before/After
+
+For a visible OpenCode change, default to a matched A/B recording rather than
+an after-only demo:
+
+1. Write one deterministic Drive script and fixture. A temporary script is
+   fine; do not fork separate before and after scripts.
+2. Create an immutable worktree for the PR base and run the script against it
+   with `--dev`, then run the same script against the change worktree. Keep the
+   viewport, project files, config, simulated LLM output, and interactions
+   identical. Parameterize only the annotation label when needed.
+3. Use state-based waits to reach the comparison checkpoint. After transient
+   overlays settle, call `tui.recording.mark("BEFORE: …")` or
+   `tui.recording.mark("AFTER: …")` and hold each stable state for the same
+   duration.
+4. Trim from the marked checkpoints and concatenate equal-length clips with a
+   shared timeline. Default to side-by-side playback so reviewers can compare
+   both states simultaneously. Preserve dimensions and synchronize meaningful
+   interactions; use a sequential hard cut only when side-by-side rendering
+   makes terminal text illegible.
+5. Inspect a frame from each segment before upload. The demo is complete only
+   when both labels are visible, the regression is obvious in the before
+   segment, the fix is obvious in the after segment, and the PR caption states
+   which revision each segment runs plus any simulated behavior.
+
 ### Network Chaos
 
 Set `network: true` in `defineScript` to route every TUI through a chaos TCP
@@ -249,6 +280,13 @@ dropped connection (`killConnections`) while traffic is pending.
   replacement service. Pass `OPENCODE_DRIVE_DB=...` so both generations share
   a database.
 
+Scripted TUIs always use an explicit connection to the script-owned server (or
+the chaos proxy). HTTP address and existing credentials stay stable across
+server generations, so retained TUIs and SDK clients can reconnect without
+electing a competing service. After `server.kill()`, call `server.launch()`;
+do not wait for the TUI to create a server on the script's behalf. This does not
+change non-scripted live launches' managed-service behavior.
+
 ### Reports And Paths
 
 `OpenCodeDriver` exports a branded `AbsolutePath` schema and a compact `RunReport` containing the artifact root, retention, recording paths, and endpoint compatibility. It also exports `decodeAbsolutePath` and `decodeRunReport` for validating unknown values.
@@ -282,7 +320,7 @@ yield* tools.attach({
 })
 
 const lookup = yield* tools.take("call_lookup")
-yield* lookup.progress({ structured: { phase: "searching" } })
+yield* lookup.progress({ phase: "searching" })
 yield* lookup.finish({
   structured: { answer: 42 },
   content: [{ type: "text", text: "42" }],
@@ -366,7 +404,7 @@ import { defineScript, Llm } from "opencode-drive"
 
 export default defineScript({
   config: { autoupdate: false },
-  tuiConfig: { theme: "system" },
+  tuiConfig: { theme: { name: "opencode", mode: "dark" } },
   project: {
     git: true,
     files: { "src/value.ts": "export const value = 1\n" },
@@ -496,6 +534,40 @@ opencode-drive stop --name demo
 opencode-drive dir --name demo
 opencode-drive list
 ```
+
+## Report Drive Issues
+
+Drive is a work in progress. While using it, file a GitHub issue on
+`anomalyco/opencode-drive` for anything that surprises you or that you wish
+existed; do not just work around it silently. Check `gh issue list` first and
+comment on an existing issue instead of opening a duplicate.
+
+Worth an issue:
+
+- Wrong, confusing, or silent failures: an empty error message, a `press`
+  string that typed literally instead of sending a key, a timeout with no
+  frame, a hang in `stop` or `prune`.
+- Stale dependencies or protocol drift: a pinned `@opencode-ai/*` client that
+  cannot decode a current server response.
+- Documentation gaps: something this skill or the README should have said.
+- Wish-list items: a capability you had to hand-roll in a script (a filesystem
+  operation, a frame-to-text helper, an assertion pattern) that other scripts
+  would reuse.
+
+Keep OpenCode bugs out of the Drive tracker. When Drive merely exposed a
+server or TUI defect, note the Drive-side workaround in the probe or README
+and report the defect in `anomalyco/opencode` (or Kit's todo tracker when a
+public issue is premature).
+
+```bash
+gh issue create -R anomalyco/opencode-drive --label bug \
+  --title "press: string with '+' is typed literally instead of parsed as a chord" \
+  --body "Drive <version>. Script excerpt, expected vs actual, log path."
+```
+
+Include the Drive version, the OpenCode revision under test, the smallest
+script excerpt that shows it, expected versus actual, and the artifact or log
+path. Never include credentials or private project data.
 
 ## Prune
 
