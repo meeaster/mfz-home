@@ -210,3 +210,10 @@
 - Treated a request materially requiring upstream source inspection as narrow authority for temporary evidence infrastructure, without granting private access, credentials, persistent placement or publication, destructive broad cleanup, canonical-reference edits, or upstream Git mutation.
 - Required exact commit, tag, or ref provenance for version-sensitive inspection and kept current or runtime command-derived facts with inspect.
 - Grounded the change in the terminal-control investigation, where a research child fetched many GitHub implementation files and exposed weaker searchability, provenance, and role separation than local cloned source plus explore.
+
+## 2026-09-03 - Intent-first failure diagnosis
+
+- Corrected a trace-observed routing gap where a request to diagnose one deterministic Datadog cost-report GitHub Actions failure went to `inspect` because the available evidence was CI logs and artifacts.
+- Made the requested outcome decisive before evidence-source routing: one bounded reported failure or symptom with a causal, diagnostic, root-cause, or disposition ask starts fresh `triage`.
+- Kept `inspect` for supporting current CI, log, runtime, status, result, inventory, and command-derived facts, and kept `explore` and `research` under their existing evidence-source rules.
+- Recorded that "investigate" alone is not a triage trigger and added adjacent regression cases without changing agent definitions, authority gates, or the wider orchestration model.

@@ -134,6 +134,16 @@ Given a routine configuration file edit or straightforward operational script, t
 
 Given an ambiguous request whose primary outcome or procedure is not settled, the coordinator clarifies or gathers read-only evidence before choosing a mutation lane. It does not use Luna/high as a default downgrade for uncertain worker work.
 
+## Intent-first diagnosis routing
+
+Given a reported deterministic Datadog cost-report GitHub Actions failure and a request asking why it failed and what to do next, the coordinator starts a fresh `triage` diagnostic unit before classifying supporting evidence. It may also use `inspect` for materially needed current CI, log, artifact, or runtime facts, but it does not replace the causal diagnosis with inspection.
+
+Given a request to check current CI status or the latest report logs without asking for a cause, diagnosis, or disposition, the coordinator uses `inspect` and does not start `triage`.
+
+Given a request to inspect the workflow implementation without a reported symptom, the coordinator uses `explore` for static local evidence and does not start `triage`.
+
+Given "investigate CI" or "investigate current failures" without one bounded reported symptom and a causal or disposition request, the word "investigate" does not select `triage`. The coordinator routes the requested current-state evidence to `inspect` or clarifies the goal when no bounded evidence question is apparent.
+
 ## Mutation scope
 
 - A request to commit authorizes staging only intended changes and creating the commit, not pushing it.
@@ -199,7 +209,7 @@ Given current Git status, runtime output, cloud state, deployed-environment stat
 
 Given one decision that materially depends on local-static, external-authoritative, and current or live evidence, the coordinator creates the smallest relevant `explore`, `research`, and `inspect` units and synthesizes their packets without duplicating the same evidence collection.
 
-Given generic read-only shell work with no reported symptom to diagnose, the coordinator uses `inspect`, not `triage`. Given a reported symptom requiring goal-oriented diagnosis, `triage` retains its existing diagnostic role rather than becoming part of the source-gatherer taxonomy.
+Given generic read-only shell work with no reported symptom to diagnose, the coordinator uses `inspect`, not `triage`.
 
 ## Rich context transfer
 
