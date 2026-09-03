@@ -237,3 +237,13 @@
 - Moved existing obligations largely verbatim and preserved their modalities, authority boundaries, freshness defaults, exceptions, causal sequence, and intentional repeated emphasis.
 - Removed one fragile `above` reference after moving preparation classification ahead of the operational-safety section; no other non-heading runtime wording changed.
 - Added focused structural and losslessness assertions without changing invocation, roles, permissions, models, tools, numeric limits, fallback lanes, authority gates, or behavior.
+
+## 2026-09-03 - Prospective sequence authority
+
+- Replaced redundant just-in-time approval with prospective authority for concrete user-requested sequences whose named steps, target, outcome, and system boundary are clear.
+- Defined material invalidation across outcome, target, scope, environment and system boundary, access, consequential resources, risk, reversibility, design assumptions, validation, and required authority; required a visible pause for failed gates, unresolved consequential choices, broader or different work, missing authority, safety-reviewer non-clean status, or user-relevant blockers.
+- Changed architect gating from approval before every turn to one bounded engagement covering material evidence requests, follow-up, and reconsideration within the same downstream decision and system boundary. Kept fresh authority for materially new or invalidated decisions, new boundaries, unrequested independent opinions, and out-of-sequence architecture work.
+- Kept architect output advisory and human authority controlling. A prospectively authorized implementation of a bounded architecture result may continue only within supplied constraints and without a consequential unresolved choice.
+- Added the parent-only OpenSpec orchestration exception: an explicit proposal-then-Apply or implementation request remains two workflow units, with `openspec-propose` planning-only and stopped before a fresh implementation worker. Proposal-only and direct skill invocation retain their later-request boundary.
+- Clarified that explicitly named implementation-to-review, commit-to-push-to-PR, preparation-to-build, evidence-to-architecture-to-implementation, and higher-risk operation sequences may continue without ceremonial approval while their authority basis remains intact. Merge, deployment, unnamed external systems, broader access, and other adjacent outcomes remain excluded.
+- Added focused static evaluation scenarios for conforming continuation, material-change pauses, all three non-clean safety statuses, and vague future-step denial. No OpenSpec skill, native agent, profile, model, permission, plugin, or operational system changed.
