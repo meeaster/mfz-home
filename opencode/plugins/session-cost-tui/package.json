@@ -6,10 +6,10 @@
     "./tui": "./tui/index.tsx"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "0.0.0-beta-18743",
-    "@opentui/core": "0.5.2",
-    "@opentui/keymap": "0.5.2",
-    "@opentui/solid": "0.5.2",
-    "solid-js": "1.9.12"
+    "@opencode-ai/plugin": "0.0.0-beta-18965",
+    "@opentui/core": "0.5.10",
+    "@opentui/keymap": "0.5.10",
+    "@opentui/solid": "0.5.10",
+    "solid-js": "1.9.15"
   }
 }

@@ -1,9 +1,12 @@
 import { Plugin } from "@opencode-ai/plugin";
+import { z } from "zod";
 
 import { loadCatalog, priceTokens, type Catalog, type ModelRef, type Tokens } from "./pricing.js";
 
 const SETTLE_TIMEOUT_MS = 500;
 const SETTLE_INTERVAL_MS = 10;
+const subagentInputSchema = z.object({ sessionID: z.string() });
+const completedSubagentMetadataSchema = z.object({ sessionID: z.string(), status: z.literal("completed") });
 
 type Usage = {
   sessionID: string;
@@ -59,9 +62,12 @@ export async function setupSubagentUsage(
   const currentModels = new Map<string, ModelRef>();
   const pricedSessions = new Map<string, number>();
   const controller = new AbortController();
-  const events = context.event.subscribe({ signal: controller.signal });
+  const events = context.event.subscribe({ signal: controller.signal })[Symbol.asyncIterator]();
   const consume = (async () => {
-    for await (const event of events) {
+    for (;;) {
+      const next = await events.next();
+      if (next.done) return;
+      const event = next.value;
       if (event.type === "session.step.started") {
         models.set(event.data.assistantMessageID, event.data.model);
         currentModels.set(event.data.sessionID, event.data.model);
@@ -93,8 +99,8 @@ export async function setupSubagentUsage(
   const registrations = [
     await context.tool.hook("execute.before", async (event) => {
       if (event.tool !== "subagent") return;
-      // SAFETY: The built-in subagent schema owns this input after the tool-name check.
-      const childID = (event.input as { sessionID?: string }).sessionID;
+      const input = subagentInputSchema.safeParse(event.input);
+      const childID = input.success ? input.data.sessionID : undefined;
       const baseline = childID
         ? await context.session.get({ sessionID: childID }).catch(() => undefined)
         : undefined;
@@ -123,10 +129,9 @@ export async function setupSubagentUsage(
       if (!invocation) return;
       try {
         if (event.status !== "completed" || event.result.content === undefined) return;
-        // SAFETY: The built-in subagent owns this metadata after both discriminants above.
-        const metadata = event.result.metadata as { sessionID?: string; status?: string } | undefined;
-        const childID = metadata?.sessionID;
-        if (!childID || metadata.status !== "completed") return;
+        const metadata = completedSubagentMetadataSchema.safeParse(event.result.metadata);
+        const childID = metadata.success ? metadata.data.sessionID : undefined;
+        if (!childID) return;
         invocation.childID = childID;
         invocation.usage = invocation.usage.filter((entry) => entry.sessionID === childID);
         if (invocation.ambiguous) return;
@@ -155,6 +160,7 @@ export async function setupSubagentUsage(
   ];
 
   return async () => {
+    await events.return?.();
     controller.abort();
     await Promise.all([consume, ...registrations.map((registration) => registration.dispose())]);
   };

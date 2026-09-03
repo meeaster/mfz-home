@@ -6,7 +6,8 @@
     ".": "./index.ts",
     "./server": "./index.ts"
   },
-  "devDependencies": {
-    "@opencode-ai/plugin": "0.0.0-beta-18866"
+  "dependencies": {
+    "@opencode-ai/plugin": "0.0.0-beta-18965",
+    "zod": "4.1.8"
   }
 }

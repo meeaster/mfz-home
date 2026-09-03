@@ -32,9 +32,10 @@ shows per-model API estimates followed by a total. The estimate covers the
 complete current projected transcript for each family session currently known
 to the TUI.
 
-The development SDK is pinned to `0.0.0-beta-18743`, matching the installed
-`opencode2` build. The SDK import is type-only; OpenCode provides the Solid and
-OpenTUI runtime modules inside the TUI host.
+The development SDK is pinned to `0.0.0-beta-18965`, matching the installed
+`opencode2` build. The TUI development peers are pinned to OpenTUI `0.5.10`
+and Solid `1.9.15`. The SDK import is type-only; OpenCode provides the Solid
+and OpenTUI runtime modules inside the TUI host.
 
 The root `index.ts` and `tui.tsx` files are the V2 local-plugin directory entry
 points. `tui.tsx` re-exports the implementation under `tui/`; OpenCode does not

@@ -28,6 +28,16 @@ type TestEvent =
     }
   | { type: "session.usage.updated"; data: { sessionID: string; tokens: Tokens } };
 
+type EventSubscribeOptions = { readonly signal?: AbortSignal };
+type EventSource = {
+  subscribe(options?: EventSubscribeOptions): AsyncIterable<TestEvent>;
+  push(value: TestEvent): void;
+  fail(error: TestFailure): void;
+  close(): void;
+  readonly returnCalls: number;
+  readonly delivered: number;
+};
+
 function createEventStream() {
   type Pending = {
     resolve: (result: IteratorResult<TestEvent>) => void;
@@ -38,16 +48,22 @@ function createEventStream() {
   let closed = false;
   let failed = false;
   let failure: unknown;
+  let returnCalls = 0;
+  let delivered = 0;
   const done = (): IteratorResult<TestEvent> => ({ done: true, value: undefined });
 
   const close = () => {
     closed = true;
+    queue.splice(0);
     pending.splice(0).forEach((request) => request.resolve(done()));
   };
   const iterator = {
     next() {
       const value = queue.shift();
-      if (value) return Promise.resolve({ done: false as const, value });
+      if (value) {
+        delivered += 1;
+        return Promise.resolve({ done: false as const, value });
+      }
       if (failed) return Promise.reject(failure);
       if (closed) return Promise.resolve(done());
       const request = Promise.withResolvers<IteratorResult<TestEvent>>();
@@ -55,6 +71,7 @@ function createEventStream() {
       return request.promise;
     },
     return() {
+      returnCalls += 1;
       close();
       return Promise.resolve(done());
     },
@@ -63,9 +80,14 @@ function createEventStream() {
 
   return {
     iterable,
+    subscribe(options?: EventSubscribeOptions) {
+      options?.signal?.addEventListener("abort", close, { once: true });
+      return iterable;
+    },
     push(value: TestEvent) {
       const request = pending.shift();
       if (request) {
+        delivered += 1;
         request.resolve({ done: false, value });
         return;
       }
@@ -77,25 +99,59 @@ function createEventStream() {
       pending.splice(0).forEach((request) => request.reject(error));
     },
     close,
+    get returnCalls() {
+      return returnCalls;
+    },
+    get delivered() {
+      return delivered;
+    },
   };
+}
+
+function createEventHub() {
+  const streams: Array<ReturnType<typeof createEventStream>> = [];
+  return {
+    subscribe(options?: EventSubscribeOptions) {
+      const stream = createEventStream();
+      streams.push(stream);
+      options?.signal?.addEventListener("abort", stream.close, { once: true });
+      return stream.iterable;
+    },
+    push(value: TestEvent) {
+      streams.forEach((stream) => stream.push(value));
+    },
+    fail(error: TestFailure) {
+      streams.forEach((stream) => stream.fail(error));
+    },
+    close() {
+      streams.forEach((stream) => stream.close());
+    },
+    get returnCalls() {
+      return streams.reduce((total, stream) => total + stream.returnCalls, 0);
+    },
+    get delivered() {
+      return streams.reduce((total, stream) => total + stream.delivered, 0);
+    },
+    get streams() {
+      return streams;
+    },
+  } satisfies EventSource & { readonly streams: readonly ReturnType<typeof createEventStream>[] };
 }
 
 function zeroTokens(): Tokens {
   return { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } };
 }
 
-function createSetupFixture() {
-  const events = createEventStream();
+function createSetupFixture(source: EventSource = createEventStream()) {
   const hooks = new Map<HookName, Hook>();
   const disposed: HookName[] = [];
   let signal: AbortSignal | undefined;
   const model = { providerID: "openai", id: "model" } satisfies ModelRef;
   const contextFixture = {
     event: {
-      subscribe(options?: { readonly signal?: AbortSignal }) {
+      subscribe(options?: EventSubscribeOptions) {
         signal = options?.signal;
-        options?.signal?.addEventListener("abort", events.close, { once: true });
-        return events.iterable;
+        return source.subscribe(options);
       },
     },
     session: {
@@ -110,7 +166,7 @@ function createSetupFixture() {
   };
   // SAFETY: The fixture implements the event, session, and tool methods used by setupSubagentUsage.
   const context = Object.assign(Object.create(null), contextFixture) as Plugin.Context;
-  return { context, events, hooks, disposed, model, get signal() { return signal; } };
+  return { context, events: source, hooks, disposed, model, get signal() { return signal; } };
 }
 
 const catalog: Catalog = {
@@ -168,7 +224,62 @@ describe("subagent usage V2", () => {
     );
     await cleanup();
     expect(fixture.signal?.aborted).toBe(true);
+    expect(fixture.events.returnCalls).toBe(1);
     expect(fixture.disposed).toEqual(["execute.before", "execute.after"]);
+  });
+
+  it("closes the old iterator so a reload leaves one event consumer", async () => {
+    const source = createEventHub();
+    const first = createSetupFixture(source);
+    const firstCleanup = await setupSubagentUsage(first.context, async () => catalog);
+    const firstStream = source.streams.at(0);
+    if (!firstStream) throw new Error("first event stream was not created");
+
+    await firstCleanup();
+    expect(firstStream.returnCalls).toBe(1);
+
+    const second = createSetupFixture(source);
+    const secondCleanup = await setupSubagentUsage(second.context, async () => catalog);
+    const secondStream = source.streams.at(1);
+    if (!secondStream) throw new Error("second event stream was not created");
+    const before = second.hooks.get("execute.before");
+    const after = second.hooks.get("execute.after");
+    expect(before).toBeDefined();
+    expect(after).toBeDefined();
+    await before!({ tool: "subagent", id: "call", input: { sessionID: "child" } });
+    source.push({
+      type: "session.step.started",
+      data: { sessionID: "child", assistantMessageID: "message", model: second.model },
+    });
+    source.push({
+      type: "session.step.ended",
+      data: {
+        sessionID: "child",
+        assistantMessageID: "message",
+        tokens: { input: 1_000, output: 200, reasoning: 10, cache: { read: 300, write: 0 } },
+        cost: 0,
+      },
+    });
+    source.push({
+      type: "session.usage.updated",
+      data: {
+        sessionID: "child",
+        tokens: { input: 1_000, output: 200, reasoning: 10, cache: { read: 300, write: 0 } },
+      },
+    });
+    const afterEvent = {
+      tool: "subagent",
+      id: "call",
+      input: { sessionID: "child" },
+      status: "completed" as const,
+      result: { content: "child output", metadata: { sessionID: "child", status: "completed" } },
+    };
+    await after!(afterEvent);
+
+    expect(firstStream.delivered).toBe(0);
+    expect(secondStream.delivered).toBe(3);
+    expect(afterEvent.result.content).toContain('<subagent-usage invocation-cost-usd="0.00232"');
+    await secondCleanup();
   });
 
   it("surfaces an unexpected event consumer failure during cleanup", async () => {
