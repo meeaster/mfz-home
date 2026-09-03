@@ -102,3 +102,13 @@ servers:
     type: remote
     transport: http
     url: https://mcp.sentry.dev/mcp
+  cloudflare:
+    description: Cloudflare API MCP server.
+    type: remote
+    transport: http
+    url: https://mcp.cloudflare.com/mcp
+  cloudflare-docs:
+    description: Cloudflare documentation MCP server.
+    type: remote
+    transport: http
+    url: https://docs.mcp.cloudflare.com/mcp
