@@ -191,3 +191,22 @@
 - Made a clean stop on one bounded decision continuity-biased when the user's answer preserves the underlying work unit and retained context has material value, including changes to mechanism, provenance, implementation route, placement, or blocker resolution.
 - Added the concrete seven-generated-skill case: when formal vendoring is incompatible and no repository mutation occurred, choosing to refresh the same skills in their existing local location should resume the existing `agent-author`.
 - Preserved fresh diagnosis after looping implementation, fresh independent review, fresh genuinely distinct mutation units, substantial-preparation separation, and all authority gates.
+
+## 2026-09-03 - Additive operator routing
+
+- Added `operator` as the explicitly authorized lane for settled procedural and operational mutation while preserving `worker` for application and OpenSpec implementation, substantive code changes, focused remediation, difficult implementation investigation, and novel troubleshooting.
+- Routed by primary accepted outcome and complexity rather than whether files are touched; straightforward operational scripts and configuration remain operator work, while software behavior and difficult remediation remain worker work.
+- Moved substantial mechanically separable preparation, Git publication, supported CLI workflows, infrastructure and deployment operations, and external-system state changes from orchestrate's worker route to operator without changing authority gates.
+- Kept implementation troubleshooting on worker. Operator correction remains bounded to narrowing evidence within a settled procedure; unknown symptoms use fresh triage, bounded procedural continuation returns to operator, and novel troubleshooting goes to worker.
+- Applied the same fresh-per-unit and bounded-continuation rules to operator, retained coordinator verification, and preserved `implement-design` and `openspec-rolling-apply` worker calls.
+- Recorded the corrected placement: the base profile owns operator Luna/high, Personal inherits it without an override, and Personal worker remains Luna/max.
+
+## 2026-09-03 - Local-clone upstream source inspection
+
+- Distinguished GitHub-hosted published documentation, releases, APIs, registries, and metadata from repository internals so hosting location does not trigger cloning.
+- Kept published and bounded one-file evidence with research, while routing source-tree search, cross-file relationships, implementation details, and history to root-owned explore against local source.
+- Required the coordinator to check the canonical clone index first, then directly perform bounded disposable clone, fetch, and exact-ref checkout preparation under `/tmp/opencode` only when no suitable clone exists; this narrow exception avoids a ceremonial preparation child.
+- Rejected the intermediate operator-preparation route before finalizing the policy because delegating a simple temporary clone adds ceremony without improving source judgment.
+- Treated a request materially requiring upstream source inspection as narrow authority for temporary evidence infrastructure, without granting private access, credentials, persistent placement or publication, destructive broad cleanup, canonical-reference edits, or upstream Git mutation.
+- Required exact commit, tag, or ref provenance for version-sensitive inspection and kept current or runtime command-derived facts with inspect.
+- Grounded the change in the terminal-control investigation, where a research child fetched many GitHub implementation files and exposed weaker searchability, provenance, and role separation than local cloned source plus explore.

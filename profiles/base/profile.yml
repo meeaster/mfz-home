@@ -181,6 +181,9 @@ opencode_v2:
       explore:
         model: openai/gpt-5.6-luna
         variant: high
+      operator:
+        model: openai/gpt-5.6-luna
+        variant: high
       triage:
         model: openai/gpt-5.6-terra
         variant: high
@@ -212,6 +215,7 @@ opencode_v2:
     - agent-author
     - architect
     - inspect
+    - operator
     - prototype
     - pr-reviewer
     - research

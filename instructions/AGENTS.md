@@ -4,6 +4,7 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 
 ## Documentation Sources
 
+- **OpenCode:** This machine uses OpenCode V2. Use `opencode2` and V2 documentation and configuration unless the user explicitly requests V1.
 - For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
 - For GitHub repository internals, inspect a matching clone from `~/.mindframe-z/references.md` first. Use DeepWiki only when no useful clone exists, the source is insufficient, or the user requests it; verify version-sensitive claims against source.
 - Start with one authoritative documentation source. Add another when the first is insufficient, a consequential claim needs verification, or the user asks for a comparison. Prefer documentation MCPs over general web search.
@@ -28,9 +29,9 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 ## Subagent Use
 
 - Use `explore` and `research` proactively for bounded, read-only discovery or evidence gathering when they materially reduce uncertainty.
-- Treat `worker` as a user-authorized mutation lane. Do not create or resume one merely because work remains.
+- Treat `operator` and `worker` as user-authorized mutation lanes. Route settled procedural and operational changes to `operator`; route application implementation, substantive code changes, difficult implementation investigation, and novel troubleshooting to `worker`. Choose by the primary accepted outcome and complexity, not whether a file is touched. Do not create or resume either merely because work remains.
 - Treat `reviewer` as a user-authorized independent-judgment lane. When it reviews code, require it to load `thermo-nuclear-code-quality-review` and use that skill as its review guidance. Do not use it as a routine completion check or repeatedly recheck work without a new, stated review boundary.
-- A request to continue permits ongoing work, but does not by itself authorize a new or resumed `worker` or `reviewer`.
+- A request to continue permits ongoing work, but does not by itself authorize a new or resumed `operator`, `worker`, or `reviewer`.
 - Fresh subagents do not share the parent conversation. Give them an intent-rich brief with the objective and why it matters, relevant user priorities and tradeoffs, accepted decisions, exact evidence and accessible paths, constraints and exclusions, authority limits, expected deliverable, verification, and stop conditions. Distill rather than transcribe, and name relevant skills for the child to load.
 - Load `context-transfer` when audience, access, privacy, portability, publication, or lossless specialist handoff materially changes what must cross the boundary.
 - When dispatching `ui-ux-designer`, tell it to load `ui-ux-design` before acting.

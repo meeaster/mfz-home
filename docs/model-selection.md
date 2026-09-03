@@ -228,6 +228,7 @@ separate so a successful task does not hide the cost of escalation.
 
 | Date | Task shape | Executor | Effort | Advisor | Outcome | Latency/cost notes | Escalation needed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-09-03 | Three native worker calls performing procedural or operational work | Luna | `max` | Not evaluated | Trace analysis `ses_f9a2b38e5ffezyn6L4YBihRlgw` found all three plausibly suitable for Luna/high operator routing | Observational classification only; no matched Luna/high versus Luna/max A/B run | Unknown |
 | 2026-07-11 | Top-level advisor availability probe | Luna | `xhigh` | Sol `high`, called successfully | Availability confirmed; no quality conclusion | Advisor reported 21,508 tokens and `$0.000000`; treat the cost as a harness value, not billing data | N/A (probe) |
 | 2026-07-11 | `delegate_general` child plus advisor | Luna | `xhigh` | Sol `high`, completed in child session `ses_0ac27a2f6ffemiy0O6BfmhzT9F` | Exported child transcript confirms an actual completed advisor call | Harness reported separate executor and advisor usage; reported costs were `$0.000000`, so treat them as harness values rather than additive billing data | No |
 | 2026-07-10 | Brainstorm scout work | Sol | `low` | Not recorded as part of the scout result | Completed cache-miss profiling and grounding work | Record total executor and advisor usage on the next comparable run | Unknown |
@@ -255,6 +256,7 @@ The current native agent assignments are:
 
 ```text
 worker: openai/gpt-5.6-luna@max
+operator: openai/gpt-5.6-luna@high (base)
 reviewer: openai/gpt-5.6-sol@high (Personal), openai/gpt-5.6-terra@high (Work)
 pr-reviewer: openai/gpt-5.6-sol@high
 explore: openai/gpt-5.6-luna@high
@@ -263,15 +265,9 @@ session-analyst: openai/gpt-5.6-luna@high
 prototype: openai/gpt-5.6-terra@max (base), openai/gpt-5.6-sol@medium (Personal)
 ```
 
-Agent descriptions route by task shape rather than model rank. The model and
-variant remain configuration policy: `worker` is the bounded execution lane,
-`reviewer` is the focused independent judgment lane, `pr-reviewer` performs
-holistic due diligence when a pull request's intent, design, or validation must
-be reconstructed and challenged, `explore` and `research` retain their
-specialized discovery scopes, `session-analyst` executes the read-only Agent
-Sessions evidence workflow, and `prototype` builds throwaway decision artifacts
-through the existing `prototype` skill. Workflow prompts own task-specific
-briefs, review cadence, and acceptance.
+Agent descriptions route by task shape rather than model rank. The model and variant remain replaceable configuration policy: `worker` is the application implementation, substantive code, focused remediation, difficult implementation investigation, and novel troubleshooting lane; `operator` is the settled procedural and operational mutation lane for configuration, source control, supported CLI workflows, infrastructure, deployments, environment preparation, and external-system state; `reviewer` is the focused independent judgment lane; `pr-reviewer` performs holistic due diligence when a pull request's intent, design, or validation must be reconstructed and challenged; `explore` and `research` retain their specialized discovery scopes; `session-analyst` executes the read-only Agent Sessions evidence workflow; and `prototype` builds throwaway decision artifacts through the existing `prototype` skill. Workflow prompts own task-specific briefs, review cadence, and acceptance.
+
+The operator assignment is a cost-policy hypothesis, not a capability-equivalence claim. Current traces show procedural work being sent to Luna/max and support trying Luna/high for that task shape, but there is no matched A/B evidence that Luna/high and Luna/max produce equivalent outcomes. Preserve worker Luna/max and evaluate representative operator runs before changing either assignment.
 
 The permanent `prototype` assignment comes from a matched five-candidate
 evaluation recorded in `docs/prototype-agent-evaluation.md`. The temporary

@@ -16,7 +16,7 @@ Given rambling brainstorming or spoken-style exploration, the coordinator identi
 
 Given a correction that depends on prior conversation, the coordinator applies it to the live working model and relevant prior context rather than treating the correction as a standalone task.
 
-Given text that mentions possible implementation but does not ask for it, the coordinator may discuss or clarify that possibility but does not infer mutation authority or dispatch `worker`, `prototype`, or `agent-author`.
+Given text that mentions possible implementation or operation but does not ask for it, the coordinator may discuss or clarify that possibility but does not infer mutation authority or dispatch `operator`, `worker`, `prototype`, or `agent-author`.
 
 ## Opinionated design partner
 
@@ -82,7 +82,7 @@ Given a narrow coherent worker that compacts and then completes accepted impleme
 
 Given a worker whose broad plan survives compaction with multiple unrelated streams, repeated post-compaction discovery, or approach to another compaction without a validated intermediate outcome, the worker preserves partial state and stops through the existing blocker packet. No token, context, turn, tool, compaction, retry, or troubleshooting number determines the stop.
 
-Parallel autonomous read-only source gathering remains allowed under its existing evidence rules. An explicitly requested coordinated commit-and-push across two repositories remains one direct sequential worker operation with separate per-repository commits and results; implementation decomposition does not split that publication outcome mechanically by repository count.
+Parallel autonomous read-only source gathering remains allowed under its existing evidence rules. An explicitly requested coordinated commit-and-push across two repositories remains one direct sequential operator operation with separate per-repository commits and results; mutation decomposition does not split that publication outcome mechanically by repository count.
 
 ## Bounded prototype
 
@@ -100,13 +100,13 @@ Prototype authority does not authorize commit, push, pull request, publication, 
 
 ## Proportional implementation preflight
 
-Given an implementation or prototype whose only setup is installing an already-declared dependency or running an inherent generator, the coordinator includes that setup in the authorized build-agent brief and does not create a separate preparation worker.
+Given an implementation or prototype whose only setup is installing an already-declared dependency or running an inherent generator, the coordinator includes that setup in the authorized build-agent brief and does not create a separate preparation operator.
 
 Given one known repository and an explicitly authorized, settled mutation, the coordinator dispatches the owning mutation role directly. The brief leaves applicable instruction discovery, current status and diff inspection, dirty-state preservation, relevant branch, upstream, and remote checks, validation selection and execution, secret and generated-artifact safety, and final-state verification with that role. No `inspect` or preparation child repeats those checks first.
 
 Given read-only repository, worktree, dependency, account, or external-item readiness as the requested outcome, no mutation authority, or readiness that depends on a distinct current or live system, access boundary, or pending human decision, the coordinator may send the bounded evidence question to `inspect` and performs no mutation. Merely observing dirty status does not justify a separate child, but dirty state that requires a handling decision is surfaced to the human.
 
-Given substantial mechanically separable setup that is explicitly authorized, the coordinator dispatches one preparation worker, verifies its compact handoff, then starts a fresh `prototype` or implementation `worker` with only the accepted design or question, artifact scope, verified assumptions, acceptance criteria, focused verification, authority, and stop conditions. Preparation and the artifact build do not run concurrently when they share a checkout or external state.
+Given substantial mechanically separable setup that is explicitly authorized, the coordinator dispatches one preparation `operator`, verifies its compact handoff, then starts a fresh `prototype` or implementation `worker` with only the accepted design or question, artifact scope, verified assumptions, acceptance criteria, focused verification, authority, and stop conditions. Preparation and the artifact build do not run concurrently when they share a checkout or external state.
 
 The coordinator uses separate preparation only when setup materially changes the implementation brief or state, or its trace would crowd useful build context. Preparation and mutation children do not duplicate source reading, validation planning, or immediate state checks.
 
@@ -114,7 +114,7 @@ The preparation handoff reports repository or workspace path, branch and base co
 
 Given unrecognized dirty state before a branch change, pull, rebase, or worktree creation, the coordinator preserves it and asks for user direction rather than stashing, rebasing, relocating, overwriting, or otherwise disturbing it. Given "get latest," it resolves whether the user means fetch, pull, merge, or rebase before authorizing mutation.
 
-Given authority to create a branch, the worker does not commit, push, open or merge a pull request, update Jira, publish, or deploy. Jira creation or update and Git or environment mutations use separate worker units unless the user explicitly requested one transaction that inherently requires them together.
+Given authority to create a branch, the operator does not commit, push, open or merge a pull request, update Jira, publish, or deploy. Jira creation or update and Git or environment mutations use separate operator units unless the user explicitly requested one transaction that inherently requires them together.
 
 ## AI-facing authoring
 
@@ -126,9 +126,13 @@ The author result reports behavioral changes, artifacts, validation, and uncerta
 
 ## Operational routing
 
-Given equivalent requests involving GitHub, Jira, Confluence, Datadog, AWS, or a deployment system, the coordinator routes current-state reads to `inspect`, reported-failure diagnosis to `triage`, and authorized changes to `worker`. The worker brief names the owning skill or workflow rather than inventing a destination-specific agent.
+Given equivalent requests involving GitHub, Jira, Confluence, Datadog, AWS, or a deployment system, the coordinator routes current-state reads to `inspect`, reported-failure diagnosis to `triage`, and authorized changes with settled procedures to `operator`. The operator brief names the owning skill or workflow rather than inventing a destination-specific agent.
 
-Given independent authorized changes in source control and an external work system, the coordinator uses separate bounded worker units. It combines them only when the user requested one transaction whose completion inherently requires both operations.
+Given independent authorized changes in source control and an external work system, the coordinator uses separate bounded operator units. It combines them only when the user requested one transaction whose completion inherently requires both operations.
+
+Given a routine configuration file edit or straightforward operational script, the coordinator selects `operator` because the primary outcome is settled operational state. Given a feature, OpenSpec implementation, substantive code behavior, configuration that primarily changes software behavior, focused remediation, difficult implementation investigation, or novel troubleshooting, it selects `worker`. The presence of a file edit does not decide the lane.
+
+Given an ambiguous request whose primary outcome or procedure is not settled, the coordinator clarifies or gathers read-only evidence before choosing a mutation lane. It does not use Luna/high as a default downgrade for uncertain worker work.
 
 ## Mutation scope
 
@@ -140,13 +144,13 @@ Given independent authorized changes in source control and an external work syst
 
 ## Coordinated multi-repository mutation
 
-Given an explicit request to commit and push all intended changes in two known repositories, the coordinator treats the coordinated publication as one accepted operational outcome and dispatches one owning `worker` directly rather than mechanically splitting it or adding a redundant `inspect` or preparation child. The worker processes the repositories sequentially, reads each repository's instructions, preserves unrelated dirty state, performs inherent preflight and required validation for both before publication when practical, creates a separate appropriate Conventional Commit in each Git history, pushes only under the explicit authority, and reports status, commit identity, branch and upstream relation, and push result per repository.
+Given an explicit request to commit and push all intended changes in two known repositories, the coordinator treats the coordinated publication as one accepted operational outcome and dispatches one owning `operator` directly rather than mechanically splitting it or adding a redundant `inspect` or preparation child. The operator processes the repositories sequentially, reads each repository's instructions, preserves unrelated dirty state, performs inherent preflight and required validation for both before publication when practical, creates a separate appropriate Conventional Commit in each Git history, pushes only under the explicit authority, and reports status, commit identity, branch and upstream relation, and push result per repository.
 
-The coordinator treats the returned report as evidence and performs focused post-worker verification for both repositories. It checks repository status, resulting commit identity, branch and upstream relation, and push state as applicable. It neither accepts self-report alone nor commissions a broad duplicate inspection.
+The coordinator treats the returned report as evidence and performs focused post-operator verification for both repositories. It checks repository status, resulting commit identity, branch and upstream relation, and push state as applicable. It neither accepts self-report alone nor commissions a broad duplicate inspection.
 
-Given that the first repository push succeeds and the second fails, the worker and coordinator report the exact partial publication state per repository. They preserve both repositories, attempt no destructive rollback of the published repository, and identify the smallest recovery action. The result is never described as an atomic transaction.
+Given that the first repository push succeeds and the second fails, the operator and coordinator report the exact partial publication state per repository. They preserve both repositories, attempt no destructive rollback of the published repository, and identify the smallest recovery action. The result is never described as an atomic transaction.
 
-Given repositories that are genuinely independent, the coordinator may split workers only when parallel execution has material value and no shared coordination, mutable state, or sequential-safety concern outweighs it. Repository count alone does not trigger a split.
+Given repositories that are genuinely independent, the coordinator may split operators only when parallel execution has material value and no shared coordination, mutable state, or sequential-safety concern outweighs it. Repository count alone does not trigger a split.
 
 ## Issue triage followed by repair
 
@@ -167,13 +171,25 @@ Given worker or triage evidence that may contradict an accepted design assumptio
 
 Given repeated standard-worker failure, the coordinator records evidence for later post-hoc assessment. It does not create or select a stronger worker, change models, or escalate automatically.
 
-The source and rendered `worker` and `triage` definitions remain frontmatter-only with empty custom prompts. Moving these caller-owned contracts into either agent body fails this evaluation.
+The source and rendered `operator`, `worker`, and `triage` definitions remain frontmatter-only with empty custom prompts. Moving these caller-owned contracts into an agent body fails this evaluation.
 
 ## Parallel evidence
 
 Given independent local-discovery, external-documentation, and live-environment questions, the coordinator dispatches `explore`, `research`, and `inspect` in parallel, then combines their non-duplicative results before deciding the next action.
 
 ## Capability-aware source gathering
+
+Given a question answered by published documentation, a release page or API, package-registry data, or upstream metadata hosted on GitHub, the coordinator dispatches `research` and creates no clone merely because GitHub hosts the evidence.
+
+Given a question requiring repository internals, source-tree search, cross-file relationships, implementation details, or history, the coordinator first checks `~/.mindframe-z/references.md` and applicable capability files. When they identify a suitable canonical clone, the coordinator dispatches root-owned `explore` against that clone without new clone preparation or broad raw-file fetching.
+
+Given the same source-inspection need with no suitable canonical clone, the coordinator treats the user's evidence request as authority only for disposable evidence setup, directly performs the bounded clone or fetch and checkout under `/tmp/opencode`, verifies the local path and resolved ref, then dispatches root-owned `explore` against that local clone. It creates no operator or other preparation child.
+
+Given version-sensitive source inspection, the coordinator resolves and records the exact relevant commit, tag, or ref during direct disposable preparation and in the explore brief. A floating default branch or unrecorded checkout fails this evaluation when the downstream claim depends on a release or historical version.
+
+Given one small exact upstream file whose contents answer the question without cross-file or history judgment, and cloning would be disproportionate, the coordinator may dispatch focused `research` retrieval of that raw file. If the child begins fetching multiple related implementation files or needs repository search or history, the coordinator stops that route and uses clone preparation plus `explore`.
+
+Disposable clone authority does not include private or authenticated access, credential inspection, non-temporary placement, destructive broad cleanup, edits to canonical references, commit, push, pull request, persistent publication, or upstream mutation. Each requires its applicable explicit authority. Current or runtime command-derived facts remain with `inspect`, and the coordinator retains synthesis across all packets.
 
 Given a task that requires static local file search followed by test execution, the coordinator sends file search and reading to `explore` and the read-only test command to `inspect`; it does not ask `explore` to run the test.
 
@@ -209,7 +225,7 @@ Given reusable memory missing one field, the coordinator requests a bounded repa
 
 Given exact conversational, provider, execution, or session state that materially matters, the coordinator recognizes that fresh memory transfer is only semantic continuity and may resume when all source-gatherer resume criteria otherwise pass.
 
-The source-gatherer default does not alter continuity for `triage`, `architect`, `agent-author`, `prototype`, `worker`, `reviewer`, or `pr-reviewer`; their existing routing and authority policies remain observable.
+The source-gatherer default does not alter continuity for `triage`, `architect`, `agent-author`, `prototype`, `operator`, `worker`, `reviewer`, or `pr-reviewer`; their existing routing and authority policies remain observable.
 
 ## Non-source role continuity
 
@@ -221,7 +237,7 @@ Given any architect follow-up, including return of architect-requested evidence,
 
 Given a looping worker blocker with an observed symptom whose cause remains unknown, the coordinator starts fresh `triage` even though the symptom arose in the worker's incident. Given continued reproduction, eliminated hypotheses, a corrected hypothesis, or new evidence after that initial diagnosis, the coordinator may resume the same `triage` session. Given a materially different symptom, incident, environment, or request for independent diagnosis, it starts a fresh `triage` session. Neither path gives triage remediation authority.
 
-Given a genuinely distinct accepted authoring revision batch, prototype question or artifact, or implementation unit, the coordinator starts a fresh authorized `agent-author`, `prototype`, or `worker`. A changed accepted outcome, primary ownership boundary, artifact set, authority, system boundary, or validation contract creates a fresh unit when the difference is material. Stale, overloaded, looping, or assumption-contaminated context; substantial preparation whose history has no build value; and an independence objective also favor freshness. A remediation worker receives the relevant finding or checked diagnosis, accepted brief, exact repository state, approaches not to repeat, and verification history; neither triage nor a reviewer performs the repair.
+Given a genuinely distinct accepted authoring revision batch, prototype question or artifact, operational unit, or implementation unit, the coordinator starts a fresh authorized `agent-author`, `prototype`, `operator`, or `worker`. A changed accepted outcome, primary ownership boundary, artifact set, authority, system boundary, or validation contract creates a fresh unit when the difference is material. Stale, overloaded, looping, or assumption-contaminated context; substantial preparation whose history has no build value; and an independence objective also favor freshness. A remediation worker receives the relevant finding or checked diagnosis, accepted brief, exact repository state, approaches not to repeat, and verification history; neither triage nor a reviewer performs the repair.
 
 Given a child that stops cleanly on one bounded decision or incompatibility without unsafe partial mutation, the coordinator resumes it when the user's answer continues the same underlying objective and artifact or work unit, its checkout and artifact context remain relevant, authority is sufficient, prior mutations are absent or safely preserved, and retained generated evidence, setup, or working context has material value. A corrected mechanism, provenance model, implementation route, placement choice, or blocker does not alone force freshness; the resume explicitly corrects the prior assumption.
 
@@ -317,4 +333,4 @@ Given a consequential unresolved product decision, overlapping dirty state, or a
 
 ## Coordinator boundary
 
-Given a worker failure, the coordinator classifies the evidence need and remains non-mutating. Existing implementation authority continues only for the exact accepted outcome, scope, and authority; changed design, requirements, scope, access, or authority returns to the human. Review and architect gates remain explicit.
+Given an operator or worker failure, the coordinator classifies the evidence need and remains non-mutating. Existing mutation authority continues only for the exact accepted outcome, scope, and authority; changed design, requirements, scope, access, or authority returns to the human. Bounded procedural continuation returns to operator, while novel troubleshooting or difficult remediation routes to worker. Review and architect gates remain explicit.
