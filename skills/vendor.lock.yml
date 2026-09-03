@@ -89,3 +89,6 @@ skills:
   effect:
     commit: 22c35cb7fd29f931789253fc3c8eb142f2863a8a
     digest: 2c92a4c70a49ddc5a61a1b916149717ee4ccb13073c5c281882cbc9f66cbfdf1
+  show-me:
+    commit: 3c2629142c5d437428269b1b722b08c0b87f574d
+    digest: 177d3e95dcf91a61beeef33d333b94c9a0f0790a6ffaf9558518b41e193c8549

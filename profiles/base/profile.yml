@@ -157,6 +157,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   ui-ux-design:
     agents: { opencode: true, claude-code: true, codex: true }
+  show-me:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   context7:
     agents: [opencode, claude-code, codex]

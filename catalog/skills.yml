@@ -414,6 +414,14 @@ skills:
     repo: https://github.com/nicobailon/visual-explainer
     ref: main
     subtree: plugins/visual-explainer
+  - name: show-me
+    description: >
+      Help the user understand the current topic visually with concise diagrams,
+      code-shape sketches, and focused HTML artifacts.
+    source: vendored
+    repo: https://github.com/humanlayer/skills
+    ref: main
+    subtree: plugins/show-me/skills/show-me
   - name: diagram-design
     description: Create branded architecture, flowchart, sequence, state, data,
       timeline, process, and other diagrams as standalone HTML/SVG/PNG, or
