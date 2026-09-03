@@ -230,3 +230,10 @@
 
 - Allowed the safety reviewer to verify consequential packet claims through clearly read-only Bash and inherited integration operations while keeping mutation and delegation denied.
 - Replaced the blanket broad-inventory and architecture exclusions with path-based scope: investigate credible blast-radius paths, including broad inspection for genuinely broad operations, and omit unrelated systems or design preferences.
+
+## 2026-09-03 - Lifecycle-first text-conservative structure
+
+- Reorganized the command into eight lifecycle-primary sections followed by the final user prompt, with subsections that expose the coordinator/user decision surface and coordinator/child-agent contract where each becomes relevant.
+- Moved existing obligations largely verbatim and preserved their modalities, authority boundaries, freshness defaults, exceptions, causal sequence, and intentional repeated emphasis.
+- Removed one fragile `above` reference after moving preparation classification ahead of the operational-safety section; no other non-heading runtime wording changed.
+- Added focused structural and losslessness assertions without changing invocation, roles, permissions, models, tools, numeric limits, fallback lanes, authority gates, or behavior.

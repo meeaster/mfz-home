@@ -6,6 +6,14 @@ Record the command revision, OpenCode version, coordinator model, child sessions
 
 **Assertions:** OpenCode lists `/orchestrate`, keeps it in the main session, inherits the primary session's model, and expands the complete argument string. The source template contains `$ARGUMENTS` exactly once, as the unwrapped final content under `## User prompt`; no runtime content follows it, and the opening does not describe the input as "the task."
 
+## Lifecycle-first structural losslessness
+
+The runtime body presents these primary sections in order: `Operating Frame and User Input`; `Route Evidence and Accepted Work`; `Architecture, Prototype, and Review Decisions`; `Authority, Decomposition, and Mutation Planning`; `Dispatch, Preparation, and Operational Safety`; `Child Briefs, Execution Feedback, and Evidence Return`; `Continuity and Session Recovery`; `Acceptance and Phase Closure`; and final `User prompt`.
+
+Subsections make the coordinator/user decision surface and coordinator/child-agent contract directly navigable within the lifecycle. Every pre-restructure substantive sentence remains present exactly once except for a recorded grammar or directional-reference edit, with the same actor, modality, trigger, authority, default, exception, prohibition, and repeated emphasis.
+
+The structure preserves these observable sequence edges: input interpretation before the working model and intent/source classification; evidence before architect approval, consultation, and human design acceptance; explicit authority before preparation classification, decomposition, and scheduling; fresh current-state evidence and safety challenge before higher-risk operator dispatch; child brief before execution feedback, stop or return packet, and coordinator verification; mutation stop before fresh unknown-symptom triage and checked remediation or human decision; possible design conflict before root-owned evidence, human approval, and architect resume; PR evidence before reviewer dispatch, missing-evidence completion, and coordinator adjudication; source-gatherer fresh-by-default before role-specific continuity exceptions; and coordinator verification before any review recommendation and next-phase or completion guidance.
+
 ## Conversational prompt interpretation
 
 Given a settled task, the coordinator treats it as the requested outcome and applies the existing decomposition, routing, authority, and verification rules.
