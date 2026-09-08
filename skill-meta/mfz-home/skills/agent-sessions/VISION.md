@@ -15,11 +15,7 @@ For OpenCode, current V2 behavior has two deliberate paths:
 - Adaptive bounded SQL or authenticated API analysis owns locate, outline, investigate, reconstruct, and audit.
 - A narrow deterministic adapter owns parent-and-direct-child snapshot and append-only delta for refreshable consumers.
 
-The OpenCode SQLite path resolves from an explicit path, `OPENCODE_DB`, or the current channel data filename. SQLite opens read-only with WAL and SHM state visible. Unknown paths and non-filesystem backends route to the authenticated API.
-
-The deterministic adapter preserves `session_message.seq` ordering, ancestry and fork provenance, all-history and active-context boundaries, stable message and content locators, privacy exclusions, and compact source and prefix guards. It accepts only verified pure appends. Historical message change, deletion, replacement, topology change, source replacement, or active-context movement requires a full rebuild.
-
-The cost calculator uses only OpenCode V2 projected usage, recursively follows `parent_id`, guards cycles, and estimates current catalog cost by stored provider, model, and variant without selecting content bodies.
+Refresh safety takes priority over salvaging incremental state. A changed historical projection, source, topology, or active-context boundary requires a rebuild rather than a plausible but incomplete merge. Cost requests use body-free usage evidence and current catalog prices.
 
 Claude Code and unknown harnesses retain their native stores, locators, and incremental semantics. Dependent workflows own artifact form, synthesis, merge, destination, authority, and lifecycle.
 

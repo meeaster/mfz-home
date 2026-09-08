@@ -13,7 +13,7 @@ This skill vendors the generic and opt-in Effect plugins from upstream v0.1.2 co
 1. Compare the current upstream repository with the commit recorded above and inspect its rule entrypoint and imports.
 2. Replace the vendored source only with an intentional commit update; retain the upstream MIT license.
 3. Keep the launcher isolated from target configuration and dependencies.
-4. Update this record and `LOG.md` when behavior or provenance changes.
+4. Record the adopted revision and any intentional adaptation here; record observed verification with the affected evaluations.
 
 The Effect rule is deliberately opt-in: pass `--effect` only for an Effect codebase. Absence of the flag is the off state.
 

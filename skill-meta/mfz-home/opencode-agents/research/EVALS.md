@@ -4,7 +4,11 @@ Record the OpenCode version, rendered profile revision, model, research brief, p
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `research` as a visible Luna/high subagent with the custom specialist prompt; permissions explicitly deny mutation, shell, advisor, todo, and delegation; FFF, read-only local inspection, the filtered Code Mode documentation catalogue, web retrieval, and `claude-code-docs` are available; and global sensitive-path and external-directory policy remains authoritative.
+**Assertions:** OpenCode lists `research` as a visible Luna/high subagent with the custom specialist prompt; permissions explicitly deny mutation, shell, advisor, todo, and delegation; FFF, read-only local inspection, the filtered Code Mode documentation catalogue, web retrieval, `claude-code-docs`, and `opencode` are available; all other skills remain denied; and global sensitive-path and external-directory policy remains authoritative.
+
+## OpenCode documentation
+
+Given an OpenCode documentation question, the researcher can load `opencode`, uses its V2 default unless the user names V1 or migration, and follows existing version-specific and workspace source guidance. It returns evidence and uncertainty without running shell commands or applying configuration. A Claude Code question still loads `claude-code-docs`; an unrelated library question loads neither skill. The new exception does not grant other skills or change model or tool permissions.
 
 ## Exact Documentation Question
 

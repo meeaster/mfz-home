@@ -1,5 +1,11 @@
 # Development Principles Evaluations
 
+## Evidence status
+
+The scenarios below are expected behavior, not a record of passes. No live tests were run for this metadata revision. [Historical experiments](LOG.md) retain the 2026-08-20 observations and their limits: workers propagated compressed formatting, one-off smoke checks missed an exact range-scaling defect until CLI tests were added, and two design passes omitted file organization. A later focused maintenance worker implemented the accepted exact-rational module without unrelated restructuring.
+
+The automatic-extraction evaluation was rejected because it assigned unaccepted maintenance to narrow feature workers. The final explicit no-split design wording received structural validation but no fresh post-change behavioral run after a server restart removed the fixture. Readability and suppression wording have limited causal evidence. The retained record lacks exact runtime revisions, model and harness configuration, and trace locators; these historical reports do not independently validate the current skill.
+
 ## Explicit Invocation
 
 **Prompt:** Load `development-principles` and review an implementation for maintainability.

@@ -2,7 +2,13 @@
 
 ## Status
 
-The focused stdlib suites cover OpenCode adapter-version-2 checkpoint validation, non-OpenCode branching, harness-specific authority locators, acceptance truth, and exact checkpoint transport. Live creation and refresh remain conditional on a disposable or explicitly authorized artifact destination and read-only source access.
+The focused stdlib suites check OpenCode adapter-version-2 checkpoint validation, non-OpenCode branching, authority locators, acceptance truth, and exact transport. Their existence does not establish a current pass. No tests or live creation/refresh ran during this metadata refactor; the scenarios below are expectations for the current adapter.
+
+## Historical observations
+
+[LOG.md](LOG.md) preserves the 2026-08-09 runs on OpenCode 1.18.15 with Sol/medium: historical artifact rebuild, current-parent creation, corrupted-state rejection, empty-state recovery, and helper-based no-op. The earlier failed no-op transposed one fingerprint character during manual copying; structural validation accepted it, but refresh rejected it. That failure supports exact transport, not a successful no-op or validation of the current adapter-version-2 checkpoint. Those runs used Bundle and `next_state`, now superseded by snapshot/delta and top-level `checkpoint`.
+
+Historical creation from no existing artifact, privacy-sensitive live content, Claude JSONL refresh, and other non-OpenCode adapters remained unrun in that record.
 
 ## Invocation
 

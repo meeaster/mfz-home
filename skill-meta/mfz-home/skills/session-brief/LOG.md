@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Retained for authority and acceptance rationale, the source-inexact fingerprint defect, validator remediation, and live recovery/no-op evidence. Older Bundle, `next_state`, and cursor commands describe superseded adapters; the September checkpoint change owns current behavior. The heading "OpenCode V2 Live Evaluation" below refers to the Session Brief V2 contract tested on OpenCode 1.18.15, not the current OpenCode V2 adapter. New edits do not require log entries.
 
 ## 2026-09-02 - OpenCode adapter-version-2 checkpoints
 

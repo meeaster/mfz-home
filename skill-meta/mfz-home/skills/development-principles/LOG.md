@@ -1,4 +1,6 @@
-# Log
+# Historical development experiments
+
+Retained for the longitudinal experiment's observations, reversals, and limits. Entries describe successive revisions, not cumulative instructions. In particular, automatic extraction during narrow feature work was superseded by phase-owned structural scope. Consult this history when investigating boundary decisions, test foundations, or formatting regressions; the current runtime and evaluation expectations govern new work. No new log entry is required for ordinary maintenance.
 
 ## 2026-08-20 - Make No-Split Design Decisions Explicit
 

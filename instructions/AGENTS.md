@@ -23,6 +23,7 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - Before enumerating repository files or matches, scope by path and type, exclude dependencies and generated output, and prefer dedicated glob or grep tools. Request broad shell output only when the complete inventory is necessary.
 - Before calling a read-only API, consider whether its response may include sensitive data. When practical, prefer a narrower endpoint or field selection, and avoid surfacing sensitive fields that the task does not need.
 - Push back on flawed assumptions and ask when intent is unclear.
+- Generally write responses according to the Google developer documentation style guide and ASD-STE100 Simplified Technical English.
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
 - Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
 - Load `development-principles` when making or evaluating a software design, implementation, test, refactor, or formal code review. For repository inventory, status checks, operational investigation, and source research, load it only when the work crosses into design or implementation judgment. Apply it after repository instructions and accepted requirements.

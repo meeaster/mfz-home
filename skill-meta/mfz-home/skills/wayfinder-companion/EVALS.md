@@ -1,6 +1,6 @@
 # Evaluations
 
-Record the skill revision, model, harness, Wayfinder revision, artifacts inspected, and limitations for each live run.
+The scenarios below specify expected behavior. The recorded observation at the end is separate and does not establish passes for the remaining scenarios. For future live evidence, identify the skill and Wayfinder revisions, model, harness, inspected artifacts, and limitations.
 
 ## New Context-Heavy Map
 
@@ -104,6 +104,8 @@ Record the skill revision, model, harness, Wayfinder revision, artifacts inspect
 
 **Assertions:** The agent directs the user to invoke Wayfinder first, creates no companion artifacts, and does not invent map or ticket behavior.
 
-## Initial Result
+## Recorded observation and limits
 
 The initial agentic-trading Wayfinder run established an adjacent `vision.md`, map pointers, working model, and research records. A controlled live-harness evaluation of lazy companion artifacts, prototype evidence, decision forums, and closure indexing remains pending.
+
+The inherited observation does not identify an exact skill revision, model, harness version, or trace. It has not been independently reproduced during this record-only maintenance pass.

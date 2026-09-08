@@ -1,5 +1,7 @@
 # Evaluations
 
+These are expected scenarios for the recorded source contract, not current-runtime passes. [MAINTENANCE.md](MAINTENANCE.md) records unresolved availability and dependency compatibility. [LOG.md](LOG.md) retains the observed failures that motivated packing and review limits; neither observation establishes that the revised behavior passed. No live tests were run for this record update.
+
 ## Large Cross-Cutting Change
 
 Given an OpenSpec change with 20-30 tasks spanning configuration, command behavior, migration,

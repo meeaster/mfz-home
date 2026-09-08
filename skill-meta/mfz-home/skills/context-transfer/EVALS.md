@@ -1,7 +1,10 @@
 # Context Transfer Evaluations
 
-**Status:** Static scenarios defined. Live invocation and execution are untested
-for the initial revision.
+The scenarios below specify expected behavior, not observed passes. No live invocation or execution was run for this metadata revision.
+
+## Historical failure reports
+
+The former log records two incidents on 2026-08-18: a detailed user narrative became a deliverable-only subagent prompt, and a UI/UX specialist brief became a lossy implementation summary. They motivated the parent-to-agent and specialist-to-implementation scenarios below. The record supplies no model, harness, exact runtime revision, or trace locator, so these are retained reports rather than independently verified results or evidence that the later wording fixes the failures.
 
 ## Shared Assertions
 

@@ -1,5 +1,10 @@
 # Log
 
+## 2026-09-05 - Review routing clarification
+
+- Reconciled the adjacent known-work contract with `/orchestrate`: substantive behavior-preserving structural simplification remains ordinary reviewer work and does not alone select PR due diligence.
+- Preserved unfamiliar or unobserved PR intent reconstruction and holistic merge judgment. No PR-reviewer runtime source, permissions, model, or owning skill changed.
+
 ## 2026-09-02 - Initial native PR reviewer
 
 - Added a thin native execution boundary for the reusable `pr-review` method.

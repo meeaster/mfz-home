@@ -1,4 +1,6 @@
-# Log
+# Historical design rationale
+
+Consult this history when revisiting artifact roles or the Wayfinder boundary. Early evidence-pack and profile decisions describe their dated context, not current execution requirements. Current intent is in [VISION.md](VISION.md); new edits do not require log entries.
 
 ## 2026-08-02 - Initial Design
 

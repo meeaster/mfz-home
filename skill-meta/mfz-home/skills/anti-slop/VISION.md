@@ -6,7 +6,7 @@ The upstream anti-slop skill installs files and dependencies into whichever repo
 
 ## Intended Behavior
 
-After every JavaScript or TypeScript edit batch, or when explicitly requested, run the pinned upstream anti-slop rules globally against the narrowest path containing the changes without allowing the launcher to change that path or load its Oxlint configuration.
+Agents get concise preflight guidance before JavaScript or TypeScript edits and a read-only diagnostic checkpoint afterward or on explicit request. The pinned upstream rules run against the narrowest relevant path without inheriting target configuration. Effect-specific policy remains opt-in so other codebases do not inherit it.
 
 ## Success
 

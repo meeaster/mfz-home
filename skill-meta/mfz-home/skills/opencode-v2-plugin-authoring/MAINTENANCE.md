@@ -23,4 +23,6 @@ source and installed CLI; it is not an API replacement.
 
 ## Verification
 
-Check frontmatter, catalog registration, profile enablement, and every local reference link. Test representative server and TUI plugin requests against a fresh V2 runtime. For event-driven server plugins, trigger one action before and after reload, confirm that plugin-owned output does not retrigger the plugin, and query `/api/model`. For native TUI work, inspect active state and execute a visible contribution; neither agent summary, TypeScript compilation, nor active status alone proves rendering.
+Test representative server and TUI plugin requests against a fresh V2 runtime. For event-driven server plugins, trigger one action before and after reload, confirm that plugin-owned output does not retrigger the plugin, and query `/api/model`. For native TUI work, inspect active state and execute a visible contribution; neither agent summary, TypeScript compilation, nor active status alone proves rendering.
+
+The loader evidence changed between `0.0.0-next-17428` and `0.0.0-beta-18743`. Root `index.*` and `tui.*` directory loading supersedes the older `tui/index.tsx` claim. Consult [historical evidence](LOG.md) when revisiting that reversal or the `Cell` crash diagnosis; revalidate against the installed release rather than treating either version as permanent.

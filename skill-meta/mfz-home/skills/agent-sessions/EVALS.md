@@ -2,7 +2,9 @@
 
 ## Status
 
-The repeatable Python suites cover the OpenCode V2 snapshot, delta, and cost contracts. Adaptive SQL and API scenarios remain static evaluations. Read-only live V2 verification is recorded separately when the current environment supports both sources without exposing bodies.
+The Python suites check the OpenCode V2 snapshot, delta, and cost contracts; their existence is not evidence of a current pass. The scenarios below are expectations. No suite or live V2 source ran during this metadata refactor.
+
+Historical OpenCode 1.18.15 Bundle runs in [LOG.md](LOG.md) observed one-call acquisition, stable no-op state, corrupted-fingerprint rejection, and recovery. They do not validate the current V2-only adapter. The historical incomplete Explore report motivates the coverage ledger: an accurate partial answer must not pass an exhaustive request.
 
 ## Invocation
 
@@ -67,5 +69,7 @@ Agent Sessions does not replace the owning workflow. It may provide prior-sessio
 **Assertions:** The calculator validates only `session_v2` and `session_message`, follows recursive descendants with cycle guards, excludes unrelated forks, ignores assistant messages with no usage, rejects partial usage, and attributes model switches exactly. Tests cover context tiers, mode prices, cache categories, reasoning rates and fallback, malformed JSON, missing pricing, deterministic local catalogs, pretty output, null agents, stored-cost comparison, and body exclusion.
 
 ## Shared execution assertions
+
+**Native-harness scenario:** Investigate a failed tool in a supplied Claude JSONL store, then request incremental evidence after a saved position. The agent uses the supplied store and native locators, accounts for child scope, and detects replacement or truncation rather than imposing OpenCode checkpoint fields. No observed run is recorded here.
 
 Every scenario confirms an explicit coverage mode, bounded evidence proportional to the request, native locators, visible exclusions and gaps, child and fork distinction, and no silent artifact promotion.

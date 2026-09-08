@@ -1,6 +1,10 @@
 # PR Review Evaluations
 
-Record the skill revision, model and harness, evidence fixture, resulting review, commands used, artifacts inspected, and limitations. Self-report is not sufficient evidence of read-only behavior or finding quality.
+These scenarios specify expected behavior. No execution results or trace locators were present in the source record, and no live evaluations were run for this metadata revision. Finding quality and read-only behavior require inspection of the returned review and tool trace, not reviewer self-report.
+
+## Invocation boundary
+
+An unfamiliar PR with uncertain intent, architecture, or validation should select this holistic review. A request to verify an implementation against an accepted design and known validation history should use focused conformance review instead.
 
 ## Complete evidence
 

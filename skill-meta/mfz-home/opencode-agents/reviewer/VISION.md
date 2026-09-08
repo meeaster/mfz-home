@@ -6,11 +6,11 @@ Consequential work sometimes needs an independent quality-first judgment, but mo
 
 ## Intended Behavior
 
-`reviewer` is a native OpenCode subagent for independent review of completed work against requirements and repository evidence. The parent supplies a self-contained review brief naming the artifact or diff, governing requirements, review boundary, material risks, and expected finding format.
+`reviewer` is a native OpenCode subagent for independent review of known completed work against requirements and repository evidence. Code review loads `thermo-nuclear-code-quality-review` and covers correctness, maintainability, and substantive behavior-preserving structural simplification even when the design is accepted. The parent supplies a decision-relevant brief naming the artifact or diff, governing requirements, review boundary, material risks, validation history, and expected finding format. Structural simplification alone does not require holistic PR due diligence.
 
-The agent has no custom system prompt. It inherits OpenCode's provider prompt and ordinary environment context. Its configured Sol/high model is the current quality-first review policy, while the role-based name remains stable if that policy changes.
+The agent has no custom system prompt. It inherits OpenCode's provider prompt and ordinary environment context. `profiles/personal/profile.yml` owns the active Personal model and variant, while the role-based name remains stable if that policy changes.
 
-The reviewer returns prioritized, evidence-backed findings and identifies unsupported concerns. It does not implement fixes, own acceptance, expand requirements, or commission another agent. It inherits global capabilities, including shell access for efficient inspection, while agent-specific rules deny file-editing tools. The parent supplies the review boundary and available validation evidence, then adjudicates findings and decides whether remediation is warranted.
+The reviewer returns prioritized, evidence-backed proposals and identifies unsupported concerns. Major structural findings identify the concrete problem and evidence, a plausible simpler alternative, actual benefit and material tradeoffs, and demonstrated effects separately from expected benefits or uncertainty. It does not implement fixes, own acceptance, expand requirements, or commission another agent. It inherits global capabilities, including shell access for efficient inspection, while agent-specific rules deny file-editing tools. The parent adjudicates findings; proposed design or scope changes return to the user before remediation.
 
 Review cadence belongs to the invoking workflow. Risk, accumulated scope, subsystem boundaries, or final verification may justify a review; the existence of a worker result alone does not.
 

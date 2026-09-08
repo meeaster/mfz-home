@@ -15,3 +15,7 @@
 **Prompt:** Exercise a UI critique, a design brief for an implementation agent, and a direct small UI edit.
 
 **Assertions:** Parents use the designer when design judgment is primary, use an implementation lane for settled edits, and require only task-relevant skills.
+
+## Consultation authority
+
+Given an explicit UI-design request, `/orchestrate` dispatches appropriate consultation without a redundant approval question and instructs the child to load `ui-ux-design`. Without that request or prior approval, it explains the need and asks. The read-only handoff covers task-relevant states, accessibility, constraints, and verification for parent/user acceptance, with no prototype creation or implementation implied. Same-engagement follow-ups use the command's bounded consultation rule; new scope, access, or independent opinion needs approval.

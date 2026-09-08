@@ -1,6 +1,10 @@
 # OpenCode V2 Plugin Authoring Evaluations
 
-**Status:** Static scenarios defined. Native TUI directory loading and visible rendering were revalidated against `opencode2 v0.0.0-beta-18743` in a fresh standalone TUI. Earlier Drive controls covered `0.0.0-next-17428`.
+The scenarios below specify expected behavior, not independent approval or a pass for every branch. No runtime test ran during this metadata refactor.
+
+## Recorded observations
+
+[Historical evidence](LOG.md) reports native TUI directory loading and visible rendering against `opencode2 v0.0.0-beta-18743` on 2026-09-01 in a fresh standalone TUI. A configured local file appeared in listings without activation; a root-shaped directory imported, ran setup, and rendered `Session cost` and `Total`. Earlier Drive controls on `0.0.0-next-17428` did not reproduce the `Cell` crash and exposed an unconsumed test config as a false negative. The log also records the present-undefined registry failure and recursive advisor-session generation. Model, exact skill revision, and retained trace locations were not recorded for those observations; they are historical authoring evidence rather than reproducible current-release approval.
 
 ## Create A Server Plugin
 

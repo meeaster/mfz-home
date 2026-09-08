@@ -2,7 +2,7 @@
 
 ## Problem
 
-Unknown or unobserved pull-request work needs a specialist that can execute holistic merge due diligence without assuming an accepted design, trusted implementation process, or complete validation history. The focused `reviewer` remains the cheaper, narrower contract when that evidence is already known.
+Unknown or unobserved pull-request work needs a specialist that can execute holistic merge due diligence without assuming an accepted design, trusted implementation process, or complete validation history. Known work remains with `reviewer` for correctness, maintainability, and substantive behavior-preserving structural simplification. Structural simplification alone does not require this lane.
 
 ## Intended behavior
 

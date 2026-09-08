@@ -1,7 +1,6 @@
 # Session-Derived Knowledge Evaluations
 
-**Status:** Static scenarios defined. Live invocation and execution are untested
-for the initial revision.
+These scenarios specify expected behavior, not observed passes. The initial record reports no live invocation or execution evaluation; this maintenance pass adds none.
 
 ## Shared Assertions
 

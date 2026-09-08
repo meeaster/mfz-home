@@ -8,7 +8,7 @@ Users sometimes need a specific external agent harness to run through its CLI, c
 
 Agent Exec runs Codex, OpenCode 2, or Claude Code only after an explicit user request for that harness CLI, continuation, or model inspection. It sends a bounded context packet, chooses permissions from the requested work, captures the useful answer and continuation handle, and cleans up disposable sessions when the harness supports it.
 
-Inside OpenCode 2, the skill preserves the current session for ordinary tests of hot-reloaded skills, agents, configuration, instructions, MCP state, references, and local plugins. It uses a fresh native subagent only when fresh context or child behavior is part of the test. External `opencode2` runs remain available for CLI and client-server testing, clean-room or private-server execution, and fresh top-level sessions when the current ancestry or permissions would invalidate a nested workflow test.
+Runtime freshness and context freshness are different needs. Ordinary OpenCode 2 reload checks stay in the current session; clean-context or child-behavior tests use native subagents. External execution is justified by the CLI, isolation, or top-level-session behavior under test, not by the mere existence of a configuration edit.
 
 ## Success
 

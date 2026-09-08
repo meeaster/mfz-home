@@ -8,6 +8,7 @@
 - Code Mode supplies the filtered catalogue of approved documentation and FFF tools.
 - Approved direct documentation tools must remain read-only for every permission pattern in `opencode/agents/research.md`.
 - `claude-code-docs` owns Claude Code documentation navigation and retrieval.
+- `opencode` owns OpenCode version-specific documentation guidance. Keep these two named skill exceptions after the wildcard deny; neither grants operational authority.
 - Global configuration owns sensitive-path and external-directory policy; do not duplicate those rules in this agent.
 
 ## Change Procedure

@@ -67,7 +67,8 @@ mcp:
   homeassistant:
     agents: [opencode]
   unifi-network:
-    agents: [opencode]
+    agents:
+      disabled: [opencode]
   robinhood:
     agents: [opencode, claude-code, codex]
   sentry:
@@ -93,8 +94,8 @@ opencode_v2:
         model: openai/gpt-5.6-sol
         variant: medium
       reviewer:
-        model: openai/gpt-5.6-sol
-        variant: high
+        model: openai/gpt-6-astra
+        variant: medium
       triage:
         model: openai/gpt-5.6-sol
         variant: medium

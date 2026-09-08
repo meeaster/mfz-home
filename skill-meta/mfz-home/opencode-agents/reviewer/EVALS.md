@@ -4,13 +4,17 @@ Record the OpenCode version, rendered profile revision, model, review prompt, se
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `reviewer` as a visible subagent using `openai/gpt-5.6-sol` at `high`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; and `apply_patch`, `edit`, and `write` are denied by agent-level rules.
+**Assertions:** OpenCode lists Personal `reviewer` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/personal/profile.yml`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; and `apply_patch`, `edit`, and `write` are denied by agent-level rules.
 
 ## Independent Review
 
 **Prompt:** Supply completed work, governing requirements, changed scope, material risks, established validation, and a required evidence-backed finding format.
 
-**Assertions:** A native child session starts with Sol/high, reads the named evidence, uses shell commands when useful, performs no edits, and returns prioritized findings with concrete triggers and file or artifact references. The parent adjudicates the findings rather than accepting them automatically.
+**Assertions:** A native child session starts with the configured model and variant, loads `thermo-nuclear-code-quality-review` for code review, reads the named evidence, uses read-only shell commands when useful, performs no edits, and returns prioritized findings with concrete triggers and file or artifact references. The parent adjudicates the findings rather than accepting them automatically.
+
+## Accepted-design structural simplification
+
+Given known work with accepted design and validation history but unnecessary structural complexity, the reviewer covers correctness, maintainability, and substantive behavior-preserving simplification. A major finding supplies the concrete problem and evidence, plausible simpler alternative, actual benefit, material tradeoffs, and demonstrated versus expected effects or uncertainty. A preference alone is not a major finding. Structural simplification stays in this lane; changed design or scope returns to the user before remediation, and the reviewer neither repairs nor accepts its proposals.
 
 ## Unsupported Concern
 

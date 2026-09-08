@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Retained for the reload-policy reversal and harness-disclosure rationale. Earlier recommendations are historical, not current instructions; the later current-session-first decision supersedes the native-subagent-first recommendation. New edits do not require log entries.
 
 ## 2026-08-18 - Replace OpenCode V1 With OpenCode 2
 

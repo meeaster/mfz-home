@@ -16,12 +16,7 @@ in-page APIs for validated automation, preserves user account and chart state,
 distinguishes supported features from version-sensitive internals, and records
 enough chart context to reproduce every result.
 
-The guide evolves from live evidence under standing human authority to promote
-validated TradingView automation improvements. A newly discovered route is
-promoted only when it is repeatable, more efficient or reliable than current
-guidance, safe across account and plan boundaries, and accompanied by sanitized
-evidence, verification, and an evaluation update where behavior changed.
-Superseded recipes are replaced so the skill becomes sharper rather than longer.
+The guide evolves from live evidence under standing human authority to promote validated TradingView automation improvements. Reliability, account and plan boundaries, and sanitized evidence take priority over a shorter click sequence. Better routes replace superseded recipes rather than accumulating workarounds.
 
 The human retains authority over authentication, persistent profiles, paid-plan
 choices, layout and Pine changes, alerts, watchlist mutations, publishing, and

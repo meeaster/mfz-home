@@ -1,6 +1,6 @@
 # Dogfooding
 
-This is a bounded synthesis of behavioral evidence from real Skill Authoring usage. It tracks the current learning frontier, not every session.
+This is a provisional synthesis from earlier Skill Authoring revisions. Read when investigating the observations below or selecting a related live evaluation. It does not validate the selective-record revision; `EVALS.md` owns current scenarios and result summaries.
 
 ## Admission Rule
 
@@ -14,7 +14,7 @@ Admit an observation only when it is unexpected, consequential, repeated, reveal
 | Generated-skill execution | OpenCode, Sol Medium | Two project-local skills and fixtures | Expected verdicts and unchanged fixtures; one output-classification defect identified |
 | Session-based evaluation | OpenCode, Sol Medium | Two full package, trace, and artifact assessments | Passing; runtime, evaluation, environment, and maintenance findings separated |
 | Non-mutating review | OpenCode, Sol Medium | Three assessment runs | Passing; no edit tools and target checksums unchanged |
-| Existing skill revision | None | Untested | Untested |
+| Existing skill revision | OpenCode 1.18.14, Luna High | August 7 external-record reuse reported in `EVALS.md` | Prior mandatory-record revision only; current selective loading is untested |
 | Cross-harness context boundaries | None beyond OpenCode | Untested | Untested |
 
 ## Active Observations

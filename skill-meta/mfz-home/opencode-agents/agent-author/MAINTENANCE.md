@@ -2,7 +2,7 @@
 
 ## Runtime dependencies
 
-- OpenCode must expose `agent-author` as a native subagent and the configured provider must expose `openai/gpt-5.6-sol@medium`.
+- OpenCode must expose `agent-author` as a native subagent and the configured provider must expose `openai/gpt-6-astra@medium`. `profiles/base/profile.yml` owns the assignment.
 - `writing-for-agents` owns agent-consumed prose quality; `skill-authoring` owns maintained skill, command, agent, and prompt-package authoring; platform skills own platform mechanics.
 - The caller owns intended behavior, destination, accepted constraints, mutation authority, accessible paths, expected outcome, and stop conditions.
 
@@ -16,8 +16,8 @@
 ## Validation
 
 1. Run plain `mfz apply` from the Personal home.
-2. Confirm the rendered agent resolves to Sol/medium, can edit under authority, and cannot own todos or recursively delegate.
-3. Run `mfz doctor` and a fresh native authoring probe before claiming live behavior.
+2. Confirm the rendered agent resolves to Astra/medium, can edit under authority, and cannot own todos or recursively delegate.
+3. Run `mfz doctor`. Use a current native authoring run and parent-inspected metadata before claiming live activation; static checks alone do not establish behavioral quality.
 
 ## Environment boundary
 

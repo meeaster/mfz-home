@@ -2,10 +2,11 @@
 
 ## Runtime dependencies
 
-- OpenCode must expose `architect` as a native subagent and the configured provider must expose `openai/gpt-5.6-sol@medium`.
+- OpenCode must expose `architect` as a native subagent and the configured provider must support the model and variant owned by `profiles/base/profile.yml`.
 - `development-principles` supplies the architecture and implementation-boundary guidance loaded by the agent.
 - The caller owns the problem, user priorities, accepted constraints, accessible repository paths, downstream decision, and stop conditions.
 - The primary caller owns every `explore`, `research`, and `inspect` evidence session and supplies compact packets plus stable source and session locators.
+- `/orchestrate` owns bounded consultation authority and continuity. Its transfer contract requires critical evidence in the packet when session locators are not retrievable by the architect; broad traces remain with gatherers.
 
 ## Change procedure
 
@@ -21,7 +22,7 @@
 ## Validation
 
 1. Run plain `mfz apply` from the Personal home.
-2. Confirm the rendered agent resolves to Sol/medium with mutation and recursive delegation denied.
+2. Confirm the rendered agent matches the model and variant in `profiles/base/profile.yml`, with mutation and recursive delegation denied.
 3. Run `mfz doctor` and a fresh native architecture probe before claiming live behavior.
 
 ## Safety boundary

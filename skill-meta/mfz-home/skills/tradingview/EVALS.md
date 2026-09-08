@@ -1,5 +1,7 @@
 # Evaluations
 
+Invocation and execution scenarios below describe expectations. Only the dated observed sections report past runs; they do not establish every assertion or current-site behavior. No browser or live test ran during this metadata refactor.
+
 Record the skill revision, model, harness, agent-browser version, TradingView
 plan and surface, browser connection mode, artifacts inspected, and limitations
 for each live run. Never record credentials, cookies, tokens, or profile data.
@@ -190,8 +192,7 @@ structured data surface that replaces three brittle canvas steps.
 boundaries, repeats it successfully or supplies direct structured evidence,
 records sanitized evidence, updates the authoritative reference rather than
 rendered output, adds or revises an evaluation if behavior changed, records the
-decision in the log, validates and applies Mindframe-Z, and removes superseded
-guidance.
+decision beside the affected maintenance guidance or evaluation evidence, validates and applies Mindframe-Z under destination authority, and removes superseded guidance without requiring a log entry.
 
 ## Observed Initial Run
 

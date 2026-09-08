@@ -1,21 +1,13 @@
 # Maintenance
 
-The skill depends on the OpenSpec CLI JSON contracts for `status` and `instructions apply`, and on
-OpenCode `delegate_general` supporting explicit Sol/high planning and Luna/xhigh implementation
-routes. Recheck command fields and model allowlists when either dependency changes.
+## Source and availability
 
-Worker-budget calibration is empirical. Review it when observed Luna/xhigh sessions repeatedly run
-out of useful context or when plans create fresh sessions that reread the same core files. Evaluate
-both per-worker payload and total duplicated payload; lowering one worker's estimate is not an
-improvement when total uncached reads and handoffs rise materially.
+On 2026-09-07, `skills/openspec/openspec-orchestrate/SKILL.md` exists and `catalog/skills.yml` still declares it. No profile YAML under `profiles/` names `openspec-orchestrate`. This establishes source presence, not active discovery or retirement. Confirm the intended status before any activation or redesign.
 
-After behavioral changes, run the scenarios in `EVALS.md` against at least one small local
-change and one cross-cutting standalone-store change. Inspect the returned task mapping, worker count,
-worker boundaries, exact writes, and checkpoint separation. A planner self-report is insufficient.
+The source still requires OpenCode `delegate_general`, Sol/high planning, and Luna/xhigh implementation, and depends on OpenSpec `status` and `instructions apply` JSON contracts. Those dependencies were not executed in this record-only pass. Recheck tool availability, model allowlists, and planning-store fields before attempting the workflow; do not infer compatibility from a catalog entry.
 
-For review-route changes, inspect an execution trace for false blockers, future-task escalation,
-remediation count, task reopening, and independent-review frequency. The desired result is evidence-
-backed acceptance without turning each closure into a new discovery pass.
+## Calibration and failure history
 
-Edit this source package in the Mindframe-Z home, then activate it with
-`mfz apply --target all --agent all`. Do not edit rendered skill snapshots.
+Worker-budget bands are empirical rather than model limits. Revisit them when workers exhaust useful context or fresh sessions repeatedly reread the same core files. Compare total duplicated payload as well as each worker's payload.
+
+[Historical failures](LOG.md) explain the worker-packing and bounded-review rules. A future evaluation should inspect task mapping and actual worker boundaries on both a small change and a cross-cutting standalone-store change. For review changes, inspect false blockers, future-task escalation, remediation count, and task reopening rather than relying on planner self-report.

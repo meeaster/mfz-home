@@ -37,21 +37,7 @@ One-off selectors, unexplained minified properties, and unsuccessful probes stay
 out. When an internal property is promoted, pair it with live shape discovery
 and a supported UI fallback.
 
-## Change Procedure
-
-1. Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` plus the runtime
-   reference for the affected branch.
-2. Reproduce the old route and candidate route against the same surface when
-   practical; capture steps, failures, and verification evidence without secrets.
-3. Record sanitized evidence in `LOG.md`, including surface, plan boundary,
-   verification, and limitations.
-4. Replace the old route with the smallest verified guidance. Keep detailed
-   mechanics in one branch reference.
-5. Add or revise an evaluation when invocation, authority, fallback, or an
-   observable result changes.
-6. Run `mfz skills list`, inspect every affected scenario in `EVALS.md`, and run
-   a live scenario for fragile browser behavior. Record untested scenarios.
-7. Run `mfz apply --target all --agent all` and `mfz doctor`.
+Compare old and candidate routes against the same surface when practical. Keep sanitized run evidence, plan boundaries, and limitations with the affected [evaluations](EVALS.md); keep branch mechanics in the owning runtime reference. Follow destination guidance for activation rather than preserving an apply command here.
 
 ## Refresh Triggers
 

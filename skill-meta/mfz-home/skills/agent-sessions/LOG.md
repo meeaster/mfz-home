@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Consult for the incomplete-report failure, Bundle efficiency experiments, and the transition to V2-only evidence. Pre-2026-09-02 V1, Bundle, cursor, and mixed-schema instructions are superseded history. Their live results do not validate the current snapshot/delta adapter. New edits do not require log entries.
 
 ## 2026-09-02 - OpenCode V2-only session evidence
 

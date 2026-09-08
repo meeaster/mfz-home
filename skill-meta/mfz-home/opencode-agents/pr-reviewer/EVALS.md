@@ -26,4 +26,4 @@ Given an architecture question that meets the skill's escalation criteria, the c
 
 ## Adjacent routing
 
-Given a known accepted design, worker brief, and validation history whose objective is conformance defects or drift, callers retain `reviewer`. Given initial design, implementation, remediation, or publication work, the agent description does not claim those responsibilities.
+Given a known accepted design, worker brief, and validation history whose objective is correctness, maintainability, or substantive behavior-preserving structural simplification, callers retain `reviewer`. Structural simplification alone does not trigger PR due diligence. Given initial design, implementation, remediation, or publication work, the agent description does not claim those responsibilities.

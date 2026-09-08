@@ -1,23 +1,9 @@
 # Vision
 
-OpenSpec Orchestrate turns a completed change contract into an execution-ready implementation route.
-Its primary planning artifact is the smallest practical sequential list of bounded worker sessions,
-not a restatement of OpenSpec sections or a worker for every lifecycle checkpoint.
+OpenSpec Orchestrate is an explicitly invoked, standalone alternative to Apply. It turns a completed change contract into the smallest practical sequential list of bounded workers. Cohesive work packages precede worker assignment; task headings and lifecycle checkpoints do not each deserve a fresh session.
 
-The Sol/high planner understands the complete change and repository, derives cohesive work packages,
-and packs them into workers by semantic area, file ownership, authority boundary, and context cost.
-Fresh workers are valuable when they leave a completed area behind; they are wasteful when they reread
-the same core files. The coordinator validates the result, delegates each accepted worker to
-Luna/xhigh, and retains task-ledger and operator authority.
+The priority is complete task ownership with less duplicated context, while keeping each worker's working set safe. The coordinator retains task checkboxes and acceptance. Planning stores and implementation repositories remain separate authority boundaries, and irreversible operations require approval.
 
-Success means every pending task has one owner, implementation workers are few enough to avoid
-unnecessary uncached rereads but bounded enough to avoid expensive late-context work, and operator or
-coordinator checkpoints are visible without masquerading as delegated agents.
+Coordinator review is the normal acceptance path. A justified independent review has a charter tied to current tasks and observable criteria, one consolidated remediation, and scope-locked closure. Future-task work and generic hardening remain follow-ups rather than reasons to reopen accepted work indefinitely.
 
-Coordinator diff and gate review is the normal acceptance path. When an independent review is
-justified, it is chartered by exact task IDs and observable criteria, receives one consolidated
-remediation, and closes through a scope-locked verification. Follow-up hardening and future worker
-scope stay visible without preventing a bounded change from completing.
-
-Parallel implementation, implicit worktree isolation, speculative write paths, worker-owned task
-checkboxes, and irreversible operations without approval remain outside the workflow.
+Parallel implementation, implicit worktree isolation, speculative write paths, and worker-owned completion ledgers remain outside the recorded design. Model routes and context calibration are implementation choices documented in the source, not evidence of benchmarked quality.

@@ -1,21 +1,7 @@
 # Vision
 
-## Problem
+Make Mindframe-Z guidance reachable before configuration changes, from any working directory. Model invocation should cover requests naming MFZ and ordinary requests for recurring OpenCode jobs. Keep the skill short and route detailed home, skill, and scheduling mechanics to the CLI guides.
 
-Mindframe-Z configuration can be changed from any directory, and recurring OpenCode jobs span home source, rendered prompts, OpenCode agents, systemd user units, and session policy. An agent must reach the owning guidance before it edits any of those surfaces.
+Home source remains authoritative over rendered configuration. Recurring OpenCode jobs use the cron guide as their operational source of truth. Systemd user timers fit the existing machine lifecycle and provide status, journal output, missed-run catch-up, and same-service non-overlap without a new scheduler abstraction.
 
-## Intended Behavior
-
-The model-invoked `mindframe-z` skill routes requests that name `mfz` or Mindframe-Z, including ordinary requests to create recurring OpenCode jobs. It keeps always-loaded instructions short and sends the agent to `mfz guide`, `mfz guide skills`, or `mfz guide cron` for the detailed branch.
-
-For recurring jobs, `mfz guide cron` is the single source of operational guidance. It preserves systemd user timers as the simple default while making session policy an explicit per-job choice.
-
-## Success
-
-A future request such as "create a cron job that runs OpenCode every morning" reaches the Mindframe-Z guidance, selects an appropriate direct or delegated session policy, edits home source rather than rendered output, and verifies the timer and OpenCode runtime without inventing a scheduler framework.
-
-## Non-Goals
-
-- Copying the complete scheduled-job guide into the skill body.
-- Adding literal crontab management, a generic scheduler schema, or a compact-before-run framework.
-- Requiring the persistent-root worker pattern for small independent jobs.
+Session policy is a per-job decision. Small independent jobs should not inherit the cost and complexity of a persistent-root worker pattern. Generic systemd diagnosis, literal crontab management, and a new scheduler or compact-before-run framework are outside this skill's intended role.

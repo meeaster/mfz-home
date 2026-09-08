@@ -1,5 +1,7 @@
 [tools]
 node = "26"
+ffmpeg = "8.0.1"
+yt-dlp = "2026.08.19"
 websocat = "1"
 usage = "6"
 "github:xdevplatform/xurl" = "1"

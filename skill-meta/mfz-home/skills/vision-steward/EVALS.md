@@ -1,5 +1,7 @@
 # Vision Steward Evaluations
 
+The prompts and assertions below are expected behavior. The original record contains no execution evidence, and this metadata revision did not run live invocation or artifact-production evaluations.
+
 ## Shared Assertions
 
 Every scenario confirms that the agent establishes edit authority, ranks evidence by authority, preserves uncertainty, excludes incidental inventory, and reports related-document drift.

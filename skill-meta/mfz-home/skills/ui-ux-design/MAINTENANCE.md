@@ -1,7 +1,5 @@
 # Maintenance
 
-- `skills/active/ui-ux-design/SKILL.md` owns the shared UI/UX design method and complete implementation-brief shape; it must remain portable across Personal and Work contexts.
-- Impeccable and Dataviz remain dependencies; compose their guidance rather than duplicating it here.
-- Branding, Context Transfer, consumer-specific handoff, and implementation authority remain outside this skill.
-- `catalog/skills.yml` and `profiles/base/profile.yml` own discovery and cross-profile activation.
-- After changes, run `mfz apply`, `mfz skills list`, and `mfz doctor`; evaluate the design, data-interface, critique, and boundary scenarios in `EVALS.md`.
+The 2026-08-18 integration deliberately kept the OpenCode `ui-ux-designer` agent promptless to preserve its provider base prompt. Shared instructions instead tell parents to require `ui-ux-design` when dispatching it. If that integration changes, verify both the skill-loading path and whether a custom agent prompt displaces provider behavior; duplicating the method in an agent definition would create a second owner.
+
+Impeccable is the unconditional design dependency; Dataviz is conditional on data visualization. When either dependency changes, check the design and data-interface scenarios for conflicts or missing requirements rather than copying its rubric into this skill. Branding and consumer-specific transfer remain caller-owned.

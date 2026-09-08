@@ -1,4 +1,6 @@
-# Decision Log
+# Historical failure rationale
+
+Consult these observations when revisiting worker packing or review limits. They explain the recorded design, not proof that the present source works in the current runtime. New edits do not require log entries.
 
 ## 2026-07-29: Separate Work Packages From Workers
 

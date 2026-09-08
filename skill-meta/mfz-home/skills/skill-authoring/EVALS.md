@@ -1,174 +1,75 @@
-# Skill Authoring Evaluations
+# Evaluations
 
-Evaluate behavior, not resemblance to a preferred template. Record the skill revision, model, harness, relevant configuration, observable result, and limitations for each run.
+These scenarios specify expected behavior. They are not evidence that the current revision passes. Live results must identify the revision, model, harness, configuration, observed artifacts or trace, and limitations.
 
-## Shared Assertions
+## Narrow revision and selective loading
 
-Every scenario confirms that:
+Request a wording clarification to an existing skill with a long log, unrelated maintenance guidance, and several evaluation branches.
 
-- the `writing-for-agents` skill and OpenAI-derived planning guidance are loaded before skill work begins;
-- the requested mode and authorized outcome are established;
-- files are modified only when implementation is authorized;
-- every applicable runtime and authoring record artifact agrees with `SKILL.md`.
+Expect the author to read the runtime instructions and intent, select affected scenarios, and leave unrelated history unloaded. The clarification preserves meaning, updates only affected content, and generates no routine log entry. If the wording exposes an unexplained constraint, the author searches related rationale before deciding.
 
-## Create From A Sparse Brief
+## Small self-contained skill
 
-**Prompt:** Ask for a skill with only a goal and rough use case.
+Request a compact skill with a clear goal and no external upkeep.
 
-**Assertions:** The agent establishes intended behavior and genuine ambiguities before choosing a form; resolves available facts through legwork; asks about unresolved consequential choices while stating reversible assumptions; creates all four meaningful authoring record documents; and avoids inventing unsupported environment assumptions.
+Expect concise intent and useful acceptance examples where they add information. No maintenance, log, decision, or empty evidence file is created to satisfy a template. The author may omit a default document that adds no distinct value, while keeping the intended behavior assessable.
 
-## Create From Rich Evidence
+## Sparse versus rich intent
 
-**Prompt:** Supply notes, repository material, or prior interactions describing a desired process.
+Request a skill first with an ambiguous consequential boundary, then with that boundary settled in supplied evidence.
 
-**Assertions:** The agent extracts durable behavior, identifies uncertainty, and keeps incidental evidence out of runtime instructions while preserving useful provenance in the record's `MAINTENANCE.md` or rationale in `LOG.md`.
+Expect a targeted question in the first case and use of the supplied decision in the second. Reversible assumptions are stated. The author chooses a form from behavior and does not convert its own design preferences into human requirements or copy the supplied evidence into runtime prose.
 
-## Revise An Existing Skill
+## External-source refresh
 
-**Prompt:** Request a behavioral change to a skill with an existing authoring record.
+Request an update to a skill adapted from a pinned upstream source that has changed behavior.
 
-**Assertions:** The agent reads all package artifacts, classifies tuning versus redesign, reconciles the change with `VISION.md`, updates affected evaluations and maintenance guidance, and records a consequential decision in `LOG.md`.
+Expect maintenance guidance to identify the adopted revision, local departures, and refresh checks. The author compares source changes against local intent, updates affected scenarios, and preserves consequential adaptation rationale. Generic authoring instructions are not copied into maintenance.
 
-## Preserve A Novel Shape
+## Review without repair
 
-**Prompt:** Request behavior poorly represented by a phased skill, router, reference skill, or thin orchestrator.
+Request a full review of a skill with contradictory intent and runtime behavior, plus no maintenance or log file.
 
-**Assertions:** The agent derives a fitting structure from behavior and does not force one of the known skeletons merely because it is available.
+Expect broader relevant package review, a reported contradiction, and no writes. Optional-file absence is not a finding. Recommendations distinguish behavioral risks from cosmetic preferences.
 
-## Apply Bundled Planning Guidance
+## Historical rationale
 
-**Prompt:** Request a new skill or an intentional redesign whose behavior needs concrete examples, a freedom decision, or reusable resources.
+Request a revision that would reverse a previously rejected approach described in an existing log.
 
-**Assertions:** The agent uses `openai-skill-creation.md` for examples, degrees of freedom, and resource planning, keeps Skill Authoring responsible for the lifecycle contract, and does not introduce provider-specific mechanics without a destination requirement.
+Expect the author to find and assess the related rationale before making the decision. It preserves a still-relevant reason beside the current concern, or retains a substantial separate decision record when justified. It neither loads unrelated history by default nor deletes historical records without authority.
 
-## Keep A Small Skill Small
+## Distinct record value
 
-**Prompt:** Create a one-line orchestrator or similarly compact skill.
+Review a package whose vision repeats execution steps and whose evaluations paraphrase instructions without circumstances that could expose failure.
 
-**Assertions:** All four record documents contain useful information without expanding into generic boilerplate; `MAINTENANCE.md` contains only skill-specific upkeep rather than copied or referenced authoring doctrine; `SKILL.md` remains proportionate.
+Expect vision to retain human purpose and tradeoffs, and scenarios to gain discriminating inputs and observable expectations. Useful overlap, such as a review-preserves-files acceptance case, survives. The author does not create another general behavior specification or claim that written scenarios have passed.
 
-## Default Package-Local Record
+## Record placement and identity
 
-**Prompt:** Create a skill in an environment with no explicit record location or configured authoring record root.
+Create or revise a skill in environments with no configured root, a configured external root, and competing local and external records.
 
-**Assertions:** The agent creates `<skill>/meta` with the four standard documents, does not invent an external store, and keeps those documents out of ordinary runtime context.
+Expect `<skill>/meta` in the first case and `<root>/<repository-name>/skills/<skill-name>` plus `TARGET.md` in the second. The third requires an authoritative-location decision. Existing external identity is verified against the repository. Ordinary execution does not load these records.
 
-## Configured External Record
+## Explicit command boundary
 
-**Prompt:** Create or revise a skill while applicable environment guidance supplies only an authoring record root.
+Request a compact slash-only command, then a workflow needing model discovery and supporting resources.
 
-**Assertions:** The agent derives `<root>/<repository-name>/skills/<skill-name>`, writes `TARGET.md` and the four standard documents there, creates no package-local `meta/`, and introduces no dependency on the system that supplied the root.
+Expect command mechanics to load for the first task, one rendered prompt-template file, and explicit `subtask: false` unless isolation is intended. Records stay outside command discovery, including for a user-selected path. The second task remains a skill. Argument handling and explicit invocation are checked separately from model invocation.
 
-## External OpenCode Command Record
+## Authoring context boundary
 
-**Prompt:** Create or revise an OpenCode command while applicable environment guidance supplies an authoring record root.
+Create another skill through Skill Authoring without requesting live tests.
 
-**Assertions:** The agent derives `<root>/<repository-name>/opencode-commands/<command-name>`, keeps the runtime command single-file, writes `TARGET.md` and the four standard documents only to the external record, and does not expose development files through command discovery.
+Expect Writing for Agents and the planning guidance to load. Skill Authoring's own record and testing workflow remain unloaded. Command mechanics load only if a command is a genuine candidate; patterns require a named structural uncertainty.
 
-## Unsafe Command Record Location
+## Live evaluation and causality
 
-**Prompt:** Explicitly select an authoring record location that OpenCode could render or discover as a command.
+Request a live evaluation, including a staged follow-up or a baseline comparison when incremental value is the question.
 
-**Assertions:** The agent rejects the unsafe location and requests a safe alternative; explicit placement does not override the runtime-context boundary.
+Expect isolated task files, ordinary user prompts without coaching the behavior under evaluation, captured traces and artifacts, and separately assessed invocation and execution. Independent runs use fresh context; staged work preserves the intended fixture. Comparisons keep the model, harness, effort, fixture, and assertions aligned. Findings distinguish skill effects, model variance, evaluation defects, environment noise, and inconclusive evidence. An authorized fix is followed by the same scenario and an adjacent regression case.
 
-## Conflicting Records
+## Observed results
 
-**Prompt:** Revise an artifact when both its configured external record and a package-local record exist.
+The selective-record revision introduced in September 2026 has no live evaluation results yet. Static checks can establish link and textual coherence only.
 
-**Assertions:** The agent reports the competing records and obtains an authoritative-location decision instead of merging, moving, or updating both silently.
-
-## Choose An OpenCode Command
-
-**Prompt:** Request a compact OpenCode workflow that should run only through an explicit slash command.
-
-**Assertions:** The agent loads `opencode-commands.md`; chooses one command Markdown file rather than a model-discoverable skill package; treats the body as the prompt template and the relative filename as the slash name; sets `subtask: false` unless a fresh context is an explicit behavioral requirement; uses only needed command metadata and substitutions; resolves one safe authoring record; and verifies explicit invocation without applying model-invocation assertions.
-
-## Keep Skill Behavior In A Skill
-
-**Prompt:** Request OpenCode behavior that the model must discover autonomously or that needs packaged supporting resources.
-
-**Assertions:** The agent retains a skill package rather than collapsing it into a command, even when a slash invocation would also be convenient, and leaves `opencode-commands.md` unloaded unless a command is genuinely under consideration.
-
-## Preserve Cross-Artifact Behavior
-
-**Prompt:** Review or revise a package whose vision, evaluations, maintenance guidance, or decision log restates behavior also present in `SKILL.md`.
-
-**Assertions:** The agent preserves role-specific statements of intent, observable assertions, upkeep, and rationale even when they overlap with runtime behavior; removes only copied doctrine or prose that does not serve the artifact's role; and does not simplify `VISION.md` merely because `SKILL.md` operationalizes the same behavior.
-
-## Review Without Modification
-
-**Prompt:** Review an existing skill and recommend improvements without making changes.
-
-**Assertions:** The agent reads the complete package, applies the bundled writing doctrine, returns prioritized findings, distinguishes valuable changes from cosmetic preferences, and performs no writes.
-
-## Maintain An Existing Skill
-
-**Prompt:** Update a skill after an upstream dependency or observed behavior changes.
-
-**Assertions:** The agent reads the package history, identifies affected behavior and evaluations, distinguishes tuning from redesign, updates only authorized files, and records consequential rationale in `LOG.md`.
-
-## Invocation Evaluation
-
-**Prompt:** Test a model-invoked skill using realistic positive, negative, and adjacent user prompts without naming or preloading it.
-
-**Assertions:** Trigger results are recorded separately from execution results, and the harness is known to have discovered the tested revision.
-
-## Post-Load Evaluation
-
-**Prompt:** Run a representative task after the authored skill loads.
-
-**Assertions:** The trace shows the intended branch, selective reference loading, respected authority boundaries, and the expected artifact or outcome. The evaluated agent's self-report is not treated as sufficient evidence.
-
-## Live Testing Loop
-
-**Prompt:** Test an authored skill in a representative harness, inspect the session, and improve a supported behavioral defect.
-
-**Assertions:** The agent defines assertions before running; isolates mutable task files while retaining the skill configuration under test; captures the session; inspects artifacts and tool traces; distinguishes behavioral defects, evaluation defects, environment noise, and ordinary recovery; makes only the smallest authorized change; reruns the same scenario; checks an adjacent regression scenario; and cleans up disposable session state after preserving evidence.
-
-## Subagent Prompt Neutrality
-
-**Prompt:** Give a worker an ordinary implementation or review request in an isolated workspace without naming the skill.
-
-**Assertions:** The prompt contains the requested outcome and operational safety boundaries only. It does not prohibit implementation choices, prescribe abstractions, require tests or tools, or state the principles being evaluated. The worker's choices are judged from artifacts, diffs, traces, and verification rather than its explanation.
-
-## Staged Subagent Evaluation
-
-**Prompt:** Have one worker implement a first version, then have a fresh worker continue the same isolated workspace after a normal follow-up requirement.
-
-**Assertions:** The first and second sessions are independently captured; the follow-up request is not a coaching prompt; the combined diff shows whether structure changed when real variation arrived; existing files and user artifacts remain within scope; and the result is compared against the assertions for both stages.
-
-## Complexity And Variation Coverage
-
-**Prompt:** Evaluate the skill with small, medium, and high-complexity requests, including direct work, existing code, persisted state, ambiguous requirements, and feature-rich requests.
-
-**Assertions:** The scenario set measures proportionality across complexity rather than rewarding one preferred implementation size. The agent chooses its own tests, tools, abstractions, and verification. Results record when complexity was justified, deferred, or excessive.
-
-## Subagent Baseline And Causality
-
-**Prompt:** Compare a skill-loaded run with a no-skill or previous-revision run when the question is incremental value.
-
-**Assertions:** The paired runs use the same fixture, request, model, harness, effort, configuration, and observable assertions. Differences are classified as skill effect, model variance, environment noise, evaluation defect, or inconclusive evidence; self-reported skill use is not treated as proof.
-
-## Optional Baseline
-
-**Prompt:** Ask whether a new skill or revision provides value beyond the behavior available without it or in the previous revision.
-
-**Assertions:** The agent runs an aligned no-skill baseline for a new skill or previous-revision baseline for an update; keeps harness, model, effort, fixture, assertions, and relevant configuration consistent; compares observable behavior, artifacts, trace efficiency, and assertion results; and skips the baseline when the request only needs contract verification or the comparison would not affect a decision.
-
-## Capability-Oriented Testing
-
-**Prompt:** Ask Skill Authoring to run and evaluate a live scenario in an available agent harness.
-
-**Assertions:** The testing workflow requires a fresh harness process, captured session evidence, parent CLI events when relevant, and artifact inspection without naming helper skills, embedding harness commands, or duplicating session-store procedures. Available environment guidance supplies those mechanics.
-
-## Authoring Context Boundary
-
-**Prompt:** Create a new skill through Skill Authoring without asking to review Skill Authoring itself.
-
-**Assertions:** The `writing-for-agents` skill and OpenAI-derived planning guidance load before intent and design work; Skill Authoring's own authoring record remains unloaded; `opencode-commands.md` remains unloaded unless the target is or may be an OpenCode command; external pattern material is consulted only after the agent names a specific structural uncertainty; and `testing-workflow.md` remains unloaded unless the request includes live harness execution, session-based verification, or revision from a trace-supported failure.
-
-## Latest Evaluation Result
-
-The previous composition passed its OpenCode and Sol Medium creation boundary: a fresh process loaded `writing-for-agents` and OpenAI-derived planning guidance, left Skill Authoring's record and testing guidance unloaded, and created `SKILL.md` plus the four required package-local record files. Provider-specific detail was limited to the requested `.opencode` destination.
-
-External-root creation and reuse passed on 2026-08-07 in two fresh OpenCode 1.18.14 sessions using Luna High and `--auto`. Creation in an isolated Git repository wrote only `SKILL.md` into the target package and derived the expected external record from the configured root, repository basename, `skills` kind, and declared skill name. A second fresh session received no record path, read `TARGET.md`, `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` before editing, then coherently updated the runtime artifact and four affected record files. A non-auto preflight derived the same path but could not write outside the fixture because noninteractive permission prompts were rejected; this was environment noise rather than a routing defect. OpenCode command routing and competing-record handling remain statically specified but not live-tested. Earlier end-to-end create, project-discover, execute, and session-evaluate sequences preserved fixture integrity while identifying generated-skill classification and evaluation defects. See `DOGFOODING.md` for the bounded evidence synthesis and remaining coverage gaps.
+Prior-record reports describe successful July 2026 creation and context-boundary runs with OpenCode and Sol Medium, and August 7 external-record creation and reuse with OpenCode 1.18.14 and Luna High. Those runs tested the former mandatory-four-document contract and do not validate this revision. Consult `LOG.md` for historical composition rationale or `DOGFOODING.md` for provisional observations when investigating a related issue.

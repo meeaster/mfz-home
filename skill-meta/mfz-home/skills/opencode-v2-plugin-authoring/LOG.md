@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Consult for release-specific loader reversals, failed diagnostic assumptions, registry failures, and event feedback. The September root-entrypoint evidence supersedes the August `tui/index.tsx` claim. These observations are authoring evidence, not current-release approval; new edits do not require log entries.
 
 ## 2026-08-13 - Initial Design
 

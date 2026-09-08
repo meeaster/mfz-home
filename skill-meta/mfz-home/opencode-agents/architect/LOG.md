@@ -1,5 +1,16 @@
 # Log
 
+## 2026-09-05 - Accepted model switch
+
+- The user approved changing `architect` from Sol/medium to `openai/gpt-6-astra@medium` in `profiles/base/profile.yml`. The role, permissions, and caller contract remain unchanged.
+- Reconciled active record assertions with source configuration and preserved historical Sol results. The operator reported successful apply and doctor checks; this records-only pass used static consistency checks, not a live architecture evaluation or independent approval.
+- The earlier model comparison concerned instruction authoring only. It does not establish architecture superiority, and architecture behavior on Astra remains untested here.
+
+## 2026-09-05 - Caller consultation and evidence contract
+
+- Reconciled the record with `/orchestrate`'s bounded consultation authority and proportional transfer contract. Same-engagement evidence and corrections no longer require approval every turn; consequential user choices and expanded authority remain parent-owned.
+- Critical evidence may cross in compact packets even when a session locator cannot be retrieved. Broad trace replay and architect-side session retrieval remain excluded. Agent source, model, and permissions are unchanged.
+
 ## 2026-09-01 - Initial design
 
 - Added a Sol/medium architecture consultant to keep code-heavy design context outside the primary session while preserving user dialogue and final decisions there.

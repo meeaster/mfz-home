@@ -35,9 +35,17 @@ Complete this step when all authorized task writes are confined to the disposabl
 
 ## 3. Exercise The Intended Invocation
 
+### Subagent scenarios
+
+Use subagents when fresh context, independent work, or staged follow-up gives stronger evidence. Prompt as a normal user would, with the task and operational guardrails only. Do not name a model-invoked skill, prescribe implementation choices, or require tests and tools when those choices are under evaluation. Explicitly invoke user-invoked artifacts when testing their intended entrypoint.
+
+Use fresh context for independent runs. For staged work, let one agent establish the fixture and a fresh agent receive an ordinary follow-up in the same isolated workspace. Inspect both sessions and the combined artifacts. Vary task complexity and requirement shape to test proportionality. Let agents choose verification appropriate to the task; judge the resulting evidence.
+
+### Capture execution
+
 For a model-invoked skill, use realistic positive, negative, and adjacent prompts without naming or preloading the skill. For a user-invoked skill, invoke it explicitly with a representative request. Confirm that the harness has discovered the revision under test.
 
-Run a fresh process of the target harness with the tested skill available. Capture the session identifier, parent CLI event stream when available, final response, created artifacts, and command-level failures or retries. Use available environment guidance to operate the harness rather than embedding its commands here.
+Use a fresh session or process of the target harness with the tested skill available, as required by the test boundary. Capture the session identifier, parent CLI event stream when available, final response, created artifacts, and command-level failures or retries. Use available environment guidance to operate the harness rather than embedding its commands here.
 
 Complete this step when the run can be reconstructed without relying on the final response alone.
 
@@ -76,7 +84,7 @@ Complete this step when each observation has a classification, confidence, and e
 
 ## 6. Revise And Rerun
 
-When implementation is authorized, make the smallest change that targets the supported behavioral defect. Update affected `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md` artifacts together. When implementation is not authorized, present the proposed change without editing.
+When implementation is authorized, make the smallest change that targets the supported behavioral defect. Update affected intent and scenarios, and maintenance only when upkeep changes. Preserve consequential rationale beside the concern it explains; no routine log entry is required. When implementation is not authorized, present the proposed change without editing.
 
 Rerun the same scenario with the same harness, model, effort, fixture, and assertions. Then run the nearest adjacent scenario that could regress. Compare traces, not only final outputs. Repeat the aligned baseline only when the candidate or test contract changed enough to invalidate the earlier comparison.
 

@@ -3,8 +3,8 @@
 ## Runtime Dependencies
 
 - OpenCode agent loading must continue to treat a frontmatter-only agent file as an empty custom prompt and fall back to the provider system prompt.
-- The Personal Mindframe-Z home renders `opencode/agents/reviewer.md` when `profiles/base/profile.yml` enables `reviewer`.
-- The configured OpenAI provider must expose `openai/gpt-5.6-sol` with the `high` variant.
+- The Personal Mindframe-Z home renders `opencode/agents/reviewer.md` when `profiles/personal/profile.yml` enables `reviewer`.
+- The configured provider must support the model and variant selected by the Personal profile.
 - Native `task` behavior owns child-session creation, presentation, prompt delivery, and task-level delegation guidance.
 - The parent must supply requirements and the review boundary. Changed paths and validation evidence should be included when available, but the reviewer may reconstruct repository evidence with shell inspection.
 - Global permissions apply before the reviewer's agent-specific rules. Keep `apply_patch`, `edit`, and `write` denied while allowing ordinary inspection capabilities.
@@ -13,8 +13,9 @@
 ## Policy Sources
 
 - `docs/model-selection.md` owns the broader model-family and effort policy.
-- `profiles/base/profile.yml` owns the active model and variant.
+- `profiles/personal/profile.yml` owns the active Personal model and variant.
 - The caller's review prompt owns the review charter, requirements, evidence boundary, risks, and finding taxonomy.
+- The frontmatter description requires `thermo-nuclear-code-quality-review` for code review; `/orchestrate` supplies the known-work charter and evidence standard for structural proposals. Keep that routing distinct from unfamiliar-PR intent reconstruction, and preserve the empty agent body.
 - Workflow artifacts own review cadence, remediation policy, and acceptance.
 
 ## Change Procedure

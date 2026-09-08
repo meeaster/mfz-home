@@ -1,20 +1,7 @@
 # Vision
 
-## Problem
+PR Writer gives reviewers a coherent account of the whole branch and why it matters. The description is the current snapshot; follow-up comments preserve the review timeline. GitHub owns the artifact, rather than a local draft lifecycle or implementation log.
 
-PR descriptions and follow-up comments often contain links to issues, pull requests, commits, files, and external systems. Incorrect Markdown or unstable repository paths make those references hard for reviewers to follow or cause them to resolve to the wrong content.
+References should take reviewers to the intended issue, commit, file, line range, or external resource without hidden branch assumptions. Use verified identities, distinguish closing from non-closing references, keep titles plain text, and publish branch-only links only when their targets are accessible. Linking supports the cover note rather than replacing it with an index or promising previews GitHub may not render.
 
-## Intended Behavior
-
-PR Writer produces reader-first PR text and chooses GitHub-native references or explicit Markdown links according to the target. It distinguishes ordinary links from issue and pull request references, closing keywords, commit-pinned code links, and repository custom autolinks. It keeps links out of titles and does not publish references to branch-only content until that content is available to reviewers. A request that includes merging grants end-to-end authority without a separate text-approval pause, but CI must pass before every merge.
-
-## Success
-
-Reviewers can follow each included reference to the intended issue, PR, commit, file, line range, comment, or external resource without reconstructing the author's link syntax or branch assumptions.
-
-## Non-Goals
-
-- Inventing issue numbers, Jira keys, URLs, branches, or commit SHAs.
-- Treating every GitHub URL as a special preview rather than an ordinary link.
-- Replacing the reader-first PR shape with a link index or implementation log.
-- Publishing or editing a PR without either explicit text approval or end-to-end authority from the user's merge request.
+Ordinary drafting and refresh requests retain user refinement and text approval before writes. A request that includes merging grants end-to-end authority without a separate text-approval pause and calls for a ready PR. Every merge remains gated on passing reported CI checks and the repository's normal merge path, not an administrative bypass.

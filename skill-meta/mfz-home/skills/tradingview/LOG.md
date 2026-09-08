@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Retained for the API-first direction, route-promotion evidence, clipboard failure, and Pine client-cache limitations. Consult relevant entries when revisiting those routes. These site observations are version-sensitive; dated evaluations record run conditions and untested branches. New edits do not require log entries.
 
 ## 2026-08-03 - Initial TradingView Field Guide
 

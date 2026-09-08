@@ -1,5 +1,7 @@
 # Mindframe-Z Skill Evaluations
 
+The prompts and assertions below are expected behavior, not observed passes. The record contains no live run evidence. This maintenance pass inspected `src/core/engine-skill.ts` in the owning repository at checkout HEAD `2fc1d09` but did not evaluate invocation, the cron guide, or scheduled-job execution.
+
 ## Plain Cron Request
 
 **Prompt:** Create a cron job that runs an OpenCode repository check every morning.

@@ -8,11 +8,9 @@ A productive agent session can contain research, decisions, corrections, impleme
 
 Session Brief creates or refreshes one mutable, evidence-backed artifact for one source parent session. It delegates retrieval to Agent Sessions, uses Context Transfer to fit the consumer and destination, preserves authority and uncertainty, and stores one compact native checkpoint for reuse.
 
-The outer artifact remains `state_version: 2`. Validation branches by source harness and adapter version. OpenCode adapter version 2 uses a deterministic parent-and-direct-child checkpoint with sequence, topology, compaction, prefix, and source guards. Another harness retains its own checkpoint and locator semantics.
+Refresh safety takes priority over cursor compatibility. Unsupported or changed historical state requires a rebuild that preserves valid narrative, original creation time, and useful history while replacing stale claims. Each harness retains its native checkpoint and authority semantics.
 
-OpenCode refresh accepts only a verified append-only delta. Historical projection change, topology change, source replacement, active-context movement, malformed state, or unsupported adapter state triggers full snapshot rebuild. Rebuild converts no old cursor state. It preserves valid narrative, original creation time, and useful extraction history while replacing stale claims and checkpoint state.
-
-The controlled helper transports only the adapter envelope's top-level checkpoint. The validator checks structure, adapter version, guard truth, harness-specific locator syntax, and required narrative sections. The parent agent verifies that authority locators resolve to human or user messages.
+Exact checkpoint transport matters because structurally valid, manually copied state has already caused a refresh failure. Human authority requires source-role verification, not merely a locator that passes syntax validation.
 
 ## Invocation and authority
 

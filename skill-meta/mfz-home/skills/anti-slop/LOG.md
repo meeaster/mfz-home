@@ -1,4 +1,6 @@
-# Log
+# Historical authoring notes
+
+Retained for exact adopted upstream revisions and the reasons for read-only diagnostics, Effect opt-in, preflight, and suppression rejection. Historical tool pins and rule counts describe those revisions, not current configuration. New edits do not require log entries.
 
 ## 2026-08-31 - Upstream v0.1.2
 

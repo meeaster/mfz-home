@@ -1,5 +1,10 @@
 # Log
 
+## 2026-09-05 - Optional orchestration consultation
+
+- Added the existing designer to `/orchestrate` without changing its source, model, or permissions. An explicit UI-design request authorizes appropriate consultation; otherwise the caller explains the need and asks under the shared bounded consultation rule.
+- Reconciled records with caller-owned `ui-ux-design` loading, read-only implementation-ready handoffs, parent/user acceptance, and separate architecture, runnable prototype, and implementation responsibilities. Settled UI edits do not gain a mandatory design step.
+
 ## 2026-08-18 - Shared Promptless Design Lane
 
 - Moved the agent from the Work home to the Personal home so Work and Personal profiles can inherit the same UI/UX design role.

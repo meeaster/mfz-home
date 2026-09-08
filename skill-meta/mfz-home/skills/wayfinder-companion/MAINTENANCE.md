@@ -1,23 +1,7 @@
 # Maintenance
 
-## Dependency
+Wayfinder owns the map, ticket, and resolution contracts. Recheck those contracts when Wayfinder changes, especially the manual handshake, local Markdown conventions, closed-ticket indexing, and prototype-ticket behavior. The companion must remain additive even if the tracker layout changes.
 
-Wayfinder is the sole functional dependency. Both skills are user-invoked, so the manual handshake is intentional: Wayfinder charts or advances the map, and this companion joins only after a map exists. Review Wayfinder's current map, ticket, and resolution contract before changing this package. If Wayfinder changes ownership of planning artifacts, revise this companion so it remains additive rather than duplicative.
+The historical shift from an evidence-pack wrapper to optional adjacent artifacts prevents a second orientation index. Preserve that distinction when adapting storage conventions. The thinking log used inside an effort serves selective retrieval of human perspective; it is not a requirement to maintain an authoring log.
 
-## Boundary Check
-
-On every revision, verify that the runtime instructions leave destination definition, frontier selection, ticket claims, blocking, resolution, map updates, and scope handling to Wayfinder. The map is its low-resolution index and tickets retain decision detail. Verify separately that the vision owns durable human direction, current thinking owns explicitly stated provisional human perspective, and research, experiments, and the working model preserve context without restating a parallel planning system.
-
-For a local Markdown convention, verify that companion artifacts remain optional and adjacent to the map, research and experiment provenance remain distinct, and prototype source stays in its owning repository or worktree. Current thinking remains concise and rewrite-in-place; its optional thinking log records only meaningful shifts and links to supporting evidence or decisions. A human-designated decision forum prepares an existing Wayfinder grilling ticket for shared input; its optional decision brief remains a reader-ready supporting asset, not a new ticket type, decision source, or status board. The user manages participation and buy-off outside companion artifacts.
-
-## Portability
-
-Keep paths, tracker details, repository names, projects, and storage systems out of the package. The active effort chooses an authorized durable location at runtime. Reuse an existing human-owned vision when one governs the effort; create an adjacent feature vision only when durable direction would otherwise be implicit. Context pointers must name the artifact, its load condition, and its authority boundary, while deep history and evidence remain selectively disclosed. Keep the skill user-invoked unless a deliberate invocation-policy change is evaluated separately.
-
-## Change Procedure
-
-1. Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, and `LOG.md`.
-2. Classify the observed problem as a clarification of the vision or evidence layer, or a boundary change with Wayfinder.
-3. Update the runtime instructions and every affected authoring record artifact together.
-4. Run the relevant scenarios in `EVALS.md` and inspect the map, companion artifacts, and ticket records.
-5. Record consequential boundary or behavior changes in `LOG.md`.
+Consult [historical rationale](LOG.md) when changing the authority split or adding an artifact type. It records why vision, current thinking, experiments, and decision briefs were introduced.

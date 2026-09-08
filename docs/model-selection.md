@@ -258,7 +258,7 @@ The current native agent assignments are:
 worker: openai/gpt-5.6-luna@max
 operator: openai/gpt-5.6-luna@high (base)
 safety-reviewer: openai/gpt-5.6-luna@high (base)
-reviewer: openai/gpt-5.6-sol@high (Personal), openai/gpt-5.6-terra@high (Work)
+reviewer: openai/gpt-6-astra@medium (Personal), openai/gpt-5.6-terra@high (Work)
 pr-reviewer: openai/gpt-5.6-sol@high
 explore: openai/gpt-5.6-luna@high
 research: openai/gpt-5.6-luna@high

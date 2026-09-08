@@ -1,5 +1,11 @@
 # Log
 
+## 2026-09-05 - OpenCode documentation skill exception
+
+- Allowed `opencode` alongside `claude-code-docs` after the skill wildcard deny, resolving the conflict between required platform guidance and researcher permissions without broadening the rest of the allowlist.
+- Added only the matching OpenCode documentation branch. Version and source policy remain with the platform skill and workspace, and research remains read-only. Model, other permissions, and retrieval limits are unchanged.
+- Static scenarios cover OpenCode, Claude Code, unrelated documentation, and denied skills. Render and permission validation are recorded with this batch in the orchestrate log; live researcher execution remains untested.
+
 ## 2026-08-08 - Evidence-Grounded Refactor
 
 - Kept Research as a distinct external-documentation role after a read-only audit found 60 native calls, 53 completions, and strong results for APIs, SDKs, CLIs, integrations, protocols, and upstream repositories.

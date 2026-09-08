@@ -18,15 +18,7 @@ All accepted OpenCode checkpoint state enters through `set-adapter-state.py <bri
 
 OpenCode authority locators use session ID, sequence, message ID, and optional content identity or index. Other harnesses use native parent locators. Syntax validation cannot prove human authority; post-write inspection verifies the parent message role.
 
-## Change procedure
-
-1. Read the runtime package, artifact contract, complete authoring record, and Agent Sessions checkpoint contract.
-2. Define intended behavior, invocation, authority, adjacent cases, failures, and observable evaluations.
-3. Update the runtime workflow, contract, validator, helper, tests, and authoring record together when checkpoint semantics change.
-4. Preserve non-OpenCode branches unless the accepted change includes them.
-5. Keep raw evidence, reasoning, secrets, and generic checkpoint maps out of narrative and uncontrolled frontmatter.
-6. Run focused tests, inspect a representative artifact and diff, and apply the cold-consumer test.
-7. Add consequential decisions or reversals to `LOG.md`; preserve historical entries.
+Checkpoint changes couple the Agent Sessions adapter, artifact contract, validator, transport helper, and tests. Preserve the independent non-OpenCode branch. The outer artifact version and OpenCode adapter version are separate compatibility decisions.
 
 ## Verification
 
@@ -38,4 +30,4 @@ python3 -m unittest discover -s skill-meta/mfz-home/skills/session-brief -p 'tes
 python3 skills/active/session-brief/scripts/validate-session-brief.py <brief-path>
 ```
 
-Static review confirms the controlled checkpoint block, per-harness adapter branch, guard truth table, required sections, native authority locator syntax, privacy boundary, destination authority, and visible diff. Live evaluation uses a disposable artifact only when local mutation is authorized and source acquisition remains read-only.
+These commands do not establish a current pass. For live evaluation, use an authorized disposable artifact and read-only source acquisition. Inspect authority roles and privacy separately from validator success. [Historical evidence](LOG.md) retains the fingerprint-copy defect, transport remediation, and older live runs; [EVALS.md](EVALS.md) distinguishes those results from current checkpoint expectations.

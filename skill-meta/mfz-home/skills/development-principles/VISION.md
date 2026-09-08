@@ -1,19 +1,9 @@
 # Vision
 
-## Problem
+Development Principles keeps shared software judgment available across design, implementation, testing, refactoring, coordination, and review, including delegated work where inline guidance is easy to omit.
 
-Long development-principles guidance is easy to omit or partially load when supplied inline, especially during delegated design and implementation.
+Prioritize readable happy paths, evidence-based complexity, and tests at stable boundaries. Fewer physical lines or more architectural layers do not establish simplicity. Fast default unit feedback and explicit, proportionate integration coverage should support continued project evolution rather than one-off smoke checks.
 
-## Intended Behavior
+Structural scope belongs to planning and coordination. A material design must make its file-boundary decision visible, including a justified no-change decision. Implementation honors accepted boundaries; verification reports drift. Narrow feature work may surface larger maintenance needs without silently taking authority to reorganize the project.
 
-When loaded for substantive software work, the skill guides design, implementation, testing, refactoring, coordination, and review with happy-path-first, evidence-driven principles. It assigns structural scope decisions to planning and coordination, keeps implementation aligned with accepted designs, and treats the original Code Like Luke gist as inspiration rather than as the skill's identity.
-
-## Success
-
-An agent receives coherent guidance across the development loop, including visually scannable happy paths, risk-based failure handling, design-time structural decisions, implementation conformance, a fast default test command with explicit and proportionate integration coverage, stable-boundary regression tests, and coordinated code-health improvement.
-
-## Non-Goals
-
-- Turning the skill into a generic architecture handbook.
-- Applying the guidance to unrelated non-software requests.
-- Replacing repository-specific instructions.
+Success is clear, native code and durable verification within accepted scope. The skill supplements repository instructions; it is neither a generic architecture handbook nor guidance for unrelated non-software requests.

@@ -1,16 +1,9 @@
 # Maintenance
 
-## Dependencies
+## Provenance and adaptation
 
-The runtime skill has no scripts, external tools, or required references. Its principles were adapted from the former Code Like Luke OpenCode command and the linked source material.
+The former `opencode/commands/code-like-luke.md` became a skill on 2026-08-14 and was renamed `development-principles` on 2026-08-19. The [original gist](https://gist.github.com/Hona/53142c07c9decb735392f132ace34003) is inspiration, not a pinned upstream or runtime dependency. Local adaptations cover risk-proportional failure handling, bounded code health, durable tests, and phase-owned structural decisions. An upstream comparison must preserve these choices rather than restore text mechanically.
 
-## Change Procedure
+The runtime retains `disable-model-invocation: true` while environment instructions explicitly require loading it for software work. Evaluate explicit loading and environment routing separately from autonomous discovery when changing invocation. Catalog text alone does not establish that routing works.
 
-1. Keep the runtime body aligned with the development-loop contract and preserve the original gist as inspiration, not as a runtime dependency.
-2. Keep the catalog description and global routing aligned when the invocation contract changes.
-3. Keep the authoring record aligned with the runtime package.
-4. Verify the skill package and use the former command history or source gist as provenance when investigating drift, not as text that must remain exact.
-
-## Verification
-
-Confirm valid front matter, catalog registration, global software-work routing including coordination, unrelated-task non-invocation, and the observable assertions in `EVALS.md`, including explicit design-time file and folder decisions when structure is material, implementation conformance, verification against accepted boundaries and documentation, bounded unplanned feature scope, no line-count triggers, a fast default test command, explicit integration execution, root project guidance where needed, proportionate integration scope and runtime, legacy-project decisions, and observed-defect regression coverage.
+For changes to extraction policy or test strategy, consult the [historical experiments](LOG.md) and the evidence limits in [EVALS.md](EVALS.md). Those experiments rejected automatic extraction as an expectation for unaccepted narrow feature scope.

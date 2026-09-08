@@ -1,5 +1,30 @@
 # Log
 
+## 2026-09-05 - Bounded consultation, review routing, and proportional transfer
+
+- Replaced the former every-turn architect approval rule with one shared bounded consultation authority paragraph for architect and the existing UI designer. Same-decision/scope/access evidence return, corrections, and follow-ups continue without duplicate approval; materially new consultation, expanded authority, and independent opinions still require approval. Session replacement is continuity, not new authority by itself. Design acceptance, mutation, and publication remain separate human decisions.
+- Added optional UI-design consultation with caller-required `ui-ux-design`, read-only task-relevant handoffs, and explicit separation from architecture, runnable prototypes, and implementation. An explicit UI-design request is sufficient initial consultation authority; settled UI edits do not need this step.
+- Clarified ordinary known-work code review to load the thermo-nuclear skill and cover correctness, maintainability, and substantive behavior-preserving structural simplification. Removed simplification alone as a PR-reviewer trigger. Major structural findings must connect evidence to a plausible alternative, actual benefit and material tradeoffs, and distinguish demonstrated effects from expected benefits or uncertainty. Review remains proposal-only and design or scope changes return to the user before remediation.
+- Applied `context-transfer`'s existing contract to both outbound briefs and returned packets. Preserved priorities, tradeoffs, uncertainty, and exact critical evidence without generic prompt inflation or transcript replay. Replaced the restrictive post-preparation field list and locator-only source-return wording. Inaccessible session IDs do not substitute for evidence.
+- Preserved the earlier accepted user-waiver and optional safety-review revision, all unrelated historical mechanisms, and existing model policy. The base agent-author model switch was already applied before this batch; its owning record separately preserves the one-run comparison evidence and limits. Research gained only the matching `opencode` skill exception and read-only documentation branch.
+- Static scenarios define the expected routing and authority outcomes; they are authoring self-checks, not independent approval or observed downstream behavior. No live consultation, reviewer, or mutation scenario was commissioned solely for validation.
+
+### Validation evidence
+
+- Validated in native authoring session `ses_f8d572528ffeAMXANS3Bx5f3ld` on OpenCode `v0.0.0-beta-19157`, repository base `33adc7a` plus the existing accepted dirty changes and this uncommitted authoring batch. The parent owns verification of this session's model metadata and acceptance.
+- Static scenario inspection passed for same-engagement evidence return and correction without duplicate approval, expanded scope/access and independent-opinion approval, fresh replacement independent of authority, user-owned design changes, known-design thermo structural review, proportional outbound/post-preparation/return packets with critical evidence and accessible locators, explicit UI consultation with `ui-ux-design` and no artifact or implementation authority, and the preserved user waiver and optional review rules. These results establish instruction coverage, not downstream agent compliance.
+- Executable source assertions passed for one unwrapped final `$ARGUMENTS` under `## User prompt`, `subtask: false`, no command model override or shell interpolation, representative argument replacement, one consultation-authority definition, absence of superseded every-turn/inflation/locator-only wording, a frontmatter-only reviewer, and the exact research skill allowlist. Argument replacement was a static check, not a live slash invocation.
+- Plain `mfz apply` and `mfz doctor` completed successfully. The apply followed the active Personal profile and performed its normal full render; no rendered files were edited directly. `git diff --check` passed.
+- Byte-for-byte source/render comparisons passed for `commands/orchestrate.md`, `agents/research.md`, and `agents/reviewer.md` under `/home/mark/.mindframe-z/configs/personal/opencode-v2`. Their SHA-256 values were respectively `d4e95260449a06534c1db03a7dbfb8f4cd2bc8642e9ab3ddc0ffc9374e83b2c0`, `26ec33a5ccc339e3645f6f146abf378a80468cbfc9c68aa8fb65728f0cd6f111`, and `36ede5e0bfc6982a7c3a2b753a457514147622912ccc2dd5c99d76da4d6f3189`.
+- `opencode2 debug agents` confirmed resolved research skill rules in order: wildcard deny, `claude-code-docs` allow, `opencode` allow. It also confirmed the reviewer's empty system prompt, architect recursive-delegation denial, and the already configured author model `openai/gpt-6-astra` at `medium`. No live researcher skill load or downstream consultation/review execution was tested.
+
+## 2026-09-05 - User-controlled process and optional safety review
+
+- Responded to the user's report that orchestration was overly protective by making every command-owned process explicitly waivable, including delegation, planning, verification, review, and repeated approvals.
+- Required scoped overrides to carry into child briefs without re-asking or restoring waived steps. Kept requested outcome scope, higher-priority instructions, and tool permissions distinct from workflow defaults.
+- Narrowed safety-review suggestions to production changes with a concrete risk or verification gap. Review remains optional and does not block completion or an already authorized next action.
+- Added static scenarios for production review, declined review, direct implementation, skipped planning and verification, scoped approval waivers, and publication authority. Live behavioral scenarios remain untested for this revision.
+
 ## 2026-09-01 - Initial design
 
 - Added an explicit orchestration mode that pins the coordinator model family to Sol and keeps implementation out of the primary session.

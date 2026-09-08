@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, caller brief, ses
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-5.6-sol` at `medium`; file mutation, todo ownership, and recursive delegation are denied.
+**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/base/profile.yml`; file mutation, todo ownership, and recursive delegation are denied.
 
 ## Credible alternatives
 

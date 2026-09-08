@@ -1,5 +1,17 @@
 # Log
 
+## 2026-09-05 - Accepted model switch
+
+- The user approved changing Personal `reviewer` from Sol/high to `openai/gpt-6-astra@medium` in `profiles/personal/profile.yml`. The focused review role, permissions, provider-prompt inheritance, and parent acceptance remain unchanged.
+- Corrected the record's configuration ownership and active model assertions, reconciled the direct Personal reviewer mapping in `docs/model-selection.md`, and preserved historical Sol results. The operator reported successful apply and doctor checks; this records-only pass used static consistency checks, not a live review evaluation or independent approval.
+- The earlier model comparison concerned instruction authoring only. It does not establish review superiority, and review behavior on Astra remains untested here. Other model assignments and selective triage escalation are outside this accepted change.
+
+## 2026-09-05 - Known-work structural review
+
+- Clarified the frontmatter-only role and caller contract to require the thermo-nuclear skill for code review and include correctness, maintainability, and substantive behavior-preserving structural simplification under accepted design.
+- Major structural proposals require a concrete evidenced problem, plausible simpler alternative, actual benefit and material tradeoff, and a distinction between demonstrated and expected effects. Structural simplification alone no longer routes to PR due diligence.
+- Preserved permissions, model, provider-prompt inheritance, proposal-only output, and parent acceptance. Design or scope changes return to the user before remediation. Static contract checks are authoring evidence, not a live reviewer result.
+
 ## 2026-08-28 - Inherited Inspection Permissions
 
 - Replaced the deny-by-default allowlist with inherited global permissions plus explicit denies for `apply_patch`, `edit`, and `write`.

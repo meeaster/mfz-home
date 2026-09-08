@@ -1,5 +1,7 @@
 # Agent Exec Evaluations
 
+These are expected behaviors, not recorded execution passes. No live run, model, or trace is recorded for this revision; the metadata refactor did not run a harness.
+
 ## Invocation
 
 ### Explicit OpenCode 2 CLI Run
@@ -39,6 +41,12 @@
 **Assertions:** Agent Exec does not invoke without an explicit external harness CLI request. The current agent uses a native subagent when appropriate or asks which workflow the user wants.
 
 ## Execution
+
+### Cross-harness failure and cleanup
+
+**Prompt:** Run a read-only Codex or Claude Code investigation, then continue the returned handle.
+
+**Assertions:** The selected harness reference determines permissions, output parsing, and continuation. An explicit handle wins over an ambiguous latest session. A parent permission denial is a blocked launch; a handle with no assistant answer is not success. Disposable probes are deleted through supported individual-session cleanup or reported as retained; requested continuation handles remain available. These branches are untested here.
 
 ### OpenCode 2 Continuation
 

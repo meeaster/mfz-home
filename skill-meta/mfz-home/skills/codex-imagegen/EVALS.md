@@ -2,6 +2,8 @@
 
 Record Codex CLI version, reasoning model, effort, built-in renderer when known, runner revision, platform, and observed artifacts for live evaluations.
 
+The cases below are expected behavior, not recorded passes. The historical baseline in `MAINTENANCE.md` and comparison observations below do not establish that every scenario was exercised. This record migration ran no live image-generation tests.
+
 ## Context Boundary
 
 **Prompt:** Generate an image for an HTML page whose source, styles, and copy are available to the calling agent.
@@ -61,3 +63,7 @@ Record Codex CLI version, reasoning model, effort, built-in renderer when known,
 **Prompt:** Cause the built-in tool or authentication to fail.
 
 **Assertions:** The runner returns a diagnostic and nonzero status without requesting `OPENAI_API_KEY`, invoking an SDK script, using another service, or changing models silently.
+
+## Historical comparison evidence
+
+The August 6, 2026 authoring record reports three matched images each for Luna, Terra, and Sol. Within-model image randomness was roughly as large as between-model variation. The user's preference for Sol motivated the default; all inspected built-in calls used `gpt-image-2`. These are small-sample historical observations, not model guarantees or a new comparison result.

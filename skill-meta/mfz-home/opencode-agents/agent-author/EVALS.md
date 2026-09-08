@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, task brief, sessi
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `agent-author` as a visible subagent using `openai/gpt-5.6-sol` at `medium`; todo ownership and recursive delegation are denied; file mutation remains available under explicit authority.
+**Assertions:** OpenCode lists `agent-author` as a visible subagent using `openai/gpt-6-astra` at `medium`; todo ownership and recursive delegation are denied; file mutation remains available under explicit authority.
 
 ## Skill or agent package
 

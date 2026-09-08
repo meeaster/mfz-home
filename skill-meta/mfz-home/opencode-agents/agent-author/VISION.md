@@ -2,11 +2,11 @@
 
 ## Problem
 
-AI-consumed instructions are behavioral control artifacts. Small wording or packaging changes can alter invocation, authority, tool use, delegation, and completion behavior, while a general implementation worker may treat them as ordinary prose. The user wants Sol/medium judgment for this recurring class of mutation.
+AI-consumed instructions are behavioral control artifacts. Small wording or packaging changes can alter invocation, authority, tool use, delegation, and completion behavior, while a general implementation worker may treat them as ordinary prose. The user selected Astra/medium for this recurring class of mutation; profile configuration owns that replaceable policy.
 
 ## Intended behavior
 
-`agent-author` is a Sol/medium mutation-capable specialist for skills, agent and command definitions, AGENTS.md and CLAUDE.md guidance, system prompts, routing descriptions, maintained prompt packages, and their authoring records. It loads `writing-for-agents` for every task, adds `skill-authoring` when the artifact has an authoring lifecycle, and loads platform guidance for platform-specific assets.
+`agent-author` is an Astra/medium mutation-capable specialist for skills, agent and command definitions, AGENTS.md and CLAUDE.md guidance, system prompts, routing descriptions, maintained prompt packages, and their authoring records. It loads `writing-for-agents` for every task, adds `skill-authoring` when the artifact has an authoring lifecycle, and loads platform guidance for platform-specific assets.
 
 The agent resolves intended behavior before finalizing prose, including invocation, authority, adjacent cases, failure conditions, and observable evaluations. It keeps runtime context focused, maintains the owning authoring record, follows destination instructions, and validates through the real render or execution path when available.
 

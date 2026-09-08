@@ -1,6 +1,6 @@
 # Skill Creation Planning
 
-This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves the planning and reusable-resource guidance that complements Skill Authoring and Writing for Agents. Skill Authoring owns behavior, authority, the four-file authoring record, and evaluation. Writing for Agents owns runtime writing quality.
+This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves planning and reusable-resource guidance. Skill Authoring owns behavior, authority, selective authoring records, and evaluation. Writing for Agents owns runtime writing quality.
 
 ## Match Freedom To Fragility
 
@@ -41,7 +41,7 @@ Create only the directories the behavior needs. Test executable scripts directly
 
 ## Separate Portable Behavior From Provider Mechanics
 
-The runtime behavior, references, scripts, and four-file authoring contract should remain provider-neutral when practical. Follow destination conventions for frontmatter, sidecars, installation, discovery, and interface metadata. Let available environment guidance supply those provider-specific mechanics rather than copying one provider's commands into the core skill.
+Keep runtime behavior and authoring records provider-neutral when practical. Follow destination conventions for frontmatter, sidecars, installation, discovery, and interface metadata. Let environment guidance supply provider-specific mechanics.
 
 ## Validate In Layers
 
@@ -69,6 +69,6 @@ Owned elsewhere or intentionally omitted:
 
 - Codex-only metadata and command syntax;
 - OpenAI initialization and metadata-generation scripts;
-- the upstream prohibition on auxiliary documents, because this workflow deliberately keeps four non-runtime maintenance artifacts;
+- the upstream prohibition on auxiliary documents, because this workflow preserves useful intent, scenarios, and conditional maintenance records outside ordinary execution;
 - writing and progressive-disclosure doctrine already owned by Writing for Agents;
 - the complete upstream end-to-end workflow, which would conflict with Skill Authoring's behavior-first lifecycle.

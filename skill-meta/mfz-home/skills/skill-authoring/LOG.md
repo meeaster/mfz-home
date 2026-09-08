@@ -1,5 +1,7 @@
 # Log
 
+Historical record of earlier revisions. Consult relevant entries when investigating a prior tradeoff; superseded instructions here do not define the current contract. Current intent and scenarios live in `VISION.md` and `EVALS.md`. Routine edits no longer require log entries.
+
 ## 2026-08-19 - Subagent Evaluation Guidance
 
 - Added prompt-neutral subagent evaluation guidance after greenfield, existing-repository, and staged-worker trials.

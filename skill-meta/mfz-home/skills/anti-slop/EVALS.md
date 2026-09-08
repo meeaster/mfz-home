@@ -1,10 +1,12 @@
 # Anti-slop Evaluations
 
+The scenarios below are expectations. This record contains no dated execution result or retained trace establishing a current pass; no diagnostics ran for the metadata refactor. Historical adopted revisions remain in [LOG.md](LOG.md).
+
 ## Explicit Invocation
 
 **Prompt:** Run anti-slop against a target directory.
 
-**Assertions:** The launcher runs all 15 generic rules at error severity, reports a known violation, and leaves target files unchanged.
+**Assertions:** The launcher runs every generic rule in the pinned upstream entrypoint at error severity, reports a known violation, and leaves target files unchanged.
 
 ## Preflight Guidance
 
@@ -22,7 +24,7 @@
 
 **Prompt:** Run anti-slop against the same Effect target without `--effect`.
 
-**Assertions:** The Effect-specific diagnostic is absent while the 15 generic rules remain enabled.
+**Assertions:** The Effect-specific diagnostic is absent while all pinned generic rules remain enabled.
 
 ## Corrected Rule Semantics
 

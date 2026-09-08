@@ -7,129 +7,76 @@ argument-hint: "What skill or command are you authoring, reviewing, or evaluatin
 
 # Skill Authoring
 
-**Authoring** turns intended agent behavior into a skill or explicit command that can be understood, evaluated, and maintained.
+Turn intended agent behavior into useful, economical instructions. Preserve human intent, discriminating evaluation scenarios, and maintenance knowledge that is costly to reconstruct. Create additional records only for a concrete need. Load and update material relevant to the current change.
 
-Before doing authoring work, load the `writing-for-agents` skill and read [`references/openai-skill-creation.md`](references/openai-skill-creation.md). The first owns runtime writing quality; the second provides agent-agnostic planning guidance. When authoring a skill, follow `writing-for-agents`'s pointer to `SKILL-MECHANICS.md` for skill packaging, invocation, and router guidance. When the requested artifact is an OpenCode command, read [`references/opencode-commands.md`](references/opencode-commands.md) for its distinct mechanics.
+Load `writing-for-agents` and read [planning guidance](references/openai-skill-creation.md) before authoring work. Follow Writing for Agents' `SKILL-MECHANICS.md` pointer for skill packaging and invocation. Read [OpenCode command mechanics](references/opencode-commands.md) when a command is the target or a genuine candidate.
 
-During ordinary authoring, runtime context consists of this `SKILL.md` and the references whose conditions fire. Read Skill Authoring's own authoring record only when Skill Authoring itself is being reviewed, evaluated, or maintained.
+Read Skill Authoring's own record only when assessing or changing Skill Authoring itself, using the same selective-loading rules as for any target.
 
-## 1. Orient
+## 1. Establish intent and authority
 
-Classify the work and its authorized outcome:
+Determine the requested outcome. Creation or revision authorizes implementation within the request. Review, diagnosis, evaluation, and design produce findings or proposals unless the user also authorizes changes. For maintenance, establish which outcome the user wants.
 
-- **Create or revise** — implementation is authorized.
-- **Review, diagnose, or evaluate** — return findings and recommendations while preserving files unless the user separately requests changes.
-- **Design** — produce a proposed package or structure; write files only when the user requests implementation.
-- **Maintain** — determine from the request whether the outcome is assessment or implementation.
+Inspect destination instructions and the target. Resolve one authoring record:
 
-Inspect the destination's instructions and the existing artifact or package. Resolve exactly one **authoring record** before assessing or changing it:
+1. Use the user's selected location.
+2. Otherwise, if environment guidance declares a record root, derive `<root>/<repository-name>/<artifact-kind>/<artifact-name>`. Use the Git root basename, `skills` or `opencode-commands`, and the declared skill name or logical command name.
+3. Otherwise, use `<skill>/meta` or a destination-owned `meta/` beside an unrendered command source package. Ask for a safe location if a command has only a runtime file.
 
-1. Use a location explicitly selected by the user.
-2. Otherwise, when applicable environment guidance declares an authoring record root, derive `<root>/<repository-name>/<artifact-kind>/<artifact-name>`. Use the Git root basename as `repository-name`, `skills` or `opencode-commands` as `artifact-kind`, and the declared skill name or logical slash-command name as `artifact-name`.
-3. Otherwise, use `<skill>/meta` for a skill or a destination-owned `meta/` directory beside an unrendered command source package. If a command is only a runtime file and has no safe development package, ask for a record location rather than writing development Markdown into its command-discovery tree.
+External records contain a short `TARGET.md` identifying the repository, artifact kind, and source path. Verify that identity against the repository. Surface competing local and external records or ambiguous identities for a user decision. Command records must stay outside rendered command-discovery paths, including when the user selects the location.
 
-An external record also contains `TARGET.md` with the repository identity, artifact kind, and source path. Applicable guidance needs to supply only the root; this skill owns the structure beneath it. If local and external records both exist or target identity is ambiguous, surface the conflict instead of merging, moving, or choosing silently.
+### Load by relevance
 
-For an OpenCode command, reject any selected record location that could be rendered or discovered as a command. An explicit location or configured root changes placement, not this runtime boundary.
+Start with the target's runtime instructions and concise `VISION.md`, when present. Select further material by the task:
 
-Read `VISION.md`, `EVALS.md`, `MAINTENANCE.md`, `LOG.md`, and any additional artifact in the resolved record before assessing or changing an existing target.
+| Task | Additional context |
+|---|---|
+| Narrow revision | Affected evaluation scenarios and references |
+| Upstream or dependency refresh | Relevant maintenance guidance, source changes, and affected scenarios |
+| Regression or unexplained constraint | Related evidence and historical rationale |
+| Full assessment or redesign | Broader runtime and record review for coherence and coverage |
 
-Use the evidence available in the current environment: the user's brief, existing files, repository documentation, prior interactions, traces, or supplied notes. Treat evidence as input to the process, not text to copy into runtime instructions.
+Search headings or relevant terms before reading a large record in full. Expand when a conflict, dependency, or unexplained constraint could affect the decision. A file's existence alone does not require loading it. Missing optional records are not defects.
 
-Complete this phase when the requested mode, authorized outcome, destination conventions, available evidence, and existing package state are known.
+Establish the problem, intended outcome, invocation, representative uses, important variation, authority boundaries, and failure conditions. Use available evidence before asking questions. For revisions, distinguish tuning from redesign and reconcile the proposal with human intent. State reversible assumptions; ask about unresolved choices that change the behavioral contract. Agent implementation choices do not become human requirements without acceptance.
 
-## 2. Fix The Intent
+## 2. Shape or assess the artifact
 
-Define the behavior independently from its current prose:
+Choose the form from behavior. Use a skill for model discovery, reusable cross-skill guidance, or packaged resources. Use an OpenCode command for an explicitly slash-invoked workflow that fits one prompt-template file; set `subtask: false` unless fresh context is intentional.
 
-- the problem and intended outcome;
-- users and invocation mode;
-- concrete positive, negative, and adjacent examples;
-- distinct branches and important variation;
-- human authority and approval boundaries;
-- portability expectations and declared skill dependencies;
-- non-goals and failure conditions.
+Write the smallest effective instructions. Add scripts, references, assets, or harness metadata only when execution needs them. Disclose branch-specific detail behind explicit reading conditions. Keep ordinary reference filenames lowercase and descriptive, and the directory flat unless grouping provides a real boundary. Consult patterns only to resolve a named structural uncertainty.
 
-For a revision, classify the change as narrow tuning or intentional redesign. Reconcile the proposed direction with the authoring record's `VISION.md`; surface a conflict instead of silently changing the contract.
+Keep portable behavior free of undeclared machine or workspace assumptions. Deliberately environment-specific artifacts must declare their boundary.
 
-Resolve factual uncertainty through available evidence. Proceed with a stated assumption when it is reversible and leaves the behavioral contract unchanged. Ask the user when an unresolved choice would change invocation, intended behavior, human authority, portability, or another consequential boundary.
+For assessment, return evidence-backed findings without repairing files. For implementation, update the runtime artifact and affected record content; a change does not require touching every file.
 
-Complete this phase when the behavior is specific enough to evaluate without reading the proposed implementation.
+### Preserve the next author's context
 
-## 3. Shape The Runtime Artifact
+The default record contains:
 
-Design from the behavior before selecting a familiar form. Choose a skill when the model or another skill must discover and load the behavior, or when supporting resources need to travel with it. Choose an OpenCode command when the behavior should run only after explicit human slash invocation and fits a single prompt-template file; this is the OpenCode counterpart of a user-invoked Claude Code skill, not a model-discoverable skill. Decide what belongs in steps, in-artifact reference, disclosed reference, scripts, and harness metadata. Keep machine-, workspace-, and project-specific assumptions out unless the artifact deliberately targets that environment and declares the boundary.
+- `VISION.md`: purpose, human priorities, consequential tradeoffs, and boundaries. Keep it concise; leave execution mechanics in the runtime artifact.
+- `EVALS.md`: concrete scenarios and observable expectations that distinguish success from plausible failure. Separate expected behavior from observed results. An unexecuted scenario is useful but is not evidence of success.
 
-Use the bundled planning guidance to match freedom to fragility and plan reusable scripts, references, assets, or harness metadata. Its examples inform intent; they do not replace the user's behavioral contract.
+These are defaults, not a file-completeness requirement. A trivial skill may omit a record document that would add no useful information. Preserve enough intent and examples to assess future behavioral changes without manufacturing boilerplate.
 
-Use a preliminary structure directly when its fit is clear. Consult examples or external pattern material only after naming a structural uncertainty or at least two plausible forms that need comparison. Patterns are evidence, not a taxonomy.
+Create `MAINTENANCE.md` when external provenance, intentional adaptations, or non-obvious upkeep warrants it. Record adopted revisions and how to evaluate a refresh. Generic authoring procedures and readily discoverable configuration do not justify this file.
 
-Complete this phase when every proposed runtime element has a reason to exist and a deliberate place in the information hierarchy.
+Do not require `LOG.md`, create a replacement decision file by default, or append an entry for every edit. Preserve still-relevant rationale beside the concern it explains: tradeoffs in vision, upstream departures in maintenance, and demonstrated failures in evaluation scenarios. A separate decision record needs substantial reasoning that future authors are likely to revisit. Treat existing logs as historical material to consult when relevant; assess useful content and obtain authority before deleting or consolidating history.
 
-## 4. Build Or Assess The Package
+Additional evidence files need a concrete purpose and a reading condition. Keep substantial traces outside routine authoring context. Restatement earns its place only when it contributes a distinct decision, testable assertion, or maintenance fact. Let Git preserve ordinary textual history.
 
-For an authorized skill implementation, create or update the runtime package:
+## 3. Check behavior
 
-```text
-<skill>/
-└── SKILL.md
-```
+Apply Writing for Agents' pruning tests to runtime instructions and references. For records, ask whether each passage helps a future author decide or verify something. Remove stale material and repetition that adds no distinct value.
 
-Add `agents/`, `references/`, and `scripts/` only when the skill needs them. Follow destination-specific metadata conventions. Keep ordinary reference filenames lowercase and descriptive, and keep `references/` flat unless grouping provides a real navigation or maintenance boundary.
+Check structure, reference links, and coherence for the changed branches. Evaluate applicable invocation and execution behavior separately: realistic positive and adjacent prompts for model invocation, explicit invocation and argument handling for commands, and observable outcomes after loading.
 
-Every maintained skill or OpenCode command gets an authoring record with all four documents below. Make each one meaningful and proportional: a one-line orchestrator may need only a short paragraph per file, while a consequential workflow may need substantial detail. Keep the record outside ordinary runtime context and in the single location resolved during orientation.
+When the task requires live execution, session-based verification, or revision from an observed failure, read [testing workflow](references/testing-workflow.md). It owns isolated runs, neutral subagent prompts, evidence classification, comparisons, and reruns. Static review and writing scenarios do not require that reference.
 
-- `VISION.md` owns intended behavior, boundaries, and success.
-- `EVALS.md` owns reusable scenarios and observable assertions, including invocation and post-load behavior where applicable.
-- `MAINTENANCE.md` owns skill-specific dependencies, provenance, refresh procedures, verification, and environment assumptions. Keep it specific to the authored skill; do not copy or reference this authoring process or its bundled writing doctrine.
-- `LOG.md` owns selected behavioral decisions, observed effects, and reversals rather than ordinary textual history.
+Record observed results with the artifact revision, model, harness, relevant configuration, and limitations. Prefer artifacts and traces to self-report. Mark untested behavior explicitly; static coherence does not prove execution quality.
 
-An external record's `TARGET.md` identifies the target but does not replace repository inspection. Package-local records do not need it because their target is implicit.
+## 4. Hand off
 
-These artifacts are distinct projections of one behavioral contract. They may deliberately restate behavior from `SKILL.md` or one another in the form their role requires; that is coherence, not duplication. Prune copied doctrine and repeated explanatory prose, not role-specific statements of intent, observable assertions, upkeep, or rationale.
+For implementation, report changed files, behavioral rationale, checks performed, unresolved uncertainty, and activation or promotion still needed. For assessment, prioritize findings and distinguish recommendations from accepted changes.
 
-For an authorized OpenCode command implementation, create or update one runtime `.md` file in the destination's command directory. Its body is the prompt template and its filename or relative path becomes the slash-command name. Set `subtask: false` unless the command deliberately needs a fresh context separate from the main session. Keep behavior that needs model discovery, supporting files, or reusable cross-skill reference in a skill instead. Keep its authoring record outside the rendered command and do not turn development metadata into command runtime context.
-
-For assessment, inspect the runtime artifact and resolved authoring record for coherence, then return proposed changes without modifying files. Treat missing or contradictory material as findings rather than silently creating it.
-
-Complete this phase when the implementation is coherent or the assessment accounts for every relevant runtime and development artifact.
-
-## 5. Prune, Test, And Evaluate
-
-Apply `writing-for-agents`'s pruning tests sentence by sentence to runtime instructions and references. For authoring record artifacts, remove material that does not serve the artifact's role while preserving role-specific restatements of the behavioral contract. Remove no-ops, stale material, accidental runtime context, weak pointers, and unjustified forms. Sharpen completion criteria where a step could finish prematurely.
-
-Evaluate two surfaces separately when they apply:
-
-- **Invocation:** realistic prompts select a model-invoked skill without naming or preloading it.
-- **Explicit invocation:** a user invokes a user-invoked skill or command by name, arguments expand as intended, and ordinary prompts do not invoke it accidentally.
-- **Execution:** the invoked artifact follows its intended branches, opens only relevant references, respects authority boundaries, and produces the expected observable behavior.
-
-Record the model, harness, configuration, artifact revision, and limitations of observed results. Prefer traces and artifacts over the evaluated agent's self-report.
-
-When the user asks to execute a live harness scenario, verify runtime behavior from a session, or revise from a trace-supported failure, follow [`references/testing-workflow.md`](references/testing-workflow.md). Static package validation and writing evaluation scenarios use the instructions in this file without loading that reference. For a live run, test in an isolated workspace, inspect the captured session, classify the evidence, and rerun the same scenario after the smallest authorized change. State the capability needed and let available environment guidance supply harness execution and session-inspection mechanics. Keep assessment non-mutating when implementation is not authorized.
-
-Complete this phase when every applicable scenario has a result or an explicit untested status and every remaining sentence is behaviorally justified.
-
-### Evaluate With Subagents
-
-Use subagents when independent implementation work, fresh context, or a staged change will produce stronger evidence than one continuous run.
-
-- Prompt the task as a normal user would. State the requested outcome, relevant context, and only operational guardrails such as an isolated workspace, no credentials, and no real external side effects.
-- Do not name the skill, prescribe its principles, prohibit specific implementation choices, or require particular tests, tools, abstractions, or verification commands when those choices are part of the behavior under evaluation.
-- Keep the fixture, harness, model, effort, skill revision, and assertions aligned when comparing runs. Change one evaluation variable at a time.
-- Use a fresh subagent for an independent run. For a staged scenario, let the first subagent establish the starting implementation, then give a second subagent an ordinary follow-up request in the same isolated workspace. Inspect the combined diff and each session rather than treating the second agent's summary as proof.
-- Vary task complexity and requirement shape. Include small direct changes, ambiguous or feature-rich requests, existing code, persisted data, and follow-up requirements that create real variation.
-- Let the agent choose whether tests, type checks, benchmarks, schemas, abstractions, or other verification are warranted. Judge the resulting evidence, not compliance with a test script embedded in the prompt.
-- Inspect artifacts, diffs, command traces, and preserved files. Record what the agent did, what it avoided, and whether the behavior matches the scenario's observable assertions.
-- Treat self-reported skill use as a claim, not evidence. Confirm loading from the trace when invocation behavior matters, and confirm execution from artifacts and commands.
-- Classify findings as skill benefit, skill harm, model variance, evaluation defect, environment noise, or inconclusive evidence. Revise the skill only for a supported steering defect, then rerun the same scenario and an adjacent regression scenario.
-
-## 6. Hand Off
-
-For implementation, present the created or changed files, behavioral rationale, validation performed, unresolved uncertainty, and any installation or promotion work still requiring approval.
-
-For assessment, present prioritized findings, recommendations, expected value, and uncertainty. Keep recommendations separate from approved changes.
-
-Keep environment-specific activation procedures in the owning environment rather than the portable skill package.
-
-Complete authoring when another maintainer can understand what the artifact should do, why it has its current shape, how to test it, and how to change it safely.
+Finish when the requested outcome is met, relevant behavior has a result or an explicit untested status, and the record preserves what the next author needs without requiring unrelated history. Environment guidance owns activation procedures.
