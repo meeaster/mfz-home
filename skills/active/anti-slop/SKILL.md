@@ -16,6 +16,7 @@ Before editing, keep these defaults in view:
 - Use typed property access and explicit branches; prefer them over `Reflect.*` and conditional spreads of `{}`.
 - Keep assertions rare, unchained, and immediately justified with the checked invariant.
 - Use real dependency seams instead of module mocks; give parameters precise contracts rather than `object`.
+- Avoid adjacent eager array filter/map passes and repeated reducer-accumulator copies. Use iterator helpers only when the runtime supports them; otherwise preserve semantics with a single transformation or a fresh locally mutated accumulator.
 - In Effect code, use the owning Layer and contextual service; pass `--effect` during the final check for the opt-in constructor rule.
 
 The preflight is a design reminder, not a substitute for the final diagnostic pass.
@@ -33,6 +34,6 @@ The preflight is a design reminder, not a substitute for the final diagnostic pa
 3. Inspect changed source and test files for directives that suppress anti-slop rules. A file-, region-, or line-level suppression is a failed checkpoint even when Oxlint exits successfully or the directive includes a justification. During an authorized implementation task, remove in-scope suppressions, address the underlying diagnostics, and rerun. If a suppression cannot be removed within the task's authority, report the checkpoint as blocked rather than clean. During assessment-only work, report suppressions without editing the target.
 4. Report the command, exit status, every diagnostic, and any suppression that prevented a clean checkpoint.
 
-The launcher supplies the pinned plugin and enables every upstream generic anti-slop rule at error severity. With `--effect`, it also enables the opt-in `anti-slop-effect/no-service-constructor-imports` rule. It runs with an isolated config, so target repository Oxlint configuration is not loaded or merged.
+The launcher supplies the pinned plugin and enables every upstream generic anti-slop rule plus the native `oxc/no-accumulating-spread` companion rule at error severity. With `--effect`, it also enables the opt-in `anti-slop-effect/no-service-constructor-imports` rule. It runs with an isolated config, so target repository Oxlint configuration is not loaded or merged.
 
-Upstream source: `dmmulroy/anti-slop` v0.1.2 commit `e8c4880471b23ab7f216fba7b27d173a6ef07d4c`. The vendored source and license are in this skill package.
+Upstream source: `dmmulroy/anti-slop` post-v0.1.2 commit `95a56e5d24fb3d849673c2d51eb0908b8bd2d33b`. The vendored source and license are in this skill package.

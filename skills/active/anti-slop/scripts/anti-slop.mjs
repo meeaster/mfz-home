@@ -35,6 +35,7 @@ const runtimeDir = join(tempDir, "plugin");
 const plugin = join(runtimeDir, "index.ts");
 const effectPlugin = join(runtimeDir, "effect", "index.ts");
 const rules = [
+  "no-array-filter-map",
   "no-chained-type-assertions",
   "no-conditional-empty-object-spread",
   "no-known-value-widening",
@@ -42,6 +43,7 @@ const rules = [
   "no-object-parameters",
   "no-reflect-apply",
   "no-reflect-get",
+  "no-reduce-accumulator-copy",
   "no-runtime-typeof",
   "no-shape-in-symbol-names",
   "no-unknown-parameters",
@@ -68,6 +70,7 @@ if (effect) {
 mkdirSync(join(runtimeDir, "node_modules", "@oxlint"), { recursive: true });
 symlinkSync(join(misePackageRoot, "node_modules", "@oxlint", "plugins"), join(runtimeDir, "node_modules", "@oxlint", "plugins"));
 const enabledRules = Object.fromEntries(rules.map((rule) => [`anti-slop/${rule}`, "error"]));
+enabledRules["oxc/no-accumulating-spread"] = "error";
 if (effect) enabledRules["anti-slop-effect/no-service-constructor-imports"] = "error";
 writeFileSync(config, JSON.stringify({
   jsPlugins: effect ? [plugin, effectPlugin] : [plugin],
@@ -80,7 +83,6 @@ try {
 		"--config", config,
 		"--disable-nested-config",
 		"--allow", "correctness",
-		"--disable-oxc-plugin",
 		"--disable-typescript-plugin",
 		"--disable-unicorn-plugin",
 		target,

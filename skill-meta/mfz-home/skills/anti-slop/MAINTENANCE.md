@@ -6,13 +6,13 @@ The launcher uses the base Mise profile's `npm:oxlint` and `npm:@oxlint/plugins`
 
 Upstream: https://github.com/dmmulroy/anti-slop
 
-This skill vendors the generic and opt-in Effect plugins from upstream v0.1.2 commit `e8c4880471b23ab7f216fba7b27d173a6ef07d4c`. Record the adopted commit here whenever the vendored source is updated so future maintenance can compare upstream changes before aligning this skill.
+This skill vendors the generic and opt-in Effect plugins from upstream post-v0.1.2 commit `95a56e5d24fb3d849673c2d51eb0908b8bd2d33b`. The launcher also enables the upstream-required native `oxc/no-accumulating-spread` companion rule. Record the adopted commit here whenever the vendored source is updated so future maintenance can compare upstream changes before aligning this skill.
 
 ## Change Procedure
 
 1. Compare the current upstream repository with the commit recorded above and inspect its rule entrypoint and imports.
 2. Replace the vendored source only with an intentional commit update; retain the upstream MIT license.
-3. Keep the launcher isolated from target configuration and dependencies.
+3. Reconcile any native companion rules required by adopted custom rules, then keep the launcher isolated from target configuration and dependencies.
 4. Record the adopted revision and any intentional adaptation here; record observed verification with the affected evaluations.
 
 The Effect rule is deliberately opt-in: pass `--effect` only for an Effect codebase. Absence of the flag is the off state.
