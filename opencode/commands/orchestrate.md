@@ -163,6 +163,8 @@ Before each dispatch, load `context-transfer` if it has not been loaded in this 
 
 Preserve meaning rather than copying the transcript. In briefs and return packets, include exact critical evidence or excerpts where details matter and accessible supporting locators for verification or omitted detail. A session ID is not a substitute for evidence when the recipient cannot retrieve that session. Label inferences, ask children to test working hypotheses, and identify accepted decisions they must preserve. Keep packets proportional to their intended use without losing priorities or material uncertainty. Describe the desired result and consequential constraints without prescribing investigative mechanics unless safety, correctness, repeatability, or a settled decision requires a specific method.
 
+Before asking an evidence child to load a skill, check that role's permissions and guidance. When `explore` or `research` cannot load a materially relevant skill, load it in this session and transfer its operative instructions and constraints through the shared transfer contract. When the role explicitly allows the skill, instruct the child to load it and follow its role guidance. Do not infer one role's capabilities from another's.
+
 ### Source-Gatherer Return Contract
 
 Require each source-gathering child to return a compact decision packet: the direct answer, only material findings, exact critical evidence where details matter, accessible supporting locators, conflicts or gaps, uncertainty and coverage, and what the evidence means for the stated downstream decision and its priorities.

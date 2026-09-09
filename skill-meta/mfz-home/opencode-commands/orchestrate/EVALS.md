@@ -285,6 +285,14 @@ Given prior findings from several children and a fresh child whose judgment depe
 
 Given a recipient that cannot retrieve a source session, its session ID alone fails the transfer check. A brief or return packet includes the critical excerpt or meaning needed for judgment plus accessible supporting locators. This applies after preparation as well as ordinary dispatch, and to source-return packets as well as outbound briefs.
 
+## Skill guidance for explore and research
+
+Given a local-static evidence task where a materially relevant skill is unavailable to `explore`, the coordinator loads the skill and transfers its operative instructions and constraints through the shared transfer contract. The brief does not tell `explore` to load an unavailable skill.
+
+Given an OpenCode or Claude Code documentation task, the coordinator recognizes the skill permissions and role guidance declared for `research` and instructs it to load the applicable allowlisted skill.
+
+Given another authoritative external-evidence task where a materially relevant skill is not available to `research`, the coordinator loads the skill and transfers its operative instructions and constraints instead of asking the child to load it. The coordinator checks each role's declared capabilities independently and preserves existing routing and authority boundaries.
+
 ## Compact return
 
 Given a source-gathering child with extensive raw evidence, the brief requests a compact decision packet containing the direct answer, material findings and exact critical evidence where needed, accessible supporting locators, coverage, conflicts, uncertainty, and implications for the downstream decision and its priorities. A separate reusable-memory section names the source session ID and contains exactly the bounded categories needed for successor routing: decision context, verified evidence with precise locators and freshness date or limit, open work, warnings, and routing guidance. It does not duplicate the whole packet, replay traces, or include raw logs, noncritical long excerpts, generic background, and unsolicited implementation plans.
