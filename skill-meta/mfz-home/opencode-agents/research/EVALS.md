@@ -2,13 +2,15 @@
 
 Record the OpenCode version, rendered profile revision, model, research brief, parent and child session IDs, sources used, duration, tool counts, observable result, and limitations. Agent self-report is not sufficient.
 
+Current requested-write authoring and materialization results are in `../../skills/orchestrator-task-evidence/EVALS.md`. These check the exact new skill allow and preserved retrieval boundary, not live model compliance.
+
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `research` as a visible Luna/high subagent with the custom specialist prompt; permissions explicitly deny mutation, shell, advisor, todo, and delegation; FFF, read-only local inspection, the filtered Code Mode documentation catalogue, web retrieval, `claude-code-docs`, and `opencode` are available; all other skills remain denied; and global sensitive-path and external-directory policy remains authoritative.
+**Assertions:** Research changes only its opening role paragraph to permit explicitly requested assigned evidence writes and adds the exact `orchestrator-task-evidence` skill allow. The rest of its specialist prompt, retrieval tools, and existing skill allows remain unchanged. File edits are denied except any file beneath the absolute shared evidence root; shell, advisor, todo, and delegation remain denied. Exercise ordinary file-free research, explicitly assigned notes, supported Location, producer ownership, outside-root denial, selective reading, and genuine instruction conflicts from `../explore/EVALS.md`. The shared skill owns the protocol, and neither permission nor loading alone authorizes a file.
 
 ## OpenCode documentation
 
-Given an OpenCode documentation question, the researcher can load `opencode`, uses its V2 default unless the user names V1 or migration, and follows existing version-specific and workspace source guidance. It returns evidence and uncertainty without running shell commands or applying configuration. A Claude Code question still loads `claude-code-docs`; an unrelated library question loads neither skill. The new exception does not grant other skills or change model or tool permissions.
+Given an OpenCode documentation question, the researcher can load `opencode`, uses its V2 default unless the user names V1 or migration, and follows existing version-specific and workspace source guidance. It returns evidence and uncertainty without running shell commands or applying configuration. A Claude Code question still loads `claude-code-docs`; an unrelated library question loads neither skill. The evidence exception grants only the named additional skill and leaves model and unrelated tool permissions unchanged.
 
 ## Exact Documentation Question
 

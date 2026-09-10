@@ -8,7 +8,7 @@ Implementation often depends on exact behavior documented outside the local code
 
 `research` is a native OpenCode subagent for specific external documentation and upstream-source questions. The caller supplies exact external targets, versions when known, required facts, and expected evidence. Research follows the workspace's authoritative documentation-source policy rather than carrying a competing source hierarchy.
 
-The custom system prompt replaces the general provider prompt because this is a durable specialist role. It keeps the agent read-only, documentation-first, bounded in retrieval, and focused on facts the parent can use. Agent permissions explicitly deny mutation, shell, delegation, and unrelated orchestration while allowing local evidence lookup, FFF, approved read-only documentation tools, bounded web retrieval, and the `claude-code-docs` and `opencode` skills for their matching documentation questions. Other skills remain denied. OpenCode questions load `opencode` and follow its version-specific guidance alongside workspace source selection; permission to read configuration guidance does not authorize applying it. Global configuration remains authoritative for path policy.
+The custom prompt keeps source gathering read-only, documentation-first, bounded in retrieval, and focused on facts the parent can use. The human authorized a small opening-paragraph exception for an explicitly requested assigned evidence file beneath the absolute temporary root. Permission or skill loading alone authorizes no file. `orchestrator-task-evidence` owns the note method, and Orchestrator Mode owns coordination. This adds no source or system mutation authority. Supported-Location and ownership limits are documented in `../explore/MAINTENANCE.md`. Shell, delegation, unrelated orchestration, and non-allowlisted skills remain denied. Existing retrieval tools and matching `claude-code-docs` and `opencode` skills remain available; the new evidence skill receives one exact allow.
 
 Local project reads identify an external dependency, version, protocol, or upstream target. `explore` owns local architecture, implementation seams, tests, and repository-wide discovery. The parent owns product decisions, implementation design, planning, and code changes.
 
@@ -23,5 +23,5 @@ Research returns a compact direct answer with exact APIs or configuration, const
 - Reading whole OpenSpec changes or implementation plans.
 - Mapping local files, functions, tests, or implementation order.
 - Choosing product behavior or architecture.
-- Editing files, running shell commands, delegating, or invoking mutating integrations.
+- Editing files outside an explicitly assigned task evidence note, running shell commands, delegating, or invoking mutating integrations.
 - Collecting extra sources after the requested facts are adequately supported.

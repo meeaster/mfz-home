@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, caller brief, ses
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/base/profile.yml`; file mutation, todo ownership, and recursive delegation are denied.
+**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/base/profile.yml`; edits outside the evidence root, todo ownership, and recursive delegation are denied. The assigned evidence-root edit exception preserves the existing profile model.
 
 ## Credible alternatives
 
@@ -20,7 +20,13 @@ Record the OpenCode version, rendered profile revision, model, caller brief, ses
 
 ## Proposal-ready handoff
 
-**Assertions:** The result covers affected responsibilities, boundaries, interfaces, invariants, relevant state or migration implications, testing surfaces, assumptions, unresolved decisions, evidence locators, bounded implementation units, and a continuity note. It makes no edits and does not claim final acceptance.
+**Assertions:** The result covers affected responsibilities, boundaries, interfaces, invariants, relevant state or migration implications, testing surfaces, assumptions, unresolved decisions, evidence locators, bounded implementation units, and a continuity note. It makes no project edits and does not claim final acceptance.
+
+## Assigned evidence writing
+
+**Assertions:** With an explicit owned note path external to its Location/project and a request to load `orchestrator-task-evidence`, the architect writes its own completed note using permitted edits. Without a file assignment it remains read-only. A requested project edit remains prohibited; a genuine higher-priority conflict returns attributed file-ready findings rather than a bypass.
+
+The first and second Lambda-viewer runs reported the blanket mutation prohibition as the reason for coordinator fallback, including architect session `ses_f75f6a985ffeyMVhk6eHR0XzeK`. Its attributed artifact is `/tmp/opencode/orchestrator-evidence/aws-lambda-viewer-ses_f78cbe445ffeP6DHINwL4h6wCk/assignments/02-function-details/evidence/architect.md`. The source prompt and blanket edit denies corroborate that conflict. The new exception follows the existing Research permission pattern; live architect writing remains untested until a subsequent authorized consultation.
 
 ## Continuity
 

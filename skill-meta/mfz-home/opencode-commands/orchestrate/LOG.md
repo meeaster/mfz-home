@@ -1,5 +1,27 @@
 # Log
 
+## 2026-09-09 - Operating-mode name correction
+
+The human renamed the shared skill to `orchestrator-mode`, displayed as `Orchestrator Mode`, without changing `/orchestrate`, agent `orchestrator`, or behavior. Current skill records live at `../../skills/orchestrator-mode/`. Earlier entries retain the original skill paths and names as historical facts; their materialization evidence was not renamed or reclassified as validation of this correction.
+
+## 2026-09-09 - Shared workflow and explicit orchestrator
+
+- The accepted workflow moved to `skills/active/orchestrate/SKILL.md` as one complete runtime file. This command now explicitly loads it in human-facing context and retains its final raw input boundary. The new frontmatter-only orchestrator is a parent-facing consumer selected only by explicit human request for a task or batch, with an explicit skill load in the parent brief and no fixed model.
+- The behavioral vision, regression set, and maintenance record moved to `../../skills/orchestrate/`; command invocation remains here. That skill's `EVALS.md` records preservation, real MFZ render and isolated snapshot checks, platform evidence, and untested live behavior. This relocation supersedes the earlier entry's statement that no shared-skill or child migration had been implemented, without changing that entry's historical evidence.
+
+## 2026-09-09 - Explicit human-selected super-worker
+
+- The user authorized `super-worker` as a Sol/medium alternative with the same worker responsibilities, authority, and verification. This supersedes the earlier blanket deferral only for explicit human selection of a task or batch. Worker remains the default; difficulty, failures, and perceived quality never cause automatic escalation. Selection grants no implementation or publication authority and preserves specialist ownership.
+- Added one role bullet and one shared selection paragraph to the runtime command. All existing worker contracts apply to the alternative without rewriting operational or diagnostic routing. Base owns model assignment and enablement. Worker source, configuration, and records remain unchanged; no orchestrator-child or shared-skill migration was implemented.
+- The super-worker `EVALS.md` records this batch's dry-run and focused static evidence, source revision, environment, and limits. Source-only validation is not independent approval or live dispatch evidence. No production apply, commit, push, or reviewer dispatch occurred; prior local changes remain preserved.
+
+## 2026-09-09 - Behavioral judgment versus supplied refresh
+
+- The user authorized routing by the need to interpret, evaluate, design, or revise instructions for their effect on agent behavior. Author analysis requires explicit authority and grants no edits. Settled generation, installation, copying, and upstream refresh as supplied use operator, with procedural verification and visible customization decisions rather than mandatory author review. Source-only comparison remains explore; command-derived evidence remains inspect; generator errors retain the diagnostic gate.
+- This supersedes the historical generated-skill example that preferred resuming an author for a now-procedural refresh. Select the role before continuity and transfer useful retained evidence to operator; same-unit authorized behavioral analysis or adaptation may still resume the author. Other continuity and authority rules are unchanged.
+- Authoring evidence in session `ses_f76e7ffd9fferpNICzGFPBcVfD`, OpenCode `v0.0.0-beta-19398`, MFZ `0.1.0`, base `04e9f34` plus this uncommitted policy batch: `git diff --check` passed; static assertions confirmed unchanged permissions and command frontmatter, promptless operator, one final unwrapped `$ARGUMENTS`, and byte-identical source-routing, diagnostic-gate, gated-invocation, external-preflight, and review-policy sections. `mfz apply --dry-run --agent opencode-v2 --no-link` exited zero through the real renderer planning path.
+- The refresh, read-only evaluation, authorized adaptation, source-comparison, generator-error, and continuity cases have explicit expected outcomes and static coherence checks, not observed downstream dispatch results or independent approval. The session model was not independently inspected. Production apply and live slash-command or child tests were not run; activation remains deferred because the checkout includes unrelated local changes. The user approved editing in this checkout while preserving those changes.
+
 ## 2026-09-05 - Bounded consultation, review routing, and proportional transfer
 
 - Replaced the former every-turn architect approval rule with one shared bounded consultation authority paragraph for architect and the existing UI designer. Same-decision/scope/access evidence return, corrections, and follow-ups continue without duplicate approval; materially new consultation, expanded authority, and independent opinions still require approval. Session replacement is continuity, not new authority by itself. Design acceptance, mutation, and publication remain separate human decisions.

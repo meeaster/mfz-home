@@ -4,13 +4,13 @@
 
 - OpenCode must expose `agent-author` as a native subagent and the configured provider must expose `openai/gpt-6-astra@medium`. `profiles/base/profile.yml` owns the assignment.
 - `writing-for-agents` owns agent-consumed prose quality; `skill-authoring` owns maintained skill, command, agent, and prompt-package authoring; platform skills own platform mechanics.
-- The caller owns intended behavior, destination, accepted constraints, mutation authority, accessible paths, expected outcome, and stop conditions.
+- The caller owns intended behavior, destination, accepted constraints, explicit analysis or editing authority, accessible paths, expected outcome, and stop conditions.
 
 ## Change procedure
 
 1. Read this record and representative authoring sessions before changing role, model, permissions, or required skill routing.
 2. Keep artifact-specific doctrine in the owning skill rather than copying it into the agent prompt.
-3. Preserve explicit mutation authority and the boundary between AI-facing behavior, application mechanics, architecture, and independent review.
+3. Preserve explicit authority for behavioral instruction analysis and separate editing authority. Keep settled upstream refresh without instruction-content judgment with operator, and preserve the boundaries with application mechanics, product architecture, and independent approval.
 4. Run affected scenarios in `EVALS.md` and record consequential decisions or reversals in `LOG.md`.
 
 ## Validation

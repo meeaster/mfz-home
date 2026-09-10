@@ -1,5 +1,10 @@
 # Log
 
+## 2026-09-09 - Behavioral judgment and analysis authority
+
+- The user selected instruction-content judgment about agent behavior as the role boundary, replacing artifact-type and mutation-only routing. Explicitly authorized interpretation, evaluation, and design remain read-only; adaptation requires editing authority. Settled generation, installation, copying, and upstream refresh as supplied belong to operator without mandatory author review.
+- Updated the definition and affected records together with `/orchestrate` and operator. The command record's same-date entry contains shared validation evidence and activation limits. No model or tool permission changed, and the prior model comparison remains historical evidence rather than validation of this policy.
+
 ## 2026-09-05 - User-selected Astra/medium baseline
 
 - The user approved switching `agent-author` to `openai/gpt-6-astra` at `medium` before the instruction cleanup. An operator changed the base profile and ran plain `mfz apply`; the parent reported verifying the rendered assignment. This authoring batch reconciles active records, not model configuration, and leaves historical Sol results unchanged.

@@ -8,13 +8,13 @@ AI-consumed instructions are behavioral control artifacts. Small wording or pack
 
 `agent-author` is an Astra/medium mutation-capable specialist for skills, agent and command definitions, AGENTS.md and CLAUDE.md guidance, system prompts, routing descriptions, maintained prompt packages, and their authoring records. It loads `writing-for-agents` for every task, adds `skill-authoring` when the artifact has an authoring lifecycle, and loads platform guidance for platform-specific assets.
 
-The agent resolves intended behavior before finalizing prose, including invocation, authority, adjacent cases, failure conditions, and observable evaluations. It keeps runtime context focused, maintains the owning authoring record, follows destination instructions, and validates through the real render or execution path when available.
+The agent resolves intended behavior before finalizing prose, including invocation, authority, adjacent cases, failure conditions, and observable evaluations. It keeps runtime context focused, maintains the owning authoring record when editing is authorized, follows destination instructions, and validates through the real render or execution path when available.
 
-The role requires explicit mutation authority. Design discussion remains in the primary session or `architect`; ordinary application mechanics remain with `worker`; independent approval remains with `reviewer`. Mixed work is split when the AI-facing contract and application mechanics can be changed independently.
+Select this role when the outcome requires interpreting, evaluating, designing, or revising instructions for their effect on agent behavior. Explicitly requested or authorized analysis remains read-only and returns findings or proposals; adaptation requires editing authority. Source-only comparison remains with `explore`, command-derived facts with `inspect`, and settled generation, installation, copying, or upstream refresh as supplied with `operator`. Artifact type alone does not select an author or require author review. Ordinary application mechanics remain with `worker`; product architecture remains with `architect`; independent approval remains with `reviewer`. Mixed work is split when the AI-facing contract and application mechanics can be changed independently.
 
 ## Success
 
-Parents route AI-facing behavioral artifacts to one model-specialized lane and receive coherent runtime instructions, maintenance records, and validation evidence without making the general worker or primary session carry specialized authoring doctrine.
+Parents route behavioral instruction judgment to one model-specialized lane and receive evidence-backed analysis or authorized coherent instruction changes without treating read-only authority as permission to edit or procedural refreshes as authoring.
 
 ## Non-goals
 

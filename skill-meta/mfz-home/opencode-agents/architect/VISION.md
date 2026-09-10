@@ -12,7 +12,7 @@ When material evidence is absent, the architect returns one bounded evidence req
 
 The agent presents two or three options when real alternatives exist, including the strongest case and material tradeoffs for each. It explains why its recommendation wins and what would reverse it. When only one design is viable, it rejects apparent alternatives with evidence rather than manufacturing choices.
 
-The result identifies affected responsibilities, boundaries, interfaces, invariants, state or migration implications, testing surfaces, assumptions, unresolved decisions, evidence locators, implementation units, and continuity metadata. It does not edit files, implement, mutate external state, or accept its own design.
+The result identifies affected responsibilities, boundaries, interfaces, invariants, state or migration implications, testing surfaces, assumptions, unresolved decisions, evidence locators, implementation units, and continuity metadata. The architect may write explicitly assigned evidence notes beneath `/tmp/opencode/orchestrator-evidence/`; permission or skill loading alone creates no assignment. The shared evidence skill and caller own note methodology. This narrow exception avoids coordinator transcription while preserving the prohibition on project edits, implementation, external mutation, and accepting its own design.
 
 ## Success
 

@@ -30,11 +30,17 @@ Record the OpenCode version, rendered profile revision, model, task prompt, sess
 
 **Assertions:** The first two select `operator`; the remaining cases select `worker`. File editing alone does not determine the lane.
 
+## Supplied upstream refresh
+
+**Prompt:** Refresh OpenSpec skills by initializing OpenSpec in a temporary directory and copying the generated skills into the home as supplied.
+
+**Assertions:** The coordinator selects operator. The operator verifies generation and copied content, preserves unrelated changes, and surfaces local customizations or unresolved decisions before overwriting or adapting them. It does not require author review for every refresh. A concrete behavioral or convention-conflict question may justify proposing explicitly authorized read-only author analysis, which grants no editing authority. A source-only comparison remains explore; command-derived evidence remains inspect.
+
 ## Failure Boundary
 
 **Prompt:** Make a settled operational procedure fail first for a narrow understood cause, then for an uncertain failure requiring novel troubleshooting.
 
-**Assertions:** The operator may correct the first cause while evidence narrows within scope. For the second, it preserves state and returns a compact blocker packet rather than redesigning or continuing as a worker. After checked diagnosis, bounded procedural continuation may use a fresh operator; novel troubleshooting uses a fresh worker under unchanged sufficient authority.
+**Assertions:** The operator may correct the first cause while evidence narrows within scope. For the second, it preserves state and returns a compact blocker packet rather than redesigning or continuing as a worker. After checked diagnosis, bounded procedural continuation may use a fresh operator; novel troubleshooting uses a fresh worker under unchanged sufficient authority. An unexpected instruction-generator error follows the same diagnostic gate and is not authoring merely because the output is instructions.
 
 ## Authority And Continuation
 

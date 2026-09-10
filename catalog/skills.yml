@@ -1,4 +1,12 @@
 skills:
+  - name: orchestrator-task-evidence
+    source: local
+    skill: active/orchestrator-task-evidence
+    description: Explicitly assigned task evidence production and selective reuse.
+  - name: orchestrator-mode
+    source: local
+    skill: active/orchestrator-mode
+    description: Explicit orchestration workflow for human-facing conversation or a parent-facing bounded assignment.
   - name: anti-slop
     source: local
     skill: active/anti-slop

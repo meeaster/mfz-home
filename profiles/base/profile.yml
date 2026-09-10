@@ -46,6 +46,10 @@ thread:
       - claude-code
       - opencode
 skills:
+  orchestrator-mode:
+    agents: { opencode: true, claude-code: false, codex: false }
+  orchestrator-task-evidence:
+    agents: { opencode: true, claude-code: false, codex: false }
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
@@ -183,9 +187,18 @@ opencode_v2:
       explore:
         model: openai/gpt-5.6-luna
         variant: high
+        permission:
+          edit:
+            "*": deny
+            "/tmp/opencode/orchestrator-evidence/*": allow
+          external_directory:
+            "/tmp/opencode/orchestrator-evidence/*": allow
       operator:
         model: openai/gpt-5.6-luna
         variant: high
+      super-worker:
+        model: openai/gpt-5.6-sol
+        variant: medium
       safety-reviewer:
         model: openai/gpt-5.6-luna
         variant: high
@@ -218,6 +231,8 @@ opencode_v2:
     - rmslop
   agents:
     - agent-author
+    - explore
+    - orchestrator
     - architect
     - inspect
     - operator
@@ -228,6 +243,7 @@ opencode_v2:
     - safety-reviewer
     - scheduled-worker
     - session-analyst
+    - super-worker
     - triage
     - worker
     - ui-ux-designer

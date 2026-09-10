@@ -1,0 +1,25 @@
+# Maintenance
+
+## V2 permission evidence
+
+Inspected OpenCode clone revision `3edbc8822520e51dca9954b73e2712ecf2884443` on 2026-09-09 at `/home/mark/workspace/references/opencode`. Installed CLI reported `0.0.0-beta-19398`; source/build equivalence was not established. Recheck these points after relevant V2 changes:
+
+- `packages/core/src/plugin/agent.ts:8-24,105-130` supplies explore's no-files system prompt and deny-by-default policy with allowed source-reading tools.
+- `packages/core/src/config/plugin/agent.ts:94-123` permits configured prompt replacement and appends agent permission rules.
+- `packages/core/src/tool/plugin/patch.ts:196-197` checks every patch target using the shared `edit` action. Edit, write, and patch share it; a matching denial blocks a multi-file patch.
+- `packages/core/src/file-access.ts:99-126` uses Location-relative resources for internal targets, including project-worktree targets, and absolute resources for external targets.
+- `https://opencode.ai/v2/docs/permissions` documents last-match-wins rules, independent child policies, shared edit action, and wildcards that cross directory separators. Context7 retrieval failed because its monthly quota was exhausted.
+
+The human superseded the narrower Markdown-note rule with `/tmp/opencode/orchestrator-evidence/*`. This grants edit capability for any file beneath the dedicated root, including coordinator files, arbitrary extensions, nested assignments, and supported add/update/rename/delete operations. Per-producer ownership and the assigned file layout remain behavioral limits carried in the brief. There is no project edit permission outside the root. Existing shell-capable roles still rely on their read-only instructions for shell behavior; this change does not make them filesystem sandboxes.
+
+Keep sessions outside the evidence root and require the root to be external to both Location and project. A session whose Location or project contains the root cannot rely on this absolute rule. Do not add global relative exceptions, use shell to bypass denied edits, or claim per-assignment runtime isolation. The user explicitly selected this temporary root after rejecting an ambiguous global relative-path permission approach for workspace scratch.
+
+The home uses legacy-compatible configuration. Keep Explore's root-wide edit permissions and model in the existing profile entry. Enable `opencode/agents/explore.md` through the normal same-name asset list. It supplies only the adapted prompt and exact evidence-skill allow, leaving unrelated built-in settings unset. Keep the root-wide rule aligned with research, inspect, and triage. Agent prompts own only the requested-write exception; `orchestrator-task-evidence` owns the protocol and `orchestrator-mode` owns workspace coordination.
+
+## Adopted upstream prompt and intentional diff
+
+Adopt the complete `PROMPT_EXPLORE` from `packages/core/src/plugin/agent.ts:8-24` at revision `3edbc8822520e51dca9954b73e2712ecf2884443`. The only intentional body diff replaces the guideline `- Do not create any files, or run bash commands that modify the user's system state in any way` with the requested-only allowance in `opencode/agents/explore.md`. All other prompt text remains byte-identical after trimming the Markdown body boundary. The new guideline permits only explicitly requested assigned evidence-file creation or update beneath the root, makes ordinary use read-only, denies authority from permission or skill loading alone, and retains the shell mutation prohibition.
+
+The latest user authorization supersedes the earlier choice to retain the blanket prohibition. `packages/core/src/config/plugin/agent.ts:102-124` updates only supplied fields, replaces `system` entirely, and appends permissions. `packages/core/src/session/model-request.ts:73-91` uses the custom system text instead of the generic provider prompt, with ambient instructions added separately. Never substitute a short fragment for Explore's complete upstream prompt. On upstream refresh, extract the new complete prompt and compare the single intentional guideline diff; recheck merge semantics and effective permissions before activation. Genuine additional instruction conflicts still use the coordinator-owned attributed fallback, not forced writes.
+
+Inspect and Triage previously had frontmatter-only definitions, not built-in role prompts. At this revision `packages/core/src/session/system-prompt.ts` supplies generic tool-use guidance with no blanket read-only prohibition; their owned descriptions establish read-only roles. The accepted small bodies now state that role and its requested-only exception, intentionally replacing generic prompt inheritance. Research changes only its opening role paragraph and adds the exact skill allow. No broader shell permissions change. The reported Inspect live refusal's exact active instruction source has not been established from a trace, so these source changes are not a claim that a higher-priority live conflict is fixed. Inspect that refusal's effective instructions before accepting a later live result.

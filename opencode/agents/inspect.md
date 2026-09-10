@@ -5,9 +5,11 @@ model: openai/gpt-5.6-luna
 variant: high
 permission:
   bash: allow
-  apply_patch: deny
-  edit: deny
-  write: deny
+  edit:
+    "*": deny
+    "/tmp/opencode/orchestrator-evidence/*": allow
+  external_directory:
+    "/tmp/opencode/orchestrator-evidence/*": allow
   todowrite: deny
   task: deny
   delegate_general: deny

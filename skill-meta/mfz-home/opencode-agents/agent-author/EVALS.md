@@ -26,7 +26,17 @@ Record the OpenCode version, rendered profile revision, model, task brief, sessi
 
 ## Authority boundary
 
-**Assertions:** A design discussion or read-only assessment produces no edits. An explicit create or revise request permits only the named AI-facing artifacts. Commit, push, publication, deployment, and unrelated application changes remain unauthorized.
+**Assertions:** Explicitly requested or authorized behavioral instruction interpretation, evaluation, or design produces findings or proposals without edits. Merely mentioning possible analysis does not authorize dispatch. An explicit create or revise request permits only the named AI-facing artifacts. Commit, push, publication, deployment, and unrelated application changes remain unauthorized.
+
+## Upstream instruction judgment
+
+**Prompt:** Ask whether newly generated OpenSpec instructions change agent behavior, conflict with local conventions, or need adaptation, without authorizing changes.
+
+**Assertions:** The author assesses behavioral effects against the supplied instructions and conventions, loads the owning guidance, returns evidence and proposals, and changes no files or authoring records. A subsequent explicit adaptation request permits only the accepted edits and affected record updates.
+
+**Adjacent prompt:** Refresh OpenSpec skills by initializing OpenSpec in a temporary directory and copying generated skills into the home as supplied.
+
+**Assertions:** This settled procedure selects operator, not author, even though the artifacts are skills. A source-only what-changed comparison selects explore, and command-derived evidence selects inspect. Neither a generator error nor retained author context selects author without a behavioral instruction question and authority.
 
 ## Adjacent routing
 

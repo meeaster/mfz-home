@@ -6,21 +6,5 @@ The Personal profile extends the shared `base` profile. Keep shared behavior in 
 - For Executor routing changes or unverified live behavior, load `/home/mark/workspace/knowledge/personal-knowledge/threads/executor-mcp-routing-evidence/digest.md` before changing configuration or renderer behavior.
 
 <!-- mfz:home-guidance:begin -->
-This repo is a mindframe-z home: the source of truth for the AI tool
-configuration rendered onto this machine by the `mfz` CLI. This block is
-managed by `mfz apply` and rewritten on every run.
-
-- Before configuring anything here (profiles, catalog entries, skills, MCP,
-  instructions, dotfiles), run `mfz guide`; before adding or changing skills,
-  run `mfz guide skills`.
-- Before adding or changing a recurring OpenCode job, run `mfz guide cron`.
-- Edit source files in this repo, then run plain `mfz apply`; it follows the active home and profile from `~/.mindframe-z/config.yml`.
-- Reserve `--root`, `--home`, and `--profile` for isolated test commands with an explicit test home.
-- Never edit rendered output (`~/.mindframe-z/configs/` or globally linked
-  tool config). Use `mfz sync` only to promote unmanaged configuration keys;
-  skill source changes belong in the home and require `mfz apply`.
-- Executor-routed integrations are shared inventory. If one integration has
-  multiple named connections, add each one in the Executor app using the exact
-  profile connection name. Call tools with the full integration/owner/connection
-  address; never infer an account or organization.
+This repository is a Mindframe-Z home, the source for AI tool configuration rendered by `mfz`. Before changing configuration here, run `mfz guide` and follow its topic routing. This block is managed by `mfz apply`.
 <!-- mfz:home-guidance:end -->
