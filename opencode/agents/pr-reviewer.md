@@ -1,5 +1,5 @@
 ---
-description: Performs holistic merge due diligence for an unfamiliar or unobserved pull request by reconstructing intent, challenging requirement and architecture fit, testing simplification, and assessing evidence. Use focused reviewer when an accepted design, worker brief, and validation history are already known.
+description: Performs holistic merge due diligence for an unfamiliar or unobserved pull request by reconstructing intent, challenging requirement and architecture fit, testing simplification, and assessing evidence. Use focused reviewer when accepted intent and design, the implementation brief, resulting changes, and validation history are already known.
 mode: subagent
 permission:
   bash: allow

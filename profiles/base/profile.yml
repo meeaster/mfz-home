@@ -181,6 +181,9 @@ opencode_v2:
       agent-author:
         model: openai/gpt-5.6-sol
         variant: medium
+      artifact-author:
+        model: openai/gpt-5.6-sol
+        variant: medium
       architect:
         model: openai/gpt-5.6-sol
         variant: medium
@@ -231,6 +234,7 @@ opencode_v2:
     - rmslop
   agents:
     - agent-author
+    - artifact-author
     - explore
     - orchestrator
     - architect

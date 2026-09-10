@@ -13,6 +13,7 @@ permission:
     architect: allow
     ui-ux-designer: allow
     agent-author: allow
+    artifact-author: allow
     prototype: allow
     operator: allow
     worker: allow

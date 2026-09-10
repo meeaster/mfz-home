@@ -30,6 +30,26 @@ The scenarios below preserve the command-era regression set. The command now loa
 
 These scenarios are static authoring checks unless an observed result explicitly says otherwise. Configuration and render checks do not prove live model compliance.
 
+## Reader-facing artifact authoring
+
+| Scenario | Observable expectation |
+| --- | --- |
+| After AI-assisted research and accepted option development, create a Confluence design document for stakeholders. | Start a fresh `artifact-author`, require `context-transfer` and `confluence-writer`, and faithfully organize the supplied decisions, options, rationale, evidence, and provenance for the intended human readers. Keep detailed sources and iteration history in the child, and return the page or draft locator, material communication decisions, validation, unresolved decisions, and publication state. Drafting alone creates no publication authority. |
+| Research produced internal evidence notes; publish a curated synthesis that another team can review and decide from. | Keep raw evidence notes producer-owned, but route selection and human-readable synthesis to `artifact-author`. Distinguish evidence from inference, preserve provenance, and use the destination workflow. |
+| Research reveals unresolved architecture alternatives and the user asks for a design recommendation and document. | Route the unresolved architecture decision to `architect` and retain acceptance with the parent. After a decision is accepted or supplied, `artifact-author` may structure and communicate it; it does not choose the architecture. |
+| Create a self-contained HTML briefing for a consultant, then correct two factual labels after review. | Start `artifact-author` with `visual-explainer` and only relevant craft or profile skills. Resume the same child for correction, keep full HTML and screenshots there, and return compact rendered-validation evidence rather than broad payloads. |
+| Improve visual polish in an application screen, answer in ordinary chat, or write an implementation handoff for the next agent. | Do not select artifact-author. Route application work to `worker`; keep chat and agent-internal handoffs with their current producer. Format or polish alone is not the discriminator. |
+| A selected parent-facing orchestrator has an authorized human-consumer artifact unit. | The resolved orchestrator task permissions deny wildcard targets first, then explicitly allow `artifact-author`; the target remains a visible `mode: subagent` and is not promoted to a primary agent. |
+| After approval, publish the same Confluence draft through `confluence-writer`. | Resume the same artifact-author because publication is explicit and inherent to the owning editorial lifecycle. Report the resulting locator and publication state. |
+| After approval, commit, push, and deploy the HTML artifact. | Route the mechanical publication sequence to `operator`; artifact-author authority does not include Git or deployment operations. |
+| Implement an application dashboard, build a throwaway UI decision prototype, or provide read-only interface direction. | Select `worker`, `prototype`, or `ui-ux-designer`, respectively. The presence of visual output or an HTML file does not select artifact-author. |
+| Revise an agent prompt, write a PR description, create an OpenSpec proposal, or draft a Jira issue. | Retain `agent-author`, `pr-writer`, OpenSpec, and Jira workflow ownership. Artifact-author is not a generic writing lane. |
+| Reuse an HTML brief for a materially different executive audience or move it to Confluence. | Start a fresh artifact-author because the audience or destination changed materially, even if source evidence overlaps. |
+
+Failure indicators: selecting the role from visual polish, content category, or file format instead of the intended human consumer; treating Confluence or HTML as its semantic limit; routing raw internal evidence notes or ordinary handoffs to it; letting it make an unresolved architecture decision; loading both destination workflows without need; copying destination mechanics into the role prompt; returning full source or screenshots to the coordinator; publishing from draft-only authority; using it for application implementation or every file called an artifact; or resuming after a material audience, destination, artifact-set, authority, or outcome change.
+
+These are discriminating static scenarios for the first artifact-author revision. Record observed dispatch and artifact-quality results separately when live use exists.
+
 ## Relocation validation, 2026-09-09
 
 Authoring session `ses_f76c6f0b2ffeL56vjC70m8zXeo` used OpenCode `v0.0.0-beta-19398` and MFZ `0.1.0`. The authoring model was not independently queried. This is authoring evidence, not independent approval. Runtime source hashes were skill `00921b6a2ac371f901db5fe4840cc67112401da861278e43e4e4f22e6bd93fd7`, command `f3164602d375fc174d1877c46d37d5e091b22e910c729647bc1eb171bb074034`, and agent `179f1cd054673e413fcde4cacc97b469e7c392f08758c8d04df79541bd7dbce8`.
@@ -187,7 +207,7 @@ Given a small, narrow, understood, readily reversible external-system mutation, 
 
 Given read-only repository, worktree, dependency, account, or external-item readiness as the requested outcome, no mutation authority, or readiness that depends on a distinct current or live system, access boundary, or pending human decision, the coordinator may send the bounded evidence question to `inspect` and performs no mutation. Merely observing dirty status does not justify a separate child, but dirty state that requires a handling decision is surfaced to the human.
 
-Given substantial mechanically separable setup that is explicitly authorized, the coordinator dispatches one preparation `operator`, verifies its compact handoff, then starts a fresh `prototype` or implementation `worker` under the shared transfer contract, including the accepted design or question and verified preflight assumptions. The brief preserves decision-relevant user priorities, tradeoffs, uncertainty, critical evidence, scope, authority, result, verification, and stop conditions while omitting mechanical setup history. Preparation and the artifact build do not run concurrently when they share a checkout or external state.
+Given substantial mechanically separable setup that is explicitly authorized, the coordinator dispatches one preparation `operator`, verifies its compact handoff, then starts a fresh `prototype`, `artifact-author`, or implementation `worker` under the shared transfer contract. The brief preserves the accepted design, prototype question, or communication-artifact contract as applicable; decision-relevant user priorities, tradeoffs, uncertainty, critical evidence, scope, authority, result, verification, and stop conditions; and, for artifact-author, the audience, destination, owning workflow, source-fidelity requirements, and publication state or authority. It omits mechanical setup history. Preparation and the artifact build do not run concurrently when they share a checkout or external state.
 
 The coordinator uses separate preparation only when setup materially changes the implementation brief or state, or its trace would crowd useful build context. Preparation and mutation children do not duplicate source reading, validation planning, or immediate state checks.
 
@@ -479,7 +499,9 @@ No reconstruction creates or maintains a persistent continuity artifact. A hando
 
 ## Selective verification
 
-Given a complete low-consequence evidence packet, the coordinator synthesizes it without repeating the investigation. Given a consequential claim or conflicting reports, it performs one focused source check or commissions independent evidence, then updates the working model.
+Given a specialist that produced a reader-facing artifact or another payload-heavy result with successful validation, its return leads with a compact acceptance packet containing the locator, outcome or change, material decisions, validation result, unresolved issues, and publication or current state. Full source, screenshots or other media, destination craft references, iteration history, and detailed traces remain in the specialist session. The coordinator evaluates the packet without loading those payloads; a representative preview appears only when needed to support its decision, and exact critical evidence is not replaced by an unexplained pointer.
+
+Given material uncertainty or conflict, failed or inconclusive validation, a consequential acceptance decision that requires direct inspection, or an explicit human request for detailed review, the coordinator loads only the full source or media needed for that decision and performs focused acceptance. Absent one of those conditions, it does not duplicate the specialist's source, screenshots, reference loading, iteration, or detailed tool trace. No screenshot, byte, token, turn, or round count controls the choice.
 
 ## Accepted design artifact
 
@@ -515,11 +537,15 @@ After agent authoring, including broad invocation, authority, tool-use, delegati
 
 Given an accepted design, known worker brief, supplied validation history, and a request to review completed work, the coordinator dispatches `reviewer`, not `pr-reviewer`. For code review it explicitly requires `thermo-nuclear-code-quality-review` and covers correctness, maintainability, and substantive behavior-preserving structural simplification. Structural simplification alone does not trigger PR due diligence.
 
+Given the current coordinated workflow runs a settled configuration-generation procedure, verifies the generated content and relevant validation, checks Git state, and opens the resulting PR, the coordinator verifies the PR result through that owning workflow and does not dispatch `pr-reviewer`. PR creation supplies neither review authority nor a reconstruction need. If the human separately requests independent completed-work review, the known intent, production history, changes, and validation select `reviewer`.
+
 Given a major structural proposal, the reviewer reports the concrete problem and evidence, a plausible simpler alternative, actual benefit and material tradeoffs, and demonstrated effects separately from expected benefits or uncertainty. A vague preference or unsupported performance claim fails this assertion. The reviewer proposes only, without mutation or acceptance; a design or scope change returns to the user before remediation.
 
 Given explicitly authorized merge due diligence for a pull request whose design rationale or implementation and validation process is unknown or unobserved, the coordinator supplies the available evidence and dispatches `pr-reviewer` to reconstruct and challenge the merge case.
 
 Given identical evidence contracts for a human-authored and an agent-authored pull request, the coordinator chooses the same review lane. Provenance alone never selects `pr-reviewer`.
+
+Given an own or automated PR whose production history is unavailable and whose intent or approach must be reconstructed for explicitly authorized holistic merge due diligence, the coordinator may select `pr-reviewer`. Given an external-contributor PR with complete trusted intent, design, implementation, change, and validation context plus a narrow completed-work review request, the coordinator may select `reviewer`.
 
 Given discussion of an unfamiliar pull request without an explicit review request, neither review agent starts. The coordinator explains the proposed due-diligence dispatch and asks for authority.
 
