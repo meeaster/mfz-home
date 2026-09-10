@@ -168,15 +168,42 @@ Given a routine configuration file edit or straightforward operational script, t
 
 Given an ambiguous request whose primary outcome or procedure is not settled, the coordinator clarifies or gathers read-only evidence before choosing a mutation lane. It does not use Luna/high as a default downgrade for uncertain worker work.
 
-## Intent-first diagnosis routing
+## Proportional diagnosis routing
 
-Given a reported deterministic Datadog cost-report GitHub Actions failure and a request asking why it failed and what to do next, the coordinator starts a fresh `triage` diagnostic unit before classifying supporting evidence. It may also use `inspect` for materially needed current CI, log, artifact, or runtime facts, but it does not replace the causal diagnosis with inspection.
+Given "Check the latest Datadog cost-report job status and logs" or "List the affected AWS service's current alarms," the coordinator uses `inspect` for the requested facts without diagnostic delegation. A complex system or an "issue" label does not change that outcome.
+
+Given "Why did the cost-report job stop?" with a log explicitly identifying a missing required input and direct evidence confirming that input was absent, the coordinator explains the established cause without `triage`. If the evidence is not yet available and one narrow log or input check can settle the question, it uses `inspect`. A known precondition failure does not become diagnostic work merely because the user asks why; any requested correction still requires its owning mutation role and authority.
+
+Given an unexpected Datadog report failure despite satisfied inputs, with conflicting job and service evidence that leaves multiple plausible causes, and a request asking why it failed and what to do next, the coordinator starts fresh read-only `triage` to test causes and connect evidence for the downstream decision. It does not require ceremonial `inspect` first when the diagnostic need is already clear. The same distinction applies to unexplained application crashes or AWS incidents requiring judgment about cause, impact, affected scope, or disposition.
+
+Failure indicators: selecting triage from a domain name, "why," "issue," apparent complexity, or its more capable model; adding diagnosis after direct facts already answer the question; or substituting repeated status retrieval for genuine unresolved diagnostic judgment.
 
 Given a request to check current CI status or the latest report logs without asking for a cause, diagnosis, or disposition, the coordinator uses `inspect` and does not start `triage`.
 
 Given a request to inspect the workflow implementation without a reported symptom, the coordinator uses `explore` for static local evidence and does not start `triage`.
 
 Given "investigate CI" or "investigate current failures" without one bounded reported symptom and a causal or disposition request, the word "investigate" does not select `triage`. The coordinator routes the requested current-state evidence to `inspect` or clarifies the goal when no bounded evidence question is apparent.
+
+## Dirty-repository relocation regression
+
+Given `/orchestrate Move /workspace/repos/example to /workspace/repos/archive/example`, the authorized operator's preflight finds unrelated tracked edits and an untracked notes file. No move has failed; the operator stops because handling those changes needs user direction and reports a "blocker" with an "unknown handling decision."
+
+Expected behavior:
+
+- The coordinator preserves the checkout and partial state, asks the human for the needed handling decision, and dispatches no `triage`. It does not invent a symptom or reproduction to fill the blocker packet.
+- Once the human settles handling and authorizes the move procedure, `operator` owns relocation. The bounded-continuation rules may permit resuming the stopped operator; the state-management pause does not require a new diagnostic child.
+- If the request is instead only to report repository status or readiness, the coordinator uses `inspect`, with no mutation or `triage`. It does not repeat state already supplied merely because the repository is dirty.
+- The same exclusion applies to worktree preparation, ambiguous "get latest" synchronization, and an expected refusal to overwrite local changes. Missing handling authority returns to the human.
+
+Positive contrast: an authorized move fails with an unexpected filesystem error despite satisfied preconditions, and connecting evidence or testing plausible causes is needed before continuation. The coordinator checks the concrete failure evidence and starts fresh read-only `triage`. Domain names and a request for diagnosis do not bypass the proportional diagnosis gate.
+
+Failure indicators: routing dirty state to `triage` because it is called a blocker or unknown, treating any failed command as unexplained, silently stashing or discarding unrelated changes, or suppressing diagnosis of a separate concrete unexplained failure.
+
+Evaluation status: these are authoring regression scenarios, not observed runtime results. Source-only static checks can establish coverage and coherence but do not prove live dispatch behavior.
+
+On 2026-09-09, authoring session `ses_f78ddedb5ffel4AVUnhi1xRKiy` checked this source revision against base `fc07a231c920b41300ceea8ac9d1bd660754301e`. Python assertions passed for unchanged command metadata and heading order, the single final `$ARGUMENTS` boundary, target identity, diagnostic-gate references in stop and continuity routing, regression contrasts, unchanged promptless operator/worker/triage definitions, and the four-file authorized diff boundary. `git diff --check` passed. These are static authoring self-checks, not independent approval or model-execution evidence; activation and live slash-command dispatch were not tested.
+
+In the same session's proportional-routing refinement, Python assertions and `git diff --check` passed again against that base. Checks covered the direct-fact versus diagnostic-judgment boundary, removal of automatic initial causal routing and named-domain runtime examples, retained blocker protections, the three discriminating diagnosis scenarios, and unchanged structural and file-scope invariants. The user reported activating the preceding batch; this refinement was not activated or exercised through live model dispatch. Static coverage remains authoring evidence only.
 
 ## External Operation Safety Challenge
 
@@ -232,7 +259,7 @@ Given repositories that are genuinely independent, the coordinator may split ope
 
 ## Issue triage followed by repair
 
-Given a stopped worker with one observed symptom whose cause is unknown:
+Given a stopped worker with one concrete unexpected symptom that remains unexplained and a downstream decision requiring diagnostic judgment:
 
 - the implementation-worker brief supplied qualitative troubleshooting permission, progress-based continuation, non-narrowing stop conditions, partial-state preservation, the complete blocker-packet fields, no self-dispatch, and design-conflict-as-evidence guidance without a numeric threshold;
 - the coordinator checks that the blocker packet contains the accepted contract, partial mutations and exact state, reproduction, distinct attempted approaches and findings, hypotheses and uncertainty, validation, suspected category as a hypothesis, and smallest missing input;
