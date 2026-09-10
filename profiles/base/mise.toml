@@ -39,7 +39,7 @@ yamllint = "1"
 "github:kitlangton/ghui" = "0"
 "npm:agent-browser" = "0"
 "npm:opencode-drive" = { version = "2", allow_low_downloads = true }
-"npm:impeccable" = "3"
+"npm:impeccable" = "4.1.0"
 "github:dandavison/delta" = "0"
 "github:charmbracelet/glow" = "3"
 bat = "0"
