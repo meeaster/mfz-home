@@ -128,7 +128,10 @@ skills:
     source: vendored
     repo: https://github.com/pbakaus/impeccable
     ref: main
-    subtree: plugin/skills/impeccable
+    variants:
+      claude-code: plugin/skills/impeccable
+      codex: .agents/skills/impeccable
+      opencode-v2: .opencode/skills/impeccable
   - name: animate
     description: >
       Build an animation from scratch, making the decisions in the order that
