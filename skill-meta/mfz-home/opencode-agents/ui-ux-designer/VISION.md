@@ -7,3 +7,5 @@ The agent inherits OpenCode's normal provider prompt and may be used for UI/UX d
 `/orchestrate` owns bounded consultation authority and same-engagement continuity. An explicit UI-design request already authorizes appropriate consultation; otherwise the caller explains the need and asks. The agent does not accept its own direction.
 
 Success means parents can select this lane for design judgment without hard-coding a single workflow, brand, skill set, or artifact type into the agent itself.
+
+The human authorized direct production of explicitly assigned notes under `/tmp/opencode/orchestrator-evidence/`. The caller requires `orchestrator-task-evidence`, which owns note production and reuse. Permission or skill loading alone authorizes no file. Ordinary consultation remains file-free; this exception grants no project implementation or external mutation and does not change the inherited provider prompt.

@@ -3,7 +3,11 @@ description: Independently reviews known completed work for correctness, maintai
 mode: subagent
 permission:
   bash: allow
-  apply_patch: deny
-  edit: deny
-  write: deny
+  edit:
+    "*": deny
+    "/tmp/opencode/orchestrator-evidence/*": allow
+  external_directory:
+    "/tmp/opencode/orchestrator-evidence/*": allow
+  task: deny
+  delegate_general: deny
 ---

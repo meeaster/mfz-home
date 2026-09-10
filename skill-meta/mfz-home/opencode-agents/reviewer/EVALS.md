@@ -4,7 +4,11 @@ Record the OpenCode version, rendered profile revision, model, review prompt, se
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists Personal `reviewer` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/personal/profile.yml`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; and `apply_patch`, `edit`, and `write` are denied by agent-level rules.
+**Assertions:** OpenCode lists Personal `reviewer` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/personal/profile.yml`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; native subagent delegation and `delegate_general` are denied. Test delegation at depth 1 so the depth limit cannot conceal a policy gap.
+
+## Assigned evidence notes
+
+Apply the positive assignment and negative boundary scenarios in `../session-analyst/EVALS.md#assigned-evidence-notes` to Reviewer using its review skills instead of `agent-sessions` and without Session Analyst's restricted skill allowlist. The caller requires the exact `orchestrator-task-evidence` load. Preserve the empty agent body, no fixes, no publication, and no delegation. These scenarios remain untested live for this revision.
 
 ## Independent Review
 

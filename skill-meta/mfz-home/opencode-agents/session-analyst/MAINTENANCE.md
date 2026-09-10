@@ -7,7 +7,7 @@
 - The cost and evidence scripts require Python 3 and standard-library SQLite support.
 - V2 API reads require `opencode2`; direct SQLite inspection requires `sqlite3`; Claude Code projections require `jq`.
 - Shell is deliberately available for adaptive read-only investigation. The agent prompt and `agent-sessions` own the no-mutation boundary; OpenCode permissions are not a semantic read-only shell sandbox.
-- Global configuration owns sensitive-path and external-directory policy for ordinary file tools.
+- Global configuration owns sensitive-path and external-directory policy outside the agent's task-evidence exception. `orchestrator-task-evidence` owns assigned-note production and reuse; `../explore/MAINTENANCE.md#v2-permission-evidence` explains absolute-path matching and shared-root ownership limits. Preserve the exact skill allow, outside-root edit deny, and external root allow. Avoid a later legacy `write: deny`, which normalizes to `edit` and would override the exception.
 
 ## Change Procedure
 
@@ -17,7 +17,7 @@
 4. Run every scenario in `EVALS.md`, including a command-capable child trace and adjacent routing checks.
 5. Compare Luna/high with a higher effort only under the matched Model Policy scenario.
 6. Record consequential decisions, observed effects, and reversals in `LOG.md`.
-7. Apply source changes with plain `mfz apply`, verify the rendered agent, then restart or open a fresh OpenCode session before live validation.
+7. When activation is authorized, use plain `mfz apply`, verify the rendered and resolved agent, then validate through a native child in the running V2 server. Agent definitions hot-reload; no restart is required.
 
 ## Evidence Review
 

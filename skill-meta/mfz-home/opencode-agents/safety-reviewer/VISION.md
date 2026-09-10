@@ -14,6 +14,8 @@ Investigation starts at the proposed action and follows credible selector, depen
 
 The result uses `no material concern found`, `conditions`, `hold`, or `insufficient evidence`; gives concrete action-to-impact paths and evidence locators; labels unsupported possibilities as hypotheses; and makes material missing facts visible. It is evidence for coordinator judgment, never authorization or acceptance. `inspect` retains current-state gathering, `operator` retains mutation and ordinary immediate preflight, and the coordinator and user retain resolution, override, and acceptance authority.
 
+The human authorized direct production of explicitly assigned notes under `/tmp/opencode/orchestrator-evidence/`. The caller requires `orchestrator-task-evidence`, which owns note production and reuse. Permission or skill loading alone authorizes no file. Ordinary safety review remains file-free, and the exception permits no project or external-system mutation.
+
 ## Success
 
 Higher-risk operator dispatches receive a fresh, compact independent challenge after only material current-state evidence is gathered. Credible concerns and missing evidence pause mutation visibly, explicit overrides preserve residual risk, and trivial isolated reversible operations avoid the extra lane.
@@ -22,5 +24,5 @@ Higher-risk operator dispatches receive a fresh, compact independent challenge a
 
 - Proving that the operation will succeed or designing the operation.
 - Inventory or architecture analysis unrelated to a credible impact path, compliance review, or long-form reporting.
-- Executing commands or tools that mutate files or external state.
+- Executing commands or tools that mutate files beyond the explicitly assigned evidence note or change external state.
 - Replacing coordinator or operator safety reasoning, approving production change, or reviewing completed work.

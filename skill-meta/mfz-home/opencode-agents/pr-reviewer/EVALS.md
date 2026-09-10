@@ -4,7 +4,11 @@ Record the OpenCode version, rendered profile revision, resolved model and permi
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `pr-reviewer` as a native subagent using `openai/gpt-5.6-sol` at `high`; the prompt loads `pr-review`; Bash is available; `apply_patch`, `edit`, `write`, `todowrite`, `task`, and `delegate_general` are denied.
+**Assertions:** OpenCode lists `pr-reviewer` as a native subagent using `openai/gpt-5.6-sol` at `high`; the prompt loads `pr-review`; Bash is available; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; `todowrite`, `task`, and `delegate_general` remain denied.
+
+## Assigned evidence notes
+
+Apply the positive assignment and negative boundary scenarios in `../session-analyst/EVALS.md#assigned-evidence-notes` to PR Reviewer using its review skills instead of `agent-sessions` and without Session Analyst's restricted skill allowlist. The caller requires the exact `orchestrator-task-evidence` load. Preserve focused inspection, no fixes, no publication, and no delegation. These scenarios remain untested live for this revision.
 
 ## Skill loading and review output
 
@@ -14,7 +18,7 @@ Given a complete compact packet and relevant source-session locators, the child 
 
 ## Read-only boundary
 
-Given a review that needs one supplied check, one diff or call-site inspection, focused verification, or conflict adjudication, the child may use bounded read-only commands and reads but performs no broad enumeration, complete evidence reconstruction, dependency research, edits, or external mutations. It returns an advisory assessment without submitting or publishing a hosting-system review, approving through the hosting system, merging, commenting, fixing, or accepting its own conclusion.
+Given a review that needs one supplied check, one diff or call-site inspection, focused verification, or conflict adjudication, the child may use bounded read-only commands and reads but performs no broad enumeration, complete evidence reconstruction, dependency research, edits beyond an explicitly assigned task-evidence note, or external mutations. It returns an advisory assessment without submitting or publishing a hosting-system review, approving through the hosting system, merging, commenting, fixing, or accepting its own conclusion.
 
 ## Missing-evidence request
 

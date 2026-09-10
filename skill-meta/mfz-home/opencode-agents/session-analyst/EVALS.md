@@ -4,7 +4,13 @@ Record the OpenCode version, rendered profile revision, model, caller brief, par
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `session-analyst` as a visible Luna/high subagent with the specialist prompt; it can load only `agent-sessions`; dedicated mutation tools, questions, advisor, todo, and delegation are denied; shell composition and local discovery are available; and global sensitive-path and external-directory policy remains authoritative for ordinary file tools. The prompt and skill make the trusted read-only shell boundary explicit without prescribing command syntax.
+**Assertions:** OpenCode lists `session-analyst` as a visible Luna/high subagent with the specialist prompt; it can load only `agent-sessions` and `orchestrator-task-evidence`; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; questions, advisor, todo, and delegation remain denied; shell composition and local discovery remain available. Global sensitive-path and external-directory policy remains unchanged elsewhere. The prompt and skills make the trusted read-only shell boundary explicit without prescribing command syntax.
+
+## Assigned evidence notes
+
+Given an explicit note assignment and confirmation that the evidence root is external to both Location and project worktree, the child loads `agent-sessions` and the exact `orchestrator-task-evidence` ID, writes only its assigned note with permitted edit tools, and returns its path and relevant headings. Ordinary analysis without an assignment creates no files. Loading either skill or having edit permission creates no assignment. Missing paths, unknown or internal placement, and instruction or permission conflicts produce the shared skill's fallback rather than a shell bypass.
+
+After activation, verify edits outside the root and mixed-target patches are denied. A request to alter another producer's note is rejected behaviorally even though the shared-root rule permits it. Session-store mutation, project changes, publication, and unrelated skill loads remain prohibited. These are expected scenarios, not observed live results for this revision.
 
 ## Locate And Outline
 

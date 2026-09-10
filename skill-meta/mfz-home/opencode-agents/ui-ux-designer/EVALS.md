@@ -2,7 +2,11 @@
 
 ## Structural Configuration
 
-**Assertions:** OpenCode V2 lists `ui-ux-designer` as `openai/gpt-5.6-sol@medium`; the rendered agent has an empty prompt; direct edit, write, and patch tools plus recursive delegation and todo ownership are denied.
+**Assertions:** OpenCode V2 lists `ui-ux-designer` as `openai/gpt-5.6-sol@medium`; the rendered agent has an empty prompt; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; recursive delegation and todo ownership remain denied.
+
+## Assigned evidence notes
+
+Apply the positive assignment and negative boundary scenarios in `../session-analyst/EVALS.md#assigned-evidence-notes` to UI/UX Designer using `ui-ux-design` instead of `agent-sessions` and without Session Analyst's restricted skill allowlist. The caller requires the exact `orchestrator-task-evidence` load. Preserve the empty agent body, consultation-only authority, no publication, and no delegation. These scenarios remain untested live for this revision.
 
 ## Design Handoff
 
