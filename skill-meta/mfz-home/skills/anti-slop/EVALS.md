@@ -2,6 +2,16 @@
 
 The scenario sections define expected behavior, not blanket pass claims. Observed results are dated and limited to the stated fixtures. Historical adopted revisions remain in [LOG.md](LOG.md).
 
+## Observed follow-up: 2026-09-10 runtime hint
+
+The launcher mutation unit reported 19 passing source-launcher assertions from `node /tmp/opencode/anti-slop-runtime-hint-matrix.mjs`. Spacing-only, mixed spacing/semantic, multiple-spacing, multi-target, and isolated-config cases emitted the exact [runtime hint](MAINTENANCE.md#readable-spacing-runtime-hint) once. Direct capture preserved diagnostics and summary on stdout with only the hint plus LF on stderr; combined capture placed the hint after the final summary. Diagnostic exit status remained 1.
+
+Clean, semantic-only, invalid-input, missing-tool, spacing-fix, and complete post-fix cases emitted no hint, including semantic/Effect residual failures and a syntax-error fix failure. All cases cleaned temporary state; nonmutating cases retained target inventories. A controlled fake Oxlint child emitted 1,048,576 bytes and split the marker across delayed writes, verifying bounded detection and output draining. Real local Oxlint covered policy/rule behavior; the synthetic child tested only streaming boundaries.
+
+Local versions remained Node `v26.8.1`, Mise `2026.9.4 linux-x64`, Oxlint and `@oxlint/plugins` `1.81.0`, pnpm `11.26.0`, Vitest `4.1.9`, and TypeScript `6.0.3`. The worker reported passing source anti-slop, syntax, suppression, repository test/typecheck, and whitespace checks. The vendored revision and retained fixed fixture were unchanged.
+
+Evidence is in `runner-implementation-result.md`, heading `2026-09-10 follow-up: readable-spacing runtime hint`, under the temporary evidence directory cited below. These are reported source-launcher observations, not an authoring-unit rerun, rendered execution, or real-model evidence that the hint changes command selection. Earlier observed sections remain historical and unchanged.
+
 ## Observed follow-up: 2026-09-10 `--fix-spacing`
 
 The launcher mutation unit reported the explicit fix-mode results below through the source launcher at `skills/active/anti-slop/scripts/anti-slop.mjs`. Vendored upstream remains untagged post-v0.1.2 commit `c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b`. This follow-up intentionally replaces the earlier no-autofix policy only for explicit spacing fixes; earlier diagnostic-only observations below remain historical.
@@ -90,6 +100,14 @@ Cover manual tag comparisons/switches outside broad handlers, tags/reasons insid
 **Prompt:** Run anti-slop without `--effect` against missing import/top-level separation, declaration/multiline-binding separation, and control-flow/return boundaries.
 
 **Assertions:** `anti-slop/require-readable-spacing` reports the gaps at error severity. Consecutive imports, overload groups, short local bindings, and already-separated code retain upstream's positive behavior. Default diagnostics leave source bytes unchanged despite upstream autofix metadata; general fix/config passthrough remains unsupported.
+
+## Readable-spacing runtime hint
+
+**Prompt:** Run ordinary diagnostics against spacing-only, mixed spacing/semantic, multiple-spacing, and multi-target fixtures, then compare clean, semantic-only, invalid/tool-failure, and both fix-mode passes.
+
+**Assertions:** Apply the exact output-selection contract in [MAINTENANCE.md](MAINTENANCE.md#readable-spacing-runtime-hint). Check hint count, stderr destination, placement after the ordinary summary, unchanged child output/status, and default target immutability. Exercise a marker split across chunks and large output without truncation. No fix-mode pass emits the hint, even when its final diagnostics fail.
+
+In a separate real-agent evaluation, verify that the hint leads an authorized implementation agent to the same-target deterministic fixer rather than manual spacing edits. An assessment-only agent must still report without fixing; emitted guidance grants no authority. Launcher output checks alone do not establish either model behavior.
 
 ## Explicit spacing fix
 

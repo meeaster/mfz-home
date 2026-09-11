@@ -2,7 +2,7 @@
 import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 
 const skillDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -168,36 +168,70 @@ const childOptions = {
   env: { ...process.env, OXLINT_DISABLE_CONFIG_LOOKUP: "true" },
 };
 
+const spacingDiagnosticMarker = "anti-slop(require-readable-spacing)";
+
+const spacingHint = "anti-slop: rerun the same command with --fix-spacing; do not hand-edit this spacing.";
+
+function runOxlint(args, detectSpacing) {
+  return new Promise((resolve, reject) => {
+    const child = spawn(oxlint, args, {
+      ...childOptions,
+      stdio: ["inherit", "pipe", "pipe"],
+    });
+
+    let spacingDiagnostic = false;
+
+    const forwardOutput = (stream, destination) => {
+      let markerTail = "";
+      stream.on("data", (chunk) => {
+        if (detectSpacing) {
+          const output = markerTail + chunk.toString();
+
+          if (output.includes(spacingDiagnosticMarker)) {
+            spacingDiagnostic = true;
+          }
+
+          markerTail = output.slice(-(spacingDiagnosticMarker.length - 1));
+        }
+      });
+      stream.pipe(destination, { end: false });
+    };
+
+    forwardOutput(child.stdout, process.stdout);
+    forwardOutput(child.stderr, process.stderr);
+    child.on("error", reject);
+    child.on("close", (status) => resolve({ status, spacingDiagnostic }));
+  });
+}
+
 let exitCode = 1;
 
 try {
   if (fixSpacing) {
-    const fixResult = spawnSync(oxlint, [
+    const fixResult = await runOxlint([
       "--config", spacingConfig,
       "--fix",
       ...commonArgs,
-    ], childOptions);
-
-    if (fixResult.error) throw fixResult.error;
+    ], false);
 
     if (fixResult.status !== 0) {
       exitCode = fixResult.status ?? 1;
     } else {
-      const finalResult = spawnSync(oxlint, finalArgs, childOptions);
-
-      if (finalResult.error) throw finalResult.error;
+      const finalResult = await runOxlint(finalArgs, false);
 
       exitCode = finalResult.status ?? 1;
     }
   } else {
-    const result = spawnSync(oxlint, finalArgs, childOptions);
-
-    if (result.error) throw result.error;
+    const result = await runOxlint(finalArgs, true);
 
     exitCode = result.status ?? 1;
+
+    if (result.spacingDiagnostic) {
+      process.stderr.write(`${spacingHint}\n`);
+    }
   }
 } finally {
   rmSync(tempDir, { recursive: true, force: true });
 }
 
-process.exit(exitCode);
+process.exitCode = exitCode;

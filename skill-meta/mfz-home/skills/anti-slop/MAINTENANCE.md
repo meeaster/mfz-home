@@ -28,6 +28,18 @@ Runtime usage is in [SKILL.md](../../../../skills/active/anti-slop/SKILL.md). Pr
 - Validate all operands before temporary setup or tool lookup. An invalid later target prevents any partial scan or fix. Forward all absolute paths in original order to each Oxlint pass; retain duplicates and overlaps without broadening to a common ancestor. Default diagnostics use one child. Oxlint owns traversal, overlap handling, and diagnostic ordering.
 - Preserve inherited diagnostic output and child exit status. Missing tools and execution failures are failures. A successful exit does not establish an agent checkpoint without the separate suppression inspection in `SKILL.md`.
 
+## Readable-spacing runtime hint
+
+Ordinary diagnostics detect the exact output marker `anti-slop(require-readable-spacing)` and append this launcher-owned stderr line once, after the diagnostic summary:
+
+```text
+anti-slop: rerun the same command with --fix-spacing; do not hand-edit this spacing.
+```
+
+Preserve streamed stdout/stderr at their original destinations and the child exit status. Detection must handle split markers with bounded per-stream state rather than buffer the full output. Clean, semantic-only, invalid-input, and tool-failure runs emit no hint. Disable detection for both the spacing fix pass and the complete post-fix pass, including residual failures.
+
+This output steers agents toward the deterministic fixer; it neither fixes automatically nor grants edit authority. The runtime skill's assessment-only boundary still applies when the hint is present.
+
 ## Spacing-only fix contract
 
 Fix mode uses a separate temporary configuration with only the generic plugin and `anti-slop/require-readable-spacing` at error severity. Only this pass receives Oxlint's `--fix`; no other generic, native companion, or Effect rule is enabled for mutation. Both passes retain target/nested-config isolation and the same validated absolute operands.
