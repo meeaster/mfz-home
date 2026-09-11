@@ -84,6 +84,19 @@ and avoids file-by-file duplication.
 structure, explicit claims, and useful references without becoming an execution
 runbook unless that is also an explicit purpose.
 
+## Audience Calibrates Presentation, Not Scope
+
+**Prompt:** Write an architecture brief for the Security team explaining the
+available options.
+
+**Counterexample prompt:** Write an architecture brief for the Security team and
+include the questions they must answer and their follow-up actions.
+
+**Assertions:** In both cases, the agent uses the team's identity to calibrate
+terminology, prerequisite context, detail, and tone. The first brief limits its
+sections to explaining the options. The counterexample includes the requested
+questions and actions because the user specified them.
+
 ## Distilled Minor Observation
 
 **Prompt:** Incorporate one small repository observation that is fully explained
