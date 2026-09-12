@@ -14,7 +14,7 @@ The reviewer returns prioritized, evidence-backed proposals and identifies unsup
 
 The human authorized direct production of explicitly assigned task-evidence notes. The caller requires `orchestrator-task-evidence` and supplies the owned path; permission or skill loading alone authorizes no file. Ordinary review remains file-free. Keep the agent promptless and leave the shared note method with that skill.
 
-Review cadence belongs to the invoking workflow. Risk, accumulated scope, subsystem boundaries, or final verification may justify a review; the existence of a worker result alone does not.
+Outside a loaded workflow, only an explicit human request to use `reviewer` selects it. A request to review without naming the agent remains in the ordinary session. Review cadence belongs to an invoking workflow when one is active; the existence of a worker result alone does not select this agent.
 
 ## Success
 

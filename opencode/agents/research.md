@@ -1,5 +1,5 @@
 ---
-description: Extracts external documentation and upstream-source facts for libraries, APIs, SDKs, CLIs, integrations, and protocols. Use when external evidence is the task; use explore for local codebase discovery.
+description: Proactively gathers bounded external documentation and upstream-source evidence when materially useful. Use explore for static local evidence.
 mode: subagent
 model: openai/gpt-5.6-luna
 variant: high

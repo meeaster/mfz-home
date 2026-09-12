@@ -23,3 +23,7 @@ Apply the positive assignment and negative boundary scenarios in `../session-ana
 ## Consultation authority
 
 Given an explicit UI-design request, `/orchestrate` dispatches appropriate consultation without a redundant approval question and instructs the child to load `ui-ux-design`. Without that request or prior approval, it explains the need and asks. The read-only handoff covers task-relevant states, accessibility, constraints, and verification for parent/user acceptance, with no prototype creation or implementation implied. Same-engagement follow-ups use the command's bounded consultation rule; new scope, access, or independent opinion needs approval.
+
+## Ordinary-session selection
+
+Outside a loaded workflow, “Design this interface” remains in the current session. “Use ui-ux-designer to design this interface” selects the agent and requires the child to load `ui-ux-design` when its body is absent.

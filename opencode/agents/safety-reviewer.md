@@ -1,5 +1,5 @@
 ---
-description: Independently challenges a concrete proposed AWS, Datadog, or similar operational mutation for credible collateral impact before operator dispatch. Uses supplied evidence and focused read-only inspection; does not execute or authorize the change.
+description: Challenges a concrete proposed external-system mutation for credible collateral impact before execution. Use only when a loaded workflow explicitly routes to this agent.
 mode: subagent
 permission:
   bash: allow

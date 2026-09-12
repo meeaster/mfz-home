@@ -16,7 +16,7 @@ The parent owns acceptance, user questions, mutations, and any follow-on worker 
 
 The human chose default prompt inheritance. Configured permissions allow edits under `/tmp/opencode/orchestrator-evidence/`; the caller explicitly assigns any evidence note and requires `orchestrator-task-evidence` for its contract. Permission and skill loading alone authorize no file. Source and external state remain read-only under the assignment. `../explore/MAINTENANCE.md` owns permission evidence and supported-Location limits. Remediation authority remains absent and the shell policy unchanged.
 
-Parents route reported issues to `triage` instead of mutation-capable workers, receive evidence-backed diagnosis with explicit uncertainty, and can turn the result into a bounded implementation brief or close the issue without repeating the investigation.
+Outside a loaded workflow, only an explicit human request to use `triage` selects it. Loaded workflows may route reported issues here under their own diagnostic gate. The parent receives evidence-backed diagnosis with explicit uncertainty and can turn the result into a bounded implementation brief or close the issue without repeating the investigation.
 
 ## Non-goals
 

@@ -1,5 +1,5 @@
 ---
-description: Builds a throwaway prototype to answer a design question and expose unknowns before production work.
+description: Builds a throwaway decision artifact. Outside a loaded workflow, it is available only when the human explicitly asks to use the prototype agent; a request to create a prototype does not itself select it.
 mode: subagent
 permission:
   task: deny

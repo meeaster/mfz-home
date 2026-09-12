@@ -51,3 +51,7 @@ Record the OpenCode version, rendered profile revision, model, task prompt, sess
 ## Provider-Prompt Inheritance
 
 **Assertions:** The source and rendered agent contain frontmatter only, OpenCode reports no non-empty custom prompt, and a live child receives the normal provider prompt plus environment and repository instructions. Adding workflow prose to the agent body fails this evaluation unless an intentional redesign authorizes replacing the provider prompt.
+
+## Ordinary-session selection
+
+**Scenario:** The human requests a settled source-control procedure, MFZ generation or apply, supported CLI or configuration operation, service or process lifecycle action, environment preparation, deployment or infrastructure operation, or external-system mutation. Ordinary routing selects `operator` proactively and carries only the authority in that request. Ordinary source implementation, behavioral instruction authoring, and novel troubleshooting do not select it.

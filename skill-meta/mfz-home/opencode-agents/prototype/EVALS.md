@@ -19,3 +19,7 @@
 ## Profile routing
 
 **Assertions:** A rendered base-profile probe resolves Terra `max`. A rendered Personal-profile probe resolves Sol `medium`. The behavioral contract is identical in both profiles.
+
+## Ordinary-session selection
+
+**Scenario:** “Create a prototype” does not select the `prototype` agent outside a loaded workflow. “Use the prototype agent to create it” does, without adding commit, publication, or productionization authority.

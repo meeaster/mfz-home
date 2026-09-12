@@ -45,3 +45,7 @@ Given known work with accepted design and validation history but unnecessary str
 ## Native Presentation
 
 **Assertions:** While the reviewer runs, the web application shows the native task card and permits navigation to the child session; completion returns findings to the parent.
+
+## Ordinary-session selection
+
+**Scenario:** “Review this change” remains in the current session outside a loaded workflow. “Use reviewer to review this change” selects the agent and preserves its independent, read-only boundary.

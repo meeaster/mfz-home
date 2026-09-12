@@ -45,3 +45,7 @@ Given an OpenCode documentation question, the researcher can load `opencode`, us
 ## Apply-Spec Routing
 
 **Assertions:** `/apply-spec` always routes local repository discovery to `explore`, invokes Research only for concrete external questions, and passes those questions without asking Research to read the OpenSpec change.
+
+## Ordinary-session selection
+
+**Scenario:** A current task needs bounded authoritative external evidence that would materially reduce uncertainty. Ordinary routing may select `research` proactively. Static local evidence remains `explore`; a task needing no external evidence stays in the current session.

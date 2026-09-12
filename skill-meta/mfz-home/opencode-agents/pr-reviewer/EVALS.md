@@ -31,3 +31,7 @@ Given an architecture question that meets the skill's escalation criteria, the c
 ## Adjacent routing
 
 Given known accepted intent and design, implementation brief, resulting changes, and validation history whose objective is correctness, maintainability, or substantive behavior-preserving structural simplification, callers retain `reviewer`. This includes a generated configuration PR produced and verified by the current coordinated workflow; opening the PR neither grants review authority nor selects this agent. Structural simplification alone does not trigger PR due diligence. An own or automated PR with unavailable production history may still select this agent for explicitly authorized reconstruction, while an external PR with complete trusted context may remain a focused review. Given initial design, implementation, remediation, or publication work, the agent description does not claim those responsibilities.
+
+## Selection boundary
+
+Ordinary routing does not select `pr-reviewer`. A loaded workflow must route to it explicitly with review authority and the evidence contract for holistic merge due diligence.

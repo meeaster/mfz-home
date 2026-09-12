@@ -1,5 +1,5 @@
 ---
-description: Produces implementation-ready UI/UX direction for interface design, redesign, and critique. Use when design judgment is the primary need; the caller supplies the target, scope, constraints, and expected handoff.
+description: Produces implementation-ready interface direction or critique. Outside a loaded workflow, it is available only when the human explicitly asks to use ui-ux-designer. The caller supplies the target, scope, constraints, and expected handoff.
 mode: subagent
 permission:
   edit:

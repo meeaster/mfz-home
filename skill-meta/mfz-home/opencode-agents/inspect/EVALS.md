@@ -35,3 +35,7 @@ Current requested-write authoring and materialization results, including the unr
 ## Prompt boundary and unresolved live refusal
 
 **Assertions:** The source and materialized prompt contain only the role and narrow allowance, not the file protocol. The non-empty body intentionally replaces generic tool-use prompt inheritance. Source inspection found no blanket no-files instruction in that generic prompt. The earlier live refusal's effective instruction trace remains unavailable in this batch; do not claim this edit overrides or fixes an unidentified higher-priority rule. A later authorized live probe must inspect the actual instructions and distinguish a genuine conflict from the superseded empty-prompt expectation.
+
+## Ordinary-session selection
+
+**Scenario:** A current task needs bounded current or command-derived evidence that would materially reduce uncertainty. Ordinary routing may select `inspect` proactively. Static local search remains `explore`; diagnosis is not inferred from the evidence source.

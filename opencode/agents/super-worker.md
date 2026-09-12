@@ -1,5 +1,5 @@
 ---
-description: Executes the same bounded implementation, remediation, and investigation work as worker, only when the human explicitly requests super-worker for the task or batch. Never select automatically for difficulty, failures, or perceived quality; model choice grants no implementation or publication authority.
+description: Executes a task or batch of bounded implementation, remediation, or investigation. Outside a loaded workflow, it is available only when the human explicitly asks to use super-worker. Difficulty, failures, or perceived quality do not select it; selection grants no implementation or publication authority.
 mode: subagent
 permission:
   todowrite: deny

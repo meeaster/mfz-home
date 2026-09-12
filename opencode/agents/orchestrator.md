@@ -1,5 +1,5 @@
 ---
-description: Coordinates a bounded assignment only when the human explicitly requests orchestrator for the task or batch, never from complexity or failures. The parent must explicitly require loading orchestrator-mode in parent-facing context and supply context, delegated authority, and return conditions; selection grants no work or publication authority.
+description: A loaded workflow explicitly routes a bounded coordination assignment to this agent and supplies its required operating mode, context, delegated authority, limits, and return conditions. Selection grants no work or publication authority.
 mode: subagent
 permission:
   question: deny

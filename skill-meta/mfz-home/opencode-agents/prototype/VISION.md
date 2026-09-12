@@ -8,6 +8,8 @@ Design questions are often easier to judge through a runnable artifact than thro
 
 `prototype` loads the existing `prototype` skill and follows its logic or UI branch. The caller supplies the design question, repository context, constraints, and stopping condition. The agent may plan, edit, and validate within that boundary, but it cannot recursively delegate.
 
+Outside a loaded workflow, only an explicit human request to use the `prototype` agent selects it. A request to create a prototype authorizes the requested artifact work but does not select this agent by itself.
+
 Model choice is profile policy. The base profile uses Terra `max` for cost-conscious work. The Personal profile overrides it with Sol `medium` for stronger decision evidence.
 
 ## Success

@@ -1,5 +1,5 @@
 ---
-description: Triages one bounded issue through read-only evidence gathering, reproduction, impact and scope assessment, root-cause analysis, and a recommended disposition. Returns evidence, uncertainty, and the smallest next action without implementing fixes.
+description: Performs read-only diagnosis of one bounded issue and returns the smallest next action without fixes. Outside a loaded workflow, it is available only when the human explicitly asks to use triage.
 mode: subagent
 permission:
   bash: allow

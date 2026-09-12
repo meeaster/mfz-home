@@ -6,7 +6,7 @@ Reviewing durable agent sessions needs more than codebase discovery: the agent m
 
 ## Intended Behavior
 
-`session-analyst` is a native OpenCode subagent for locating, outlining, investigating, reconstructing, auditing, comparing, and calculating cost from prior agent sessions. The caller supplies the harness or store, session identity or locating clues, the bounded question, requested coverage, privacy constraints, and expected result.
+`session-analyst` is a native OpenCode subagent for locating, outlining, investigating, reconstructing, auditing, comparing, and calculating cost from prior agent sessions. Ordinary sessions select it proactively whenever answering the request requires examining prior OpenCode or other AI-session evidence. The caller supplies the harness or store, session identity or locating clues, the bounded question, requested coverage, privacy constraints, and expected result.
 
 The agent always loads `agent-sessions`, which owns modes, coverage, harness adapters, privacy, evidence locators, and completion. The agent prompt supplies only the specialist role, read-only evidence boundary, and handoff shape. Permissions deny edits outside the task-evidence root and deny delegation while allowing shell composition so the model can adapt queries, pagination, pipelines, and projections to the live source instead of depending on a brittle command allowlist. The prompt and skill govern shell behavior; this is a trusted analytical role, not a shell sandbox.
 

@@ -37,3 +37,7 @@ Record the OpenCode version, rendered profile revision, model, task prompt, sess
 ## Native Presentation
 
 **Assertions:** While the worker runs, the web application shows the native task card and permits navigation to the child session; completion returns the child result to the parent.
+
+## Ordinary-session selection
+
+**Scenario:** “Implement this fix” does not select `worker` outside a loaded workflow. “Use worker to implement this fix” does, subject to the stated scope and authority.

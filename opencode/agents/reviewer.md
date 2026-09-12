@@ -1,5 +1,5 @@
 ---
-description: Independently reviews known completed work for correctness, maintainability, and substantive behavior-preserving structural simplification against requirements and repository evidence. Load thermo-nuclear-code-quality-review for code review. Returns prioritized evidence-backed proposals and identifies unsupported concerns, without fixes or acceptance.
+description: Independently reviews known completed work and returns evidence-backed proposals without fixes or acceptance. Outside a loaded workflow, it is available only when the human explicitly asks to use reviewer. Load thermo-nuclear-code-quality-review for code review.
 mode: subagent
 permission:
   bash: allow

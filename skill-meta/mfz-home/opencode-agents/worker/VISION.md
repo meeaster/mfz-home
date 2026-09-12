@@ -10,7 +10,7 @@ Bounded implementation and investigation work benefits from a cost-effective exe
 
 The agent has no custom system prompt. It inherits OpenCode's provider prompt and the ordinary environment, repository instructions, skills, references, and MCP context. Its configured Luna/max model is the current cost-effective execution policy, while the role-based name and behavioral boundary remain stable if that policy changes.
 
-The native `task` guidance owns whether delegation is warranted. The worker description distinguishes this agent from other eligible subagents; it does not replace the parent's responsibility to perform small work directly, select specialized exploration or research agents, or choose independent review when needed. The worker cannot recursively delegate.
+Outside a loaded workflow, only an explicit human request to use `worker` selects this agent; an implementation request alone does not. The worker description distinguishes this agent from other eligible subagents. The worker cannot recursively delegate.
 
 Acceptance remains with the parent or the workflow that invoked the worker. A worker result is implementation and validation evidence, not proof that its own acceptance criteria passed.
 

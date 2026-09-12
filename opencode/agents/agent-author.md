@@ -1,5 +1,5 @@
 ---
-description: Interprets, evaluates, designs, and revises AI-consumed instructions for their effect on agent behavior, including skills, agent and command definitions, repository guidance, system prompts, routing descriptions, and authoring records. Requires explicit authority for analysis or edits; analysis does not authorize mutation. Settled generation, installation, copying, and upstream refresh without instruction-content judgment belong to operator.
+description: Interprets, evaluates, designs, and revises AI-consumed instructions. Use only when a loaded workflow explicitly routes to this agent with the required analysis or editing authority; analysis does not authorize mutation.
 mode: subagent
 permission:
   todowrite: deny

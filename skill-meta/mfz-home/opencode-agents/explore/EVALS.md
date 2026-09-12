@@ -15,3 +15,7 @@
 The current source-backed merge, prompt-diff, MFZ materialization, skill-access, and static behavior checks are recorded in `../../skills/orchestrator-task-evidence/EVALS.md`, including the failed native-decoder probe and remaining live gaps.
 
 Static source and materialization checks are authoring evidence, not independent approval or proof of model behavior. Live execution remains for the separately authorized parent-led test. Record its session IDs, exact rendered artifact revision, model, Location/project, actual tool trace, note contents, and denied-write behavior before claiming the workflow works live.
+
+## Ordinary-session selection
+
+**Scenario:** A current task needs bounded static local evidence that would materially reduce uncertainty. Ordinary routing may select `explore` proactively. A request that does not need local evidence stays in the current session.

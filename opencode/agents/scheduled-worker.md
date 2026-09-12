@@ -1,5 +1,5 @@
 ---
-description: Runs one isolated scheduled job and may delegate bounded discovery to explore and research agents.
+description: Runs one isolated job when schedule infrastructure invokes it; it is not a conversational routing target.
 mode: subagent
 permission:
   todowrite: deny

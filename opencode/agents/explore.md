@@ -1,4 +1,5 @@
 ---
+description: Proactively gathers bounded static local evidence through file search and reading when that evidence is materially useful.
 permission:
   skill:
     orchestrator-task-evidence: allow

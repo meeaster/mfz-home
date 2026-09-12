@@ -6,7 +6,7 @@ Implementation often depends on exact behavior documented outside the local code
 
 ## Intended Behavior
 
-`research` is a native OpenCode subagent for specific external documentation and upstream-source questions. The caller supplies exact external targets, versions when known, required facts, and expected evidence. Research follows the workspace's authoritative documentation-source policy rather than carrying a competing source hierarchy.
+`research` is a native OpenCode subagent for specific external documentation and upstream-source questions. Ordinary sessions may select it proactively when bounded external evidence is materially useful. The caller supplies exact external targets, versions when known, required facts, and expected evidence. Research follows the workspace's authoritative documentation-source policy rather than carrying a competing source hierarchy.
 
 The custom prompt keeps source gathering read-only, documentation-first, bounded in retrieval, and focused on facts the parent can use. The human authorized a small opening-paragraph exception for an explicitly requested assigned evidence file beneath the absolute temporary root. Permission or skill loading alone authorizes no file. `orchestrator-task-evidence` owns the note method, and Orchestrator Mode owns coordination. This adds no source or system mutation authority. Supported-Location and ownership limits are documented in `../explore/MAINTENANCE.md`. Shell, delegation, unrelated orchestration, and non-allowlisted skills remain denied. Existing retrieval tools and matching `claude-code-docs` and `opencode` skills remain available; the new evidence skill receives one exact allow.
 

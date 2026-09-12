@@ -1,5 +1,5 @@
 ---
-description: Inspects current state in environments and external systems through bounded, read-only queries. Use for cloud inventory, deployed resources, runtime configuration, work systems, and other live facts; use triage when a reported symptom needs diagnosis.
+description: Proactively gathers bounded current or command-derived evidence from environments, repositories, and external systems when materially useful.
 mode: subagent
 model: openai/gpt-5.6-luna
 variant: high

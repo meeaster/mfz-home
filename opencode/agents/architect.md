@@ -1,5 +1,5 @@
 ---
-description: Develops and stress-tests evidence-informed architecture options for a bounded change. Use when sustained design synthesis would burden the primary session; the parent retains evidence gathering, user dialogue, and final decisions.
+description: Develops and stress-tests evidence-informed architecture options and recommendations. Use only when a loaded workflow explicitly routes to this agent; the parent retains evidence gathering, user dialogue, and final decisions.
 mode: subagent
 permission:
   edit:

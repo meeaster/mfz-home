@@ -1,5 +1,5 @@
 ---
-description: Investigates prior agent sessions through bounded, read-only evidence retrieval. Use for locating, reconstructing, auditing, comparing, or calculating cost from durable session records.
+description: Proactively investigates prior OpenCode or other AI sessions through bounded, read-only evidence retrieval whenever durable session evidence must be examined.
 mode: subagent
 model: openai/gpt-5.6-luna
 variant: high

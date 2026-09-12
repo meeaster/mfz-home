@@ -41,3 +41,7 @@ Record the OpenCode version, rendered profile revision, model, task brief, sessi
 ## Adjacent routing
 
 **Assertions:** Product architecture remains with `architect`, general implementation with `worker`, planning artifacts with their owning workflow, ordinary user documentation with its documentation owner, and independent review with `reviewer`.
+
+## Selection boundary
+
+**Assertions:** Ordinary routing does not select `agent-author`. A loaded workflow must route to it explicitly and carry separate analysis or editing authority; instruction-shaped input alone does not select the role.

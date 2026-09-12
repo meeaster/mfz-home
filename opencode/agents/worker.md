@@ -1,5 +1,5 @@
 ---
-description: Executes bounded implementation, focused remediation, difficult investigation, and settled design or specification work with explicit acceptance criteria.
+description: Executes bounded implementation, remediation, or investigation with explicit acceptance criteria. Outside a loaded workflow, it is available only when the human explicitly asks to use worker.
 mode: subagent
 permission:
   todowrite: deny

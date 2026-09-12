@@ -1,6 +1,6 @@
 # Vision
 
-The human may explicitly select orchestrator for a task or batch to keep bounded coordination out of the main conversation. One batch selection can cover multiple children; complexity, failure, or perceived quality never selects it automatically. It remains frontmatter-only. The parent must explicitly require loading `orchestrator-mode` in parent-facing context and convey the human's authority, relevant evidence, delegated decisions, limits, and return conditions.
+A loaded workflow explicitly routes a bounded coordination assignment to orchestrator. It remains frontmatter-only. The parent supplies the required operating mode, the human's authority, relevant evidence, delegated decisions, limits, and return conditions; ordinary-session routing never selects it.
 
 The shared skill owns behavior. Orchestrator owns local gatherers and specialists, returns consequential questions and checked results to its assigning parent, and never recursively dispatches orchestrator. A full prospectively authorized sequence can continue through a PR without repeated approvals while its basis remains valid. Selection alone grants no execution or publication authority.
 

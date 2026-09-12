@@ -35,3 +35,7 @@ Current requested-write authoring and materialization results are in `../../skil
 ## Prompt boundary
 
 **Assertions:** The source and materialized prompt contain only the role and narrow allowance, not the evidence method. The non-empty body intentionally replaces generic tool-use prompt inheritance. Permission or skill loading without an explicit note assignment produces no file; a genuine higher-priority conflict returns attributed file-ready findings instead of forcing a write.
+
+## Ordinary-session selection
+
+**Scenario:** A reported unexplained symptom does not select `triage` outside a loaded workflow. “Use triage to diagnose this symptom” does and grants no remediation authority.

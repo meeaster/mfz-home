@@ -88,3 +88,7 @@ This one real-account test supports the `hold` branch and read-only AWS inspecti
 ## Adjacent Boundaries
 
 **Assertions:** `inspect` gathers current state, `operator` owns mutation and ordinary immediate preflight, `reviewer` covers completed work, and the coordinator owns acceptance and explicit overrides. Trivial isolated reversible operations do not trigger the safety lane; higher-risk external operations receive a fresh assessment before operator dispatch.
+
+## Selection boundary
+
+**Assertions:** Ordinary routing does not select `safety-reviewer`. A loaded workflow must route to it explicitly with a concrete proposed operation, supplied evidence, read-only authority, and return conditions.

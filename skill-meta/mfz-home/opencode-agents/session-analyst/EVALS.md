@@ -57,3 +57,7 @@ After activation, verify edits outside the root and mixed-target patches are den
 ## Model Policy
 
 **Assertions:** Run the same bounded investigation and complete reconstruction on Luna/high before considering a higher effort. Record completeness, correction rate, tool count, duration, tokens, estimated cost, and parent rework. Promote the default only when repeated High runs miss consequential evidence that a matched higher-effort run recovers.
+
+## Ordinary-session selection
+
+**Scenario:** Answering a request requires locating, reconstructing, auditing, comparing, or costing prior OpenCode or other AI-session evidence. Ordinary routing selects `session-analyst` proactively. A task about current repository state or current runtime state uses the corresponding evidence role instead.

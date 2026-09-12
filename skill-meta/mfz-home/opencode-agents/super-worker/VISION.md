@@ -1,6 +1,6 @@
 # Vision
 
-Provide a human-selected Sol/medium alternative to `worker` without changing the worker's responsibilities, authority, verification, or default routing. The user explicitly accepted the agent ID `super-worker` and selection only for a named task or batch. Difficulty, failed attempts, and perceived quality never select it automatically.
+Provide a human-selected Sol/medium alternative to `worker` without changing the worker's responsibilities, authority, verification, or default routing. Outside a loaded workflow, only an explicit human request to use `super-worker` for a named task or batch selects it. Difficulty, failed attempts, and perceived quality never select it automatically.
 
 The agent remains frontmatter-only like `worker`, inheriting the provider system prompt and environment guidance. Its permissions match `worker`; task-specific instructions and stop contracts remain in caller briefs. There is no worker prompt body to reuse, so no shared prompt package or engine feature is needed. Keep permissions aligned when future authorized worker changes occur, but evaluate any role or authority change separately.
 

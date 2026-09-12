@@ -65,3 +65,7 @@ The first and second Lambda-viewer runs reported the blanket mutation prohibitio
 ## Adjacent routing
 
 **Assertions:** Simple file discovery remains with `explore`, current environment state with `inspect`, symptom diagnosis with `triage`, UI/UX design with `ui-ux-designer`, throwaway experiments with `prototype`, implementation with `worker`, and independent completed-work judgment with `reviewer`.
+
+## Selection boundary
+
+**Assertions:** Ordinary routing does not select `architect`. A loaded workflow must route to it explicitly with the bounded design question, evidence, consultation authority, and return conditions.

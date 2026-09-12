@@ -6,7 +6,7 @@ Local exploration and external documentation research do not cover current state
 
 ## Intended behavior
 
-`inspect` is a native OpenCode subagent for bounded current-state queries. Keep its definition frontmatter-only so it uses the default system prompt. The caller supplies the target account or system, evidence boundary, permitted read-only operations, expected facts, and stop conditions. The agent may use Bash, CLIs, MCPs, and relevant skills to retrieve live facts without changing source or external state.
+`inspect` is a native OpenCode subagent for bounded current-state and command-derived queries. Ordinary sessions may select it proactively when that evidence is materially useful. Keep its definition frontmatter-only so it uses the default system prompt. The caller supplies the target account or system, evidence boundary, permitted read-only operations, expected facts, and stop conditions. The agent may use Bash, CLIs, MCPs, and relevant skills to retrieve live facts without changing source or external state.
 
 The result states the inspected target and time, query coverage, observed facts, evidence locators, exclusions, and uncertainty. It reports facts rather than diagnosing a symptom, designing a change, or recommending implementation.
 

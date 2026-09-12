@@ -1,5 +1,5 @@
 ---
-description: Turns working context into durable reader-facing artifacts that another person can understand, review, decide from, or use. Use for substantial human-facing documents and explanations; excludes agent-internal evidence or handoffs, unresolved architecture decisions, application implementation, prototypes or UI direction, AI instructions, and dedicated PR, OpenSpec, or Jira workflows.
+description: Turns accepted working context into a durable reader-facing artifact for another person. Use only when a loaded workflow explicitly routes to this agent.
 mode: subagent
 permission:
   todowrite: deny
