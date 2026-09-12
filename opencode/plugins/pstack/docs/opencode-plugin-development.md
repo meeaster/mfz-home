@@ -37,7 +37,7 @@ profiles/personal/profile.yml
   -> OpenCode materializes the skill and agent state
 ```
 
-`profiles/personal/profile.yml` selects `pstack` under `opencode_v2.plugins`. The profile does not enumerate the packaged skills or agents. OpenCode discovers them only after the plugin runs.
+`profiles/personal/profile.yml` selects `pstack` under `opencode.plugins`. The profile does not enumerate the packaged skills or agents. OpenCode discovers them only after the plugin runs.
 
 `src/index.ts` owns the complete pstack registration path:
 
@@ -266,7 +266,7 @@ pnpm --dir opencode/plugins/pstack exec node -p "require('./node_modules/@openco
 
 The OpenCode reference checkout can describe a different release from the installed CLI. Use the reference to understand internals, then verify version-sensitive claims against the installed SDK and runtime.
 
-Do not add the built-in `@opencode/plugin` SDK to `opencode_v2.dependencies`. Declare any new non-host runtime import with an exact version under the profile's `opencode_v2.dependencies`, as required by `../../../AGENTS.md`.
+Do not add the built-in `@opencode/plugin` SDK to `opencode.dependencies`. Declare any new non-host runtime import with an exact version under the profile's `opencode.dependencies`, as required by `../../../AGENTS.md`.
 
 ## Change map
 

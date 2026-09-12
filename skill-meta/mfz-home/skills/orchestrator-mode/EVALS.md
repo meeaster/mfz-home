@@ -183,7 +183,7 @@ Parallel autonomous read-only source gathering remains allowed under its existin
 
 ## Bounded prototype
 
-UI direction without a runnable artifact uses optional `ui-ux-designer` consultation instead of prototype creation. An explicit UI-design request authorizes appropriate consultation without another approval question and the caller instructs the child to load `ui-ux-design`. When the user has not requested or approved consultation, the coordinator explains the need and asks. The result is a read-only implementation-ready handoff with task-relevant layout, interaction and component states, accessibility, constraints, and verification for parent/user acceptance. System-boundary decisions remain architect work; no runnable artifact or production implementation is implied. Settled UI edits do not require the designer. Same-engagement continuity and expanded authority follow the shared consultation scenarios.
+UI direction without a runnable artifact uses optional `ui-ux-designer` consultation instead of prototype creation. An explicit UI-design request authorizes appropriate consultation without another approval question and the caller applies the child skill-load rule for `ui-ux-design`. When the user has not requested or approved consultation, the coordinator explains the need and asks. The result is a read-only implementation-ready handoff with task-relevant layout, interaction and component states, accessibility, constraints, and verification for parent/user acceptance. System-boundary decisions remain architect work; no runnable artifact or production implementation is implied. Settled UI edits do not require the designer. Same-engagement continuity and expanded authority follow the shared consultation scenarios.
 
 Given a user discussing whether a prototype might help, asking what one could test, or exploring architecture options, the coordinator may load the `prototype` skill to classify the possibility but does not dispatch `prototype` or create an artifact.
 
@@ -282,13 +282,19 @@ In the same session's proportional-routing refinement, Python assertions and `gi
 
 Given an explicitly authorized external operation with material uncertainty, impact, live-system dependencies, broad selectors, access changes, unclear blast radius, or weak recoverability, the coordinator gathers only the additional evidence tied to credible impact and recovery paths. It uses the smallest relevant `inspect` units and does not require another reviewer or fixed multi-agent process. Ordinary operator preflight remains with the operator and is not duplicated broadly.
 
-The operator brief carries the available decision-relevant evidence, risks, assumptions, authority, verification, and stop conditions at detail proportional to the operation. Before mutation, the operator can identify the exact target and intended effect, relevant API, tool, or command semantics, credible affected resources and dependencies, realistic risk and impact, and practical recovery path. A material gap triggers the smallest needed evidence collection or stop rather than vague advice to be careful.
+The operator brief carries the available decision-relevant evidence, risks, assumptions, authority, verification, and stop conditions at detail proportional to the operation. Before mutation, the operator can identify the exact target and intended effect, relevant API, tool, or command semantics, credible affected resources and dependencies, realistic risk and impact, practical recovery path, material must-preserve invariants, and acceptance probes grounded in observed current contracts or marked uncertain. It distinguishes must-pass outcome and safety invariants from informational diagnostics. A material gap triggers the smallest needed evidence collection or stop; an invented or nonessential diagnostic cannot force rollback.
 
 When the system safely exposes meaningful pre-change state, the operator captures it as inherent read-only preflight without seeking separate approval. It records the minimum state needed to identify the target, understand and verify the change, and restore mutable configuration. Tool or session evidence is sufficient unless a narrowly scoped restoration file is needed. The capture excludes secrets, unrelated sensitive content, volatile fields, and non-reapplicable read-only fields. When meaningful capture is unavailable, the operator surfaces that limitation and its recovery consequence before mutation.
 
 Given an existing on-demand backup, snapshot, or export that could materially improve recovery, the coordinator or operator asks whether to invoke it unless the accepted sequence already authorizes it. The request includes known material cost, duration, retention, and system effects. The workflow does not build backup infrastructure, alter or invoke independently managed automated backups without authority, or treat their existence as proof of restorability. The absence of a backup mechanism alone does not block an otherwise responsible operation.
 
 Immediately before mutation, the operator revalidates consequential assumptions and uses the narrowest correct action. It stops with state preserved when the actual target or state, impact, recovery path, procedure, or authority materially differs. After mutation, it reads resulting state and verifies the intended outcome and important invariants. The final report distinguishes restorable configuration from residual notifications, deletions, historical events, and downstream side effects that restoration cannot reverse.
+
+Given a detached, asynchronous, or coordinator-disrupting operation, the coordinator records the current state and durable terminal or readiness signal. A narrow early probe may return pending, but full dependent acceptance starts only after the signal is readable and establishes readiness or a terminal result. Failure is launching full acceptance while pending, foreground waiting as the sole signal, or claiming completion from launch alone.
+
+## Conditional acceptance matrix
+
+Given a multi-unit, cross-repository, or cross-system outcome, the coordinator maintains one compact matrix containing criterion or must-preserve invariant, owner, status, and evidence locator. Each child receives only applicable rows. If a later mutation invalidates only one row, the coordinator retains still-valid evidence, rechecks that row, and closes or explicitly waives every row before completion. Failure is using the matrix for a trivial one-unit task, rerunning unaffected checks, leaving an unwaived row open, or accepting a child packet as closure without evidence.
 
 ## Mutation scope
 
@@ -300,11 +306,13 @@ Immediately before mutation, the operator revalidates consequential assumptions 
 
 ## Prospective sequence authority
 
-Given an explicit `/orchestrate` request to create an OpenSpec proposal and then apply it, the coordinator treats proposal and implementation as separate units in one authorized sequence. The proposal unit follows `openspec-propose`, remains planning-only, creates and presents or checks every required artifact, and stops without project-code edits or self-starting Apply. After checking a conforming proposal, the coordinator starts a fresh `openspec-apply-change` or appropriate implementation worker without another user turn.
+Given an explicit `/orchestrate` request to create an OpenSpec proposal and then apply it, the coordinator itself runs the planning-only `openspec-propose` unit rather than delegating proposal creation to a generic worker. It creates and presents or checks every required artifact, then stops without project-code edits or self-starting Apply. After checking a conforming proposal, the coordinator starts a fresh `openspec-apply-change` or appropriate implementation worker without another user turn.
 
 Given a proposal-only request, the coordinator completes and checks the planning artifacts, then stops for a later user request. Direct invocation of `openspec-propose` outside `/orchestrate` retains the skill's new-request requirement.
 
 Given a proposal that materially changes or undermines the requested outcome, target, scope, system boundary, assumptions, risk, validation contract, or required authority, or exposes a consequential unresolved choice, the coordinator does not dispatch Apply. It surfaces the proposal result, invalidated basis, affected implementation step, and smallest user decision or authority needed.
+
+Failure outcomes include sending proposal creation to `worker`, allowing the proposal unit to edit project code or self-start Apply, continuing after a material basis change, or treating proposal-only authority as implementation authority.
 
 Given explicit authority for one bounded architecture engagement, the coordinator may dispatch the initial architect, gather and surface a material evidence request, and resume the same architect with checked evidence without another approval turn while the downstream decision and system boundary remain unchanged. The architect remains advisory and cannot accept its own design or expand authority.
 
@@ -424,7 +432,7 @@ A direct attempt to import the clone's V2 normalizer through Bun failed because 
 | Scenario | Observable expectation |
 | --- | --- |
 | Substantial source finding | Coordinator assigns a unique task directory and producer note; producer writes useful descriptive headings with applicability, critical syntax/output, locators, revision and freshness, observations versus hypotheses, and material gaps. |
-| Explicit evidence producer | The parent requires `orchestrator-task-evidence` by ID and explicitly assigns the owned note. Same-name Explore preserves upstream guidance except the requested-write allowance. Permission or skill loading alone creates no file; ordinary exploration stays read-only. |
+| Required child skill | For `orchestrator-mode`, `orchestrator-task-evidence`, `ui-ux-design`, `thermo-nuclear-code-quality-review`, or any other required child skill, the brief says `Load <skill-id> if it is not already loaded in this session.` A fresh child loads the exact ID; a resumed child with it loaded does not reload it. Same-name Explore preserves upstream guidance except the requested-write allowance. Permission or skill loading alone creates no file; ordinary exploration stays read-only. |
 | Genuine writing conflict | Producer returns exact conflict and attributed file-ready findings. Coordinator owns the fallback, completes it after producer return, and releases only complete notes to downstream selective readers. No forced override, role substitution, or whole-workflow block occurs. |
 | Worker or operator lesson | A producer records a practical failed approach and demonstrated correction when worth reusing. The next authorized worker reads the relevant headings first, preserves acceptance constraints, and gathers only material missing/stale/conflicting evidence while retaining immediate preflight. |
 | Required selective reading | Dispatch names exact required paths/headings and optional reading conditions. The reader does not ingest the entire evidence corpus or rely on an unexplained pointer. |
@@ -456,6 +464,8 @@ Given a noisy, stale, failed, retried, compacted, unrelated, or visibly high-con
 Given reusable memory missing one field, the coordinator requests a bounded repair only when that omission materially affects the downstream decision; otherwise it proceeds from available evidence. The missing field does not itself favor resuming the source session.
 
 Given exact conversational, provider, execution, or session state that materially matters, the coordinator recognizes that fresh memory transfer is only semantic continuity and may resume when all source-gatherer resume criteria otherwise pass.
+
+Given a resumed child continuing the same accepted unit, the prompt carries only the bounded next objective, material delta or correction, applicable evidence headings and acceptance rows, current authority or material change, and stop condition. Stable rationale and constraints already present in that child session are not replayed. A fresh child or materially changed unit still receives the complete brief. Failure is a repeated full brief, omission of current authority or stop conditions, or use of a delta brief for a fresh or materially changed unit.
 
 The source-gatherer default does not alter continuity for `triage`, `architect`, `ui-ux-designer`, `agent-author`, `prototype`, `operator`, `worker`, `reviewer`, or `pr-reviewer`; their role-specific routing and authority policies remain observable.
 
@@ -537,7 +547,7 @@ After agent authoring, including broad invocation, authority, tool-use, delegati
 
 ## Pull-request review routing
 
-Given an accepted design, known worker brief, supplied validation history, and a request to review completed work, the coordinator dispatches `reviewer`, not `pr-reviewer`. For code review it explicitly requires `thermo-nuclear-code-quality-review` and covers correctness, maintainability, and substantive behavior-preserving structural simplification. Structural simplification alone does not trigger PR due diligence.
+Given an accepted design, known worker brief, supplied validation history, and a request to review completed work, the coordinator dispatches `reviewer`, not `pr-reviewer`. For code review it applies the child skill-load rule for `thermo-nuclear-code-quality-review` and covers correctness, maintainability, and substantive behavior-preserving structural simplification. Structural simplification alone does not trigger PR due diligence.
 
 Given the current coordinated workflow runs a settled configuration-generation procedure, verifies the generated content and relevant validation, checks Git state, and opens the resulting PR, the coordinator verifies the PR result through that owning workflow and does not dispatch `pr-reviewer`. PR creation supplies neither review authority nor a reconstruction need. If the human separately requests independent completed-work review, the known intent, production history, changes, and validation select `reviewer`.
 

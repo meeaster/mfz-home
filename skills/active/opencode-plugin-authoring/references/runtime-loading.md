@@ -1,6 +1,6 @@
 # Runtime Loading
 
-This reference supplements the canonical V2 plugin page. Refresh it against the
+This reference supplements the canonical OpenCode plugin page. Refresh it against the
 installed OpenCode release or its matching source when loader behavior changes.
 
 ## Resolution Boundaries
@@ -11,8 +11,9 @@ installed OpenCode release or its matching source when loader behavior changes.
   ancestor. A dependency elsewhere on disk does not satisfy this boundary.
 - A native TUI plugin using runtime `Plugin.define` from
   `@opencode/plugin/tui` must declare the SDK in `dependencies`, pin
-  `@opencode/plugin@2.0.0` to the stable OpenCode 2.0.0 CLI, and make it
-  resolvable from the rendered entrypoint. A structural `{ id, setup }` default
+  `@opencode/plugin` to the exact published release matching the installed stable
+  OpenCode CLI, and make it resolvable from the rendered entrypoint. A structural
+  `{ id, setup }` default
   export with type-only SDK imports needs the matching SDK only for development
   and may declare it in `devDependencies`; verify that compiled or directly
   imported runtime code contains no SDK import before relying on this deployment
@@ -26,7 +27,7 @@ installed OpenCode release or its matching source when loader behavior changes.
   import. Keep those packages available for development and typechecking, but
   preserve direct imports for the host bridge rather than bundling private
   runtime copies into deployment output.
-- The V2 plugin SDK lists UI modules as optional peers. Inspect the installed
+- The current plugin SDK lists UI modules as optional peers. Inspect the installed
   production tree: a plugin-local Solid/OpenTUI copy is a compatibility risk,
   not proof of a failure. Errors mentioning `Cell` or `ArrayBufferView` require
   a minimal render control and resolved-module evidence before diagnosis.
@@ -40,7 +41,7 @@ installed OpenCode release or its matching source when loader behavior changes.
 - In releases using native CLI plugin configuration, TUI entries live in
   `cli.json` under `plugins`. The CLI owns and may rewrite that file. Merge a
   managed entry while preserving unrelated settings and entries; do not replace
-  or symlink the file. Verify this release-sensitive surface against the
+  or symlink the file. Verify this release-sensitive configuration against the
   installed CLI.
 - Historical loader evidence from `0.0.0-beta-18743`: a configured local file
   entry could appear in `/plugins` while the TUI provider skipped it before
@@ -85,6 +86,8 @@ installed OpenCode release or its matching source when loader behavior changes.
 ## Version Check
 
 Before creating or migrating a plugin, compare the installed `opencode --version`
-with the plugin SDK declared by the plugin. Use `@opencode/plugin@2.0.0` with the
-stable 2.0.0 CLI and verify the version actually resolved from the rendered
-entrypoint.
+with the published `@opencode/plugin` releases and the SDK declared by the plugin.
+When the plugin imports or types against the SDK, use the exact release matching
+the stable CLI and verify the version actually resolved from the rendered
+entrypoint. If that stable SDK release is unavailable, report the publication
+blocker rather than substituting a beta, development, or reserved package.

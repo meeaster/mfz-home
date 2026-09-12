@@ -1,5 +1,5 @@
 [Unit]
-Description=OpenCode V2 service
+Description=OpenCode service
 After=network.target
 
 [Service]

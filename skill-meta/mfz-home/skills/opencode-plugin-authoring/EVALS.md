@@ -1,4 +1,4 @@
-# OpenCode V2 Plugin Authoring Evaluations
+# OpenCode Plugin Authoring Evaluations
 
 The scenarios below specify expected behavior, not independent approval or a pass for every branch. No runtime test ran during this metadata refactor.
 
@@ -8,15 +8,15 @@ The scenarios below specify expected behavior, not independent approval or a pas
 
 ## Create A Server Plugin
 
-**Prompt:** Add a local V2 plugin that transforms a command.
+**Prompt:** Add a local OpenCode server plugin that transforms a command.
 
-**Assertions:** The agent fetches the official V2 page, uses its current server
+**Assertions:** The agent fetches the official plugin page, uses its current server
 plugin contract and `opencode.json(c)` configuration, validates a unique ID and
-default export, and verifies active loading through the documented V2 API.
+default export, and verifies active loading through the documented OpenCode 2 API.
 
 ## Choose A Server Lifecycle
 
-**Prompt:** Should this OpenCode V2 plugin use Effect or async setup?
+**Prompt:** Should this OpenCode server plugin use Effect or async setup?
 
 **Assertions:** The agent fetches the current plugin page, treats both server
 lifecycles as supported, keeps a simple plugin on Promise `setup`, and selects
@@ -25,7 +25,7 @@ existing Effect architecture justify the additional runtime dependency.
 
 ## Migrate A TUI Plugin
 
-**Prompt:** Port this V1 sidebar plugin to OpenCode2 without deleting V1.
+**Prompt:** Port this V1 sidebar plugin to the current OpenCode API without deleting V1.
 
 **Assertions:** The agent preserves V1, reads the native TUI contract, packages the plugin as a local directory with root `index.*` and `tui.*` entrypoints, confirms the matching SDK, preserves CLI-owned settings while adding the directory entry to `cli.json`, and tests a fresh visible slot rather than relying on typechecking or `/plugins` status.
 
@@ -44,6 +44,12 @@ tree does not bundle a private UI runtime.
 
 **Assertions:** The agent creates physical root `index.*` and `tui.*` entrypoints, treats `exports["./tui"]` as metadata rather than the local-directory resolver, chooses either a runtime-resolvable `Plugin.define` SDK import or a structural definition with type-only SDK imports, and proves the exact rendered directory package in a fresh process.
 
+## Stable Patch Upgrade
+
+**Prompt:** OpenCode upgraded to the next stable 2.x patch, but this plugin still declares the previous `@opencode/plugin` version.
+
+**Assertions:** The agent inspects the installed CLI version and published stable SDK releases instead of treating one patch as the permanent target. When the plugin imports or types against the SDK, it selects the exact matching `@opencode/plugin` release and verifies the version resolved from the rendered entrypoint. If the matching stable SDK is not published, the agent reports the publication blocker instead of selecting a beta, development, or reserved package.
+
 ## Diagnose a configured local TUI
 
 **Prompt:** The native TUI plugin appears in `/plugins` but never renders.
@@ -52,7 +58,7 @@ tree does not bundle a private UI runtime.
 
 ## TUI Effect Request
 
-**Prompt:** Convert this native V2 TUI sidebar plugin to Effect based on the
+**Prompt:** Convert this native OpenCode TUI sidebar plugin to Effect based on the
 server plugin guide.
 
 **Assertions:** The agent inspects the matching native TUI types, recognizes
@@ -72,7 +78,7 @@ identifies the boundary.
 
 ## Third-Party Import
 
-**Prompt:** Add a YAML parser to a local V2 server plugin.
+**Prompt:** Add a YAML parser to a local OpenCode server plugin.
 
 **Assertions:** The agent distinguishes the parser from host modules, declares
 it in a manifest visible from the plugin entrypoint, and restarts or reloads as
@@ -80,13 +86,13 @@ the official documentation requires.
 
 ## Optional Registry Fields
 
-**Prompt:** My OpenCode V2 plugin adds skills whose optional `slash` and `description` values are undefined. The model list now times out.
+**Prompt:** My OpenCode plugin adds skills whose optional `slash` and `description` values are undefined. The model list now times out.
 
 **Assertions:** The agent finds the first plugin reload schema error, recognizes that present-but-undefined properties differ from omitted properties, starts with required fields, and conditionally adds `slash` and `description` only when defined. `Object.hasOwn` returns `false` for the absent properties before registry insertion. The agent then verifies plugin reload and model listing in a fresh runtime.
 
 ## Recursive Event Consumer
 
-**Prompt:** My OpenCode V2 advisor plugin listens for completed sessions and generates a review in its own top-level session. After hot reload, the model and provider picker times out even though the plugin is active.
+**Prompt:** My OpenCode advisor plugin listens for completed sessions and generates a review in its own top-level session. After hot reload, the model and provider picker times out even though the plugin is active.
 
 **Assertions:** The agent inspects the first repeated generation and `/api/model` timeout in the server log. It identifies the plugin-owned review session as part of the same event stream and excludes that persisted session ID before generating another review. It does not rely on `parentID` because the owned session is top-level. The agent closes the exact async iterator during cleanup, awaits the consumer, and verifies that one completion causes one review after reload. A plugin-owned completion causes no review, and `/api/model` succeeds after the runtime test.
 
@@ -99,9 +105,9 @@ applicable V1 documentation and project instructions instead.
 
 ## Invocation
 
-**Positive prompts:** Create an OpenCode2 plugin; migrate this OpenCode plugin
-to V2; add a native OpenCode TUI plugin; why does my OpenCode V2 plugin not
-load; configure dependencies for an OpenCode2 plugin.
+**Positive prompts:** Create an OpenCode plugin; migrate this V1 OpenCode plugin
+to the current API; add a native OpenCode TUI plugin; why does my OpenCode plugin
+not load; configure dependencies for an OpenCode plugin.
 
 **Negative prompts:** Configure an OpenCode MCP server; write an OpenCode slash
 command; build a generic Bun plugin unrelated to OpenCode.

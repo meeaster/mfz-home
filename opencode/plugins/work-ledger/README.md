@@ -4,10 +4,10 @@ Binds an OpenCode V2 session to a filesystem ledger and gives child sessions the
 
 ## Configure
 
-Enable both the `./server` and `./tui` entrypoints with the same absolute ledger root. Mindframe-Z renders these entries from `opencode_v2.plugins`, `opencode_v2.tui_plugins`, and `opencode_v2.plugin_options`.
+Enable both the `./server` and `./tui` entrypoints with the same absolute ledger root. Mindframe-Z renders these entries from `opencode.plugins`, `opencode.tui_plugins`, and `opencode.plugin_options`.
 
 ```yaml
-opencode_v2:
+opencode:
   plugins:
     - work-ledger
   tui_plugins:

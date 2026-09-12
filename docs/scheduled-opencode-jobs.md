@@ -19,10 +19,10 @@ The design should also support implementation workers that gather bounded local 
 The implementation adds these job files:
 
 ```text
-profiles/personal/.config/opencode/jobs/opencode-v2-pr-review.md
-profiles/personal/.config/opencode/jobs/opencode-v2-pr-review-task.md
-profiles/personal/.config/systemd/user/opencode-v2-pr-review.service
-profiles/personal/.config/systemd/user/opencode-v2-pr-review.timer
+profiles/personal/.config/opencode/jobs/opencode-pr-review.md
+profiles/personal/.config/opencode/jobs/opencode-pr-review-task.md
+profiles/personal/.config/systemd/user/opencode-pr-review.service
+profiles/personal/.config/systemd/user/opencode-pr-review.timer
 ```
 
 The shared profile sets `experimental.subagent_depth: 2`, enables the body-free `scheduled-worker`, and allows `worker` and `scheduled-worker` to delegate only to `explore` and `research`.
@@ -181,7 +181,7 @@ Relevant source:
 Set the maximum nesting depth once in the shared base profile:
 
 ```yaml
-opencode_v2:
+opencode:
   config:
     experimental:
       subagent_depth: 2
@@ -234,7 +234,7 @@ After collection, the worker materializes metadata, changed-file lists, and patc
 
 Completed verification:
 
-- `mfz apply --agent opencode-v2` rendered and linked the live configuration.
+- `mfz apply --agent opencode` rendered and linked the live configuration.
 - The effective config reports `experimental.subagent_depth: 2`.
 - The effective agent list reports an empty system prompt and no configured model for `scheduled-worker`.
 - Effective worker permissions deny all subagents before allowing `explore` and `research`.
@@ -243,7 +243,7 @@ Completed verification:
 - The child inherited Luna high and remained hidden from top-level session lists.
 - The root had five active-context messages and no completed compaction after the run.
 - The reference checkout remained clean and the job reported no GitHub mutations.
-- `opencode-v2-pr-review.timer` is enabled and active.
+- `opencode-pr-review.timer` is enabled and active.
 - A temporary prompt check produced the capped digest without an exhaustive table, used Git-derived branch evidence, removed its disposable clone, and was deleted with its child session after verification.
 - A nested prompt check used one scheduled worker and five parallel `explore` children at depth two. It made no skill calls, inherited Luna high throughout, cleaned its packet directory, and was deleted recursively after verification.
 

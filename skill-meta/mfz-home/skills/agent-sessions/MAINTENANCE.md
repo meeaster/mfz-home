@@ -2,7 +2,7 @@
 
 ## Dependencies and provenance
 
-The runtime skill has disclosed references for OpenCode, Claude Code, and shared analysis. OpenCode filesystem archaeology requires SQLite JSON support. API fallback requires the configured authenticated `opencode2 api` client. Claude Code extraction uses `jq` against current JSONL layouts.
+The runtime skill has disclosed references for OpenCode, Claude Code, and shared analysis. OpenCode filesystem archaeology requires SQLite JSON support. API fallback requires the configured authenticated `opencode api` client. Claude Code extraction uses `jq` against current JSONL layouts.
 
 The OpenCode storage, path, compaction, projection, API, and event semantics are pinned to source revision `5ee7f19875e0c1ec2877ead7e4642c5b5461ac00` in `/home/mark/workspace/references/opencode`:
 

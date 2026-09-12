@@ -115,7 +115,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   unslop:
     agents: { opencode: true, claude-code: true, codex: true }
-  opencode-v2-plugin-authoring:
+  opencode-plugin-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   opencode-drive:
     agents: { opencode: true }
@@ -172,7 +172,7 @@ mcp:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
     agents: [opencode, claude-code, codex]
-opencode_v2:
+opencode:
   global_instructions: true
   config:
     experimental:

@@ -131,7 +131,7 @@ skills:
     variants:
       claude-code: plugin/skills/impeccable
       codex: .agents/skills/impeccable
-      opencode-v2: .opencode/skills/impeccable
+      opencode: .opencode/skills/impeccable
   - name: animate
     description: >
       Build an animation from scratch, making the decisions in the order that
@@ -291,13 +291,13 @@ skills:
       access, or assumptions, or when another skill needs to decide what must
       cross that boundary. When an artifact-specific skill applies, keep it
       primary and use this only as its context lens.
-  - name: opencode-v2-plugin-authoring
+  - name: opencode-plugin-authoring
     source: local
-    skill: active/opencode-v2-plugin-authoring
+    skill: active/opencode-plugin-authoring
     description: >
-      Build, migrate, debug, or review an OpenCode V2 server or native TUI
-      plugin. Use when creating an OpenCode 2 plugin, porting a V1 plugin to V2,
-      configuring a plugin, or diagnosing V2 plugin loading and dependency
+      Build, migrate, debug, or review an OpenCode server or native TUI plugin.
+      Use when creating an OpenCode plugin, porting a V1 plugin to the current
+      API, configuring a plugin, or diagnosing plugin loading and dependency
       resolution.
   - name: session-derived-knowledge
     source: local

@@ -8,7 +8,7 @@ These are expected behaviors, not recorded execution passes. No live run, model,
 
 **Prompt:** Use the OpenCode 2 CLI to run a fresh review with the default model.
 
-**Assertions:** Agent Exec invokes, chooses `opencode2 run`, omits an unnecessary model override, applies read-only posture through the selected agent or configuration, and captures the final text and session ID.
+**Assertions:** Agent Exec invokes, chooses `opencode run`, omits an unnecessary model override, applies read-only posture through the selected agent or configuration, and captures the final text and session ID.
 
 ### Native OpenCode Test
 
@@ -52,7 +52,7 @@ These are expected behaviors, not recorded execution passes. No live run, model,
 
 **Prompt:** Continue OpenCode 2 session `<sessionID>` with this correction.
 
-**Assertions:** The command uses `opencode2 run --session <sessionID>`, preserves the existing model unless the user overrides it, and reports the same continuation handle.
+**Assertions:** The command uses `opencode run --session <sessionID>`, preserves the existing model unless the user overrides it, and reports the same continuation handle.
 
 ### OpenCode 2 Clean Room
 
