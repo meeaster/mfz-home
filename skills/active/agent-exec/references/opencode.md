@@ -1,6 +1,8 @@
-# OpenCode 2
+# OpenCode
 
 Read [opencode-reload.md](opencode-reload.md) before using an external CLI run to test a configuration or resource change. Read [isolation.md](isolation.md) before a local clean-room run.
+
+OpenCode clients normally discover or start one shared background service. `opencode run` creates or continues a session on that service unless `--server` selects another service or `--standalone` starts a private one. A new CLI process provides fresh client state, not server isolation.
 
 ## Model And Agent
 
@@ -17,7 +19,7 @@ Use `--agent <agent>` when the user asks for a specific primary or all-mode agen
 
 ## Commands
 
-Fresh run:
+Fresh run on the shared background service:
 
 ```bash
 opencode run --title "<short trackable title>" --model <provider/model#variant> "<context packet>"
@@ -31,14 +33,16 @@ opencode run --session <sessionID> "<context packet>"
 
 Omit `--model` when intentionally using configured defaults. Avoid `opencode run --continue` unless the user explicitly wants the latest session and concurrent OpenCode runs cannot select the wrong one.
 
-Use default output when only the final answer is needed. When stdout is not a TTY, OpenCode 2 prints completed assistant text without the raw event stream. Use `--format json` for event-level data or guaranteed session ID capture.
+Use `--server <url>` only when the user names an existing service. Use `--standalone` only when the run needs a private server; combine it with the clean-room controls below when normal configuration and state must also be excluded.
+
+Use default output when only the final answer is needed. When stdout is not a TTY, OpenCode prints completed assistant text without the raw event stream. Use `--format json` for event-level data or guaranteed session ID capture.
 
 JSON output is an event stream, not one result object. Every event includes `sessionID`; the useful answer is usually the final `text` event's `part.text`. Return that text plus `sessionID`. If the child answer itself must be JSON, require it in the context packet and validate the final text.
 
 Delete a disposable test or probe session after capturing its evidence:
 
 ```bash
-opencode api v2.session.remove --param sessionID=<sessionID>
+opencode session delete <sessionID>
 ```
 
 ## Clean-Room State
@@ -86,4 +90,4 @@ env -i \
   opencode run --standalone --session <sessionID> "<context packet>"
 ```
 
-`--standalone` starts a private server for the command instead of discovering or starting the shared background service. OpenCode 2 may refresh OAuth tokens in the copied auth file. Keep the clean root for continuation, or remove it after a disposable run; never copy refreshed credentials back over the host file automatically.
+`--standalone` starts a private server for the command instead of discovering or starting the shared background service. OpenCode may refresh OAuth tokens in the copied auth file. Keep the clean root for continuation, or remove it after a disposable run; never copy refreshed credentials back over the host file automatically.

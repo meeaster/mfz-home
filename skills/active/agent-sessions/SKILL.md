@@ -31,12 +31,12 @@ Treat `complete`, `fully`, `all`, `audit`, and `refreshable` as exhaustive for t
 
 Use the requested harness, session ID, store root, export, or recency clue. Load only the matching reference:
 
-- [OpenCode](references/opencode.md) for V2 SQLite, the authenticated V2 API, deterministic refresh evidence, cost, and exported JSON.
+- [OpenCode](references/opencode.md) for current SQLite storage, the authenticated API, deterministic refresh evidence, cost, and exported JSON.
 - [Claude Code](references/claude-code.md) for JSONL stores and nested subagents.
 
 For another harness or a supplied transcript, inspect its current shape and apply the common mode, ledger, and evidence rules. Keep its native locator and checkpoint semantics.
 
-For OpenCode SQLite, resolve an explicit path first, then `OPENCODE_DB`, then the current channel filename under the OpenCode data directory. Open it with `mode=ro` so live WAL and SHM sidecars remain visible. When the path or backend is unknown, use the authenticated V2 API. Report an access gap instead of guessing a path.
+For OpenCode SQLite, resolve an explicit path first, then use `opencode debug paths db`, which does not start the service or open the database. Open the result with `mode=ro` so live WAL and SHM sidecars remain visible. When the path or backend is unknown, use the authenticated API. Report an access gap instead of guessing a path.
 
 **Done when:** the source, read-only access path, artifact identity, and current storage shape are confirmed.
 
@@ -60,11 +60,11 @@ Keep the ledger compact enough to survive compaction. An incomplete checkpoint r
 
 Read structure before content: identity, timestamps, counts, record types, tool and status aggregates, child metadata, fork provenance, compactions, terminal positions, and short previews.
 
-For question-driven OpenCode work, compose bounded read-only V2 SQL or authenticated API requests around the question. Order projected messages by `session_message.seq`. Distinguish all durable projected history from active context, which starts at the latest completed compaction sequence. Keep exhaustive SQLite reads in one read transaction when possible. Otherwise pin the terminal sequences and counts, then recheck them before reporting.
+For question-driven OpenCode work, compose bounded read-only SQL or authenticated API requests around the question. Order projected messages by `session_message.seq`. Distinguish all durable projected history from active context, which starts at the latest completed compaction sequence. Keep exhaustive SQLite reads in one read transaction when possible. Otherwise pin the terminal sequences and counts, then recheck them before reporting.
 
 Use `scripts/opencode-session-evidence.py snapshot` and `delta` only when a refreshable consumer needs a deterministic parent-and-direct-child checkpoint. A delta is valid only for a structurally verified pure append. Existing-message changes, deletions, replacements, child-set changes, topology changes, source replacement, and active-context movement return `rebuild_required`. Never merge evidence from a rejected delta.
 
-For OpenCode cost, run `scripts/opencode-session-cost.py` directly. It uses only V2 usage records and recursive `parent_id` topology. Transcript evidence is unnecessary.
+For OpenCode cost, run `scripts/opencode-session-cost.py` directly. It uses only current usage records and recursive `parent_id` topology. Transcript evidence is unnecessary.
 
 Read full content only when it can change the answer. Count and locate reasoning records without surfacing their bodies. Enumerate children before reading them, and treat fork provenance separately from ancestry.
 

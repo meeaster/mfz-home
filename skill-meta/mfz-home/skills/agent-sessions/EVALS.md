@@ -2,9 +2,9 @@
 
 ## Status
 
-The Python suites check the OpenCode V2 snapshot, delta, and cost contracts; their existence is not evidence of a current pass. The scenarios below are expectations. No suite or live V2 source ran during this metadata refactor.
+On 2026-09-12, the Python suites passed against the current skill revision: 12 snapshot and delta tests, plus 6 cost tests. `py_compile` and the evidence adapter's `--help` command also passed. The behavioral scenarios below remain expectations because this refresh did not run a model-execution evaluation.
 
-Historical OpenCode 1.18.15 Bundle runs in [LOG.md](LOG.md) observed one-call acquisition, stable no-op state, corrupted-fingerprint rejection, and recovery. They do not validate the current V2-only adapter. The historical incomplete Explore report motivates the coverage ledger: an accurate partial answer must not pass an exhaustive request.
+Historical OpenCode 1.18.15 Bundle runs in [LOG.md](LOG.md) observed one-call acquisition, stable no-op state, corrupted-fingerprint rejection, and recovery. They do not validate the current adapter. The historical incomplete Explore report motivates the coverage ledger: an accurate partial answer must not pass an exhaustive request.
 
 ## Invocation
 
@@ -26,17 +26,17 @@ The model loads Agent Sessions, declares a coverage mode, selects the matching h
 
 Agent Sessions does not replace the owning workflow. It may provide prior-session evidence when that workflow requests it.
 
-## OpenCode V2 adaptive analysis
+## OpenCode adaptive analysis
 
 ### Explicit SQLite investigation
 
-**Prompt:** Investigate one failed tool in this session using the supplied V2 database path.
+**Prompt:** Investigate one failed tool in this session using the supplied OpenCode database path.
 
 **Assertions:** The agent opens the explicit path with `mode=ro`, validates `session_v2` and `session_message`, orders by `seq`, and composes bounded SQL around the question. It excludes reasoning text and unrelated bodies, preserves session, sequence, message, and content identity, and does not route the investigation through the snapshot adapter.
 
 ### API fallback
 
-**Prompt:** Locate a V2 session when no database path or filesystem backend is available.
+**Prompt:** Locate an OpenCode session when no database path or filesystem backend is available.
 
 **Assertions:** The agent uses the authenticated service API, follows opaque pagination, and projects only needed metadata and message fields. It does not guess a path. An unavailable service remains a visible gap.
 
@@ -46,7 +46,7 @@ Agent Sessions does not replace the owning workflow. It may provide prior-sessio
 
 **Assertions:** The agent distinguishes all projected history from active context beginning at the latest completed compaction sequence. It declares scope, child traversal, terminal boundaries, exclusions, movement, and gaps.
 
-## Deterministic V2 adapter
+## Deterministic OpenCode adapter
 
 ### Snapshot
 
@@ -62,9 +62,9 @@ Agent Sessions does not replace the owning workflow. It may provide prior-sessio
 
 ### Bounds and command shape
 
-**Assertions:** Message and total-output ceilings fail clearly rather than truncating claimed coverage. Help exposes only `snapshot` and `delta`. A source without the V2 contract fails without fallback.
+**Assertions:** Message and total-output ceilings fail clearly rather than truncating claimed coverage. Help exposes only `snapshot` and `delta`. A source without the current `session_v2` contract fails without fallback.
 
-## V2 cost
+## OpenCode cost
 
 **Assertions:** The calculator validates only `session_v2` and `session_message`, follows recursive descendants with cycle guards, excludes unrelated forks, ignores assistant messages with no usage, rejects partial usage, and attributes model switches exactly. Tests cover context tiers, mode prices, cache categories, reasoning rates and fallback, malformed JSON, missing pricing, deterministic local catalogs, pretty output, null agents, stored-cost comparison, and body exclusion.
 

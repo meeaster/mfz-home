@@ -6,14 +6,7 @@ This is process-state isolation, not a security sandbox. Environment redirection
 
 ## Build The Clean Root
 
-Create one root per run and put every writable user location under it:
-
-```bash
-host_home="${HOME:?}"
-mkdir -p /tmp/opencode
-root="$(mktemp -d /tmp/opencode/agent-exec-<harness>.XXXXXX)"
-mkdir -p "$root"/{home,config,data,state,cache}
-```
+Create one root per run under the environment's temporary directory. Record the original home as `host_home` and the new root as `root`, then create separate home, config, data, state, and cache directories beneath it. Use the current environment's tools and path conventions rather than assuming a specific temporary path.
 
 Launch through `env -i` so unrelated provider settings, hooks, proxies, telemetry, and harness variables do not leak in. Reintroduce only `HOME`, `PATH`, the clean state roots, locale or certificate variables required by the machine, and the credential needed for this run. Never pass the entire parent environment.
 

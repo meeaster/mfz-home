@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Estimate OpenCode V2 session costs without reading transcript bodies."""
+"""Estimate OpenCode session costs without reading transcript bodies."""
 
 from __future__ import annotations
 
@@ -52,7 +52,7 @@ def bounded_int(minimum: int, maximum: int, label: str):
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(
-        description="Estimate OpenCode V2 session API cost from a read-only SQLite store."
+        description="Estimate OpenCode session API cost from a read-only SQLite store."
     )
     result.add_argument("--db", required=True, metavar="PATH")
     catalog = result.add_mutually_exclusive_group()
@@ -122,7 +122,7 @@ def validate_schema(connection: sqlite3.Connection, root_id: str) -> None:
         for table, required in V2_REQUIRED_COLUMNS.items():
             if table not in tables:
                 raise CalculatorError(
-                    f"unsupported OpenCode V2 source: required table is missing: {table}"
+                    f"unsupported OpenCode source: required table is missing: {table}"
                 )
             columns = {
                 row["name"] for row in connection.execute(f"PRAGMA table_info({table})")
@@ -340,7 +340,7 @@ def read_bounded_file(path: Path, maximum: int) -> bytes:
 
 
 def read_bounded_url(url: str, timeout: int, maximum: int) -> tuple[bytes, str]:
-    request = Request(url, headers={"User-Agent": "mfz-opencode-session-cost/1"})
+    request = Request(url, headers={"User-Agent": "opencode-session-cost/1"})
     try:
         with urlopen(request, timeout=timeout) as response:
             status = getattr(response, "status", None)
@@ -743,7 +743,7 @@ def calculate(
         "calculation": {
             "currency": "USD",
             "rate_unit": "USD per 1M tokens",
-            "method": "Models.dev-first current-catalog estimate: each persisted model step uses its assistant message providerID/modelID, while variant is retained for attribution; OpenCode V2 reads assistant messages with complete usage; an exact catalog model wins, otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost, which replaces mode base rates, replaces same-size tiers, adds new tiers, and replaces context_over_200k when supplied; the highest merged explicit tier with context > tier.size wins, then merged context_over_200k only when context > 200000, otherwise merged mode base rates.",
+            "method": "Models.dev-first current-catalog estimate: each persisted model step uses its assistant message providerID/modelID, while variant is retained for attribution; OpenCode reads assistant messages with complete usage; an exact catalog model wins, otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost, which replaces mode base rates, replaces same-size tiers, adds new tiers, and replaces context_over_200k when supplied; the highest merged explicit tier with context > tier.size wins, then merged context_over_200k only when context > 200000, otherwise merged mode base rates.",
             "cache_method": "Missing optional cache_read and cache_write rates are normalized to zero in the selected cost object.",
             "reasoning_method": "Use selected cost.reasoning when present; fall back to selected output pricing only when reasoning is absent.",
             "rounding": "Decimal arithmetic is aggregated before cost values are rounded to 12 decimal places for JSON presentation.",

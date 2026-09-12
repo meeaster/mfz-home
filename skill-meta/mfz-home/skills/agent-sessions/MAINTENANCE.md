@@ -4,13 +4,16 @@
 
 The runtime skill has disclosed references for OpenCode, Claude Code, and shared analysis. OpenCode filesystem archaeology requires SQLite JSON support. API fallback requires the configured authenticated `opencode api` client. Claude Code extraction uses `jq` against current JSONL layouts.
 
-The OpenCode storage, path, compaction, projection, API, and event semantics are pinned to source revision `5ee7f19875e0c1ec2877ead7e4642c5b5461ac00` in `/home/mark/workspace/references/opencode`:
+The OpenCode storage, path, compaction, projection, API, and event semantics are pinned to source revision `7c5a4d01aa2a8144a81b6261aad220cf5a84c107` (`v2.0.2`) in `/home/mark/workspace/references/opencode`:
 
 - `packages/core/src/session/sql.ts`
 - `packages/core/src/database/schema.gen.ts`
 - `packages/core/src/database/database.ts`
 - `packages/util/src/global-roots.ts`
 - `packages/cli/src/server-process.ts`
+- `packages/cli/src/database-path.ts`
+- `packages/cli/src/commands/handlers/debug/paths.ts`
+- `packages/cli/src/commands/handlers/session/delete.ts`
 - `packages/core/src/session/history.ts`
 - `packages/core/src/session/projector.ts`
 - `packages/protocol/src/groups/session.ts`
@@ -22,7 +25,7 @@ Refresh these claims before changing table names, columns, path resolution, API 
 
 ## Deterministic adapter contract
 
-`scripts/opencode-session-evidence.py` is a narrow V2 refresh adapter. It exposes `snapshot` and `delta`; ordinary archaeology remains adaptive SQL or API work.
+`scripts/opencode-session-evidence.py` is a narrow current-schema refresh adapter. It exposes `snapshot` and `delta`; ordinary archaeology remains adaptive SQL or API work. OpenCode still uses `session_v2` and `v2.*` API operation IDs internally; keep those implementation identifiers distinct from the product name.
 
 The checkpoint version is `2`. It owns source identity, parent and direct-child scope, topology, per-session terminal sequence, message count, maximum update, session update, completed compaction, active-context start, structural prefix and metadata guards, fork provenance, and optional event and inbox watermarks.
 
@@ -32,7 +35,7 @@ The adapter output excludes reasoning bodies, tool bodies, event payloads, and s
 
 ## Cost contract
 
-`scripts/opencode-session-cost.py` accepts only V2 stores. It reads complete assistant usage, follows recursive `parent_id` descendants, guards cycles, and excludes content. Preserve exact provider, model, and variant attribution. Keep current models.dev pricing distinct from stored cost and provider billing.
+`scripts/opencode-session-cost.py` accepts only the current `session_v2` projection. It reads complete assistant usage, follows recursive `parent_id` descendants, guards cycles, and excludes content. Preserve exact provider, model, and variant attribution. Keep current models.dev pricing distinct from stored cost and provider billing.
 
 Checkpoint changes also affect Session Brief state acceptance and transport. Reconcile that consumer before declaring an adapter refresh compatible. Compare bounded live SQLite and API metadata when both are available; keep bodies out of the comparison.
 

@@ -1,7 +1,7 @@
 ---
 name: agent-exec
 description: >
-  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode 2, or Claude Code;
+  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
   continue a session from one of those harnesses; or inspect a harness's available models or variants.
 ---
 
@@ -11,21 +11,25 @@ Agent exec drives another agent CLI and preserves the continuation handle. It is
 
 CLI delegation normally starts the target harness's primary/main agent, not a nested subagent in that harness. Only use a harness-specific agent flag when the named agent is valid for direct CLI runs; parent-session subagents and child-harness run agents are different concepts.
 
-## Native Subagents And OpenCode 2 Testing
+## Native Subagents And OpenCode Runtime Boundaries
 
 For a request to use a named subagent available in the current environment, such as `explore`, `general`, or `research`, use the native task tool. Reserve agent exec for explicitly running an external harness CLI or resuming its session.
 
-Inside OpenCode 2, do not launch a child merely to obtain current runtime state. Ensure the edit has reached a watched source first; Mindframe-Z home changes require `mfz apply`. After reload settles, the current session reselects reloadable agent definitions, skills, tools, permissions, instructions, references, MCP state, and plugin state before its next physical model attempt. An in-flight model request keeps its captured state, but a later step in the same run can observe the reload.
+For OpenCode, classify the need before launching anything:
 
-Use a fresh native subagent when fresh context is part of the test: initial session behavior, default-agent selection, subagent-specific configuration, or freedom from previously loaded skill text and durable conversation history. Reinvoke an edited skill to load its current body; the older loaded text remains in the conversation. Before deciding that a new session, TUI, private server, or restart is required, follow [references/opencode-reload.md](references/opencode-reload.md).
+- **Runtime freshness:** Complete any render or installation step, wait for the watched server resource to reload, then use the current session's next model attempt.
+- **Context freshness:** Use a fresh native subagent or session when prior conversation, loaded skill text, permission decisions, initial selection, or child configuration would affect the result.
+- **Process isolation:** Use `--standalone` when the test needs a private server. Add clean-room environment controls when configuration and state must also be isolated.
 
-Use an external `opencode` run when the user explicitly requests the CLI, or when the behavior under test is the installed CLI, client-to-server connection, a private server, clean-room state, or a fresh top-level session needed to escape the current session's subagent depth or permissions. Nested subagents are limited to depth 1 by default, but the limit and permissions are configurable; do not describe nesting as an absolute OpenCode 2 restriction.
+By default, `opencode run` starts a new client and session against the shared background service. It does not provide a fresh server or process isolation. Use an external run when the user explicitly requests the CLI or the test concerns the CLI, client startup, client-to-server connection, or fresh top-level session behavior. Before choosing a new client, private server, or restart, follow [references/opencode-reload.md](references/opencode-reload.md).
+
+Nested subagents are limited to depth 1 by default, but the limit and permissions are configurable; do not describe nesting as an absolute OpenCode restriction.
 
 ## Steps
 
 1. Identify the target harness.
 
-   Use the user's named CLI, model, or session handle to choose Claude Code, OpenCode 2, or Codex. If the target is unclear, ask one short question. Done when the harness and intended mode are explicit.
+   Use the user's named CLI, model, or session handle to choose Claude Code, OpenCode, or Codex. If the target is unclear, ask one short question. Done when the harness and intended mode are explicit.
 
 2. Build a context packet.
 
@@ -103,7 +107,7 @@ Packet rules:
 After identifying the target, read exactly one harness reference before choosing its command:
 
 - [Claude Code](references/claude-code.md) for Claude models, effort, permissions, output, continuation, cleanup, and clean-room state.
-- [OpenCode 2](references/opencode.md) for models, agents, output events, continuation, cleanup, shared or private servers, and clean-room state.
+- [OpenCode](references/opencode.md) for models, agents, output events, continuation, cleanup, shared or private servers, and clean-room state.
 - [Codex](references/codex.md) for models, reasoning effort, sandboxing, output, continuation, cleanup, and clean-room state.
 
 ## Failure Handling

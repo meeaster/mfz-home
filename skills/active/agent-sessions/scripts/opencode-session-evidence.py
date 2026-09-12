@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Emit deterministic, body-bounded evidence from an OpenCode V2 SQLite store."""
+"""Emit deterministic, body-bounded evidence from an OpenCode SQLite store."""
 
 from __future__ import annotations
 
@@ -110,8 +110,8 @@ def database_path(value: str | None) -> Path:
     path = Path(value).expanduser().resolve() if value else default_database_path()
     if not path.is_file():
         raise EvidenceError(
-            f"OpenCode V2 database does not exist: {path}; supply --db, set OPENCODE_DB, "
-            "or use the authenticated V2 API when the backend path is unknown"
+            f"OpenCode database does not exist: {path}; supply --db, run `opencode debug paths db`, "
+            "or use the authenticated API when the backend path is unknown"
         )
     return path
 
@@ -140,14 +140,14 @@ def validate_schema(connection: sqlite3.Connection) -> set[str]:
     available = tables(connection)
     for table, required in REQUIRED_COLUMNS.items():
         if table not in available:
-            raise EvidenceError(f"unsupported OpenCode V2 source: required table is missing: {table}")
+            raise EvidenceError(f"unsupported OpenCode source: required table is missing: {table}")
         columns = {
             str(row[1]) for row in connection.execute(f"PRAGMA table_info({table})")
         }
         missing = required - columns
         if missing:
             raise EvidenceError(
-                f"unsupported OpenCode V2 source: required columns missing from {table}: "
+                f"unsupported OpenCode source: required columns missing from {table}: "
                 + ", ".join(sorted(missing))
             )
     try:
@@ -321,7 +321,7 @@ def session_rows(connection: sqlite3.Connection, parent_id: str) -> list[sqlite3
         (parent_id,),
     ).fetchone()
     if parent is None:
-        raise EvidenceError(f"session not found in OpenCode V2 source: {parent_id}")
+        raise EvidenceError(f"session not found in OpenCode source: {parent_id}")
     children = connection.execute(
         """
         SELECT id, parent_id, fork_session_id, fork_boundary, title, directory,
@@ -568,7 +568,7 @@ def parse_checkpoint(raw: str, parent_id: str) -> dict[str, Any]:
     if not isinstance(state, dict):
         raise EvidenceError("checkpoint must be a JSON object")
     if set(state) != CHECKPOINT_FIELDS:
-        raise EvidenceError("checkpoint has an unsupported V2 shape; full snapshot rebuild required")
+        raise EvidenceError("checkpoint has an unsupported OpenCode shape; full snapshot rebuild required")
     if state.get("adapter") != ADAPTER or state.get("version") != ADAPTER_VERSION:
         raise EvidenceError("checkpoint adapter version is unsupported; full snapshot rebuild required")
     if state.get("parent_session_id") != parent_id:
@@ -700,7 +700,7 @@ def build_delta(
 
 def parser() -> argparse.ArgumentParser:
     result = argparse.ArgumentParser(
-        description="Emit deterministic OpenCode V2 snapshot or append-only delta evidence."
+        description="Emit deterministic OpenCode snapshot or append-only delta evidence."
     )
     result.add_argument("--db", metavar="PATH")
     result.add_argument("--pretty", action="store_true")

@@ -1,21 +1,20 @@
-# OpenCode V2 sessions
+# OpenCode sessions
 
-Use one of four OpenCode V2 evidence paths:
+Use one of four OpenCode evidence paths:
 
 - Read-only SQLite for question-driven archaeology when the database path is known.
 - The authenticated service API when the path or backend is unknown, or when service-owned semantics matter.
 - The deterministic snapshot and delta adapter for refreshable consumers.
 - The body-free cost calculator for current-catalog estimates.
 
-The storage and API facts below are pinned to OpenCode source revision `5ee7f19875e0c1ec2877ead7e4642c5b5461ac00`.
+The storage and API facts below are pinned to OpenCode source revision `7c5a4d01aa2a8144a81b6261aad220cf5a84c107` (`v2.0.2`). Internal table names and API operation IDs still contain `v2`; treat those as implementation identifiers, not the product name.
 
 ## Resolve read-only SQLite
 
 Resolve the database in this order:
 
 1. Use the caller's explicit absolute path.
-2. Use `OPENCODE_DB`.
-3. Use the current channel filename under the OpenCode data directory. The data root is `$XDG_DATA_HOME/opencode` or `~/.local/share/opencode`. Standard channels use `opencode.db`; another channel uses `opencode-<sanitized-channel>.db`.
+2. Otherwise run `opencode debug paths db`. It resolves `OPENCODE_DB`, the data root, and the release-channel filename without starting the service or opening the database.
 
 When none of these identifies the active backend, use the authenticated API. Do not invoke a database command to discover or query the store because service startup and database commands can apply migrations.
 
@@ -29,7 +28,7 @@ Keep live `-wal` and `-shm` files beside the database. Do not use immutable mode
 
 Validate `session_v2` and `session_message` plus the columns needed by the query. A database without that contract is unsupported. Ignore unrelated legacy-named tables if they coexist.
 
-## Query the V2 projection
+## Query the current projection
 
 `session_v2` stores session metadata. `parent_id` defines ancestry. `fork_session_id` and JSON `fork_boundary` define fork provenance separately. Session rows include aggregate cost and token counts, created and updated times, compaction state, archive state, and the execution-claim timestamp stored in `time_suspended`.
 
@@ -95,7 +94,7 @@ Compaction is a `session_message` with `type = 'compaction'`. A completed compac
 
 For exhaustive active-store work, use one read transaction. If that is not practical, capture terminal sequence, message count, maximum update, and session update state before paging. Apply the terminal sequence to every page, then recheck the boundary. Report movement instead of mixing boundaries.
 
-## Use the authenticated V2 API
+## Use the authenticated API
 
 Use the service API through the configured authenticated client. Do not read service credentials or construct an unauthenticated request.
 
@@ -138,7 +137,7 @@ The checkpoint records adapter and source identity, the parent and direct-child 
 
 Snapshot and delta output include bounded user text, assistant text and tool structure, compactions, nonterminal locators, inbox structure, sequence locators, coverage, and the next checkpoint. Reasoning records retain type and locator only. Tool bodies, event payloads, reasoning text, and secrets are excluded from output. Raise the explicit message or output ceiling only when the declared scope requires it.
 
-## Calculate V2 cost
+## Calculate cost
 
 Calculate current-catalog cost for a parent and all recursive `parent_id` descendants:
 

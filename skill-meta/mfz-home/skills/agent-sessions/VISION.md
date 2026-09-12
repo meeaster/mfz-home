@@ -10,7 +10,7 @@ OpenCode also stores usage and aggregate cost separately from current model pric
 
 Agent Sessions is the general session-evidence layer. It locates, outlines, investigates, reconstructs, audits, incrementally reads, and prices sessions through one coverage discipline and native harness semantics.
 
-For OpenCode, current V2 behavior has two deliberate paths:
+For OpenCode, current behavior has two deliberate paths:
 
 - Adaptive bounded SQL or authenticated API analysis owns locate, outline, investigate, reconstruct, and audit.
 - A narrow deterministic adapter owns parent-and-direct-child snapshot and append-only delta for refreshable consumers.
