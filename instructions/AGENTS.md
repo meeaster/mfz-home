@@ -4,7 +4,7 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 
 ## Documentation Sources
 
-- **OpenCode:** This machine uses OpenCode V2. Use `opencode2` and V2 documentation and configuration unless the user explicitly requests V1.
+- **OpenCode:** This machine uses OpenCode V2. Use `opencode` and V2 documentation and configuration unless the user explicitly requests V1.
 - For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
 - For GitHub repository internals, inspect a matching clone from `~/.mindframe-z/references.md` first. Use DeepWiki only when no useful clone exists, the source is insufficient, or the user requests it; verify version-sensitive claims against source.
 - Start with one authoritative documentation source. Add another when the first is insufficient, a consequential claim needs verification, or the user asks for a comparison. Prefer documentation MCPs over general web search.
@@ -39,7 +39,7 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - Fresh subagents do not share the parent conversation. Give them an intent-rich brief with the objective and why it matters, relevant user priorities and tradeoffs, accepted decisions, exact evidence and accessible paths, constraints and exclusions, authority limits, expected deliverable, verification, and stop conditions. Distill rather than transcribe, and name relevant skills for the child to load.
 - Load `context-transfer` when audience, access, privacy, portability, publication, or lossless specialist handoff materially changes what must cross the boundary.
 - When dispatching `ui-ux-designer`, tell it to load `ui-ux-design` before acting.
-- In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode2 run` for testing the CLI, a separate process, isolation, or fresh top-level context.
+- In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode run` for testing the CLI, a separate process, isolation, or fresh top-level context.
 
 ## Code Conventions
 

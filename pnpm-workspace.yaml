@@ -13,5 +13,5 @@ packages:
   - opencode/plugins/subagent-usage
   - opencode/plugins/work-ledger
 minimumReleaseAgeExclude:
-  - '@opencode-ai/*'
+  - '@opencode/*'
   - '@opentui/*'

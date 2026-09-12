@@ -18,7 +18,9 @@ The plugin reads its package-local `skills/` directory and registers each comple
 ```sh
 pnpm --dir opencode/plugins/pstack check
 mfz smoke-opencode-v2
-opencode2 api get /api/plugin
+opencode api get /api/plugin
 ```
 
-The source adaptation targets the exact `@opencode-ai/plugin` build reported by the installed `opencode2` client. Recheck and update that pin with every OpenCode V2 upgrade because the plugin API is beta.
+The plugin targets OpenCode 2.0.0 with the `opencode` CLI and
+`@opencode/plugin@2.0.0`. Its package manifest pins the stable SDK for local
+typechecking and plugin loading.

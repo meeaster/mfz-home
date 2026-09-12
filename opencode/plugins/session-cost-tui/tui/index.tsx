@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import type { Definition } from "@opencode-ai/plugin/tui/plugin";
+import type { Definition } from "@opencode/plugin/tui/plugin";
 
 import { View } from "./view.js";
 import { reactiveSessionID } from "./slot.js";

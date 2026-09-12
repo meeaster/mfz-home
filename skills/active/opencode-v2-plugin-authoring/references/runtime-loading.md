@@ -10,12 +10,13 @@ installed OpenCode release or its matching source when loader behavior changes.
   install them package-locally or expose them through a deliberate rendered
   ancestor. A dependency elsewhere on disk does not satisfy this boundary.
 - A native TUI plugin using runtime `Plugin.define` from
-  `@opencode-ai/plugin/tui` must declare the SDK in `dependencies`, pin beta
-  builds to the installed OpenCode version, and make it resolvable from the
-  rendered entrypoint. A structural `{ id, setup }` default export with
-  type-only SDK imports needs the matching SDK only for development and may
-  declare it in `devDependencies`; verify that compiled or directly imported
-  runtime code contains no SDK import before relying on this deployment shape.
+  `@opencode/plugin/tui` must declare the SDK in `dependencies`, pin
+  `@opencode/plugin@2.0.0` to the stable OpenCode 2.0.0 CLI, and make it
+  resolvable from the rendered entrypoint. A structural `{ id, setup }` default
+  export with type-only SDK imports needs the matching SDK only for development
+  and may declare it in `devDependencies`; verify that compiled or directly
+  imported runtime code contains no SDK import before relying on this deployment
+  shape.
 - Rendering a manifest does not install it. A configuration manager that copies
   local plugins must separately establish runtime dependency resolution and
   must not copy source-workspace `node_modules` as deployment output.
@@ -39,14 +40,16 @@ installed OpenCode release or its matching source when loader behavior changes.
 - In releases using native CLI plugin configuration, TUI entries live in
   `cli.json` under `plugins`. The CLI owns and may rewrite that file. Merge a
   managed entry while preserving unrelated settings and entries; do not replace
-  or symlink the file. Verify this surface from the installed release because
-  native TUI configuration remains beta.
-- In `0.0.0-beta-18743`, a configured local file entry can appear in `/plugins` but the TUI provider skips it before import. Register a local TUI directory instead.
+  or symlink the file. Verify this release-sensitive surface against the
+  installed CLI.
+- Historical loader evidence from `0.0.0-beta-18743`: a configured local file
+  entry could appear in `/plugins` while the TUI provider skipped it before
+  import. Register a local TUI directory instead.
 - The configured-directory loader requires physical root `index.*` and `tui.*` files, then imports the root `tui.*` entrypoint. If the implementation remains under `tui/index.tsx`, add a root `tui.tsx` wrapper and a root `index.ts` marker.
 - `exports["./tui"]` is package metadata only for local directory loading. A renderer or configuration manager must register the directory URL, not the nested `tui/index.tsx` file URL. Automatically discovered local TUI directories use the same root entrypoint shape.
-- TUI plugins use the native `@opencode-ai/plugin/tui` contract, not the V1 or
-  server Promise/Effect contracts. At `0.0.0-beta-18743`, the native TUI
-  definition exposes `setup` and no TUI Effect entrypoint.
+- Stable TUI plugins use the native `@opencode/plugin/tui` contract, not the V1
+  or server Promise/Effect contracts. Historical beta releases used a different
+  import path and contract; do not infer stable exports from those releases.
 
 ## Schema Boundaries
 
@@ -81,7 +84,7 @@ installed OpenCode release or its matching source when loader behavior changes.
 
 ## Version Check
 
-The V2 plugin API is beta. Before creating or migrating a plugin, compare the
-installed `opencode2 --version` with the plugin SDK declared by the plugin.
-Use the SDK release that matches the CLI build and verify the version actually
-resolved from the rendered entrypoint.
+Before creating or migrating a plugin, compare the installed `opencode --version`
+with the plugin SDK declared by the plugin. Use `@opencode/plugin@2.0.0` with the
+stable 2.0.0 CLI and verify the version actually resolved from the rendered
+entrypoint.

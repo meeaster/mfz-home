@@ -19,7 +19,7 @@ Inside OpenCode 2, do not launch a child merely to obtain current runtime state.
 
 Use a fresh native subagent when fresh context is part of the test: initial session behavior, default-agent selection, subagent-specific configuration, or freedom from previously loaded skill text and durable conversation history. Reinvoke an edited skill to load its current body; the older loaded text remains in the conversation. Before deciding that a new session, TUI, private server, or restart is required, follow [references/opencode-reload.md](references/opencode-reload.md).
 
-Use an external `opencode2` run when the user explicitly requests the CLI, or when the behavior under test is the installed CLI, client-to-server connection, a private server, clean-room state, or a fresh top-level session needed to escape the current session's subagent depth or permissions. Nested subagents are limited to depth 1 by default, but the limit and permissions are configurable; do not describe nesting as an absolute OpenCode 2 restriction.
+Use an external `opencode` run when the user explicitly requests the CLI, or when the behavior under test is the installed CLI, client-to-server connection, a private server, clean-room state, or a fresh top-level session needed to escape the current session's subagent depth or permissions. Nested subagents are limited to depth 1 by default, but the limit and permissions are configurable; do not describe nesting as an absolute OpenCode 2 restriction.
 
 ## Steps
 

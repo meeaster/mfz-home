@@ -6,7 +6,7 @@
     "./tui": "./tui/index.tsx"
   },
   "devDependencies": {
-    "@opencode-ai/plugin": "0.0.0-beta-18965",
+    "@opencode/plugin": "2.0.0",
     "@opentui/core": "0.5.10",
     "@opentui/keymap": "0.5.10",
     "@opentui/solid": "0.5.10",

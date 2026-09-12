@@ -2,7 +2,7 @@
 
 ## Status
 
-This note records the research, implementation, and verification of recurring `opencode2 run` jobs managed by `mfz` and systemd. The first daily job is active.
+This note records the research, implementation, and verification of recurring `opencode run` jobs managed by `mfz` and systemd. The first daily job is active.
 
 The source lives in `/home/mark/workspace/repos/mfz-home`. The disposable prototype worktree is clean.
 
@@ -30,7 +30,7 @@ The shared profile sets `experimental.subagent_depth: 2`, enables the body-free 
 The timer runs daily at 08:00 in the machine's local timezone and uses `Persistent=true`. It is enabled under `timers.target`. The oneshot service reads the root prompt from standard input and runs:
 
 ```sh
-opencode2 run \
+opencode run \
   --auto \
   --session ses_fc3c5bf1fffejuszN98FNWiG1K \
   --model openai/gpt-5.6-luna#high \
@@ -119,12 +119,12 @@ worker synthesis
 
 Fan-in must therefore be bounded. Each child should answer one narrow question or fixed batch, return structured findings rather than raw transcripts, and keep its result short enough that all child results fit comfortably in the worker's input budget.
 
-The root has a different risk profile. Its old reports are history, not working evidence, so lossy compaction is acceptable. The active job starts with normal automatic compaction. Manual pre-run compaction would require a small runner because `opencode2 run` has no `--compact-first` flag:
+The root has a different risk profile. Its old reports are history, not working evidence, so lossy compaction is acceptable. The active job starts with normal automatic compaction. Manual pre-run compaction would require a small runner because `opencode run` has no `--compact-first` flag:
 
 ```text
 POST /api/session/<root>/compact
 POST /api/session/<root>/wait
-opencode2 run --session <root> ...
+opencode run --session <root> ...
 ```
 
 Unconditional pre-run compaction would give the root maximum headroom, but it adds a model call and still preserves a summary and recent tail. Add it only if repeated runs show stale-context behavior or insufficient root headroom.
@@ -150,7 +150,7 @@ Relevant source:
 
 ## Model selection and environment configuration
 
-Do not use `OPENCODE_CONFIG_CONTENT` to pass per-job agent configuration when `opencode2 run` connects to the shared background service.
+Do not use `OPENCODE_CONFIG_CONTENT` to pass per-job agent configuration when `opencode run` connects to the shared background service.
 
 The server reads `OPENCODE_CONFIG_CONTENT` when the server process starts. For a managed-service run, the CLI sends its environment as session shell environment. That environment can affect commands launched for the session, but it does not rebuild the server's location-scoped agent configuration.
 

@@ -2,7 +2,12 @@
 
 This document describes the OpenCode V2 plugin contract that `pstack` uses. Use it when changing the plugin entrypoint, packaged skills, registered agents, dependencies, or runtime verification.
 
-OpenCode V2's plugin API is beta. Treat every SDK upgrade as a contract review, not a routine dependency update.
+This source uses the stable plugin SDK. Treat every SDK upgrade as a contract
+review, not a routine dependency update.
+
+The target is OpenCode 2.0.0 with the `opencode` CLI and
+`@opencode/plugin@2.0.0`. Do not substitute a development, beta, or reserved
+package.
 
 ## Current boundary
 
@@ -47,7 +52,7 @@ profiles/personal/profile.yml
 
 ## Server plugin contract
 
-The Promise API comes from `@opencode-ai/plugin`. Its contract is defined in the OpenCode reference at:
+The Promise API comes from `@opencode/plugin`. Its contract is defined in the OpenCode reference at:
 
 - `/home/mark/workspace/references/opencode/packages/plugin/src/promise/plugin.ts`
 - `/home/mark/workspace/references/opencode/packages/plugin/src/promise/index.ts`
@@ -57,7 +62,6 @@ A Promise plugin has this shape:
 ```ts
 interface Plugin {
   readonly id: string
-  readonly tui?: boolean
   readonly setup: (context: Context) => Promise<Cleanup | void> | Cleanup | void
 }
 ```
@@ -251,18 +255,18 @@ Relevant lifecycle sources are:
 
 ## Dependencies and versions
 
-The plugin imports Node built-ins and `@opencode-ai/plugin`. It currently has no additional runtime dependency.
+The plugin imports Node built-ins and `@opencode/plugin`. It currently has no additional runtime dependency.
 
-Keep the exact SDK version in `package.json` equal to the installed `opencode2` build:
+Keep the exact SDK version in `package.json` equal to the installed CLI build:
 
 ```sh
-opencode2 --version
-pnpm --dir opencode/plugins/pstack exec node -p "require('./node_modules/@opencode-ai/plugin/package.json').version"
+opencode --version
+pnpm --dir opencode/plugins/pstack exec node -p "require('./node_modules/@opencode/plugin/package.json').version"
 ```
 
-The OpenCode reference checkout can describe a different release from the installed beta. Use the reference to understand internals, then verify version-sensitive claims against the installed SDK and runtime.
+The OpenCode reference checkout can describe a different release from the installed CLI. Use the reference to understand internals, then verify version-sensitive claims against the installed SDK and runtime.
 
-Do not add the built-in `@opencode-ai/plugin` SDK to `opencode_v2.dependencies`. Declare any new non-host runtime import with an exact version under the profile's `opencode_v2.dependencies`, as required by `../../../AGENTS.md`.
+Do not add the built-in `@opencode/plugin` SDK to `opencode_v2.dependencies`. Declare any new non-host runtime import with an exact version under the profile's `opencode_v2.dependencies`, as required by `../../../AGENTS.md`.
 
 ## Change map
 
@@ -299,14 +303,14 @@ mfz apply
 Inspect the active plugin:
 
 ```sh
-opencode2 api get /api/plugin
+opencode api get /api/plugin
 ```
 
 Inspect runtime-registered skills and agents:
 
 ```sh
-opencode2 api get '/api/skill?directory=%2Fhome%2Fmark%2Fworkspace%2Frepos%2Fmfz-home'
-opencode2 api get '/api/agent?directory=%2Fhome%2Fmark%2Fworkspace%2Frepos%2Fmfz-home'
+opencode api get '/api/skill?directory=%2Fhome%2Fmark%2Fworkspace%2Frepos%2Fmfz-home'
+opencode api get '/api/agent?directory=%2Fhome%2Fmark%2Fworkspace%2Frepos%2Fmfz-home'
 ```
 
 Count the packaged skills without maintaining a hardcoded count:
@@ -317,7 +321,7 @@ find opencode/plugins/pstack/skills -mindepth 1 -maxdepth 1 -type d | wc -l
 
 Complete the repository maintenance checks recorded in `../../../../skill-meta/mfz-home/skills/pstack/MAINTENANCE.md`. Unit tests prove the package parser and registration helpers. They do not prove rendered dependency resolution, plugin activation, reload behavior, effective permissions, or model-visible behavior.
 
-For a server behavior change, exercise the changed behavior in a fresh `opencode2` process. `/api/plugin` reporting `status: "active"` proves setup completed; it does not prove that a hook, tool, or delegated workflow executed correctly.
+For a server behavior change, exercise the changed behavior in a fresh `opencode` process. `/api/plugin` reporting `status: "active"` proves setup completed; it does not prove that a hook, tool, or delegated workflow executed correctly.
 
 ## Failure interpretation
 
@@ -334,7 +338,7 @@ For a server behavior change, exercise the changed behavior in a fresh `opencode
 
 ## Source index
 
-Use these OpenCode reference files when the beta API changes:
+Use these OpenCode reference files when the API changes:
 
 | Concern | Reference source |
 | --- | --- |

@@ -2,7 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Plugin, type Skill } from "@opencode-ai/plugin";
+import { Plugin, type Skill } from "@opencode/plugin";
 
 type SkillRegistry = {
   add(skill: Skill.Info): void;

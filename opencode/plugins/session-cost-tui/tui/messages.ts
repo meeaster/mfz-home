@@ -1,4 +1,4 @@
-import type { Context } from "@opencode-ai/plugin/tui/plugin";
+import type { Context } from "@opencode/plugin/tui/plugin";
 
 export type PricingUsage = {
   providerID: string;

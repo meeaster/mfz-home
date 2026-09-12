@@ -100,9 +100,9 @@ For exhaustive active-store work, use one read transaction. If that is not pract
 Use the service API through the configured authenticated client. Do not read service credentials or construct an unauthenticated request.
 
 ```bash
-opencode2 api get /api/session
-opencode2 api get /api/session/<session-id>
-opencode2 api get '/api/session/<session-id>/message?order=asc&limit=200'
+opencode api get /api/session
+opencode api get /api/session/<session-id>
+opencode api get '/api/session/<session-id>/message?order=asc&limit=200'
 ```
 
 Session listing returns metadata plus an opaque cursor. Message listing returns `data` and `cursor.previous` or `cursor.next`; the default page size is 50 and the maximum explicit limit is 200. A message cursor already carries order and direction, so do not combine it with `order`.

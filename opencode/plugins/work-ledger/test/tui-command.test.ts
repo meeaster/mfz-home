@@ -2,7 +2,7 @@ import { mkdir, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 
-import type { Context } from "@opencode-ai/plugin/tui/plugin";
+import type { Context } from "@opencode/plugin/tui/plugin";
 import { describe, expect, it, vi } from "vitest";
 
 import { createBindingStore } from "../src/core.js";

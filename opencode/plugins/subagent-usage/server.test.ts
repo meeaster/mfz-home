@@ -1,4 +1,4 @@
-import type { Plugin } from "@opencode-ai/plugin";
+import type { Plugin } from "@opencode/plugin";
 import { describe, expect, it, vi } from "vitest";
 
 import { appendUsageContent, setupSubagentUsage, summarizeUsage, usageTag } from "./server.js";

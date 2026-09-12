@@ -7,8 +7,8 @@ Read [opencode-reload.md](opencode-reload.md) before using an external CLI run t
 Inspect available models and agents before selecting non-default settings:
 
 ```bash
-opencode2 models
-opencode2 debug agents
+opencode models
+opencode debug agents
 ```
 
 Use the configured default for routine work. Choose `--model <provider/model>` only when the user names a target, a stronger reviewer or implementer is needed, or a cheaper or faster worker is appropriate. Append a relevant provider variant as `<provider/model#variant>`.
@@ -20,16 +20,16 @@ Use `--agent <agent>` when the user asks for a specific primary or all-mode agen
 Fresh run:
 
 ```bash
-opencode2 run --title "<short trackable title>" --model <provider/model#variant> "<context packet>"
+opencode run --title "<short trackable title>" --model <provider/model#variant> "<context packet>"
 ```
 
 Continue an explicit session:
 
 ```bash
-opencode2 run --session <sessionID> "<context packet>"
+opencode run --session <sessionID> "<context packet>"
 ```
 
-Omit `--model` when intentionally using configured defaults. Avoid `opencode2 run --continue` unless the user explicitly wants the latest session and concurrent OpenCode runs cannot select the wrong one.
+Omit `--model` when intentionally using configured defaults. Avoid `opencode run --continue` unless the user explicitly wants the latest session and concurrent OpenCode runs cannot select the wrong one.
 
 Use default output when only the final answer is needed. When stdout is not a TTY, OpenCode 2 prints completed assistant text without the raw event stream. Use `--format json` for event-level data or guaranteed session ID capture.
 
@@ -38,7 +38,7 @@ JSON output is an event stream, not one result object. Every event includes `ses
 Delete a disposable test or probe session after capturing its evidence:
 
 ```bash
-opencode2 api v2.session.remove --param sessionID=<sessionID>
+opencode api v2.session.remove --param sessionID=<sessionID>
 ```
 
 ## Clean-Room State
@@ -66,7 +66,7 @@ env -i \
   XDG_CACHE_HOME="$root/cache" \
   OPENCODE_CONFIG_CONTENT='{}' \
   OPENCODE_DISABLE_PROJECT_CONFIG=true \
-  opencode2 run --standalone --format json --title "<title>" --model <provider/model#variant> "<context packet>"
+  opencode run --standalone --format json --title "<title>" --model <provider/model#variant> "<context packet>"
 ```
 
 A model or plugin available only through normal OpenCode config is intentionally unavailable. Define the minimum required clean config instead of pointing a config or XDG variable back at the host. If repository configuration is part of the test, omit only `OPENCODE_DISABLE_PROJECT_CONFIG` and state that it remains in scope.
@@ -83,7 +83,7 @@ env -i \
   XDG_CACHE_HOME="$root/cache" \
   OPENCODE_CONFIG_CONTENT='{}' \
   OPENCODE_DISABLE_PROJECT_CONFIG=true \
-  opencode2 run --standalone --session <sessionID> "<context packet>"
+  opencode run --standalone --session <sessionID> "<context packet>"
 ```
 
 `--standalone` starts a private server for the command instead of discovering or starting the shared background service. OpenCode 2 may refresh OAuth tokens in the copied auth file. Keep the clean root for continuation, or remove it after a disposable run; never copy refreshed credentials back over the host file automatically.

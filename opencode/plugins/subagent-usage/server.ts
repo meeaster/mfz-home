@@ -1,4 +1,4 @@
-import { Plugin } from "@opencode-ai/plugin";
+import { Plugin } from "@opencode/plugin";
 import { z } from "zod";
 
 import { loadCatalog, priceTokens, type Catalog, type ModelRef, type Tokens } from "./pricing.js";

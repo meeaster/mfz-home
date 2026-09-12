@@ -17,7 +17,9 @@ opencode_v2:
       root: ~/workspace/knowledge/personal-knowledge/ledgers
 ```
 
-Requires OpenCode V2 `0.0.0-beta-17595`. Each immediate, visible directory under `root` is one available ledger.
+Targets OpenCode V2 2.0.0 through the `opencode` CLI and matching
+`@opencode/plugin@2.0.0`. Each immediate, visible directory under `root` is one
+available ledger.
 
 ## Use
 

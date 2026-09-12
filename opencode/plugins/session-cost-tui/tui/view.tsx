@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import type { Context } from "@opencode-ai/plugin/tui/plugin";
+import type { Context } from "@opencode/plugin/tui/plugin";
 import { createEffect, createSignal, For, Match, onCleanup, Switch } from "solid-js";
 
 import { createCostLifecycle } from "./lifecycle.js";

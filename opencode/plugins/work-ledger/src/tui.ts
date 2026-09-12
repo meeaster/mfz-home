@@ -1,4 +1,4 @@
-import type { Context, Definition } from "@opencode-ai/plugin/tui/plugin";
+import type { Context, Definition } from "@opencode/plugin/tui/plugin";
 
 import { resolveOptions } from "./core.js";
 import { selectLedger } from "./tui/command.js";
