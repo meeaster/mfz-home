@@ -1,5 +1,21 @@
 # Log
 
+## 2026-09-14 - Analysis-Only Routing
+
+- Accepted Sol/medium for Session Analyst and narrowed selection to evaluative reasoning about session quality, intent adherence, behavior, efficiency, patterns, and recommendations.
+- Moved factual session lookup, metadata, cost, chronology, comparison, and reconstruction to Luna/high Inspect. Session Analyst may still retrieve focused raw records when an analytical question exposes an evidence gap.
+- Reinterpreted the earlier Luna/Sol run: it mixed factual archaeology with evaluation. Future model comparisons must hold cognitive task shape constant.
+
+## 2026-09-14 - Sol Medium Comparison
+
+- Changed the native agent assignment from Luna/high to Sol/medium for a matched evaluation requested by the human after observing that the role combines bounded retrieval with consequential behavioral analysis and recommendations.
+- Kept Luna/high as the baseline rather than treating the change as a proven promotion. The comparison reuses the same completed session corpus, brief, privacy boundary, and output contract, then evaluates coverage, decision preservation, unsupported claims, parent rework, tools, tokens, latency, and estimated cost.
+- No role, permission, prompt, evidence, or authority boundary changed.
+- A fresh child after `mfz apply` still ran Luna/high even though source, rendered, and watched files matched Sol/medium. Restarting `opencode-serve.service` was required; the next child metadata confirmed Sol/medium.
+- In the matched full-workspace analysis, Sol/medium completed in 19 model steps, 36 tool calls, and 4m22s with 87,126 input, 9,083 output, 2,455 reasoning, and 909,056 cache-read tokens. Luna/high used 22 steps, 39 calls, and 4m45s with 107,894 input, 7,977 output, 5,967 reasoning, and 876,544 cache-read tokens.
+- Sol produced a 17,237-byte note versus Luna's 12,245 bytes. It supplied denser coverage and locators and correctly identified the expected failed Git probe that Luna had incorrectly summarized as no tool-call failure.
+- Both runs recommended weakening the accepted mandatory post-first-producer index policy because the matched prompt did not carry that human decision. Sol argued for the conflicting change more strongly. This case therefore supports better Sol factual coverage but does not yet establish better decision preservation or justify a permanent promotion by itself.
+
 ## 2026-08-18 - Initial Session Analyst
 
 - Added a dedicated native subagent instead of granting shell access to built-in `explore`, preserving Explore's read-only code-discovery boundary.

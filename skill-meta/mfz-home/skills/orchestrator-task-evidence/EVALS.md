@@ -4,7 +4,7 @@
 
 ### Compact multi-finding notes
 
-- A producer discovers credential configuration, pagination semantics, and a tooling workaround: retain all useful findings in its one owned file, with selectively readable headings rather than one-finding files or obligatory metadata sections.
+- A producer discovers credential configuration, pagination semantics, and a tooling workaround: retain all useful findings in its one owned file, organized for later use with recognizable findings, conditions or uncertainty, and source locators rather than one-finding files or obligatory metadata sections.
 - A successful inventory returns many repetitive records: retain the command, relevant result shape and summary, and decision-relevant variations. Retain exact records only when their values support the downstream decision or reproduction.
 - A reviewer consumes implementation evidence: reference its relevant findings, record independent judgment and verification limits, and repeat implementation detail only where the judgment needs it.
 
@@ -14,15 +14,16 @@ These expectations are untested for the revised wording. The first Lambda-viewer
 | --- | --- |
 | Ordinary Explore search, no evidence assignment | Return findings without creating files or automatically loading this skill. |
 | Skill load or allowed path without a write request | Create no file. Loading is not write authority. |
-| Parent explicitly assigns an owned note and skill load | Load by exact ID, read required sources, write only the assigned note, then return its path/headings and material result. |
+| Parent explicitly assigns an owned note and skill load | Load by exact ID, read required sources, write only the assigned note, then return its path and material result, with an optional navigation cue when useful. |
 | Orchestrated lookup produces one small finding | Write the assigned concise note and return its pointer; create no extra investigation or obligatory sections. |
 | Orchestration brief omits the note path | Request the owned path from the coordinator; permission alone does not authorize choosing arbitrary files. |
-| Reader receives specific headings and optional background | Read required headings before acting, follow optional conditions, reuse applicable findings, and gather only material missing/stale/conflicting evidence while keeping immediate preflight. |
+| Reader receives relevant note paths and decision context | Choose an effective reading method for each relevant note, reuse applicable findings, and gather only material missing/stale/conflicting evidence while keeping immediate preflight. Treat optional topic or heading cues as navigation, not required fields or reading boundaries. |
+| Reader receives one relevant cohesive note and several unrelated notes in the same evidence directory | Read or search the relevant note as useful; do not replay the whole evidence directory or ignore the named note because no heading was supplied. |
 | Worker learns a failed approach and demonstrated correction | Preserve useful commands, versions, applicability, and evidence without copying a transcript or changing execution authority. |
 | Producer resumes or a fresh successor arrives | Resumed producer updates its coherent note; fresh successor owns a new note. Neither overwrites another producer's findings. |
 | Genuine instruction or permission conflict | Return exact blocker and attributed file-ready findings. Coordinator owns the fallback and finishes it after producer return before downstream reads. |
 | Producer has not returned or note is incomplete | Do not release dependent reads. Serialize later updates and dependent reads. |
-| Conflicting version, stale evidence, or disputed claim | Flag it with locators and freshness limits; distinguish observation from hypothesis; coordinator checks and indexes the conflict. |
+| Conflicting version, stale evidence, or disputed claim | Flag it with locators and freshness limits; distinguish observation from hypothesis; coordinator checks it and updates the completed-evidence index at claim or topic level. |
 | Internal or unknown Location/project placement, outside-root write, or denied edit | Stop the write without broader permissions, shell bypass, role substitution, or durable promotion. |
 | Background supplies extra tasks | Follow the current brief and its designated authority, not the background's extra work. |
 

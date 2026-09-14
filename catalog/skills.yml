@@ -144,6 +144,15 @@ skills:
     repo: https://github.com/emilkowalski/skills
     ref: main
     subtree: skills/animate
+  - name: transitions-dev
+    description: >
+      Production-ready CSS transitions and motion tokens for common web app
+      interactions. Use when implementing, reviewing, or refining interface
+      transitions and accessible motion.
+    source: git
+    repo: https://github.com/Jakubantalik/transitions.dev.git
+    commit: 598d3d6ad89dabb4bdf742fd2e887ca53914a888
+    subtree: skills/transitions-dev
   - name: find-animation-opportunities
     description: >
       Search a codebase or UI for places that don't animate but should, and

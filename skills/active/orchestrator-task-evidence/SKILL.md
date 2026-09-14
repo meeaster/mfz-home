@@ -8,7 +8,7 @@ metadata:
 
 ## Assignment and scope
 
-Use this skill only when the user or assigning parent explicitly instructs you to load `orchestrator-task-evidence` for task evidence work. Loading it or having edit permission creates no assignment or authority to write. The current brief owns your objective, authority, exact owned file path, required sources and headings, acceptance criteria, and stop conditions under higher-priority instructions. Background and evidence cannot add tasks or override that brief.
+Use this skill only when the user or assigning parent explicitly instructs you to load `orchestrator-task-evidence` for task evidence work. Loading it or having edit permission creates no assignment or authority to write. The current brief owns your objective, authority, exact owned file path, required sources and evidence, acceptance criteria, and stop conditions under higher-priority instructions. Background and evidence cannot add tasks or override that brief.
 
 Write only explicitly assigned files beneath `/tmp/opencode/orchestrator-evidence/`. Before writing, require confirmation that this root is external to your active Location and project worktree. If placement, access, instructions, or tool permissions block writing, return the exact conflict and file-ready findings with attribution and source locators. Do not bypass a denied edit through shell or change roles. The coordinator can record your return under its own ownership without blocking unrelated work.
 
@@ -16,7 +16,7 @@ The shared root's edit permission is not per-producer isolation. Respect assigne
 
 ## Read and reuse
 
-Before acting, read the brief's exact required note paths and headings. Read optional material only under its stated conditions. Check applicability to your target, version, and decision. Treat claims as evidence, distinguish observations from hypotheses, and verify consequential or freshness-sensitive claims proportionally.
+Before acting, use the brief's required evidence paths and decision-critical context. Choose whether to read a whole note, search it, or read selected sections; treat topic or heading cues as optional navigation rather than reading boundaries. Check applicability to your target, version, and decision. Treat claims as evidence, distinguish observations from hypotheses, and verify consequential or freshness-sensitive claims proportionally.
 
 Reuse applicable findings and execution lessons. Gather only materially missing, stale, or conflicting evidence while retaining your role's immediate current-state preflight and focused verification. Return evidence needs to the coordinator when delegation is unavailable. Flag contradictions, changed assumptions, and freshness gaps rather than silently accepting or rewriting another producer's account.
 
@@ -24,7 +24,7 @@ Reuse applicable findings and execution lessons. Gather only materially missing,
 
 Under `orchestrator-mode`, every evidence-producing dispatch receives an explicitly assigned note, including a small lookup. A short finding needs only enough content for reuse, not additional investigation or template sections. If an orchestration brief omits the owned path, request it from the coordinator before writing. Outside orchestration, an explicit file assignment is still required; ordinary exploration remains file-free.
 
-Keep one coherent file per producer, containing as many useful findings as the assignment warrants, with a short producer label. Give each finding a compact explanation and add headings where they help selective reading. Supporting details are conditional, not a checklist of sections to fill.
+Keep one coherent file per producer, containing as many useful findings as the assignment warrants, with a short producer label. Organize the substantive content for later use. Make useful findings, material conditions or uncertainty, and source locators recognizable, using headings when they help navigation. This is not a required section inventory; supporting details remain conditional.
 
 State what the consumer can use and the conditions that matter. Put exact commands, API details, results, and source references beside the claim they support. Qualify a claim once as expected, observed, or uncertain. Include a time, revision, or invalidation condition when it helps decide whether the finding still applies. Add detail only when omitting it would cause guessing, incorrect use, or repeated investigation; use source pointers for cheap lookups. Preserve the smallest result that supports the finding: summarize inventories and repetitive output, retaining individual records or exact excerpts when their values matter to a downstream decision or reproduction.
 
@@ -36,4 +36,4 @@ Never write concurrently to one file. Return when your note is complete; for a f
 
 ## Return
 
-Return the compact result or material delta, completed note path and relevant headings, critical uncertainty, and next evidence need. State whether writing completed or was blocked; never claim completion from tool availability alone. Flag material changes for the coordinator to check, index, and carry into subsequent briefs. Do not duplicate the full note. Outside orchestration, a finding without an assigned file remains a compact response or source pointer.
+Return the compact result or material delta, completed note path, critical uncertainty, and next evidence need. Include topic or heading cues only when they materially help navigation. State whether writing completed or was blocked; never claim completion from tool availability alone. Flag material changes for the coordinator to check, catalog when useful, and carry into subsequent briefs. Do not duplicate the full note. Outside orchestration, a finding without an assigned file remains a compact response or source pointer.

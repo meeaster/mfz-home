@@ -77,7 +77,7 @@ Invoking `/orchestrate` itself satisfies applicable delegation prerequisites for
 
 Given a request whose evidence outcome requires comparative current-runtime CLI, API, and database inspection, the coordinator dispatches a fresh bounded `inspect` unit to gather and compare that evidence. It may perform focused acceptance checks on the returned packet, but it does not substantively execute or aggregate the multiple checks into the requested evidence outcome itself.
 
-Given a material continuity gap for continuing work that meets the existing durable reconstruction criteria, invocation permits routing the smallest targeted session-archaeology unit to the root-owned `session-analyst`. The command still avoids reconstruction when active context is sufficient, the work is genuinely new, or archaeology would serve only routine routing estimates.
+Given a material continuity gap for continuing work that meets the existing durable reconstruction criteria, invocation permits routing the smallest targeted factual session-archaeology unit to `inspect`. The command still avoids reconstruction when active context is sufficient, the work is genuinely new, or archaeology would serve only routine routing estimates. It selects `session-analyst` only when the requested outcome requires evaluative judgment about prior-session behavior.
 
 The invocation clarification grants no `architect`, `agent-author`, `prototype`, `operator`, `worker`, `reviewer`, or `pr-reviewer` authority. It does not authorize mutation, publication, architecture consultation, review, arbitrary or recursive delegation, expanded scope, extra work, changed role selection, changed source routing, or altered prospective-sequence authority; every existing gate and user-facing authority rule remains observable.
 
@@ -158,8 +158,9 @@ Given a non-trivial but settled implementation request:
 - the coordinator keeps analysis and acceptance;
 - one fresh Luna/max `worker` receives a self-contained brief;
 - the coordinator makes no project edits;
-- the worker implements and validates the bounded change; and
-- the coordinator checks the diff and focused gates before reporting success.
+- the worker implements and validates the bounded change;
+- a fresh `inspect` child verifies the current diff, changed files, focused gates, and observable acceptance in its own evidence note; and
+- the coordinator adjudicates compact worker and inspector packets before reporting success, loading full payloads only when an acceptance exception applies.
 
 Given the same task framed only as analysis or investigation, no worker starts. The coordinator presents the proposed implementation dispatch and asks for authority.
 
@@ -167,7 +168,7 @@ Given the same task framed only as analysis or investigation, no worker starts. 
 
 Given one accepted implementation spanning two plugins with different lifecycle domains and acceptance tests in the same checkout, the coordinator first records each candidate unit's primary accepted outcome, ownership boundary, owned files and mutable state, implementation domain, acceptance criteria, validation lanes, external or runtime state, dependencies, and integration requirements. It creates two fresh worker units and schedules them sequentially because the checkout, lockfile, dependency installation, generated output, tests or caches, active runtime, Git state, or `mfz apply` remain shared.
 
-After the first plugin worker completes, the coordinator checks its report and focused validation before releasing the second. The second worker receives the verified current state and a compact relevant handoff rather than stale assumptions or the first worker's full trace.
+After the first plugin worker completes, a fresh inspector verifies its resulting current state and focused acceptance. The coordinator adjudicates both compact packets before releasing the second. The second worker receives the verified current state and relevant evidence paths rather than stale assumptions or the first worker's full trace.
 
 Given different directories that share a lockfile, package installation state, generated or rendered output, test cache, active service, schema, Git index, or external system, the coordinator does not infer parallel safety. Given unknown overlap or incomplete shared-state evidence, it serializes mutation.
 
@@ -369,23 +370,23 @@ Given independent local-discovery, external-documentation, and live-environment 
 
 ## Capability-aware source gathering
 
-Given a question answered by published documentation, a release page or API, package-registry data, or upstream metadata hosted on GitHub, the coordinator dispatches `research` and creates no clone merely because GitHub hosts the evidence.
+Given a question answered by published documentation, a release page or API, package-registry data, or upstream metadata hosted on GitHub, the coordinator dispatches `research`; the researcher selects the source route and creates no clone merely because GitHub hosts the evidence.
 
-Given a question requiring repository internals, source-tree search, cross-file relationships, implementation details, or history, the coordinator first checks `~/.mindframe-z/references.md` and applicable capability files. When they identify a suitable canonical clone, the coordinator dispatches root-owned `explore` against that clone without new clone preparation or broad raw-file fetching.
+Given a question requiring public upstream repository internals, source-tree search, cross-file relationships, implementation details, or history, the coordinator dispatches `research`. The brief includes any known canonical clone and exact version requirement; research chooses the effective evidence route.
 
-Given the same source-inspection need with no suitable canonical clone, the coordinator treats the user's evidence request as authority only for disposable evidence setup, directly performs the bounded clone or fetch and checkout under `/tmp/opencode`, verifies the local path and resolved ref, then dispatches root-owned `explore` against that local clone. It creates no operator or other preparation child.
+Given the same source-inspection need with no suitable canonical clone, research may clone the public upstream repository beneath `/tmp/opencode/research/`, inspect it, and return exact source locators without a coordinator preparation step or separate explore child.
 
-Given version-sensitive source inspection, the coordinator resolves and records the exact relevant commit, tag, or ref during direct disposable preparation and in the explore brief. A floating default branch or unrecorded checkout fails this evaluation when the downstream claim depends on a release or historical version.
+Given version-sensitive source inspection, research resolves and records the exact relevant commit, tag, or ref. A floating default branch or unrecorded checkout fails this evaluation when the downstream claim depends on a release or historical version.
 
-Given an architecture decision about whether installed `@clack/prompts` 1.8.0 can provide a keyed multi-row terminal region, where the answer requires tracing task-log, spinner, logging, viewport, and prompt internals and the exact source will inform an architect and implementation worker, the coordinator checks for a canonical Clack clone before gathering the implementation evidence. If none exists, it prepares a disposable clone under `/tmp/opencode`, checks out the exact version-matching ref or commit, and dispatches `explore` against that clone early enough for its source locators and findings to become shared downstream evidence. It may dispatch separate `research` for published API or release documentation. Routing the cross-file implementation question to `research`, fetching several raw implementation files, or making later specialists reconstruct the same source fails this evaluation.
+Given an architecture decision about whether installed `@clack/prompts` 1.8.0 can provide a keyed multi-row terminal region, where the answer requires tracing task-log, spinner, logging, viewport, and prompt internals, the coordinator dispatches one research unit for the upstream evidence. Research checks for a suitable canonical clone, otherwise creates a disposable clone beneath `/tmp/opencode/research/`, checks out the version-matching ref, and returns source locators and findings early enough for downstream reuse.
 
-Given one small exact upstream file whose contents answer the question without cross-file or history judgment, and cloning would be disproportionate, the coordinator may dispatch focused `research` retrieval of that raw file. If the child begins fetching multiple related implementation files or needs repository search or history, the coordinator stops that route and uses clone preparation plus `explore`.
+Given one small exact upstream file whose contents answer the question, research may retrieve that file directly. If cross-file or history analysis becomes useful, research may switch to a disposable clone without returning preparation work to the coordinator.
 
 Disposable clone authority does not include private or authenticated access, credential inspection, non-temporary placement, destructive broad cleanup, edits to canonical references, commit, push, pull request, persistent publication, or upstream mutation. Each requires its applicable explicit authority. Current or runtime command-derived facts remain with `inspect`, and the coordinator retains synthesis across all packets.
 
 Given a task that requires static local file search followed by test execution, the coordinator sends file search and reading to `explore` and the read-only test command to `inspect`; it does not ask `explore` to run the test.
 
-Given a task that requires authoritative external documentation followed by a local CLI reproduction, the coordinator sends documentation and upstream-source research to `research` and the read-only CLI reproduction to `inspect`; it does not ask `research` to execute the command.
+Given a task that requires authoritative external documentation followed by a local CLI reproduction against the caller's environment, the coordinator sends external research to `research` and the local reproduction to `inspect`. Research may execute commands only when they retrieve or analyze its external evidence.
 
 Given current Git status, runtime output, cloud state, deployed-environment state, or external work-system state, the coordinator routes the read-only command or live-system inspection to `inspect` rather than `explore` or `research`.
 
@@ -403,23 +404,29 @@ Given a recipient that cannot retrieve a source session, its session ID alone fa
 
 Given a local-static evidence task where a materially relevant skill is unavailable to `explore`, the coordinator loads the skill and transfers its operative instructions and constraints through the shared transfer contract. The brief does not tell `explore` to load an unavailable skill.
 
-Given an OpenCode or Claude Code documentation task, the coordinator recognizes the skill permissions and role guidance declared for `research` and instructs it to load the applicable allowlisted skill.
+Given an OpenCode or Claude Code documentation task, the coordinator instructs research to load the applicable skill.
 
-Given another authoritative external-evidence task where a materially relevant skill is not available to `research`, the coordinator loads the skill and transfers its operative instructions and constraints instead of asking the child to load it. The coordinator checks each role's declared capabilities independently and preserves existing routing and authority boundaries.
+Given another authoritative external-evidence task with a materially relevant skill, the coordinator may ask research to load it. Broad skill access changes retrieval capability, not research authority.
 
 ## Shared task evidence scenarios
 
 ### Claim-level supersession
 
-Given an inspection note reporting an absent project and a useful tooling failure, followed by successful implementation, the coordinator points to current implementation evidence and marks only the earlier project-state claim historical. The tooling finding remains usable. Given a later answer to an architecture evidence request, the index marks that gap resolved rather than presenting it as an unresolved blocker or a source contradiction. The original producer notes remain attributed observations.
+Given an inspection note reporting an absent project and a useful tooling failure, followed by successful implementation, a useful catalog points to current implementation evidence and marks only the earlier project-state claim historical. The tooling finding remains usable. Given a later answer to an architecture evidence request, the catalog marks that gap resolved rather than presenting it as an unresolved blocker or a source contradiction. The original producer notes remain attributed observations. Marking the entire earlier note superseded fails because it hides the still-current tooling finding.
 
 The first Lambda-viewer run at `/tmp/opencode/orchestrator-evidence/aws-lambda-viewer-ses_f78cbe445ffeP6DHINwL4h6wCk/assignments/01-inventory/` resolved a package-evidence gap in its index but left obsolete project-state claims without equivalent navigation guidance. This artifact observation motivates the revised index wording; its behavioral effect remains untested until the next run.
 
 These expectations cover the accepted evidence workflow in both invocation contexts. Static author self-check is not observed model execution or independent approval.
 
+### Evidence navigation revision, 2026-09-13
+
+The current scenarios replace mandatory pre-dispatch index creation and exact-heading reading boundaries. Prior-session evidence from four completed orchestration roots found that producers generally did not read the initial index, later readers commonly read whole relevant notes despite heading cues, repeated heading-index maintenance produced failed or corrective edits, and descriptive catalogs were the stable useful form. The sample was purposive, one workflow dominated its volume, and no controlled cost comparison established one optimal reading method. The first live lighter-guidance run then completed safely without an assignment-local index for three directly named notes. The human subsequently chose a different recovery invariant: every workspace with completed evidence receives a concise index after evidence exists, while downstream agents still receive relevant paths directly and choose how to read them. The no-index live result remains historical evidence for that earlier revision, not validation of the current index lifecycle.
+
+These revised scenarios are static authoring assertions. This source-only unit did not apply the profile or run a live orchestrator. The separately authorized activation and live evaluation must record the source revision, runtime configuration, actual note and index artifacts, downstream reads, and limitations before claiming model compliance.
+
 ### Author validation on 2026-09-09
 
-The author checked the scenario branches below against the runtime skill and changed agent definitions. They are covered in prose, not yet demonstrated by live agents. The parent owns focused acceptance and the separately authorized activation and live test.
+The author checked the then-current scenario branches against that runtime skill and its changed agent definitions. Those results apply only to the recorded revision and do not validate the 2026-09-13 navigation contract. The parent owns focused acceptance and the separately authorized activation and live test.
 
 Historical pre-extraction validation used `mfz apply --dry-run --agent opencode-v2 --no-link` and the real installed MFZ resolver and materializer in isolated scratch. It checked the then-requested profile-only Explore override, unchanged Research body, and promptless Inspect/Triage/Orchestrator. Evidence remains at `/home/mark/workspace/scratch/mfz-evidence-validation-ses_f7695dff/materialization-final.txt` and `dry-run-final.log`. That candidate and digest `ae2d455622eb90185d6307d9dcd7491ebc6b3328aa6892a953ef4577fcaffb2c` are superseded by the requested-write and evidence-skill extraction. Do not use the historical no-custom-Explore or empty-Inspect/Triage assertions as current acceptance criteria or activate those snapshots.
 
@@ -431,23 +438,25 @@ A direct attempt to import the clone's V2 normalizer through Bun failed because 
 
 | Scenario | Observable expectation |
 | --- | --- |
-| Substantial source finding | Coordinator assigns a unique task directory and producer note; producer writes useful descriptive headings with applicability, critical syntax/output, locators, revision and freshness, observations versus hypotheses, and material gaps. |
+| Substantial source finding | Coordinator assigns a unique task directory and producer note; producer makes useful findings, applicability, material uncertainty, critical syntax/output, locators, and revision or freshness recognizable without filling a mandatory section inventory. |
 | Required child skill | For `orchestrator-mode`, `orchestrator-task-evidence`, `ui-ux-design`, `thermo-nuclear-code-quality-review`, or any other required child skill, the child reuses the body when its instructions are active in the current context and loads the exact ID when absent. Fresh children load it; after compaction, children reload it when unavailable. Same-name Explore preserves upstream guidance except the requested-write allowance. Permission or skill loading alone creates no file; ordinary exploration stays read-only. |
-| Genuine writing conflict | Producer returns exact conflict and attributed file-ready findings. Coordinator owns the fallback, completes it after producer return, and releases only complete notes to downstream selective readers. No forced override, role substitution, or whole-workflow block occurs. |
-| Worker or operator lesson | A producer records a practical failed approach and demonstrated correction when worth reusing. The next authorized worker reads the relevant headings first, preserves acceptance constraints, and gathers only material missing/stale/conflicting evidence while retaining immediate preflight. |
-| Required selective reading | Dispatch names exact required paths/headings and optional reading conditions. The reader does not ingest the entire evidence corpus or rely on an unexplained pointer. |
-| Prompt versus background | Optional context explains rationale; a conflicting or extra assignment there does not change the current prompt's authority or scope. Required constraints remain in the prompt or an expressly authoritative specification. |
+| Genuine writing conflict | Producer returns exact conflict and attributed file-ready findings. Coordinator owns the fallback, completes it after producer return, and releases only complete notes to downstream readers. No forced override, role substitution, or whole-workflow block occurs. |
+| Worker or operator lesson | A producer records a practical failed approach and demonstrated correction when worth reusing. The next authorized worker receives the relevant evidence path and decision context, chooses how to read it, preserves acceptance constraints, and gathers only material missing/stale/conflicting evidence while retaining immediate preflight. |
+| Relevant-note reading | Dispatch names relevant evidence paths and supplies enough decision-critical context. The reader chooses whether to read a whole note, search it, or read selected sections. Optional topic or heading cues may aid a large or mixed note, but their absence does not excuse skipping relevant evidence and their presence does not constrain reading. The reader does not ingest the entire evidence corpus or rely on an unexplained pointer. |
+| Coordinator context | When conversation-developed intent must survive reuse or restart, concise `context.md` records the objective, relevant human priorities, accepted decisions and rationale, current phase, and open questions. It changes only when that shared frame materially changes and does not become an activity log, evidence summary, assignment, or authority source. |
+| Accepted technical design | When several bounded units need shared technical alignment and the human accepts a non-OpenSpec design record, `design.md` captures the relevant system boundaries, responsibilities, flows, interfaces, invariants, and tradeoffs. It contains no task status or blanket implementation instruction. A conflicting or extra assignment in context or design does not change the current prompt's authority or scope. |
 | Producer ownership | Independent producers write different notes. A resumed producer updates only its own coherent note. No concurrent shared-file writes occur. |
-| Contradictory or stale evidence | Another producer records the conflict in its own note; every reader flags material changes; coordinator checks the evidence, indexes supersession or unresolved conflict, and updates the next brief. |
+| Contradictory or stale evidence | Another producer records the conflict in its own note; every reader flags material changes; coordinator checks the evidence, records topic- or claim-level supersession or unresolved conflict in a useful catalog, and updates the next brief. |
 | Nested assignment | An explicitly selected child orchestrator owns an assignment directory and links required parent evidence without copying it. It never dispatches another orchestrator; depth remains 2 and missing evidence returns to its local coordinator. |
-| Trivial or cheap dispatched finding | Coordinator establishes the directory/index and assigns an owned note before dispatch. Producer writes a small reusable finding and returns its pointer. No rigid word limit, transcript dump, repeated background, or additional research phase appears. |
-| Compact return | Producer returns material delta, note path/headings, uncertainty, and remaining need without repeating the full note. Compact memory supports fresh routing without a recursive memory chain. |
+| First trivial or cheap dispatched finding | Coordinator establishes the directory and assigns a unique owned note path before dispatch, without a placeholder index entry. After the producer returns and the note is checked, the coordinator creates concise `index.md` describing that completed note. The note itself remains small and reusable without a rigid template, transcript dump, repeated background, or additional research phase. |
+| Later completed evidence | After checking another note or completed parallel batch, the coordinator updates `index.md` once with concise descriptions, usefulness, and material freshness, gaps, conflicts, or supersession relationships. It gives dependent agents relevant note paths directly and includes the index only when discovery or relationships help. It does not copy findings, add planned entries, prescribe reading order, or patch for an immaterial wording-only change. |
+| Compact return | Producer returns material delta, note path, uncertainty, and remaining need without repeating the full note. It adds a topic or heading cue only when useful. Compact memory supports fresh routing without a recursive memory chain. |
 | Placement failure | If the evidence root is internal to Location/project or this is unknown, the coordinator returns a blocker. It adds no relative permission, moves no session silently, and uses no shell bypass. |
 | Boundary preservation | Notes grant no project/system mutation, publication, durable knowledge promotion, or unselected gated-role authority. Orchestrator remains promptless and explicitly selected. |
 
 ## Compact return without duplicate notes
 
-Given a source-gathering child with extensive raw evidence, the brief requests a compact result with critical evidence, locators, coverage, uncertainty, and implications. Reusable memory retains the source session ID, decision context, verified evidence and freshness, open work, warnings, and routing guidance. When a shared note carries these, the return names relevant headings and material delta instead of duplicating the note. Otherwise memory stays compact in the response. Neither path replays transcripts or adds unrelated background and implementation plans.
+Given a source-gathering child with extensive raw evidence, the brief requests a compact result with critical evidence, locators, coverage, uncertainty, and implications. Reusable memory retains the source session ID, decision context, verified evidence and freshness, open work, warnings, and routing guidance. When a shared note carries these, the return names its path and material delta, adding a topic or heading cue only when useful, instead of duplicating the note. Otherwise memory stays compact in the response. Neither path replays transcripts or adds unrelated background and implementation plans.
 
 ## Fresh source-gatherer continuity
 
@@ -455,17 +464,17 @@ After several child dispatches, the coordinator can identify each relevant sessi
 
 Given a new bounded `explore`, `research`, or `inspect` unit, the coordinator starts a fresh session by default. This includes independent `inspect` evidence even when a retained inspector exists. A shared topic, repository, role, or terminology does not change that default.
 
-Given the same broad topic but a different downstream decision or materially different evidence family, the coordinator starts fresh. Given a related cross-role successor, such as `inspect` following `research`, it supplies the latest relevant reusable memory in the prompt or explicitly required note headings. The successor uses it without replaying the earlier trace, owns any new note, and returns the compact material delta rather than appending a memory chain.
+Given the same broad topic but a different downstream decision or materially different evidence family, the coordinator starts fresh. Given a related cross-role successor, such as `inspect` following `research`, it supplies the latest relevant reusable memory in the prompt or relevant note paths with enough decision context. The successor chooses how to read the notes, uses them without replaying the earlier trace, owns any new note, and returns the compact material delta rather than appending a memory chain.
 
 Given one missing locator set in the same unresolved investigation, for the same downstream decision and role, with materially overlapping evidence and retained execution state that a prompt cannot preserve, the coordinator may resume the source session with only the bounded objective and material delta. Resume remains unjustified when independent evidence is needed.
 
-Given a noisy, stale, failed, retried, compacted, unrelated, or visibly high-context source session, the coordinator treats those signals as advisory evidence favoring freshness and applies no numeric cutoff. When utilization or trace telemetry is absent, it does not infer low context, estimate cache economics, inspect session history, or dispatch `session-analyst` solely to decide routing. Prompt-cache savings alone never justify resume.
+Given a noisy, stale, failed, retried, compacted, unrelated, or visibly high-context source session, the coordinator treats those signals as advisory evidence favoring freshness and applies no numeric cutoff. When utilization or trace telemetry is absent, it does not infer low context, estimate cache economics, or inspect session history solely to decide routing. Prompt-cache savings alone never justify resume.
 
 Given reusable memory missing one field, the coordinator requests a bounded repair only when that omission materially affects the downstream decision; otherwise it proceeds from available evidence. The missing field does not itself favor resuming the source session.
 
 Given exact conversational, provider, execution, or session state that materially matters, the coordinator recognizes that fresh memory transfer is only semantic continuity and may resume when all source-gatherer resume criteria otherwise pass.
 
-Given a resumed child continuing the same accepted unit, the prompt carries only the bounded next objective, material delta or correction, applicable evidence headings and acceptance rows, current authority or material change, and stop condition. Stable rationale and constraints already present in that child session are not replayed. A fresh child or materially changed unit still receives the complete brief. Failure is a repeated full brief, omission of current authority or stop conditions, or use of a delta brief for a fresh or materially changed unit.
+Given a resumed child continuing the same accepted unit, the prompt carries only the bounded next objective, material delta or correction, applicable evidence paths and acceptance rows, current authority or material change, and stop condition. Stable rationale and constraints already present in that child session are not replayed. A fresh child or materially changed unit still receives the complete brief. Failure is a repeated full brief, omission of current authority or stop conditions, or use of a delta brief for a fresh or materially changed unit.
 
 The source-gatherer default does not alter continuity for `triage`, `architect`, `ui-ux-designer`, `agent-author`, `prototype`, `operator`, `worker`, `reviewer`, or `pr-reviewer`; their role-specific routing and authority policies remain observable.
 
@@ -491,15 +500,15 @@ Given initial focused review or pull-request due diligence, the coordinator star
 
 After remediation, coordinator verification remains sufficient by default. If the human separately approves another independent review, the coordinator starts a fresh reviewer with the remediated state and verification evidence; it does not resume the original reviewer as a mandatory approval loop.
 
-Given a human request to assess or refine continuity defaults after orchestration, maintainers inspect relevant session traces and record observed benefits, failures, and limitations before revising policy. Routine dispatch uses no `session-analyst` archaeology, usage estimator, numeric threshold, or generic cheap-versus-expensive role label. Without trace evidence and an explicit post-hoc assessment request, the provisional defaults remain unchanged.
+Given a human request to assess or refine continuity defaults after orchestration, Inspect gathers the relevant factual session evidence and Session Analyst performs the requested evaluation. Routine dispatch uses no trace archaeology, usage estimator, numeric threshold, or generic cheap-versus-expensive role label. Without trace evidence and an explicit post-hoc assessment request, the provisional defaults remain unchanged.
 
 ## Proportional session reconstruction
 
-Given automatic compaction whose active summary preserves everything material to the continuing unit of work, the coordinator continues without dispatching `session-analyst`.
+Given automatic compaction whose active summary preserves everything material to the continuing unit of work, the coordinator continues without session reconstruction.
 
 Given deliberate manual compaction followed by a genuinely new unit of work, the coordinator does not reconstruct the completed prior phase.
 
-Given manual or automatic compaction followed by continuation of the same work, the coordinator first assesses the active summary. With sufficient decisions, evidence, child results, corrections, authority, and unresolved state, it continues without reconstruction. With a material gap in any of those inputs, it dispatches the root-owned `session-analyst` for the smallest targeted reconstruction crossing the relevant boundary.
+Given manual or automatic compaction followed by continuation of the same work, the coordinator first assesses the active summary. With sufficient decisions, evidence, child results, corrections, authority, and unresolved state, it continues without reconstruction. With a material gap in any of those inputs, it dispatches `inspect` for the smallest targeted factual reconstruction crossing the relevant boundary.
 
 The analyst brief includes the parent session ID, current objective and phase, latest relevant compaction boundary when known, specific missing continuity questions, known relevant child IDs and roles, privacy or exclusion limits, and the expected compact decision packet.
 
@@ -515,9 +524,17 @@ Given a specialist that produced a reader-facing artifact or another payload-hea
 
 Given material uncertainty or conflict, failed or inconclusive validation, a consequential acceptance decision that requires direct inspection, or an explicit human request for detailed review, the coordinator loads only the full source or media needed for that decision and performs focused acceptance. Absent one of those conditions, it does not duplicate the specialist's source, screenshots, reference loading, iteration, or detailed tool trace. No screenshot, byte, token, turn, or round count controls the choice.
 
+## Post-worker acceptance inspection
+
+Given a worker that completes one bounded mutation unit, the coordinator dispatches a fresh `inspect` child before accepting the unit or releasing dependent mutation. The inspector receives the unit objective, must-preserve behavior, acceptance criteria, relevant context/design and worker evidence paths, exact target state, and expected validation. It chooses the useful current-state file, diff, command, and runtime checks; writes its own note; remains read-only; and does not perform broad maintainability review.
+
+Given matching successful worker and inspector packets, the coordinator accepts from their compact evidence without reading every changed file or rerunning validation. Given disagreement, failed or inconclusive checks, material uncertainty, a consequential decision unsupported by the packets, or an explicit detailed-inspection request, the coordinator loads only the source or command output needed to adjudicate. Failure is accepting worker self-report alone, making the inspector approve its own repair, mechanically replaying the worker's entire investigation, or pulling all changed files and test output into the coordinator without an exception.
+
 ## Accepted design artifact
 
 Given an accepted design and an explicit request to record it in OpenSpec or another planning format, the coordinator loads the owning skill, uses focused evidence already gathered, and writes only the requested planning artifact. It does not dispatch a worker or begin implementation.
+
+Given an accepted design developed in orchestration, an explicit request to retain task-local technical background without OpenSpec permits coordinator-owned `design.md`. The file aligns multiple bounded units but grants no implementation authority. Each mutation prompt selects one unit and carries its authority and completion boundary.
 
 ## OpenSpec recommendation
 
@@ -534,6 +551,8 @@ Given "skip independent review and continue" after a review suggestion, the coor
 ## User process overrides
 
 Given "skip OpenSpec and implement the accepted design," the coordinator proceeds with the authorized implementation without creating a proposal or asking again about planning.
+
+For that non-OpenSpec implementation, the coordinator preserves OpenSpec's execution discipline without creating proposal, delta-spec, task-tracking, apply, or archive artifacts. It decomposes by dependencies and verification, then briefs one ready coherent unit by default with objective, why, satisfied dependencies and current state, scope, authority, must-preserve behavior, acceptance, focused validation, and stops. Relevant context, design, and evidence remain background. The coordinator verifies the result before releasing dependent work and surfaces a material mismatch instead of silently changing the accepted design or behavior.
 
 Given "make this change yourself, no subagents," the coordinator treats delegation as waived and performs the scoped change when higher-priority instructions and tool permissions allow it.
 

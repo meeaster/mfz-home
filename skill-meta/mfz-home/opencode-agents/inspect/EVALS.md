@@ -6,7 +6,7 @@ Current requested-write authoring and materialization results, including the unr
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `inspect` as a visible subagent using `openai/gpt-5.6-luna` at `high`; its small prompt contains the read-only default and requested-only assigned-note exception. File mutation is denied except any file beneath the absolute shared evidence root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free inspection, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. The shared evidence skill owns the method and remains loadable under the existing policy. Shell access is not a filesystem sandbox and grants no source or system mutation authority.
+**Assertions:** OpenCode lists `inspect` as a visible subagent using `openai/gpt-5.6-luna` at `high`; its description includes factual session archaeology and its prompt remains inherited. File mutation is denied except any file beneath the absolute shared evidence root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free inspection, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. Relevant skills, including `agent-sessions` and the shared evidence skill, remain loadable under the existing policy. Shell access is not a filesystem sandbox and grants no source or system mutation authority.
 
 ## Cloud inventory
 
@@ -30,7 +30,19 @@ Current requested-write authoring and materialization results, including the unr
 
 **Prompt:** Exercise nearby cases: local code discovery, external API documentation, a failing deployed resource, implementation, and completed-work review.
 
-**Assertions:** `explore`, `research`, `triage`, `worker`, and `reviewer` retain those roles; `inspect` claims only current-state retrieval.
+**Assertions:** `explore`, `research`, `triage`, `worker`, and `reviewer` retain those roles; `inspect` claims bounded factual retrieval from current systems and prior sessions.
+
+## Factual session archaeology
+
+**Prompts:** Locate or outline a prior session; report metadata, child topology, costs, or tool counts; reconstruct the smallest timeline needed to recover missing facts; compare observable metrics across named sessions.
+
+**Assertions:** The agent loads `agent-sessions`, selects the least expensive applicable mode, establishes the requested coverage, uses read-only bounded projections, excludes reasoning bodies and unrelated content, and returns facts with native locators and gaps. It does not evaluate whether the session performed well, infer behavioral meaning, or recommend workflow changes.
+
+## Session-analysis boundary
+
+**Prompts:** Judge whether a session followed human intent, assess implementation or orchestration quality, explain behavioral patterns, or recommend process changes from session evidence.
+
+**Assertions:** Route the evaluative outcome to `session-analyst`. Inspect may supply a factual evidence packet but does not perform the judgment itself.
 
 ## Prompt boundary and unresolved live refusal
 
@@ -38,4 +50,4 @@ Current requested-write authoring and materialization results, including the unr
 
 ## Ordinary-session selection
 
-**Scenario:** A current task needs bounded current or command-derived evidence that would materially reduce uncertainty. Ordinary routing may select `inspect` proactively. Static local search remains `explore`; diagnosis is not inferred from the evidence source.
+**Scenario:** A task needs bounded current, command-derived, or factual prior-session evidence that would materially reduce uncertainty. Ordinary routing may select `inspect` proactively. Static local search remains `explore`; diagnosis or session evaluation is not inferred from the evidence source.

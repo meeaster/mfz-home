@@ -1,5 +1,5 @@
 ---
-description: Proactively gathers bounded current or command-derived evidence from environments, repositories, and external systems when materially useful.
+description: Proactively gathers bounded factual evidence from environments, repositories, external systems, and prior agent sessions, including session lookup, metadata, cost, chronology, and reconstruction when evaluative analysis is not required.
 mode: subagent
 model: openai/gpt-5.6-luna
 variant: high

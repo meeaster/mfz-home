@@ -1,5 +1,12 @@
 # Log
 
+## 2026-09-12 - Broad evidence-gathering capability
+
+- Replaced the manually enumerated tool and skill allowlist with broad evidence-gathering access while retaining denials for delegation, advisor use, todo management, and direct questions.
+- Made public upstream repository investigation research-owned, including disposable clones beneath `/tmp/opencode/research/`; static discovery in the caller's workspace remains `explore`, and current or live caller-system state remains `inspect`.
+- Kept authority narrower than capability: research may create temporary research material and explicitly assigned evidence but may not change authoritative projects, canonical references, external systems, or upstream repositories.
+- Recent-session audit `ses_f68d6a56bffeEJ3ny0TVQOZ1vz` covered 18 Research sessions since 2026-08-08. It found web-route churn and confirmed that the prior successful temporary-clone case depended on parent preparation. After rendering and restarting OpenCode, live Research session `ses_f68a1a5e9ffe46yz2UNfcoTIh6` successfully cloned and inspected a public repository beneath `/tmp/opencode/research/`.
+
 ## 2026-09-05 - OpenCode documentation skill exception
 
 - Allowed `opencode` alongside `claude-code-docs` after the skill wildcard deny, resolving the conflict between required platform guidance and researcher permissions without broadening the rest of the allowlist.

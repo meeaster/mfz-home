@@ -4,14 +4,14 @@
 
 - OpenCode must treat a frontmatter-only agent file as an empty custom prompt and fall back to the provider system prompt.
 - The configured provider must expose `openai/gpt-5.6-luna@high`.
-- The active environment must provide the read-only CLI, MCP, skill, or API route needed for the target system.
+- The active environment must provide the read-only CLI, MCP, skill, API, or session-store route needed for the target evidence.
 - The caller's brief owns target identity, account and region scope, permitted operations, expected fields, and stop conditions.
 
 ## Change procedure
 
 1. Read this record and inspect representative sessions before changing the role, model, permissions, or prompt boundary.
 2. Keep system-specific query procedure in the owning skill or caller brief.
-3. Preserve the current-state retrieval boundary. Route diagnosis to `triage` and every mutation to an explicitly authorized workflow.
+3. Preserve the factual retrieval boundary across current systems and prior sessions. Route diagnosis to `triage`, evaluative session reasoning to `session-analyst`, and every mutation to an explicitly authorized workflow.
 4. Run every affected scenario in `EVALS.md` and record consequential decisions or reversals in `LOG.md`.
 
 ## Validation

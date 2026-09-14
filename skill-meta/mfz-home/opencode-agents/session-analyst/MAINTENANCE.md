@@ -3,7 +3,7 @@
 ## Runtime Dependencies
 
 - `agent-sessions` owns the complete runtime workflow and bundled adapters.
-- OpenCode must expose `openai/gpt-5.6-luna@high` and native subagent execution.
+- OpenCode must expose the accepted `openai/gpt-5.6-sol@medium` analytical assignment, Luna/high Inspect, and native subagent execution.
 - The cost and evidence scripts require Python 3 and standard-library SQLite support.
 - V2 API reads require `opencode`; direct SQLite inspection requires `sqlite3`; Claude Code projections require `jq`.
 - Shell is deliberately available for adaptive read-only investigation. The agent prompt and `agent-sessions` own the no-mutation boundary; OpenCode permissions are not a semantic read-only shell sandbox.
@@ -15,9 +15,9 @@
 2. Keep modes, coverage, privacy, adapter commands, and harness schemas in `agent-sessions`; this agent owns only specialist routing, capability boundaries, and result handoff.
 3. Review shell traces for actual mutation, privacy, or waste failures. Improve the prompt, skill, or adapter from observed behavior rather than encoding individual successful command strings as permissions.
 4. Run every scenario in `EVALS.md`, including a command-capable child trace and adjacent routing checks.
-5. Compare Luna/high with a higher effort only under the matched Model Policy scenario.
+5. Keep Sol/medium for evaluative session reasoning and Luna/high Inspect for factual archaeology. Compare models only within the same cognitive task shape; a retrieval-versus-analysis comparison does not establish model quality.
 6. Record consequential decisions, observed effects, and reversals in `LOG.md`.
-7. When activation is authorized, use plain `mfz apply`, verify the rendered and resolved agent, then validate through a native child in the running V2 server. Agent definitions hot-reload; no restart is required.
+7. When activation is authorized, use plain `mfz apply`, verify the rendered and resolved agent, then validate the actual model and variant through a fresh native child. If child metadata still reports the previous assignment, restart `opencode-serve.service` and retry once; do not assume agent model changes hot-reload.
 
 ## Evidence Review
 
