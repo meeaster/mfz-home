@@ -2,7 +2,7 @@
 
 ## Problem
 
-Bounded implementation and investigation work benefits from a cost-effective execution lane, but dynamic model selection through `delegate_general` does not receive OpenCode's native task presentation. Encoding workflow-specific instructions in the agent would also make one worker responsible for unrelated process policy.
+Bounded implementation and investigation work benefits from a cost-effective native execution lane with OpenCode task presentation. Encoding workflow-specific instructions in the agent would make one worker responsible for unrelated process policy.
 
 ## Intended Behavior
 

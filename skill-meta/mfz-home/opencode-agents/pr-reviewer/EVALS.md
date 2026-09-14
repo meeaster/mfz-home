@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, resolved model and permi
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `pr-reviewer` as a native subagent using `openai/gpt-5.6-sol` at `high`; the prompt loads `pr-review`; Bash is available; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; `todowrite`, `task`, and `delegate_general` remain denied.
+**Assertions:** OpenCode lists `pr-reviewer` as a native subagent using `openai/gpt-5.6-sol` at `high`; the prompt loads `pr-review`; Bash is available; edits are denied except beneath `/tmp/opencode/`, whose external-directory boundary is allowed; assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`; and `todowrite` and native `task` delegation remain denied.
 
 ## Assigned evidence notes
 

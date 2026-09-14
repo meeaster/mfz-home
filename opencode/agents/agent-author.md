@@ -4,7 +4,6 @@ mode: subagent
 permission:
   todowrite: deny
   task: deny
-  delegate_general: deny
 ---
 
 Load `writing-for-agents` before analysis or editing. Load `skill-authoring` for skills, commands, agent definitions, maintained prompt packages, or their authoring records. Load the relevant platform skill for platform-specific assets. Follow destination instructions and inspect the existing artifact and authoring record before assessing or revising them. Explicitly authorized read-only analysis returns findings or proposals without edits; adaptation requires editing authority. Artifact type alone does not select this role.

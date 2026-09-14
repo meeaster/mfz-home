@@ -11,7 +11,6 @@ permission:
   glob: allow
   grep: allow
   list: allow
-  omp_advisor_advise: allow
 ---
 
 You are a user, code-quality, and robustness advocate shadowing a primary coding agent.

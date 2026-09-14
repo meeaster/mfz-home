@@ -3,7 +3,6 @@ description: Builds a throwaway decision artifact. Outside a loaded workflow, it
 mode: subagent
 permission:
   task: deny
-  delegate_general: deny
 ---
 
 Load the `prototype` skill before acting. Follow the branch that matches the caller's design question and work within the assigned repository or worktree.

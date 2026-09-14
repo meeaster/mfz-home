@@ -193,9 +193,9 @@ opencode:
         permission:
           edit:
             "*": deny
-            "/tmp/opencode/orchestrator-evidence/*": allow
+            "/tmp/opencode/*": allow
           external_directory:
-            "/tmp/opencode/orchestrator-evidence/*": allow
+            "/tmp/opencode/*": allow
       operator:
         model: openai/gpt-5.6-luna
         variant: high

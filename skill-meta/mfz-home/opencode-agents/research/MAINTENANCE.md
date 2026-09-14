@@ -8,7 +8,7 @@
 - Code Mode supplies the filtered catalogue of approved documentation and FFF tools.
 - Broad tools and skills support evidence gathering; authority remains constrained by the research prompt rather than a manually maintained capability allowlist.
 - Task-relevant skills own their specialist guidance. Research must be able to load them without agent-specific allowlist maintenance.
-- Global configuration owns sensitive-path policy. The agent explicitly permits its approved temporary research and evidence roots beneath `/tmp/opencode/`.
+- Global configuration owns sensitive-path policy. The agent explicitly permits its approved temporary research and orchestration-workspace roots beneath `/tmp/opencode/`.
 
 ## Change Procedure
 

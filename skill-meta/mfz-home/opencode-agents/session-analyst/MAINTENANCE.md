@@ -7,7 +7,7 @@
 - The cost and evidence scripts require Python 3 and standard-library SQLite support.
 - V2 API reads require `opencode`; direct SQLite inspection requires `sqlite3`; Claude Code projections require `jq`.
 - Shell is deliberately available for adaptive read-only investigation. The agent prompt and `agent-sessions` own the no-mutation boundary; OpenCode permissions are not a semantic read-only shell sandbox.
-- Global configuration owns sensitive-path and external-directory policy outside the agent's task-evidence exception. `orchestrator-task-evidence` owns assigned-note production and reuse; `../explore/MAINTENANCE.md#v2-permission-evidence` explains absolute-path matching and shared-root ownership limits. Preserve the exact skill allow, outside-root edit deny, and external root allow. Avoid a later legacy `write: deny`, which normalizes to `edit` and would override the exception.
+- Global configuration owns sensitive-path and external-directory policy outside the agent's `/tmp/opencode/*` capability. `orchestrator-task-evidence` owns assigned-note production and reuse beneath `/tmp/opencode/orchestrator-workspaces/`; `../explore/MAINTENANCE.md#v2-permission-evidence` explains absolute-path matching and shared-root ownership limits. Preserve the exact skill allow, outside-root edit deny, and temporary-root allow. Avoid a later legacy `write: deny`, which normalizes to `edit` and would override the exception.
 
 ## Change Procedure
 

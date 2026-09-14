@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, resolved model and permi
 
 ## Structural Configuration
 
-**Assertions:** The base profile enables visible subagent `safety-reviewer` at `openai/gpt-5.6-luna` / `high`; the rendered agent has a non-empty safety-review prompt and no agent-specific step limit; Bash and ordinary inherited MCP or integration inspection tools remain available; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; `todowrite`, native subagent delegation, and `delegate_general` remain denied; and the Personal profile has no override.
+**Assertions:** The base profile enables visible subagent `safety-reviewer` at `openai/gpt-5.6-luna` / `high`; the rendered agent has a non-empty safety-review prompt and no agent-specific step limit; Bash and ordinary inherited MCP or integration inspection tools remain available; edits are denied except beneath `/tmp/opencode/`, whose external-directory boundary is allowed; assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`; `todowrite` and native subagent delegation remain denied; and the Personal profile has no override.
 
 ## Assigned evidence notes
 

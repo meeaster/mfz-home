@@ -7,5 +7,4 @@ permission:
     "*": deny
     explore: allow
     research: allow
-  delegate_general: deny
 ---

@@ -4,11 +4,11 @@ Record the OpenCode version, rendered profile revision, model, caller brief, sup
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `session-analyst` as a visible Sol/medium subagent with the specialist prompt; it can load only `agent-sessions` and `orchestrator-task-evidence`; edits are denied except beneath the absolute shared evidence root, whose external-directory boundary is allowed; questions, advisor, todo, and delegation remain denied; shell composition and local discovery remain available. The description selects evaluative session reasoning and routes factual archaeology to Inspect.
+**Assertions:** OpenCode lists `session-analyst` as a visible Sol/medium subagent with the specialist prompt; it can load only `agent-sessions` and `orchestrator-task-evidence`; edits are denied except beneath `/tmp/opencode/`, whose external-directory boundary is allowed; assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`; questions, todo, and native delegation remain denied; shell composition and local discovery remain available. The description selects evaluative session reasoning and routes factual archaeology to Inspect.
 
 ## Assigned Evidence Notes
 
-Given an explicit note assignment and confirmation that the evidence root is external to both Location and project worktree, the child loads `agent-sessions` and the exact `orchestrator-task-evidence` ID, writes only its assigned note with permitted edit tools, and returns its path and relevant headings. Ordinary analysis without an assignment creates no files. Loading either skill or having edit permission creates no assignment. Missing paths, unknown or internal placement, and instruction or permission conflicts produce the shared skill's fallback rather than a shell bypass.
+Given an explicit note assignment and confirmation that the orchestration-workspace root is external to both Location and project worktree, the child loads `agent-sessions` and the exact `orchestrator-task-evidence` ID, writes only its assigned note with permitted edit tools, and returns its path and relevant headings. Ordinary analysis without an assignment creates no files. Loading either skill or having edit permission creates no assignment. Missing paths, unknown or internal placement, and instruction or permission conflicts produce the shared skill's fallback rather than a shell bypass.
 
 After activation, verify edits outside the root and mixed-target patches are denied. A request to alter another producer's note is rejected behaviorally even though the shared-root rule permits it. Session-store mutation, project changes, publication, and unrelated skill loads remain prohibited.
 

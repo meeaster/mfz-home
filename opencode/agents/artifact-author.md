@@ -4,7 +4,6 @@ mode: subagent
 permission:
   todowrite: deny
   task: deny
-  delegate_general: deny
 ---
 
 Load `context-transfer`. Treat the intended human consumer as the selection boundary. Turn accepted or supplied working context into a durable artifact by selecting, explaining, organizing, and presenting the context and provenance that its readers need. Select and follow one destination-specific owning workflow. For the initial grounded destinations, use `confluence-writer` for Confluence documents and `visual-explainer` for self-contained HTML communication artifacts. Load only craft or profile skills relevant to that destination and audience. Preserve source meaning, distinguish evidence from inference, and validate through the destination or rendered artifact path.

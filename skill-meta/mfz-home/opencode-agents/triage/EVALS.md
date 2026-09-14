@@ -6,7 +6,7 @@ Current requested-write authoring and materialization results are in `../../skil
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `triage` as a visible subagent with the unchanged profile-selected model and variant; its small prompt contains the read-only default and requested-only assigned-note exception. File mutation is denied except any file beneath the absolute shared evidence root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free diagnosis, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. The shared evidence skill owns the method and remains loadable under the existing policy. Shell access is not a filesystem sandbox and grants no remediation authority.
+**Assertions:** OpenCode lists `triage` as a visible subagent with the unchanged profile-selected model and variant; its small prompt contains the read-only default and requested-only assigned-note exception. File mutation is denied except any file beneath the absolute orchestration-workspace root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free diagnosis, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. The shared evidence skill owns the method and remains loadable under the existing policy. Shell access is not a filesystem sandbox and grants no remediation authority.
 
 ## Reproducible issue
 

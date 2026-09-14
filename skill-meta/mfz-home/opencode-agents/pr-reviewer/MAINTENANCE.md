@@ -4,7 +4,7 @@
 
 - `pr-review` owns holistic PR due-diligence behavior and requires `development-principles` and `thermo-nuclear-code-quality-review`.
 - `profiles/base/profile.yml` enables the agent and owns its `openai/gpt-5.6-sol` / `high` assignment.
-- OpenCode V2 migrates legacy `bash` and `task` permissions to `shell` and `subagent`. Edit, write, and patch share the `edit` action. Preserve the outside-root edit deny and task-evidence root edit and external-directory allows; a later legacy `write: deny` would override that exception. `orchestrator-task-evidence` owns the note method, and `../explore/MAINTENANCE.md#v2-permission-evidence` explains placement and ownership limits.
+- OpenCode V2 migrates legacy `bash` and `task` permissions to `shell` and `subagent`. Edit, write, and patch share the `edit` action. Preserve the outside-root edit deny and `/tmp/opencode/*` edit and external-directory allows; the assigned-note contract remains limited to `/tmp/opencode/orchestrator-workspaces/`. A later legacy `write: deny` would override the exception. `orchestrator-task-evidence` owns the note method, and `../explore/MAINTENANCE.md#v2-permission-evidence` explains capability, placement, and ownership limits.
 - Shell access is not a sandbox; the prompt and repository instructions keep command use bounded and read-only.
 - The parent owns broad PR, static source, external documentation, current-state, and validation evidence gathering and supplies compact packets plus session locators.
 

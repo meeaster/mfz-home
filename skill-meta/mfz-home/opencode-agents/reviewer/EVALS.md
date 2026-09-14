@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, review prompt, se
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists Personal `reviewer` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/personal/profile.yml`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; native subagent delegation and `delegate_general` are denied. Test delegation at depth 1 so the depth limit cannot conceal a policy gap.
+**Assertions:** OpenCode lists Personal `reviewer` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/personal/profile.yml`; the rendered agent has an empty prompt; global permissions remain available; shell inspection is allowed; edits are denied except beneath `/tmp/opencode/`, whose external-directory boundary is allowed; assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`; and native subagent delegation is denied. Test delegation at depth 1 so the depth limit cannot conceal a policy gap.
 
 ## Assigned evidence notes
 

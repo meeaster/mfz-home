@@ -2,7 +2,7 @@
 
 ## Structural Configuration
 
-**Assertions:** OpenCode V2 lists `ui-ux-designer` as `openai/gpt-5.6-sol@medium`; the rendered agent has an empty prompt; edits are denied except beneath `/tmp/opencode/orchestrator-evidence/`, whose external-directory boundary is allowed; recursive delegation and todo ownership remain denied.
+**Assertions:** OpenCode V2 lists `ui-ux-designer` as `openai/gpt-5.6-sol@medium`; the rendered agent has an empty prompt; edits are denied except beneath `/tmp/opencode/`, whose external-directory boundary is allowed; assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`; recursive delegation and todo ownership remain denied.
 
 ## Assigned evidence notes
 

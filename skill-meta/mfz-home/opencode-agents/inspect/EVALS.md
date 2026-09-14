@@ -6,7 +6,7 @@ Current requested-write authoring and materialization results, including the unr
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `inspect` as a visible subagent using `openai/gpt-5.6-luna` at `high`; its description includes factual session archaeology and its prompt remains inherited. File mutation is denied except any file beneath the absolute shared evidence root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free inspection, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. Relevant skills, including `agent-sessions` and the shared evidence skill, remain loadable under the existing policy. Shell access is not a filesystem sandbox and grants no source or system mutation authority.
+**Assertions:** OpenCode lists `inspect` as a visible subagent using `openai/gpt-5.6-luna` at `high`; its description includes factual session archaeology and its prompt remains inherited. File mutation is denied except any file beneath the absolute orchestration-workspace root, and todo ownership and recursive delegation remain denied. Exercise ordinary file-free inspection, explicit assignment, supported Location, producer ownership, outside-root denial, and selective reading. Relevant skills, including `agent-sessions` and the shared evidence skill, remain loadable under the existing policy. Shell access is not a filesystem sandbox and grants no source or system mutation authority.
 
 ## Cloud inventory
 

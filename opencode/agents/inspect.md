@@ -7,10 +7,9 @@ permission:
   bash: allow
   edit:
     "*": deny
-    "/tmp/opencode/orchestrator-evidence/*": allow
+    "/tmp/opencode/*": allow
   external_directory:
-    "/tmp/opencode/orchestrator-evidence/*": allow
+    "/tmp/opencode/*": allow
   todowrite: deny
   task: deny
-  delegate_general: deny
 ---

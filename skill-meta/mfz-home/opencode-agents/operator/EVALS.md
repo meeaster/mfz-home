@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, task prompt, sess
 
 ## Structural Configuration
 
-**Assertions:** The base profile enables `operator` and assigns `openai/gpt-5.6-luna` at `high`; no Personal operator override exists; the rendered agent has an empty prompt; and `todowrite`, recursive `task`, and `delegate_general` are denied. Its ordinary mutation tools do not exceed the worker's permissions.
+**Assertions:** The base profile enables `operator` and assigns `openai/gpt-5.6-luna` at `high`; no Personal operator override exists; the rendered agent has an empty prompt; and `todowrite` and recursive native `task` delegation are denied. Its ordinary mutation tools do not exceed the worker's permissions.
 
 ## Procedural Mutation
 

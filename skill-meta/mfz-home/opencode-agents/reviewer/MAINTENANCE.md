@@ -7,7 +7,7 @@
 - The configured provider must support the model and variant selected by the Personal profile.
 - Native `task` behavior owns child-session creation, presentation, prompt delivery, and task-level delegation guidance.
 - The parent must supply requirements and the review boundary. Changed paths and validation evidence should be included when available, but the reviewer may reconstruct repository evidence with shell inspection.
-- Global permissions apply before the reviewer's agent-specific rules. Preserve the outside-root edit deny, task-evidence root edit and external-directory allows, and native/legacy delegation denies. `orchestrator-task-evidence` owns assigned-note production and reuse; `../explore/MAINTENANCE.md#v2-permission-evidence` explains absolute-path matching and shared-root ownership limits.
+- Global permissions apply before the reviewer's agent-specific rules. Preserve the outside-root edit deny, `/tmp/opencode/*` edit and external-directory allows, and native delegation deny. Assigned evidence remains behaviorally limited to `/tmp/opencode/orchestrator-workspaces/`. `orchestrator-task-evidence` owns assigned-note production and reuse; `../explore/MAINTENANCE.md#v2-permission-evidence` explains absolute-path matching and shared-root ownership limits.
 - Shell permissions are not a sandbox: reviewer prompts and repository instructions must keep shell use read-only because shell commands can still mutate files.
 
 ## Policy Sources

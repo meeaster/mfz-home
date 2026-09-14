@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, task prompt, sess
 
 ## Structural Configuration
 
-**Assertions:** OpenCode lists `worker` as a visible subagent using `openai/gpt-5.6-luna` at `max`; the rendered agent has an empty prompt; and `todowrite`, `task`, and `delegate_general` are denied.
+**Assertions:** OpenCode lists `worker` as a visible subagent using `openai/gpt-5.6-luna` at `max`; the rendered agent has an empty prompt; and `todowrite` and recursive native `task` delegation are denied.
 
 ## Bounded Implementation
 

@@ -23,5 +23,4 @@ permission:
     safety-reviewer: allow
     session-analyst: allow
     orchestrator: deny
-  delegate_general: deny
 ---

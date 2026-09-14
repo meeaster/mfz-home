@@ -6,7 +6,7 @@ Current requested-write authoring and materialization results are in `../../skil
 
 ## Structural Configuration
 
-**Assertions:** Research permits shell use, task-relevant skills, and ordinary discovery tools without enumerating documentation integrations. It may use external paths beneath `/tmp/opencode/` for disposable research and assigned evidence. Delegation, advisor use, todo management, and direct questions remain denied. Broad capability grants no authority to change authoritative projects, canonical references, external systems, or upstream repositories.
+**Assertions:** Research permits shell use, task-relevant skills, and ordinary discovery tools without enumerating documentation integrations. It may use external paths beneath `/tmp/opencode/` for disposable research and assigned evidence. Delegation, todo management, and direct questions remain denied. Broad capability grants no authority to change authoritative projects, canonical references, external systems, or upstream repositories.
 
 ## OpenCode documentation
 

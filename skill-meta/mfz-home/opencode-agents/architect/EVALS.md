@@ -4,7 +4,7 @@ Record the OpenCode version, rendered profile revision, model, caller brief, ses
 
 ## Structural configuration
 
-**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/base/profile.yml`; edits outside the evidence root, todo ownership, and recursive delegation are denied. The assigned evidence-root edit exception preserves the existing profile model.
+**Assertions:** OpenCode lists `architect` as a visible subagent using `openai/gpt-6-astra` at `medium`, matching `profiles/base/profile.yml`; edits outside the orchestration-workspace root, todo ownership, and recursive delegation are denied. The assigned-note edit exception preserves the existing profile model.
 
 ## Credible alternatives
 
