@@ -35,10 +35,12 @@ export function loadCatalog(): Promise<Catalog> {
   if (!catalog) {
     catalog = fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10_000) }).then(async (response) => {
       if (!response.ok) throw new Error(`models.dev returned ${response.status}`);
+
       // SAFETY: models.dev owns this endpoint contract; callers fail closed when loading or pricing fails.
       return (await response.json()) as Catalog;
     });
   }
+
   return catalog.catch((error) => {
     catalog = undefined;
     throw error;
@@ -49,7 +51,9 @@ export function priceTokens(tokens: Tokens, ref: ModelRef, priceCatalog: Catalog
   const models = priceCatalog[ref.providerID]?.models ?? {};
   const model = models[ref.id] ?? modeModel(models, ref.id);
   const rates = model && ratesFor(model, tokens);
+
   if (!rates) return undefined;
+
   return (
     (tokens.input * finite(rates.input) +
       (tokens.output + tokens.reasoning) * finite(rates.output) +
@@ -65,31 +69,38 @@ function modeModel(models: Record<string, Model>, id: string): Model | undefined
       if (`${baseID}-${mode}` === id) return { ...model, cost: mergeRates(model.cost, options.cost) };
     }
   }
+
   return undefined;
 }
 
 function ratesFor(model: Model, tokens: Tokens): Rates | undefined {
   const prompt = tokens.input + tokens.cache.read + tokens.cache.write;
   const cost = normalizeRates(model.cost);
+
   const tier = cost?.tiers
     ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
     .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
+
   return tier ?? cost;
 }
 
 function mergeRates(base: Rates | undefined, override: Rates | undefined): Rates | undefined {
   const normalizedBase = normalizeRates(base);
+
   if (!override) return normalizedBase;
   const normalizedOverride = normalizeRates(override)!;
   const tiers = new Map((normalizedBase?.tiers ?? []).map((tier) => [tierKey(tier), tier]));
+
   for (const tier of normalizedOverride.tiers ?? []) {
     tiers.set(tierKey(tier), { ...tiers.get(tierKey(tier)), ...tier });
   }
+
   return { ...normalizedBase, ...normalizedOverride, tiers: [...tiers.values()] };
 }
 
 function normalizeRates(input: Rates | undefined): Rates | undefined {
   if (!input) return undefined;
+
   return {
     input: input.input ?? 0,
     output: input.output ?? 0,

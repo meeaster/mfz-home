@@ -14,6 +14,7 @@ describe("subagent usage V2 pricing", () => {
     const catalog: Catalog = {
       openai: { models: { model: { cost: { input: 1, output: 2, cache_read: 3, cache_write: 4 } } } },
     };
+
     expect(priceTokens(tokens(1_000_000), { providerID: "openai", id: "model" }, catalog)).toBe(12);
   });
 
@@ -33,6 +34,7 @@ describe("subagent usage V2 pricing", () => {
         },
       },
     };
+
     expect(priceTokens(tokens(3_000_001), { providerID: "openai", id: "model" }, catalog)).toBeCloseTo(9.000003);
   });
 
@@ -44,6 +46,7 @@ describe("subagent usage V2 pricing", () => {
         },
       },
     };
+
     expect(priceTokens({ ...tokens(1_000_000), output: 0, reasoning: 0, cache: { read: 0, write: 0 } }, { providerID: "openai", id: "model-fast" }, catalog)).toBe(6);
   });
 

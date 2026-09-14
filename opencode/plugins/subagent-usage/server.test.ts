@@ -5,6 +5,7 @@ import { appendUsageContent, setupSubagentUsage, summarizeUsage, usageTag } from
 import type { Catalog, ModelRef, Tokens } from "./pricing.js";
 
 type HookName = "execute.before" | "execute.after";
+
 type HookEvent =
   | { tool: string; id: string; input: unknown }
   | {
@@ -15,8 +16,11 @@ type HookEvent =
       result: { content?: string; metadata?: { sessionID?: string; status?: string } };
     }
   | { tool: string; id: string; input: unknown; status: "error"; error: unknown };
+
 type Hook = (event: HookEvent) => Promise<void> | void;
+
 type TestFailure = Error;
+
 type TestEvent =
   | {
       type: "session.step.started";
@@ -29,6 +33,7 @@ type TestEvent =
   | { type: "session.usage.updated"; data: { sessionID: string; tokens: Tokens } };
 
 type EventSubscribeOptions = { readonly signal?: AbortSignal };
+
 type EventSource = {
   subscribe(options?: EventSubscribeOptions): AsyncIterable<TestEvent>;
   push(value: TestEvent): void;
@@ -43,6 +48,7 @@ function createEventStream() {
     resolve: (result: IteratorResult<TestEvent>) => void;
     reject: (reason?: TestFailure) => void;
   };
+
   const queue: TestEvent[] = [];
   const pending: Pending[] = [];
   let closed = false;
@@ -57,40 +63,52 @@ function createEventStream() {
     queue.splice(0);
     pending.splice(0).forEach((request) => request.resolve(done()));
   };
+
   const iterator = {
     next() {
       const value = queue.shift();
+
       if (value) {
         delivered += 1;
+
         return Promise.resolve({ done: false as const, value });
       }
+
       if (failed) return Promise.reject(failure);
+
       if (closed) return Promise.resolve(done());
       const request = Promise.withResolvers<IteratorResult<TestEvent>>();
       pending.push(request);
+
       return request.promise;
     },
     return() {
       returnCalls += 1;
       close();
+
       return Promise.resolve(done());
     },
   };
+
   const iterable: AsyncIterable<TestEvent> = { [Symbol.asyncIterator]: () => iterator };
 
   return {
     iterable,
     subscribe(options?: EventSubscribeOptions) {
       options?.signal?.addEventListener("abort", close, { once: true });
+
       return iterable;
     },
     push(value: TestEvent) {
       const request = pending.shift();
+
       if (request) {
         delivered += 1;
         request.resolve({ done: false, value });
+
         return;
       }
+
       if (!closed && !failed) queue.push(value);
     },
     fail(error: TestFailure) {
@@ -110,11 +128,13 @@ function createEventStream() {
 
 function createEventHub() {
   const streams: Array<ReturnType<typeof createEventStream>> = [];
+
   return {
     subscribe(options?: EventSubscribeOptions) {
       const stream = createEventStream();
       streams.push(stream);
       options?.signal?.addEventListener("abort", stream.close, { once: true });
+
       return stream.iterable;
     },
     push(value: TestEvent) {
@@ -147,10 +167,12 @@ function createSetupFixture(source: EventSource = createEventStream()) {
   const disposed: HookName[] = [];
   let signal: AbortSignal | undefined;
   const model = { providerID: "openai", id: "model" } satisfies ModelRef;
+
   const contextFixture = {
     event: {
       subscribe(options?: EventSubscribeOptions) {
         signal = options?.signal;
+
         return source.subscribe(options);
       },
     },
@@ -160,12 +182,15 @@ function createSetupFixture(source: EventSource = createEventStream()) {
     tool: {
       hook: async (name: HookName, callback: Hook) => {
         hooks.set(name, callback);
+
         return { dispose: async () => disposed.push(name) };
       },
     },
   };
+
   // SAFETY: The fixture implements the event, session, and tool methods used by setupSubagentUsage.
   const context = Object.assign(Object.create(null), contextFixture) as Plugin.Context;
+
   return { context, events: source, hooks, disposed, model, get signal() { return signal; } };
 }
 
@@ -210,6 +235,7 @@ describe("subagent usage V2", () => {
         tokens: { input: 1_000, output: 200, reasoning: 10, cache: { read: 300, write: 0 } },
       },
     });
+
     const afterEvent = {
       tool: "subagent",
       id: "call",
@@ -217,6 +243,7 @@ describe("subagent usage V2", () => {
       status: "completed" as const,
       result: { content: "child output", metadata: { sessionID: "child", status: "completed" } },
     };
+
     await after!(afterEvent);
 
     expect(afterEvent.result.content).toBe(
@@ -233,6 +260,7 @@ describe("subagent usage V2", () => {
     const first = createSetupFixture(source);
     const firstCleanup = await setupSubagentUsage(first.context, async () => catalog);
     const firstStream = source.streams.at(0);
+
     if (!firstStream) throw new Error("first event stream was not created");
 
     await firstCleanup();
@@ -241,6 +269,7 @@ describe("subagent usage V2", () => {
     const second = createSetupFixture(source);
     const secondCleanup = await setupSubagentUsage(second.context, async () => catalog);
     const secondStream = source.streams.at(1);
+
     if (!secondStream) throw new Error("second event stream was not created");
     const before = second.hooks.get("execute.before");
     const after = second.hooks.get("execute.after");
@@ -267,6 +296,7 @@ describe("subagent usage V2", () => {
         tokens: { input: 1_000, output: 200, reasoning: 10, cache: { read: 300, write: 0 } },
       },
     });
+
     const afterEvent = {
       tool: "subagent",
       id: "call",
@@ -274,6 +304,7 @@ describe("subagent usage V2", () => {
       status: "completed" as const,
       result: { content: "child output", metadata: { sessionID: "child", status: "completed" } },
     };
+
     await after!(afterEvent);
 
     expect(firstStream.delivered).toBe(0);
