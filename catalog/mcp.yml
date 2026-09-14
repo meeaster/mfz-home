@@ -3,7 +3,7 @@ servers:
     description: Documentation lookup MCP.
     type: remote
     transport: http
-    url: https://mcp.context7.com/mcp
+    url: https://mcp.context7.com/mcp/oauth
   qmd:
     description: Local markdown knowledge base MCP.
     type: local
