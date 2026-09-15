@@ -2,7 +2,7 @@
 
 ## Source and availability
 
-On 2026-09-07, `skills/openspec/openspec-orchestrate/SKILL.md` exists and `catalog/skills.yml` still declares it. No profile YAML under `profiles/` names `openspec-orchestrate`. This establishes source presence, not active discovery or retirement. Confirm the intended status before any activation or redesign.
+On 2026-09-15, the source moved to `skills/prototype/openspec-orchestrate/SKILL.md`. The catalog still declares it, but no profile selects it. It is retained for possible redesign but is not available through skill discovery.
 
 The source still requires OpenCode `delegate_general`, Sol/high planning, and Luna/xhigh implementation, and depends on OpenSpec `status` and `instructions apply` JSON contracts. Those dependencies were not executed in this record-only pass. Recheck tool availability, model allowlists, and planning-store fields before attempting the workflow; do not infer compatibility from a catalog entry.
 

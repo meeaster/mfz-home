@@ -396,7 +396,7 @@ skills:
       implementation is complete, correct, and coherent before archiving.
   - name: openspec-orchestrate
     source: local
-    skill: openspec/openspec-orchestrate
+    skill: prototype/openspec-orchestrate
     description: >
       Plan and coordinate an OpenSpec implementation as a standalone, plan-first
       workflow.

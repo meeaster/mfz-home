@@ -233,7 +233,5 @@ process so the evaluated session loads the intended version.
 
 ## Related Sources
 
-- [`openspec/changes/advisor-auto-mode-observability/design.md`](../../openspec/changes/advisor-auto-mode-observability/design.md)
-- [`openspec/changes/advisor-auto-mode-observability/specs/advisor-session-policy/spec.md`](../../openspec/changes/advisor-auto-mode-observability/specs/advisor-session-policy/spec.md)
-- [`opencode/plugins/advisor/server.ts`](../../opencode/plugins/advisor/server.ts)
+- [Archived advisor implementation](server.ts)
 - [Anthropic advisor tool documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/advisor-tool.md)

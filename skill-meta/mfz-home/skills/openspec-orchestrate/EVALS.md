@@ -2,6 +2,26 @@
 
 These are expected scenarios for the recorded source contract, not current-runtime passes. [MAINTENANCE.md](MAINTENANCE.md) records unresolved availability and dependency compatibility. [LOG.md](LOG.md) retains the observed failures that motivated packing and review limits; neither observation establishes that the revised behavior passed. No live tests were run for this record update.
 
+## Plan-Only Contract Regression
+
+Given an isolated fixture with at least two pending hierarchical tasks and more than one plausible execution group:
+
+- the coordinator copies the planner prompt template without compressing, renaming, reordering, or omitting fields;
+- the planning result states `Read all <N> context paths` with the supplied count or names every unreadable path in an incomplete report;
+- every pending hierarchical task ID appears exactly once;
+- every execution group includes explicit out-of-scope paths;
+- every context-budget estimate uses characters, with any token equivalent separately labeled and derived from that estimate;
+- candidate reads may remain candidate paths, but proposed writes are exact paths; and
+- the coordinator rejects a result missing any required field without implementing, changing task state, or repairing the plan locally.
+
+Inspect the loaded skill path, exact planner prompt, planner result, coordinator validation, fixture diff, task ledger, model route, and available session cost metadata.
+
+### Historical result: 2026-07-13
+
+An installed-skill run used parent session `ses_0a552a001ffefeyXdyrbQDxSSJ` with a Sol/high planning child, `ses_0a550ffa0ffeAR7VVrQDlgHZuZ`. The planner attested that it read all 10 context paths, mapped all 32 tasks once, included six out-of-scope sections, and used character estimates. Phase 3 correctly rejected the plan because deterministic schema gates omitted the generate/hash/regenerate/hash-compare protocol and most exclusions named semantic categories instead of exact paths. The implementation clone and planning ledger remained unchanged.
+
+This evidence predates later source revisions and does not establish that the current prototype passes. The run used an isolated implementation clone with a real standalone planning change mounted read-only; unreadable-context and deliberately malformed-plan branches remain untested.
+
 ## Large Cross-Cutting Change
 
 Given an OpenSpec change with 20-30 tasks spanning configuration, command behavior, migration,
