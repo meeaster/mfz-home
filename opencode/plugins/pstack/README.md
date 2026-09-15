@@ -17,7 +17,7 @@ The plugin reads its package-local `skills/` directory and registers each comple
 
 ```sh
 pnpm --dir opencode/plugins/pstack check
-mfz smoke-opencode
+mfz apply
 opencode api get /api/plugin
 ```
 
