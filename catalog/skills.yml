@@ -89,7 +89,7 @@ skills:
     subtree: skills/engineering/wayfinder
   - name: wayfinder-companion
     source: local
-    skill: active/wayfinder-companion
+    skill: prototype/wayfinder-companion
     description: >
       Keep human direction, current thinking, evidence, and a working model
       alongside a Wayfinder map, with optional decision briefs for user-designated
@@ -187,13 +187,6 @@ skills:
       Draft, refine, and sync Jira stories as local markdown, then push to Jira
       on approval. Use when asked to write or update a Jira story, turn notes or
       a bug into a ticket, or rewrite a story to read clearly.
-  - name: mise
-    source: local
-    skill: active/mise
-    description: >
-      Use when answering mise basics: installing or adding global tools,
-      choosing a mise backend, managing global mise environment variables,
-      checking mise config, or giving concise mise command guidance.
   - name: agent-sessions
     source: local
     skill: active/agent-sessions
@@ -328,13 +321,13 @@ skills:
       command authoring record's VISION.md; use skill-authoring.
   - name: adversarial-code-review
     source: local
-    skill: active/adversarial-code-review
+    skill: prototype/adversarial-code-review
     description: Adversarial code review — dispatch the current branch to a
       two-engine panel (Claude Opus + GPT-5.5), each running the thermo-nuclear
       review, then chair the merge into consensus/split findings. User-invoked.
   - name: quality-garden
     source: local
-    skill: active/quality-garden
+    skill: prototype/quality-garden
     description: >
       Quality garden - coordinate one behavior-preserving maintenance PR with
       separate gardener and reviewer roles. User-invoked.
@@ -545,7 +538,7 @@ skills:
        your brand.
   - name: ui-ux-design
     source: local
-    skill: active/ui-ux-design
+    skill: prototype/ui-ux-design
     description: >
       Shape an implementation-ready UI/UX design direction or critique. Use when
       an interface needs a deliberate information hierarchy, component and state

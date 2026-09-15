@@ -65,11 +65,9 @@ skills:
   thermo-nuclear-code-quality-review:
     agents: { opencode: true, claude-code: true, codex: true }
   adversarial-code-review:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   impeccable:
     agents: { opencode: true, claude-code: true, codex: true }
-  mise:
-    agents: { opencode: false, claude-code: false, codex: false }
   agent-sessions:
     agents: { opencode: true, claude-code: true, codex: true }
   session-brief:
@@ -136,7 +134,7 @@ skills:
   wayfinder:
     agents: { opencode: true, claude-code: true, codex: true }
   wayfinder-companion:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   improve-codebase-architecture:
     agents: { opencode: false, claude-code: false, codex: false }
   domain-modeling:
@@ -160,7 +158,7 @@ skills:
   dataviz:
     agents: { opencode: true, claude-code: true, codex: true }
   ui-ux-design:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   show-me:
     agents: { opencode: true, claude-code: true, codex: true }
 mcp:

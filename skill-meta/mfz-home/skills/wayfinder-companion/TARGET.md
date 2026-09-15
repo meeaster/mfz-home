@@ -3,4 +3,4 @@
 - Repository: `mfz-home`
 - Remote: `git@github.com:meeaster/mfz-home.git`
 - Artifact kind: skill
-- Source: `skills/active/wayfinder-companion`
+- Source: `skills/prototype/wayfinder-companion`
