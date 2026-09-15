@@ -17,8 +17,8 @@ The intended boundary is recorded in:
 
 - `README.md`
 - `UPSTREAM.md`
-- `../../../../skill-meta/mfz-home/skills/pstack/VISION.md`
-- `../../../../skill-meta/mfz-home/skills/pstack/MAINTENANCE.md`
+- `authoring-records/mfz-home/skills/pstack/VISION.md` in Personal Knowledge
+- `authoring-records/mfz-home/skills/pstack/MAINTENANCE.md` in Personal Knowledge
 
 Cursor model setup, transcript readers, Benny automations, Graphite workflows, pull-request polling, TUI code, hooks, and background services remain excluded until an OpenCode use case justifies an OpenCode-native design.
 
@@ -319,7 +319,7 @@ Count the packaged skills without maintaining a hardcoded count:
 find opencode/plugins/pstack/skills -mindepth 1 -maxdepth 1 -type d | wc -l
 ```
 
-Complete the repository maintenance checks recorded in `../../../../skill-meta/mfz-home/skills/pstack/MAINTENANCE.md`. Unit tests prove the package parser and registration helpers. They do not prove rendered dependency resolution, plugin activation, reload behavior, effective permissions, or model-visible behavior.
+Complete the repository maintenance checks recorded in `authoring-records/mfz-home/skills/pstack/MAINTENANCE.md` in Personal Knowledge. Unit tests prove the package parser and registration helpers. They do not prove rendered dependency resolution, plugin activation, reload behavior, effective permissions, or model-visible behavior.
 
 For a server behavior change, exercise the changed behavior in a fresh `opencode` process. `/api/plugin` reporting `status: "active"` proves setup completed; it does not prove that a hook, tool, or delegated workflow executed correctly.
 

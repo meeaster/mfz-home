@@ -50,6 +50,8 @@ Keep portable behavior free of undeclared machine or workspace assumptions. Deli
 
 For assessment, return evidence-backed findings without repairing files. For implementation, update the runtime artifact and affected record content; a change does not require touching every file.
 
+When authorized work includes commits, commit changed runtime files in their repository and changed authoring records in the record repository. Keep the commits separate, report both commit identifiers, and do not leave an accepted change half-committed. Do not change an accurate record only to create a companion commit.
+
 ### Preserve the next author's context
 
 The default record contains:

@@ -14,4 +14,4 @@
 
 # Skill Authoring Records
 
-- Use `/home/mark/workspace/repos/mfz-home/skill-meta` as the Skill Authoring record root. Skill Authoring owns the structure beneath this root.
+- Use `/home/mark/workspace/knowledge/personal-knowledge/authoring-records` as the Skill Authoring record root. Skill Authoring owns the structure beneath this root.
