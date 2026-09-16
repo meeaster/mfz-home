@@ -20,11 +20,13 @@ Write files for their purpose below, keeping decisions, useful reasoning, and ev
 
 | File | Purpose and creation condition |
 | --- | --- |
-| `context.md` | Optional evolving priorities, decisions and rationale, phase, and open questions that would otherwise be lossy or expensive across dispatches. Do not create merely to restate the initial assignment for one batch. Update when the shared frame materially changes. |
+| `context.md` | Required when establishing the workspace. Capture the current understanding from the conversation: goal and why it matters, human priorities/preferences, constraints and waivers, accepted decisions and rationale, consequential rejected directions, open questions, and next step. |
 | `design.md` | Optional accepted technical design needed across units: boundaries, responsibilities, flows, interfaces, invariants, and tradeoffs. Create only after acceptance. |
 | `synthesis/<topic>.md` | Focused evidence-informed reasoning for reuse, created only on explicit request or acceptance of the root skill's recommendation. May connect findings, compare options, and include preferences and decisions. Mark its reasoning as provisional, recommended, or accepted. A summary, checklist, readiness marker, or worker brief alone is not synthesis. |
 | `coordination.md` | Optional multi-unit dependencies, owners, status, must-preserve invariants, acceptance criteria, and evidence locators. One coherent worker keeps acceptance in its brief. |
 | `index.md` | Required catalog after the first producer note is complete and checked. Update after each checked note or parallel batch. Record path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
+
+Maintain `context.md` when discussion materially changes the goal, constraints, decisions, or direction, and at phase boundaries that change the next step. Replace stale statements; preserve useful reasoning rather than a transcript or activity log. Keep proposals and unresolved choices distinct from accepted decisions. Include its path in child briefs when higher-level understanding helps, while keeping the child's assignment and authority explicit in the brief.
 
 Working files supply background, not new assignments. Keep required constraints and the complete current assignment in the dispatch prompt or its expressly designated authoritative specification. Avoid worker-brief files, planned index placeholders, copied findings, skill inventories, and process histories. Distinguish changed state or resolved gaps from contradictions; one superseded claim need not invalidate its whole note.
 

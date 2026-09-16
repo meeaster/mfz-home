@@ -5,22 +5,22 @@
 A genuinely new unit after deliberate manual compaction needs no recovery of the completed phase. For continuing work, including a new session resuming an earlier effort, begin with available conversation context. Before the next external action or creating/replacing coordinator files:
 
 1. Find the effort under `/tmp/opencode/orchestrator-workspaces/` by the supplied effort name/path, available context, or a `sessions/<session-id>.md` marker for the current or named previous session. Reuse that directory. Ask only if the intended effort is ambiguous; no match means missing temporary state, not missing session history.
-2. Inventory coordinator files and evidence filenames. Read `context.md` when present and compare objective, phase, accepted decisions, authority, invariants, and next move with active context. Read applicable coordination state and producer notes; check the index against surviving evidence.
+2. Read `context.md` first and compare it with the current request and available conversation context. Then consult coordination state, the evidence index, and selected notes as needed for the next action. Check index coverage against surviving evidence when relying on it.
 3. Check relevant mutable source/runtime state. Identify absent, partial, stale, or contradictory information rather than silently choosing an account. Continue when context, workspace, and current state support the same next action and authority.
 
 Add an empty `sessions/<current-session-id>.md` if absent, preserving all previous markers and working files. Resuming the effort does not rename its directory or require a separate binding or takeover procedure.
 
 The index is a derived catalog. If missing or inconsistent, rebuild from completed notes and known handoffs; when full recovery is disproportionate or impossible, label coverage partial with unresolved ranges. Never initialize a normal-looking newest-note-only index while older evidence survives.
 
-Create or refresh a concise `context.md` when evolving shared meaning would be lossy or expensive to reconstruct, including a material phase transition, consequential mutation/rollback, or deliberate handoff/compaction. Replace stale state rather than append activity history. Label reconstructed checkpoints and their evidence limits accurately.
+If `context.md` is missing, reconstruct it from available conversation and effort files after reconciliation, marking uncertainty and reconstruction accurately. Missing context alone does not require session-history inspection. Maintain it under [Workspace and coordination](workspace-and-coordination.md).
 
 An interrupted response is not compaction. Reconcile pending tools, children, and possible effects before retrying; inspect state before repeating a side effect. Continue a durably available accepted request without requiring repetition from the human. Return the exact blocker if context or state cannot support continuation.
 
 ## Recover missing session meaning
 
-Durable session history owns traces; current source/runtime owns mutable facts. Temporary notes are neither authority. Compaction alone does not justify history reconstruction.
+Resume from the effort's working files and relevant current state. A new session, compaction, incomplete historical context, or a session marker alone does not justify reconstruction. Recover only enough context for the next bounded action.
 
-When a continuing unit lacks material decisions, corrections, evidence, child results, authority, or unresolved state, dispatch the smallest `inspect` reconstruction. Supply session/known child IDs, objective/phase, relevant boundary, specific missing facts, exclusions, and expected decision packet. For multi-compaction work, recover the relevant phase from its meaningful start rather than one arbitrary segment or the whole history. Parent-facing coordinators return missing parent context to their parent rather than retrieving it without authority.
+Dispatch `inspect` for prior-session history only when a specific material gap blocks the next action and available conversation, effort files, and current state cannot resolve it, or when the human explicitly requests historical investigation. Name the missing fact and the action it controls. Supply session/known child IDs, objective/phase, relevant boundary, exclusions, and the smallest sufficient result. For multi-compaction work, follow the relevant phase rather than replay the whole history. Parent-facing coordinators return missing parent context to their parent rather than retrieving it without authority.
 
 Require only facts affecting continuation: decisions, useful evidence and locators, child continuity, mutations and verification, unresolved state, freshness, and next action. Check against current context, resolve material conflicts, and synthesize. Use `session-analyst` only if evaluation, rather than factual reconstruction, is needed. Persistent handoffs or knowledge require their separately requested owning workflows.
 
