@@ -5,7 +5,15 @@ description: Write or refresh a GitHub PR title and description, then create, up
 
 # PR Writer
 
-Write a **reader-first** PR description — a cover note for a reviewer, not a changelog, template, or validation log. By default, draft it **in chat**: show the proposed title and body, refine with the user, then push with `gh` on approval. A request that includes merging grants end-to-end authority: write the text without a separate approval pause, create a ready PR when needed, and merge only after CI passes. There is no local artifact and no drift check — GitHub is the PR's home.
+Write a **reader-first** PR description: a cover note for a reviewer, not a changelog, template, or validation log. Match the user's requested outcome:
+
+- **Create or open a PR:** write the title and body, then create a ready PR with `gh`. The request authorizes the GitHub write without a text preview or approval pause.
+- **Create or open a draft PR:** write the title and body, then create a GitHub draft PR. Use draft status only when the user explicitly asks for it.
+- **Draft, write, or show a PR title, description, or body:** present the proposed text in chat and refine it with the user. Do not create or update a PR unless the user asks.
+- **Update or refresh a PR:** write the new text and update the existing PR with `gh`. Preserve its draft or ready status unless the user asks to change it.
+- **Merge a PR:** perform the requested create or update first, make the PR ready when needed, and merge only after CI passes.
+
+There is no local artifact or drift check. GitHub is the PR's home.
 
 ## Process
 
@@ -23,26 +31,41 @@ git diff $BASE...HEAD
 
 For an existing PR, also read its current text: `gh pr view <N> --json number,title,body,url,baseRefName,headRefName`. Reconcile every claim against the latest full branch diff: add, remove, or rewrite description content until it represents the branch as it exists now. If on `main`/`master`, create a feature branch first.
 
-### 2. Draft title and body in chat
+### 2. Write the title and body
 
-Write the title and body following the doctrine below, sized to the change. For an existing PR with new branch changes, also draft a follow-up comment summarizing what changed since the previous pushed state. Present every proposed artifact to the user unless the request already grants end-to-end merge authority.
+Write the title and body following the doctrine below, sized to the change. For an existing PR with new branch changes, also write a follow-up comment that summarizes what changed since the previous pushed state.
 
 **Done when:** a reviewer could read the title alone and know what the whole branch does, the body explains the branch's current state, and any follow-up comment tells returning reviewers what changed since their previous review.
 
-### 3. Refine with the user
+### 3. Complete the requested outcome
 
-Unless the request grants end-to-end merge authority, let the user react and rewrite in chat. Stay here until approved — do not touch `gh` while refining.
+For a text-only drafting request, present the title, body, and any follow-up comment in chat. Refine the text with the user and stop without calling `gh`.
 
-### 4. Push with gh
+For a create, update, or merge request, continue to the GitHub write without presenting the text for approval. Create a ready PR by default. Pass `--draft` only when the user explicitly requested a GitHub draft PR. Preserve an existing PR's draft or ready status during a text update unless the user requested a status change.
 
-Create a draft PR by default, or update an existing one. When the user asked to merge, omit `--draft`, wait until all reported CI checks pass, and then merge through the repository's normal merge path. Pending or failed CI blocks every merge. After updating an existing PR for new branch changes, post the approved or authorized follow-up comment:
+When the user asked to merge, wait until all reported CI checks pass, then merge through the repository's normal merge path. Pending or failed CI blocks every merge.
+
+Create a ready PR by default:
+
+```bash
+gh pr create --title "<title>" --body "$(cat <<'EOF'
+<body>
+EOF
+)"
+```
+
+For an explicitly requested GitHub draft PR, run this command instead:
 
 ```bash
 gh pr create --draft --title "<title>" --body "$(cat <<'EOF'
 <body>
 EOF
 )"
+```
 
+Update an existing PR and post any follow-up comment:
+
+```bash
 gh api -X PATCH repos/{owner}/{repo}/pulls/<N> -f title='<title>' -f body="$(cat <<'EOF'
 <body>
 EOF
@@ -52,7 +75,11 @@ gh pr comment <N> --body "$(cat <<'EOF'
 <follow-up comment>
 EOF
 )"
+```
 
+For a merge request, check CI and then use the repository's normal merge path:
+
+```bash
 gh pr checks <N> --watch --fail-fast
 gh pr merge <N>
 ```
