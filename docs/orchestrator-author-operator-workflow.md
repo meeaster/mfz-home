@@ -52,7 +52,7 @@ These statements describe the repository on 2026-09-15. They are not redesign pr
 
 ### Mandatory file-backed evidence
 
-`skills/active/orchestrator-mode/SKILL.md` currently requires a file-backed handoff for every evidence-producing dispatch, including research, inspection, consultation, implementation, and review. Each producer receives a unique path under `/tmp/opencode/orchestrator-workspaces/<effort>/`. The producer list includes workers and operators.
+The `orchestrator-mode` package currently requires a file-backed handoff for every evidence-producing dispatch, including research, inspection, consultation, implementation, and review. Its root `SKILL.md` selects `references/workspace-and-coordination.md`, which owns task-root placement and unique producer paths under `/tmp/opencode/orchestrator-workspaces/<effort>/`; `orchestrator-task-evidence` owns the producer-note method. The producer list includes workers and operators.
 
 Fresh children do not discover sibling evidence or enclosing workspace files automatically. The coordinator must select each relevant path, describe its status and freshness, and carry enough decision-critical context in the brief. The temporary workspace is not a durable continuity store.
 
@@ -436,7 +436,7 @@ Evidence that answers these questions can weaken or reverse any part of the prov
 
 The accepted routing and anti-anchoring changes updated these source paths and their owning authoring records:
 
-- `skills/active/orchestrator-mode/SKILL.md`;
+- `skills/active/orchestrator-mode/`;
 - `opencode/agents/artifact-author.md`;
 - the orchestrator-mode and agent-author records under `/home/mark/workspace/knowledge/personal-knowledge/authoring-records/mfz-home/`.
 
@@ -444,7 +444,7 @@ The changes have not been rendered with `mfz apply`, committed, pushed, or teste
 
 The following paths may change only if later decisions accept the corresponding provisional behavior. This list is an impact map, not authorization to edit them.
 
-- `skills/active/orchestrator-mode/SKILL.md`: replace the all-dispatch note rule, define typed returns and persistence triggers, or add a helper topology.
+- `skills/active/orchestrator-mode/`: replace the all-dispatch note rule, define typed returns and persistence triggers, or add a helper topology while preserving root/reference ownership.
 - `opencode/agents/orchestrator.md`: adjust permissions only if a later direct-tool or helper topology requires it.
 - `opencode/agents/artifact-author.md`: add direct-tool or leaf-helper access only if later evidence supports it.
 - `opencode/agents/agent-author.md`: add narrow helper or tool permissions only if later evidence supports it.
