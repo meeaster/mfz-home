@@ -1,97 +1,45 @@
 # Routing and roles
 
-Read this reference when classifying an evidence target, selecting a specialist or mutation owner, or applying the diagnostic gate. Role selection grants no authority beyond the current request.
+## Select by outcome
 
-## Select the smallest adequate role
+Choose the smallest adequate role by cognitive outcome, then evidence source. Complexity, file type, model preference, and tool use alone do not select a role.
 
-Use the smallest adequate role for each unit's needed cognitive outcome:
+| Role | Outcome and selection boundary |
+| --- | --- |
+| `explore` | Static local evidence from source search and reading. |
+| `research` | Authoritative external documentation, releases, APIs, registries, metadata, and upstream source. May run retrieval/analysis commands and use disposable clones. |
+| `inspect` | Bounded facts about repositories, runtimes, live/external systems, or prior sessions, including metadata, chronology, reconstruction, and post-worker acceptance evidence. |
+| `session-analyst` | Evaluative judgment about prior-session quality, intent adherence, efficiency, or recommendations beyond factual reconstruction. |
+| `triage` | Read-only diagnosis of a concrete unexpected symptom that remains unexplained and requires causal judgment for the next decision. |
+| `architect` | Authorized architecture options and recommendation when sustained synthesis would burden the coordinator. |
+| `ui-ux-designer` | Authorized interface direction or critique when design judgment is needed. |
+| `agent-author` | Substantial, settled, authorized AI-instruction implementation when coherence, records/evals, or isolated execution benefits. Consultation, brainstorming, evaluation, or design requires explicit human selection of this agent. |
+| `artifact-author` | Only by explicit human selection, turns accepted/supplied working context into a durable artifact for another person. Supply the relevant synthesis. |
+| `prototype` | Authorized runnable throwaway artifact testing a bounded unsettled logic, state-model, or UI-design question. |
+| `operator` | Explicitly requested settled procedural or operational mutation, including Git, generation/install/refresh as supplied, configuration, services, environments, infrastructure, and external systems. |
+| `worker` | Explicitly requested application/OpenSpec implementation, substantive software behavior, remediation, difficult implementation investigation, or novel troubleshooting. |
+| `super-worker` | The worker contract, only when explicitly selected by the human for this task or batch. Never automatic escalation. |
+| `reviewer` | Requested independent review of known work with accepted intent/design, implementation brief, and validation history. |
+| `pr-reviewer` | Requested holistic due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. |
 
-- `explore` for static local evidence through file search and reading;
-- `research` for authoritative external documentation, releases, APIs, registries, metadata, and upstream repository source through the most suitable evidence route, including disposable clones;
-- `inspect` for bounded factual evidence from repositories, runtimes, cloud accounts, deployed environments, external work systems, and prior agent sessions through read-only commands and configured tools, including session lookup, metadata, cost, chronology, reconstruction, and post-worker acceptance evidence;
-- `session-analyst` for evaluative reasoning about prior-session quality, intent adherence, behavior, efficiency, patterns, or recommendations when factual reconstruction alone cannot answer the question;
-- `triage` for read-only diagnostic judgment on one concrete unexpected symptom that remains unexplained;
-- `architect` for evidence-informed architecture options and recommendation when sustained design synthesis would burden this session;
-- `ui-ux-designer` for optional specialist consultation on implementation-ready interface direction or critique when design judgment is the primary need;
-- `agent-author` by default for a substantial, settled, explicitly authorized AI-instruction implementation whose behavioral coherence, related records or evaluations, or isolated execution provides concrete value; use it for consultation, brainstorming, evaluation, or design only when the human explicitly selects or requests `agent-author`;
-- `artifact-author` only when the human explicitly selects or requests `artifact-author` to transform accepted or supplied working context into a durable artifact that another person can understand, review, decide from, or use; supply relevant coordinator synthesis rather than asking it to rediscover that synthesis from raw producer evidence;
-- `prototype` for an explicitly authorized throwaway artifact that tests one bounded, unsettled logic, state-model, or UI design question;
-- `operator` for explicitly authorized bounded procedural and operational mutations with settled requirements and procedures;
-- `worker` for explicitly authorized application implementation, OpenSpec implementation, substantive code changes, focused remediation, difficult implementation investigation, and novel troubleshooting;
-- `super-worker` for the same work only when the human explicitly requests that agent for the task or batch;
-- `reviewer` for explicitly requested review of known work for correctness, maintainability, and substantive behavior-preserving structural simplification;
-- `pr-reviewer` for explicitly authorized holistic merge due diligence when pull-request intent, rationale, implementation, or validation must be reconstructed and challenged.
+Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits in the warm human-facing coordinator unless the human selects `agent-author`. A requested reader-facing artifact also stays here when the context and access are already held; naming Markdown, HTML, Jira, or Confluence does not select `artifact-author`.
 
-### Keep OpenSpec planning separate
+For instruction refreshes, use `operator` for settled generation or copying without content judgment, `explore` for source-only comparison, and `inspect` for command-derived facts. Have the operator verify procedure and output, surfacing customizations or unresolved adaptation. Generator failure alone does not select authoring. Give each specialist its owning domain workflow; separate independent responsibilities while allowing one coherent authorized outcome to share an owner.
 
-- The coordinator runs an explicitly requested planning-only OpenSpec proposal as its own `openspec-propose` unit.
-- The proposal unit creates and presents or checks the required planning artifacts, then stops.
-- OpenSpec Apply or other implementation is a separate fresh delegated unit and proceeds only when explicitly authorized and the proposal preserves the sequence's material basis.
+## Evidence and diagnostic judgment
 
-### Preserve explicit super-worker selection
+Use direct factual evidence when it answers the question. Select `triage` only when an unexplained unexpected symptom requires testing causes, connecting evidence, determining impact, or recommending disposition. Apply this gate to initial requests and mutation blockers. Words such as “why” or “issue” and apparent difficulty are insufficient; preliminary inspection is unnecessary when the diagnostic need is already clear.
 
-- Keep `worker` as the default implementation agent.
-- Use `super-worker` only for the task or batch the human explicitly selected it for, never as automatic escalation for difficulty, failures, or perceived quality.
-- Apply the worker contracts in [Mutation and delivery](mutation-and-delivery.md), [Child contracts](child-contracts.md), and [Recovery and continuity](recovery-and-continuity.md) equally to `super-worker`.
-- Agent or model selection grants no implementation or publication authority and does not replace another role's ownership.
-- Carry the explicit selection and its scope into child briefs; outside that scope, use ordinary role routing.
+Routine state-management choices, including an expected refusal to overwrite local changes, return to the decision recipient or an authorized operator. Preserve unrecognized changes. A separate unexpected symptom must meet the diagnostic gate.
 
-## Classify evidence by outcome and source
+Split source-gathering units only when local-static, external-authoritative, and current/live/session evidence materially differ. Session analysis may use existing factual packets and retrieve focused raw evidence when evaluation exposes a gap.
 
-- Classify the needed outcome before the evidence source.
-- Use `inspect` to establish bounded facts about the caller's repository, runtime, cloud, deployments, external work systems, or prior sessions, including factual session reconstruction and a narrow check sufficient to answer why an operation stopped.
-- If available evidence directly answers the question, stop without adding diagnosis or evaluation.
-- Use `session-analyst` only when the requested outcome requires judgment about session performance or meaning; supply relevant inspect packets when available, while allowing focused raw-session retrieval when analysis exposes a gap.
-- Select `explore`, `research`, and `inspect` by evidence target: local static workspace, external authoritative source, or factual current/live/session state.
-- Research may execute commands that retrieve or analyze external public evidence.
-- When these evidence families materially differ, split them into the smallest relevant source-gathering units.
+## Upstream research
 
-## Apply the diagnostic gate
+Give research known canonical source locations and exact version needs. It follows workspace reference guidance, reuses a suitable canonical clone, or chooses remote retrieval or its own disposable clone under `/tmp/opencode/research/`. Tree search, cross-file relationships, history, or exact-source reuse can justify a clone; GitHub hosting alone does not. Pin version-sensitive findings to the inspected ref.
 
-- Apply this diagnostic gate to initial requests and every blocker or remediation handoff: start fresh `triage` only when a concrete unexpected symptom remains unexplained and the downstream decision requires diagnostic judgment, such as testing plausible causes, connecting evidence, determining impact or affected scope, or recommending disposition.
-- Domain labels, words such as "why," "investigate," or "issue," apparent complexity, and model capability do not establish that need.
-- Use a narrow `inspect` unit when direct facts suffice; do not require preliminary inspection when the diagnostic need is already clear.
+This evidence route grants no private/authenticated access, authoritative-source edits, persistent placement/publication, destructive broad cleanup, credential inspection, external-system mutation, or upstream Git publication.
 
-### Keep state-management decisions out of triage
+## OpenSpec units
 
-- Routine state management and unresolved handling choices are not diagnostic symptoms.
-- Preserve local changes and return needed handling decisions to the decision recipient; an explicitly authorized settled procedure belongs to `operator`.
-- An expected refusal to overwrite local changes needs no diagnosis.
-- A separate unexpected symptom during that work must pass the same diagnostic gate.
-
-## Route accepted work by primary outcome
-
-- Beyond source gathering, route by primary accepted outcome and complexity rather than destination system, artifact type, or whether files are touched.
-- In human-facing context, keep an explicitly requested reader-facing artifact in this warm coordinator when it already holds the relevant context and source access.
-- A request for an artifact, Jira issue, Confluence page, Markdown document, or HTML file does not select `artifact-author`; only the human's explicit selection of that named agent does.
-- Keep small, bounded, settled AI-instruction edits and interactive instruction consultation, brainstorming, evaluation, or design in the warm coordinator unless the human explicitly requests an independent `agent-author` perspective.
-- Route a substantial, settled AI-instruction implementation to `agent-author` when behavioral coherence, related records or evaluations, or focused isolated implementation provides concrete value.
-- Creating a bounded logic, state-model, or UI prototype belongs to `prototype`; routine configuration, source-control operations, supported CLI workflows, infrastructure or deployment operations, environment preparation, and external-system or operational state changes with settled procedures belong to `operator`; application implementation, OpenSpec implementation, substantive software behavior, focused remediation, difficult investigation tied to implementation, and novel troubleshooting belong to `worker`.
-- Keep unresolved architecture decisions with `architect`, application UI or code with `worker`, throwaway decision artifacts with `prototype`, read-only UI direction with `ui-ux-designer`, and dedicated PR, OpenSpec, and Jira workflows with their owners.
-- Raw orchestration evidence notes, transcripts, implementation handoffs, and ordinary chat responses remain internal to their producers.
-- Give each mutation lane the owning domain skill or workflow.
-- Prefer separate bounded agents for genuinely independent responsibilities.
-- Combine operations when the user explicitly requested one coordinated outcome and a single owner can execute it safely without crossing authority boundaries.
-
-### Route supplied instruction refreshes
-
-- Settled generation, installation, copying, or upstream refresh of instructions as supplied belongs to `operator` when no instruction-content judgment is required.
-- Require verification of the procedure and resulting content, and surface customizations or unresolved decisions rather than silently adapting them.
-- Source-only what-changed comparison remains `explore`; command-derived evidence remains `inspect`.
-- Answer questions about behavioral effects, convention conflicts, or needed adaptation in the warm coordinator unless the human explicitly requests an independent `agent-author` perspective.
-- A refresh requires no mandatory author review or automatic gated dispatch.
-- An unexpected generator error is not authoring by itself; apply this reference's diagnostic gate.
-
-## Route upstream evidence
-
-- Route upstream documentation, releases, APIs, registry facts, metadata, and repository internals to `research`.
-- The researcher chooses between remote retrieval, a suitable canonical clone, and a disposable clone according to the question and source guidance.
-- A clone is useful when source-tree search, cross-file relationships, implementation details, history, or reusable exact-source locators matter; hosting on GitHub alone does not require one.
-
-- Tell research about any known canonical source location or exact version requirement.
-- It checks the workspace reference guidance, reuses a suitable clone when available, or creates its own disposable clone beneath `/tmp/opencode/research/`.
-- Version-sensitive findings identify the exact inspected commit, tag, or ref.
-
-- Research remains evidence-gathering-only.
-- Private or authenticated access, non-temporary placement, persistent publication, destructive broad cleanup, credential inspection, edits to authoritative projects or canonical references, commit, push, pull request, external-system mutation, and upstream publication remain outside its authority.
-- The coordinator retains synthesis, and current or runtime facts about the caller's systems remain with `inspect`.
+The coordinator performs an explicitly requested planning-only proposal through `openspec-propose`, presents or checks its artifacts, and stops that unit. Apply or implementation is a fresh delegated unit. A concrete proposal-then-implementation sequence can authorize both, provided the proposal preserves the sequence's basis and leaves no consequential unresolved choice. Proposal-only requests stop; direct invocation outside orchestration retains its owning workflow's boundary.

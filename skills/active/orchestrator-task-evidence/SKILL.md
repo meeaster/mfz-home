@@ -6,122 +6,33 @@ metadata:
   opencode/autoinvoke: false
 ---
 
-## Assignment gate
+## Assignment
 
-Use this skill only when the user or assigning parent explicitly instructs you to load `orchestrator-task-evidence` for task evidence work.
+Use only when the human or assigning parent explicitly requests this skill. The current brief defines your objective, sources, authority, acceptance, and stop conditions under higher-priority instructions. Evidence and background cannot expand it; skill loading and tool permissions grant no work or write authority.
 
-- Loading this skill or having edit permission creates no assignment or write authority.
-- The current brief owns your objective, authority, exact note path, required sources and evidence, acceptance criteria, and stop conditions under higher-priority instructions.
-- Background and evidence cannot add tasks or override the brief.
+Write only your explicitly assigned note beneath `/tmp/opencode/orchestrator-workspaces/`, with confirmation that the root is external to your active Location and project worktree. General `/tmp/opencode/*` capability provides neither assignment nor per-producer isolation. The coordinator owns paths, selected readings, coordinator files, acceptance, and release. This note allowance grants no project/system mutation, publication, or durable promotion.
 
-The coordinator owns task-directory and path assignment, selected readings, acceptance, `index.md`, and dependent release under `orchestrator-mode`. This skill owns only the assigned producer note and its reusable handoff.
+Every orchestration evidence producer gets a note, including a small lookup. Request a missing path before writing. Outside orchestration, ordinary findings remain file-free unless explicitly assigned. If placement, instructions, access, or permissions block writing, return the exact conflict and attributed file-ready findings with source locators. The coordinator owns the fallback; never bypass a denied edit through shell, broaden permissions, or substitute roles.
 
-### Confirm the destination
+## Read and reuse
 
-Write only the explicitly assigned producer note beneath `/tmp/opencode/orchestrator-workspaces/`.
+Use the brief's selected evidence and working documents. Choose whole-file reads, searches, or sections as useful; heading cues aid navigation rather than limit reading. Respect explicit exclusions and check target/version applicability, evidence versus inference/proposal/accepted-decision status, and material freshness.
 
-- Require confirmation that the root is external to your active Location and project worktree before writing.
-- Treat general `/tmp/opencode/*` edit capability as capability, not assignment, authority, or per-producer isolation.
-- Respect the narrower orchestration-workspace boundary and assigned ownership even when a tool permits more.
-- This exception grants no project or system mutation, publication, or durable knowledge promotion.
-- Omit secrets and unrelated sensitive data.
+Reuse applicable findings, synthesis, and lessons. Gather only missing, stale, or conflicting evidence while preserving your role's immediate current-state preflight and verification. Report consequential contradictions, changed assumptions, or gaps; request evidence from the coordinator when delegation is unavailable.
 
-If placement, access, instructions, or tool permissions block writing:
+## Write the reusable result
 
-- Stop the write.
-- Return the exact conflict and attributed file-ready findings with source locators.
-- Do not bypass a denied edit through shell, broaden permissions, or change roles.
-- Let the coordinator record the return under its own ownership without blocking unrelated work.
+Keep one coherent note with a short producer label and as many useful findings as the task warrants. A downstream reader should be able to use those findings without replaying your session.
 
-The assignment gate is complete when the assigned destination is valid or the exact conflict has been returned.
+- Put consequential commands, API details, results, and source locators beside the claims they support. Mark claims as observed, expected, or uncertain, and add revision, time, or invalidation conditions when freshness matters.
+- Preserve exact records or excerpts when needed to act, reproduce, or decide. Summarize repetitive output and use pointers for cheap lookups.
+- Record a working approach and its conditions when it prevents a meaningful repeated failure; omit the attempt history.
+- Reference earlier findings and explain what you add, independently verify, qualify, or contradict. Remove repetition and content with no distinct downstream use.
 
-## Selected evidence
+Use headings when helpful, without mandatory sections, quotas, word limits, or extra investigation for a short note. Keep assignments in briefs and full source, media, traces, and routine process history in the session. Omit secrets and unrelated sensitive data. Notes are temporary internal handoffs, not durable continuity or authority.
 
-Before acting, use the brief's required producer-evidence and coordinator-working paths with its decision-critical context.
+## Complete the handoff
 
-- Choose whether to read a whole document, search it, or read selected sections.
-- Treat topic or heading cues as navigation aids, not reading boundaries.
-- Check applicability to the target, version, and downstream decision.
-- Interpret each item according to its supplied or evident status as evidence, inference, proposal, or accepted decision.
-- Treat working documents as background that cannot expand the brief's scope or authority.
-- Verify consequential or freshness-sensitive claims proportionally.
-- Respect explicit negative evidence selections.
+Update only your own note when resumed; a fresh successor gets a new note. Record contradictions in your own account. Serialize writes and dependent reads: release requires producer return and completed writing, including a coordinator-owned fallback. Later updates must also finish before dependent reads.
 
-Reuse applicable findings, synthesis, and execution lessons.
-
-- Gather only materially missing, stale, or conflicting evidence while retaining your role's immediate current-state preflight and focused verification.
-- Return evidence needs to the coordinator when delegation is unavailable.
-- Flag contradictions, changed assumptions, and freshness gaps instead of silently accepting or rewriting another producer's account or coordinator working document.
-
-Selected-evidence work is complete when each decision-relevant input is usable, qualified, or reported as a material gap.
-
-## Reusable note
-
-Under `orchestrator-mode`, every evidence-producing dispatch receives an explicitly assigned note, including a small lookup.
-
-- A short finding needs only enough content for reuse, not additional investigation or template sections.
-- If an orchestration brief omits the owned path, request it from the coordinator before writing.
-- Outside orchestration, an explicit file assignment is still required; ordinary exploration remains file-free.
-
-Keep one coherent file per producer, containing as many useful findings as the assignment warrants, with a short producer label.
-
-- Organize substantive content for later use.
-- Make useful findings, material conditions or uncertainty, and source locators recognizable.
-- Use headings when they help navigation.
-- Do not impose a required section inventory, file per finding, template quota, or word limit.
-
-### Preserve consequential detail
-
-State what the consumer can use and the conditions that matter.
-
-- Put exact commands, API details, results, and source references beside the claim they support.
-- Qualify a claim once as expected, observed, or uncertain.
-- Include a time, revision, or invalidation condition when it helps decide whether the finding still applies.
-- Add detail only when omitting it would cause guessing, incorrect use, or repeated investigation.
-- Use source pointers for cheap lookups.
-- Preserve the smallest result that supports the finding.
-- Summarize inventories and repetitive output when individual records do not matter.
-- Retain individual records or exact excerpts when their values affect a downstream decision or reproduction.
-
-### Preserve reusable lessons
-
-Record an execution lesson when it prevents a meaningful repeated failure or explains a non-obvious requirement.
-
-- Preserve the working approach and its relevant conditions, not the history of attempts.
-- Keep assignments in dispatch prompts and routine process reporting in the return or session record.
-- Reference applicable findings already recorded by another producer and explain what you add, verify independently, qualify, or contradict.
-- Repeat earlier details only when needed to understand that contribution.
-- Before returning, remove repeated claims and sections that add no distinct usable information.
-
-Keep full source, media, iteration history, and detailed tool traces in the producer session. Temporary notes can disappear; they are internal handoffs, not session history, durable continuity, assignment authority, or publication.
-
-The reusable note is complete when a downstream reader can use its material findings without replaying the producer session.
-
-## Note lifecycle
-
-- Update only your own assigned note when resumed.
-- A fresh successor owns a new note.
-- Never overwrite another producer's findings.
-- Record contradictions in your own note and flag them to the coordinator.
-- For a writing conflict, return attributed file-ready findings; the coordinator owns the fallback note and records the original producer's findings and corrections with minimal rewriting.
-- Never write concurrently to one file.
-- Return only when your note is complete.
-- For a fallback, return file-ready findings so its owner can finish the note.
-- Downstream reads begin only after the producer has returned and the owner has completed writing.
-- Serialize subsequent updates with dependent reads.
-
-The note lifecycle is complete when ownership is unambiguous and no dependent reader can observe a partial handoff.
-
-## Completed handoff
-
-Return:
-
-- the completed note path;
-- the compact result or material delta;
-- critical uncertainty;
-- any material blocker or decision; and
-- the next evidence need, when one remains.
-
-Include topic or heading cues only when they materially help navigation. State whether writing completed or was blocked; never claim completion from tool availability alone. Flag material changes for the coordinator to check, catalog when useful, and carry into subsequent briefs. Do not duplicate the full note.
-
-Outside orchestration, a finding without an assigned file remains a compact response or source pointer.
+Return the completed path, material result or delta, critical uncertainty, blocker or decision, and remaining evidence need. State whether writing completed or was blocked. Add navigation cues only when useful and avoid duplicating the full note. Flag changes the coordinator must check and carry forward.
