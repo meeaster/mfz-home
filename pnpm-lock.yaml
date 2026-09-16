@@ -33,6 +33,12 @@ importers:
 
   mcp/chatgpt-connectors: {}
 
+  opencode/plugins/handoff-tui:
+    devDependencies:
+      '@opencode/plugin':
+        specifier: 2.0.3
+        version: 2.0.3(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.10)
+
   opencode/plugins/omp-advisor:
     devDependencies:
       '@opencode/plugin':
@@ -60,8 +66,8 @@ importers:
   opencode/plugins/session-cost-tui:
     devDependencies:
       '@opencode/plugin':
-        specifier: 2.0.0
-        version: 2.0.0(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)
+        specifier: 2.0.3
+        version: 2.0.3(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)
       '@opentui/core':
         specifier: 0.5.10
         version: 0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10)
@@ -75,7 +81,7 @@ importers:
         specifier: 1.9.15
         version: 1.9.15
 
-  opencode/plugins/subagent-usage:
+  opencode/plugins/session-usage:
     dependencies:
       '@opencode/plugin':
         specifier: 2.0.3
@@ -3188,14 +3194,6 @@ snapshots:
       effect: 4.0.0-rc.112
       solid-js: 1.9.10
 
-  '@opencode/client@2.0.0(effect@4.0.0-rc.112)(solid-js@1.9.15)':
-    dependencies:
-      '@opencode/protocol': 2.0.0
-      '@opencode/schema': 2.0.0
-    optionalDependencies:
-      effect: 4.0.0-rc.112
-      solid-js: 1.9.15
-
   '@opencode/client@2.0.3(effect@4.0.0-rc.112)(solid-js@1.9.10)':
     dependencies:
       '@opencode/protocol': 2.0.3
@@ -3203,6 +3201,14 @@ snapshots:
     optionalDependencies:
       effect: 4.0.0-rc.112
       solid-js: 1.9.10
+
+  '@opencode/client@2.0.3(effect@4.0.0-rc.112)(solid-js@1.9.15)':
+    dependencies:
+      '@opencode/protocol': 2.0.3
+      '@opencode/schema': 2.0.3
+    optionalDependencies:
+      effect: 4.0.0-rc.112
+      solid-js: 1.9.15
 
   '@opencode/plugin@2.0.0(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.10)':
     dependencies:
@@ -3231,33 +3237,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@opencode/plugin@2.0.0(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.8
-      '@opencode/ai': 2.0.0
-      '@opencode/client': 2.0.0(effect@4.0.0-rc.112)(solid-js@1.9.15)
-      '@opencode/protocol': 2.0.0
-      '@opencode/schema': 2.0.0
-      '@opencode/util': 2.0.0(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(redis@6.2.1(@opentelemetry/api@1.9.0))
-      '@standard-schema/spec': 1.1.0
-      effect: 4.0.0-rc.112
-      zod: 4.1.8
-    optionalDependencies:
-      '@opentui/core': 0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10)
-      '@opentui/solid': 0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10)
-      solid-js: 1.9.15
-    transitivePeerDependencies:
-      - '@opentelemetry/api-logs'
-      - '@opentelemetry/resources'
-      - '@opentelemetry/sdk-logs'
-      - '@opentelemetry/sdk-metrics'
-      - '@opentelemetry/sdk-trace-web'
-      - '@opentelemetry/semantic-conventions'
-      - bufferutil
-      - redis
-      - supports-color
-      - utf-8-validate
-
   '@opencode/plugin@2.0.3(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.10)':
     dependencies:
       '@ai-sdk/provider': 3.0.8
@@ -3273,6 +3252,33 @@ snapshots:
       '@opentui/core': 0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10)
       '@opentui/solid': 0.5.10(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10)
       solid-js: 1.9.10
+    transitivePeerDependencies:
+      - '@opentelemetry/api-logs'
+      - '@opentelemetry/resources'
+      - '@opentelemetry/sdk-logs'
+      - '@opentelemetry/sdk-metrics'
+      - '@opentelemetry/sdk-trace-web'
+      - '@opentelemetry/semantic-conventions'
+      - bufferutil
+      - redis
+      - supports-color
+      - utf-8-validate
+
+  '@opencode/plugin@2.0.3(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)':
+    dependencies:
+      '@ai-sdk/provider': 3.0.8
+      '@opencode/ai': 2.0.3
+      '@opencode/client': 2.0.3(effect@4.0.0-rc.112)(solid-js@1.9.15)
+      '@opencode/protocol': 2.0.3
+      '@opencode/schema': 2.0.3
+      '@opencode/util': 2.0.3(@opentelemetry/api-logs@0.214.0)(@opentelemetry/resources@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.214.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.6.1(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(redis@6.2.1(@opentelemetry/api@1.9.0))
+      '@standard-schema/spec': 1.1.0
+      effect: 4.0.0-rc.112
+      zod: 4.1.8
+    optionalDependencies:
+      '@opentui/core': 0.5.10(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      '@opentui/solid': 0.5.10(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      solid-js: 1.9.15
     transitivePeerDependencies:
       - '@opentelemetry/api-logs'
       - '@opentelemetry/resources'

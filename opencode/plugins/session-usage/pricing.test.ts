@@ -9,7 +9,7 @@ const tokens = (input: number): Tokens => ({
   cache: { read: 1_000_000, write: 1_000_000 },
 });
 
-describe("subagent usage V2 pricing", () => {
+describe("session usage V2 pricing", () => {
   it("prices all token classes from models.dev rates", () => {
     const catalog: Catalog = {
       openai: { models: { model: { cost: { input: 1, output: 2, cache_read: 3, cache_write: 4 } } } },

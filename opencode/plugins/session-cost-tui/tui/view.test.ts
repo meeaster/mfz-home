@@ -6,7 +6,9 @@ import { createCostLifecycle } from "./lifecycle.js";
 import { catalogRenderState } from "./render-state.js";
 
 type Handler = (event: { data: { sessionID: string; parentID?: string } }) => void;
+
 type State = { estimate?: CostEstimate; error?: string };
+
 type TestContext = { data: { on: (type: string, handler: Handler) => () => number; session: { family: (id: string) => string[]; message: { list: () => never[] } } } };
 
 function asContext(value: TestContext): Context {
@@ -20,10 +22,12 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
   const state: State = {};
   let sessionID = "one";
   let family = ["one", "child"];
+
   const rawContext = {
     data: {
       on(type: string, handler: Handler) {
         handlers.set(type, handler);
+
         return () => cleanups.push(type);
       },
       session: {
@@ -32,7 +36,9 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
       }
     }
   };
+
   const context = asContext(rawContext);
+
   const lifecycle = createCostLifecycle({
     context,
     sessionID: () => sessionID,
@@ -41,6 +47,7 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
     setEstimate: (value) => { state.estimate = value; },
     setError: (value) => { state.error = value; }
   });
+
   return {
     handlers,
     cleanups,
@@ -52,10 +59,12 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
 }
 
 const result = (amount: number): CostEstimate => ({ costs: [{ model: "test", amount }], unpriced: 0 });
+
 const deferred = <Value>() => {
   let resolve!: (value: Value) => void;
   let reject!: (reason: Error | string | number | boolean | null | undefined) => void;
   const promise = new Promise<Value>((yes, no) => { resolve = yes; reject = no; });
+
   return { promise, resolve, reject };
 };
 
@@ -65,7 +74,13 @@ describe("session cost lifecycle", () => {
   it("clears old state and refreshes a reactive session change", async () => {
     vi.useFakeTimers();
     const calls: string[] = [];
-    const test = harness(async (_context, id) => { calls.push(id); return result(id === "one" ? 1 : 2); });
+
+    const test = harness(async (_context, id) => {
+      calls.push(id);
+
+      return result(id === "one" ? 1 : 2);
+    });
+
     test.lifecycle.refresh("one");
     await vi.advanceTimersByTimeAsync(10);
     expect(test.state.estimate).toEqual(result(1));
@@ -112,17 +127,45 @@ describe("session cost lifecycle", () => {
     vi.useFakeTimers();
     const estimate = vi.fn(async () => result(1));
     const test = harness(estimate);
-    for (const type of ["session.usage.updated", "session.execution.succeeded", "session.revert.committed"]) {
+
+    for (const type of [
+      "session.usage.updated",
+      "session.execution.succeeded",
+      "session.revert.committed",
+      "session.model.selected",
+      "session.compaction.ended"
+    ]) {
       test.handlers.get(type)?.({ data: { sessionID: "child" } });
       await vi.advanceTimersByTimeAsync(10);
     }
+
     test.handlers.get("session.created")?.({ data: { sessionID: "new", parentID: "one" } });
     await vi.advanceTimersByTimeAsync(10);
     test.handlers.get("session.forked")?.({ data: { sessionID: "fork", parentID: "one" } });
     await vi.advanceTimersByTimeAsync(10);
     test.handlers.get("session.deleted")?.({ data: { sessionID: "child" } });
     await vi.advanceTimersByTimeAsync(10);
-    expect(estimate).toHaveBeenCalledTimes(6);
+    expect(estimate).toHaveBeenCalledTimes(8);
+  });
+
+  it("refreshes derived cached input state for model and compaction changes", async () => {
+    vi.useFakeTimers();
+    let cachedInputCost = 1;
+    const test = harness(async () => ({ ...result(1), cachedInputCost }));
+
+    test.lifecycle.refresh();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(test.state.estimate?.cachedInputCost).toBe(1);
+
+    cachedInputCost = 2;
+    test.handlers.get("session.model.selected")?.({ data: { sessionID: "one" } });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(test.state.estimate?.cachedInputCost).toBe(2);
+
+    cachedInputCost = 3;
+    test.handlers.get("session.compaction.ended")?.({ data: { sessionID: "one" } });
+    await vi.advanceTimersByTimeAsync(10);
+    expect(test.state.estimate?.cachedInputCost).toBe(3);
   });
 
   it("invalidates when a child is removed before the deletion listener runs", async () => {
@@ -156,16 +199,19 @@ describe("session cost lifecycle", () => {
     test.lifecycle.cleanup();
     await vi.runAllTimersAsync();
     expect(estimate).not.toHaveBeenCalled();
-    expect(test.cleanups).toHaveLength(6);
+    expect(test.cleanups).toHaveLength(8);
   });
 
   it("never leaves a prior estimate current after failure", async () => {
     vi.useFakeTimers();
     let fail = false;
+
     const test = harness(async () => {
       if (fail) throw new Error("offline");
+
       return result(1);
     });
+
     test.lifecycle.refresh();
     await vi.advanceTimersByTimeAsync(10);
     expect(test.state.estimate).toEqual(result(1));

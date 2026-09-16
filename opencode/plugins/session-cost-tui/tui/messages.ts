@@ -13,8 +13,10 @@ export type PricingUsage = {
   };
 };
 
-type SessionMessage = {
+export type SessionMessage = {
+  id?: string;
   type?: string;
+  status?: string;
   model?: { providerID?: string; id?: string; variant?: string };
   time?: { created?: number; completed?: number };
   tokens?: {
@@ -34,9 +36,12 @@ export async function loadSessionMessages(client: Context["client"], sessionID: 
     const page = await client.message.list(cursor
       ? { sessionID, limit: 200, cursor }
       : { sessionID, limit: 200, order: "asc" });
+
     messages.push(...page.data);
     const next = page.cursor.next ?? undefined;
+
     if (next && cursors.has(next)) throw new Error("Message pagination returned a repeated cursor");
+
     if (next) cursors.add(next);
     cursor = next;
   } while (cursor);
@@ -46,6 +51,29 @@ export async function loadSessionMessages(client: Context["client"], sessionID: 
 
 export async function loadFamilyMessages(client: Context["client"], sessionIDs: readonly string[]) {
   return (await Promise.all(sessionIDs.map((sessionID) => loadSessionMessages(client, sessionID)))).flat();
+}
+
+export function latestAssistantWithUsage(messages: readonly SessionMessage[], boundary?: string) {
+  const boundaryIndex = boundary ? messages.findIndex((message) => message.id === boundary) : -1;
+
+  if (boundary && boundaryIndex === -1) return undefined;
+
+  const end = boundaryIndex === -1 ? messages.length : boundaryIndex;
+
+  const compactionIndex = messages.findLastIndex(
+    (message, index) => message.type === "compaction" && message.status === "completed" && index < end
+  );
+
+  return messages.findLast(
+    (message, index) =>
+      message.type === "assistant" &&
+      message.model?.providerID &&
+      message.model.id &&
+      message.time?.completed !== undefined &&
+      message.tokens !== undefined &&
+      index > compactionIndex &&
+      index < end
+  );
 }
 
 export function pricingUsage(message: SessionMessage): PricingUsage | undefined {
@@ -68,7 +96,9 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
       cacheWrite: finite(message.tokens.cache?.write)
     }
   };
+
   if (message.model.variant) usage.variant = message.model.variant;
+
   return usage;
 }
 

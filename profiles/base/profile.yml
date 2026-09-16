@@ -212,8 +212,9 @@ opencode:
     theme:
       name: dracula
   plugins:
-    - subagent-usage
+    - session-usage
   tui_plugins:
+    - handoff-tui
     - session-cost-tui
   commands:
     - apply-spec

@@ -1,5 +1,6 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
+import { cachedInputCost } from "./context-cost.js";
 import { loadFamilyMessages, pricingUsage } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
 
@@ -23,7 +24,9 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   const refresh = (sessionID = options.sessionID()) => {
     familyIDs = new Set(options.context.data.session.family(sessionID));
     const current = ++generation;
+
     if (timer) clearTimeout(timer);
+
     if (sessionID !== currentSessionID || failed) options.setEstimate(undefined);
     currentSessionID = sessionID;
     failed = false;
@@ -44,6 +47,7 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   const belongs = (sessionID: string) => (
     familyIDs.has(sessionID) || options.context.data.session.family(options.sessionID()).includes(sessionID)
   );
+
   const cleanups = [
     options.context.data.on("session.usage.updated", (event) => belongs(event.data.sessionID) && refresh()),
     options.context.data.on("session.execution.succeeded", (event) => belongs(event.data.sessionID) && refresh()),
@@ -54,7 +58,9 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     options.context.data.on("session.forked", (event) => {
       if (belongs(event.data.sessionID) || belongs(event.data.parentID)) refresh();
     }),
-    options.context.data.on("session.deleted", (event) => belongs(event.data.sessionID) && refresh())
+    options.context.data.on("session.deleted", (event) => belongs(event.data.sessionID) && refresh()),
+    options.context.data.on("session.model.selected", (event) => belongs(event.data.sessionID) && refresh()),
+    options.context.data.on("session.compaction.ended", (event) => belongs(event.data.sessionID) && refresh())
   ];
 
   return {
@@ -62,7 +68,9 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     cleanup() {
       active = false;
       generation += 1;
+
       if (timer) clearTimeout(timer);
+
       for (const cleanup of cleanups) cleanup();
     }
   };
@@ -73,10 +81,20 @@ async function estimateCost(context: Context, sessionID: string) {
     loadCatalog(),
     Promise.resolve(context.data.session.family(sessionID))
   ]);
+
   const usages = (await loadFamilyMessages(context.client, sessionIDs))
     .map(pricingUsage)
     .filter((usage) => usage !== undefined);
-  return aggregateCost(usages, priceCatalog);
+
+  const estimate = aggregateCost(usages, priceCatalog);
+
+  const cachedCost = cachedInputCost(
+    context.data.session.message.list(sessionID),
+    context.data.session.get(sessionID),
+    priceCatalog
+  );
+
+  return cachedCost === undefined ? estimate : { ...estimate, cachedInputCost: cachedCost };
 }
 
 type RejectionReason = Parameters<typeof String>[0];

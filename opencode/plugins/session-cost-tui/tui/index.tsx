@@ -5,7 +5,7 @@ import { View } from "./view.js";
 import { reactiveSessionID } from "./slot.js";
 
 const plugin = {
-  id: "mindframe-z.session-cost-tui",
+  id: "session-cost-tui",
   setup(context) {
     return context.ui.slot({
       append: "sidebar.content",

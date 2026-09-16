@@ -6,7 +6,7 @@
     "./tui": "./tui/index.tsx"
   },
   "devDependencies": {
-    "@opencode/plugin": "2.0.0",
+    "@opencode/plugin": "2.0.3",
     "@opentui/core": "0.5.10",
     "@opentui/keymap": "0.5.10",
     "@opentui/solid": "0.5.10",

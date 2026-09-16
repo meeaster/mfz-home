@@ -8,9 +8,10 @@ allowBuilds:
 packages:
   - mcp/*
   - opencode/plugins/omp-advisor
+  - opencode/plugins/handoff-tui
   - opencode/plugins/pstack
   - opencode/plugins/session-cost-tui
-  - opencode/plugins/subagent-usage
+  - opencode/plugins/session-usage
   - opencode/plugins/work-ledger
 minimumReleaseAgeExclude:
   - '@opencode/*'

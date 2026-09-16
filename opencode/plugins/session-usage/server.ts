@@ -9,7 +9,11 @@ const SETTLE_INTERVAL_MS = 10;
 
 const subagentInputSchema = z.object({ sessionID: z.string() });
 
+const sessionUsageInputSchema = z.object({ sessionID: z.string().optional() }).strict();
+
 const completedSubagentMetadataSchema = z.object({ sessionID: z.string(), status: z.literal("completed") });
+
+const SESSION_USAGE_TARGET_ERROR = "Unable to access session usage.";
 
 type Usage = {
   sessionID: string;
@@ -38,14 +42,24 @@ export function summarizeUsage(usage: readonly Usage[]) {
 
   return {
     tokens: usage.reduce((total, entry) => addTokens(total, entry.tokens), zeroTokens()),
-    currentContext: latestStep
+    lastInput: latestStep
       ? latestStep.tokens.input + latestStep.tokens.cache.read + latestStep.tokens.cache.write
       : undefined,
   };
 }
 
-export function usageTag(invocationCost: number, sessionCost: number, currentContext: number) {
-  return `<subagent-usage invocation-cost-usd="${formatCost(invocationCost)}" session-cost-usd="${formatCost(sessionCost)}" current-context-tokens="${Math.round(currentContext)}" />`;
+export function totalTokens(tokens: Tokens) {
+  return tokens.input + tokens.output + tokens.reasoning + tokens.cache.read + tokens.cache.write;
+}
+
+export function usageTag(
+  invocationTokens: number,
+  invocationCost: number,
+  sessionTokens: number,
+  sessionCost: number,
+  lastInput: number,
+) {
+  return `<session-usage invocation-tokens="${Math.round(invocationTokens)}" invocation-cost-usd="${formatCost(invocationCost)}" session-tokens="${Math.round(sessionTokens)}" session-cost-usd="${formatCost(sessionCost)}" last-input-tokens="${Math.round(lastInput)}" />`;
 }
 
 export function appendUsageContent(
@@ -57,14 +71,19 @@ export function appendUsageContent(
   return `${content}\n${usage}`;
 }
 
-export async function setupSubagentUsage(
+type SessionSnapshot = Awaited<ReturnType<Plugin.Context["session"]["get"]>>;
+
+type ModelInfo = Awaited<ReturnType<Plugin.Context["catalog"]["model"]["list"]>>["data"][number];
+
+export async function setupSessionUsage(
   context: Plugin.Context,
   loadCatalogFn: () => Promise<Catalog> = loadCatalog,
 ) {
   const invocations = new Map<string, Invocation>();
   const claimedChildren = new Map<string, string>();
   const models = new Map<string, ModelRef>();
-  const currentModels = new Map<string, ModelRef>();
+  const latestModels = new Map<string, ModelRef>();
+  const latestInputs = new Map<string, number>();
   const pricedSessions = new Map<string, number>();
   const controller = new AbortController();
   const events = context.event.subscribe({ signal: controller.signal })[Symbol.asyncIterator]();
@@ -78,7 +97,7 @@ export async function setupSubagentUsage(
 
       if (event.type === "session.step.started") {
         models.set(event.data.assistantMessageID, event.data.model);
-        currentModels.set(event.data.sessionID, event.data.model);
+        latestModels.set(event.data.sessionID, event.data.model);
         continue;
       }
 
@@ -90,6 +109,10 @@ export async function setupSubagentUsage(
         }
 
         continue;
+      }
+
+      if (event.type === "session.step.ended") {
+        latestInputs.set(event.data.sessionID, inputTokens(event.data.tokens));
       }
 
       const usage =
@@ -108,7 +131,54 @@ export async function setupSubagentUsage(
   })();
 
   void consume.catch((error) => {
-    if (!controller.signal.aborted) console.error("[subagent-usage] event stream failed", error);
+    if (!controller.signal.aborted) console.error("[session-usage] event stream failed", error);
+  });
+
+  const toolRegistration = await context.tool.transform((editor) => {
+    editor.add({
+      name: "session_usage",
+      description: "Read recorded token and cost usage for this session or one direct child session.",
+      input: sessionUsageInputSchema,
+      options: { codemode: false },
+      execute: async (input, tool) => {
+        const targetID = input.sessionID ?? tool.sessionID;
+        const target = await context.session.get({ sessionID: targetID }).catch(() => undefined);
+
+        if (!target) throw new Error(SESSION_USAGE_TARGET_ERROR);
+
+        const isCaller = targetID === tool.sessionID;
+
+        if (!isCaller && target.parentID !== tool.sessionID) {
+          throw new Error(SESSION_USAGE_TARGET_ERROR);
+        }
+
+        const model = latestModels.get(targetID) ?? target.model;
+        const modelInfo = model ? await modelMetadata(context, model) : undefined;
+        const settledCost = pricedSessions.get(targetID);
+        const sessionTokens = target.tokens;
+
+        // Cumulative tokens may include history that cannot be attributed per step, so this uses the latest/current model.
+        const catalogCost =
+          settledCost === undefined && sessionTokens && model
+            ? await loadCatalogFn()
+                .then((priceCatalog) => priceTokens(sessionTokens, model, priceCatalog))
+                .catch(() => undefined)
+            : undefined;
+
+        return {
+          content: formatSessionUsage(
+            targetID,
+            isCaller,
+            target,
+            latestInputs.get(targetID),
+            model,
+            modelInfo,
+            settledCost,
+            catalogCost,
+          ),
+        };
+      },
+    });
   });
 
   const registrations = [
@@ -167,7 +237,7 @@ export async function setupSubagentUsage(
         const session = await context.session.get({ sessionID: childID }).catch(() => undefined);
 
         if (!session) return;
-        const currentModel = session.model ?? currentModels.get(childID);
+        const currentModel = session.model ?? latestModels.get(childID);
 
         if (!currentModel) return;
         const priceCatalog = await loadCatalogFn().catch(() => undefined);
@@ -177,7 +247,15 @@ export async function setupSubagentUsage(
 
         if (!settled) return;
         pricedSessions.set(childID, settled.sessionCost);
-        const tag = usageTag(settled.invocationCost, settled.sessionCost, settled.currentContext);
+
+        const tag = usageTag(
+          settled.invocationTokens,
+          settled.invocationCost,
+          settled.sessionTokens,
+          settled.sessionCost,
+          settled.lastInput,
+        );
+
         event.result = {
           ...event.result,
           content: appendUsageContent(event.result.content, tag),
@@ -195,13 +273,13 @@ export async function setupSubagentUsage(
   return async () => {
     await events.return?.();
     controller.abort();
-    await Promise.all([consume, ...registrations.map((registration) => registration.dispose())]);
+    await Promise.all([consume, toolRegistration.dispose(), ...registrations.map((registration) => registration.dispose())]);
   };
 }
 
 export default Plugin.define({
-  id: "subagent-usage",
-  setup: setupSubagentUsage,
+  id: "session-usage",
+  setup: setupSessionUsage,
 });
 
 async function settle(
@@ -219,7 +297,7 @@ async function settle(
     const baseline = invocation.baseline ?? { tokens: zeroTokens() };
 
     if (
-      summary.currentContext !== undefined &&
+      summary.lastInput !== undefined &&
       projection &&
       containsTokens(projection, addTokens(baseline.tokens, summary.tokens))
     ) {
@@ -232,15 +310,21 @@ async function settle(
       const invocationCost = stepCost + residualCost;
 
       return {
+        invocationTokens: totalTokens(summary.tokens),
         invocationCost,
+        sessionTokens: totalTokens(projection),
         sessionCost: baselineCost + invocationCost,
-        currentContext: summary.currentContext,
+        lastInput: summary.lastInput,
       };
     }
 
     if (Date.now() >= deadline) return undefined;
     await new Promise((resolve) => setTimeout(resolve, SETTLE_INTERVAL_MS));
   }
+}
+
+function inputTokens(tokens: Tokens) {
+  return tokens.input + tokens.cache.read + tokens.cache.write;
 }
 
 function usageFor(
@@ -301,6 +385,67 @@ function subtractTokens(actual: Tokens, baseline: Tokens): Tokens {
       write: actual.cache.write - baseline.cache.write,
     },
   };
+}
+
+async function modelMetadata(context: Plugin.Context, ref: ModelRef) {
+  const catalog = await context.catalog.model.list().catch(() => undefined);
+
+  return catalog?.data.find((model) => model.providerID === ref.providerID && (model.modelID === ref.id || model.id === ref.id));
+}
+
+function formatSessionUsage(
+  sessionID: string,
+  isCaller: boolean,
+  session: SessionSnapshot,
+  lastInput: number | undefined,
+  model: ModelRef | undefined,
+  modelInfo: ModelInfo | undefined,
+  settledCost: number | undefined,
+  catalogCost: number | undefined,
+) {
+  const lines = [`${isCaller ? "Current session" : "Direct child"} ${sessionID}`];
+  const recordedCost = Number.isFinite(session.cost) ? session.cost : undefined;
+
+  if (session.tokens) {
+    lines.push(
+      `Total: ${formatTokens(totalTokens(session.tokens))} tokens (input ${formatTokens(session.tokens.input)}, output ${formatTokens(session.tokens.output)}, reasoning ${formatTokens(session.tokens.reasoning)}, cache read ${formatTokens(session.tokens.cache.read)}, cache write ${formatTokens(session.tokens.cache.write)})`,
+    );
+  }
+
+  if (settledCost !== undefined) {
+    lines.push(`Cost: $${formatCost(settledCost)} (settled plugin pricing)`);
+  } else if (catalogCost !== undefined) {
+    lines.push(`Cost: $${formatCost(catalogCost)} (catalog estimate)`);
+  } else if (recordedCost !== undefined) {
+    lines.push(`Cost: $${recordedCost} (OpenCode-recorded)`);
+  }
+
+  if (lastInput !== undefined) lines.push(`Last input: ${formatTokens(lastInput)} tokens`);
+
+  if (model) {
+    const variant = model.variant ? `#${model.variant}` : "";
+    lines.push(`Model: ${model.providerID}/${model.id}${variant}`);
+
+    const contextLimit = modelInfo?.limit.context;
+
+    if (contextLimit !== undefined && Number.isFinite(contextLimit) && contextLimit > 0) {
+      lines.push(`Context limit: ${formatTokens(contextLimit)} tokens`);
+
+      if (lastInput !== undefined) {
+        lines.push(`Approx. last input/context: ${formatPercent((lastInput / contextLimit) * 100)}%`);
+      }
+    }
+  }
+
+  return lines.join("\n");
+}
+
+function formatTokens(value: number) {
+  return Math.round(value).toLocaleString("en-US");
+}
+
+function formatPercent(value: number) {
+  return value.toFixed(1).replace(/\.0$/, "");
 }
 
 function formatCost(value: number) {

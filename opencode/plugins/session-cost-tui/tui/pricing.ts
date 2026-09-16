@@ -22,8 +22,10 @@ export type Model = {
 };
 
 export type Catalog = Record<string, { models?: Record<string, Model> }>;
+
 export type Cost = { model: string; amount: number };
-export type CostEstimate = { costs: Cost[]; unpriced: number };
+
+export type CostEstimate = { costs: Cost[]; unpriced: number; cachedInputCost?: number };
 
 let catalog: Promise<Catalog> | undefined;
 
@@ -31,10 +33,12 @@ export function loadCatalog(): Promise<Catalog> {
   if (!catalog) {
     catalog = fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10_000) }).then(async (response) => {
       if (!response.ok) throw new Error(`models.dev returned ${response.status}`);
+
       // SAFETY: models.dev owns this endpoint's catalog contract; malformed data is caught by this promise chain and rendered as unavailable.
       return (await response.json()) as Catalog;
     });
   }
+
   return catalog.catch((error) => {
     catalog = undefined;
     throw error;
@@ -44,10 +48,20 @@ export function loadCatalog(): Promise<Catalog> {
 export function ratesFor(model: Model, usage: PricingUsage): Rates | undefined {
   const prompt = usage.tokens.input + usage.tokens.cacheRead + usage.tokens.cacheWrite;
   const cost = normalizeRates(model.cost);
-  const tier = cost?.tiers
-    ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
-    .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
-  return tier ?? cost;
+
+  return contextTier(cost, prompt) ?? cost;
+}
+
+export function cacheReadCost(model: Model, contextTokens: number): number | undefined {
+  if (!Number.isFinite(contextTokens) || contextTokens <= 0) return undefined;
+
+  const cost = model.cost && legacyContextTier(model.cost);
+  const rates = contextTier(cost, contextTokens) ?? cost;
+  const cacheRead = rates?.cache_read;
+
+  if (cacheRead === undefined || !Number.isFinite(cacheRead) || cacheRead < 0) return undefined;
+
+  return (contextTokens * cacheRead) / 1_000_000;
 }
 
 export function aggregateCost(usages: readonly PricingUsage[], priceCatalog: Catalog): CostEstimate {
@@ -57,10 +71,12 @@ export function aggregateCost(usages: readonly PricingUsage[], priceCatalog: Cat
   for (const usage of usages) {
     const model = materializeModels(priceCatalog[usage.providerID]?.models ?? {})[usage.modelID];
     const rates = model && ratesFor(model, usage);
+
     if (!rates) {
       unpriced += 1;
       continue;
     }
+
     const key = `${usage.providerID}/${usage.modelID}`;
     const item = costs.get(key) ?? { model: model.name ?? usage.modelID, amount: 0 };
     item.amount += price(usage, rates);
@@ -87,17 +103,39 @@ export function materializeModels(models: Record<string, Model>): Record<string,
 
 function mergeRates(base: Rates | undefined, override: Rates | undefined): Rates | undefined {
   const normalizedBase = normalizeRates(base);
+
   if (!override) return normalizedBase;
   const normalizedOverride = normalizeRates(override)!;
   const tiers = new Map((normalizedBase?.tiers ?? []).map((tier) => [tierKey(tier), tier]));
+
   for (const tier of normalizedOverride.tiers ?? []) {
     tiers.set(tierKey(tier), { ...tiers.get(tierKey(tier)), ...tier });
   }
+
   return { ...normalizedBase, ...normalizedOverride, tiers: [...tiers.values()] };
+}
+
+function contextTier(cost: Rates | undefined, prompt: number) {
+  return cost?.tiers
+    ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
+    .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
+}
+
+function legacyContextTier(cost: Rates): Rates {
+  if (!cost.context_over_200k) return cost;
+
+  return {
+    ...cost,
+    tiers: [
+      ...(cost.tiers ?? []),
+      { tier: { type: "context", size: 200_000 }, ...cost.context_over_200k }
+    ]
+  };
 }
 
 function normalizeRates(input: Rates | undefined): Rates | undefined {
   if (!input) return undefined;
+
   return {
     input: input.input ?? 0,
     output: input.output ?? 0,

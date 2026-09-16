@@ -1,24 +1,27 @@
 /** @jsxImportSource @opentui/solid */
 import type { Context } from "@opencode/plugin/tui/plugin";
-import { createEffect, createSignal, For, Match, onCleanup, Switch } from "solid-js";
+import { createEffect, createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 
 import { createCostLifecycle } from "./lifecycle.js";
 import type { CostEstimate } from "./pricing.js";
-import { catalogRenderState } from "./render-state.js";
+import { catalogRenderState, formatCachedInputCost } from "./render-state.js";
 
 export function View(props: { context: Context; sessionID: () => string }) {
   const [estimate, setEstimate] = createSignal<CostEstimate>();
   const [error, setError] = createSignal<string>();
+
   const lifecycle = createCostLifecycle({
     context: props.context,
     sessionID: props.sessionID,
     setEstimate,
     setError
   });
+
   createEffect(() => lifecycle.refresh(props.sessionID()));
   onCleanup(lifecycle.cleanup);
 
   const total = () => estimate()?.costs.reduce((sum, item) => sum + item.amount, 0) ?? 0;
+
   return (
     <box>
       <text fg={props.context.theme.text.default}><b>Session cost</b> (API estimate)</text>
@@ -36,6 +39,9 @@ export function View(props: { context: Context; sessionID: () => string }) {
               {(item) => <text fg={props.context.theme.text.subdued}>{item.model}: ${item.amount.toFixed(3)}</text>}
             </For>
             <text fg={props.context.theme.text.subdued}>Total: ${total().toFixed(3)}</text>
+            <Show when={formatCachedInputCost(value().cachedInputCost)}>
+              {(label) => <text fg={props.context.theme.text.subdued}>{label()}</text>}
+            </Show>
           </>
           )}
         </Match>

@@ -10,7 +10,7 @@ runtime and the reference checkout again before each implementation phase.
 This document is for workers implementing or reviewing the V2 ports of:
 
 - `advisor`
-- `subagent-usage`
+- `session-usage`
 - `session-cost-tui`
 
 `current-session` is also covered as a historical V1 port; V2 makes its
@@ -63,7 +63,7 @@ low-risk benefit from sharing a runtime-neutral helper.
 
 ## Current repository state
 
-The base profile selects the shared V2 `subagent-usage` server plugin and
+The base profile selects the shared V2 `session-usage` server plugin and
 `session-cost-tui` native TUI in `profiles/base/profile.yml`. Personal-only V2
 plugins remain selected from the Personal profile.
 
@@ -71,9 +71,10 @@ The source tree contains these active and archived V2 implementations:
 
 - `opencode/plugins/archive/advisor/v2/server.ts` is a warning-only quarantine
   stub. There is no active V2 Advisor TUI.
-- `opencode/plugins/subagent-usage/server.ts` reports per-invocation cost,
-  lifetime child-session cost, and the latest child input context to the parent
-  model.
+- `opencode/plugins/session-usage/server.ts` reports per-invocation tokens and
+  cost, lifetime child-session tokens and cost, and the latest completed child
+  input total to the parent model; it also provides the `session_usage` query
+  tool.
 - `opencode/plugins/session-cost-tui/` contains the native TUI implementation
   and focused tests. Its development SDK is pinned to the installed
   `opencode2` `0.0.0-beta-18743` build.
@@ -165,11 +166,12 @@ The V2 branch exposes these server domains through `ctx`:
 - `websearch`
 
 The home workspace still contains `@opencode-ai/plugin@1.18.18` for V1 and
-several pinned `0.0.0-next-*` packages for earlier V2 TUI work. The
-`subagent-usage` package is pinned to `0.0.0-beta-18866` to match the installed
-`opencode2` beta. None of those older versions proves compatibility with the
-elected runtime. Typecheck each V2 package against the SDK that matches the
-runtime under test, then verify the rendered plugin in a fresh process.
+several pinned `0.0.0-next-*` packages for earlier V2 TUI work. The active
+`session-usage` package is pinned to `@opencode/plugin@2.0.3`, matching the
+installed `opencode v2.0.3`. None of those older versions proves compatibility
+with the elected runtime. Typecheck each V2 package against the SDK that
+matches the runtime under test, then verify the rendered plugin in a fresh
+process.
 
 ### V2 transform hooks
 
@@ -380,33 +382,53 @@ an infrastructure dependency.
 Completion criteria:
 
 - No V2 config entry loads `current-session`.
-- V2 advisor and subagent-usage code use supplied session IDs directly.
+- V2 advisor and session-usage code use supplied session IDs directly.
 - V1 behavior remains unchanged until the V1 runtime is retired.
 
-### `subagent-usage`
+### `session-usage`
 
-The active implementation is `opencode/plugins/subagent-usage/server.ts`. Its
+The active implementation is `opencode/plugins/session-usage/server.ts`. Its
 default export uses `Plugin.define`, and `index.ts` exports that Promise-plugin
 entrypoint.
 
 It listens to V2 `subagent` tool hooks and session usage events. A completed
-foreground result receives one compact `subagent-usage` element containing the
-cost of that invocation, the lifetime cost of the direct child session, and the
-latest input-side context. OpenCode's existing result already carries the child
-session ID and completion state, so the plugin does not repeat them. Background,
-failed, incomplete, and ambiguously overlapping calls remain unchanged.
+foreground result receives one compact `<session-usage />` element with
+invocation token totals, invocation cost, cumulative direct-child session token
+totals, lifetime child-session cost, and the latest completed child input total.
+Its attributes are `invocation-tokens`, `invocation-cost-usd`, `session-tokens`,
+`session-cost-usd`, and `last-input-tokens`.
+OpenCode's existing result already carries the child session ID and completion
+state, so the plugin does not repeat them. Background, failed, incomplete, and
+ambiguously overlapping calls remain unchanged.
+
+The model-visible `session_usage` tool defaults to its caller's session. An
+explicit target must be a direct child of the caller; parent, sibling,
+unrelated, unknown, and multi-level descendant sessions are rejected. The tool
+reports public recorded token totals and their breakdown, settled plugin cost
+when available, a clearly labeled catalog estimate when cumulative tokens and
+latest/current model pricing are available, or clearly labeled OpenCode-recorded
+cost when catalog pricing is unavailable. It also reports the latest completed
+request's `Last input` and actual/latest model metadata with its context limit.
+It shows an explicitly approximate last-input/context-limit percentage only
+when both values are available. It does not enumerate sessions or recommend or
+trigger compaction.
+
+The catalog estimate applies models.dev rates to cumulative session tokens using
+the latest/current model. When per-step historical attribution is unavailable,
+older tokens may therefore be priced with that model.
 
 Invocation and session costs use models.dev rates instead of OpenCode's stored
 cost, which can remain zero for routed models. Ordinary steps retain their exact
 model attribution; projection-only token usage, including internal compaction,
 uses the child session's current model. When a child `Session.Info` omits
 `model`, the implementation uses the model carried by `session.step.started`.
-Current context is the latest child step's input plus cache-read and cache-write
-tokens.
+Last input is the latest completed child step's input plus cache-read and
+cache-write tokens; it is not an exact assembled live context size.
 
 The setup owns an abort signal for its event subscription. Cleanup aborts the
-subscription, waits for the event consumer, and disposes both hook registrations.
-An unexpected event-consumer failure reaches cleanup instead of being discarded.
+subscription, waits for the event consumer, and disposes the tool and both hook
+registrations. An unexpected event-consumer failure reaches cleanup instead of
+being discarded.
 
 ### `session-cost-tui`
 

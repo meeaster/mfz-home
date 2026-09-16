@@ -7,7 +7,7 @@ plugin contract:
 import type { Definition } from "@opencode/plugin/tui/plugin";
 
 const plugin = {
-  id: "mindframe-z.session-cost-tui",
+  id: "session-cost-tui",
   setup(ctx) {
     return ctx.ui.slot({
       append: "sidebar.content",
@@ -32,8 +32,8 @@ shows per-model API estimates followed by a total. The estimate covers the
 complete current projected transcript for each family session currently known
 to the TUI.
 
-The plugin targets OpenCode V2 2.0.0 through the `opencode` CLI and
-`@opencode/plugin@2.0.0`. The TUI development peers are pinned to OpenTUI
+The plugin targets OpenCode V2 2.0.3 through the `opencode` CLI and
+`@opencode/plugin@2.0.3`. The TUI development peers are pinned to OpenTUI
 `0.5.10` and Solid `1.9.15`. The SDK import is type-only; OpenCode provides
 the Solid and OpenTUI runtime modules inside the TUI host.
 
