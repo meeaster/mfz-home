@@ -194,9 +194,6 @@ opencode:
       super-worker:
         model: openai/gpt-5.6-sol
         variant: medium
-      safety-reviewer:
-        model: openai/gpt-5.6-luna
-        variant: high
       triage:
         model: openai/gpt-5.6-terra
         variant: high
@@ -206,9 +203,9 @@ opencode:
       pr-reviewer:
         model: openai/gpt-5.6-sol
         variant: high
-      ui-ux-designer:
-        model: openai/gpt-5.6-sol
-        variant: medium
+      # ui-ux-designer:
+      #   model: openai/gpt-5.6-sol
+      #   variant: medium
   websearch:
     provider: exa
   cli:
@@ -236,13 +233,12 @@ opencode:
     - pr-reviewer
     - research
     - reviewer
-    - safety-reviewer
     - scheduled-worker
     - session-analyst
     - super-worker
     - triage
     - worker
-    - ui-ux-designer
+    # - ui-ux-designer
 codex:
   config:
     tui:

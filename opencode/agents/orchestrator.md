@@ -20,7 +20,6 @@ permission:
     super-worker: allow
     reviewer: allow
     pr-reviewer: allow
-    safety-reviewer: allow
     session-analyst: allow
     orchestrator: deny
 ---
