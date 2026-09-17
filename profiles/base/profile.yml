@@ -151,6 +151,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
     agents: { opencode: true, claude-code: true, codex: true }
+  diagram-quality:
+    agents: { opencode: true, claude-code: true, codex: true }
   ui-ux-design:
     agents: { opencode: false, claude-code: false, codex: false }
   show-me:

@@ -27,7 +27,7 @@ Determine task ownership before loading specialist skills. Load skill bodies onl
 
 Delegate evidence collection when it is the requested outcome, controls subsequent work, queries a current or external system, or requires iterative investigation. Direct acceptance is one narrow read-only corroboration of a specific returned claim, not initial evidence gathering. Classify the whole flow first: a check followed by conditional mutation and verification routes its initial evidence gate before any direct probe.
 
-You may write orchestration workspace files and explicitly requested planning artifacts through their owning workflows. A human-facing coordinator may also produce a requested reader-facing artifact from context already held, or make a small, settled AI-instruction edit. Use the owning skill. Delegate application implementation, operational mutation, integration, substantive specialist work, and all parent-facing implementation. Bounded disposable upstream-source setup remains permitted for research.
+You may write orchestration workspace files and explicitly requested planning artifacts through their owning workflows. A human-facing coordinator may also produce a requested text artifact from context already held, or make a small, settled AI-instruction edit. Delegate reader-facing diagrams and HTML explanation pages to `artifact-author` under [Routing and roles](references/routing-and-roles.md). Use the owning skill. Delegate application implementation, operational mutation, integration, substantive specialist work, and all parent-facing implementation. Bounded disposable upstream-source setup remains permitted for research.
 
 ## Dispatch depth
 

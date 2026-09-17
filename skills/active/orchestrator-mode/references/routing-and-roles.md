@@ -11,20 +11,26 @@ Choose the smallest adequate role by cognitive outcome, then evidence source. Co
 | `inspect` | Bounded facts about repositories, runtimes, live/external systems, or prior sessions, including metadata, chronology, reconstruction, and post-worker acceptance evidence. |
 | `session-analyst` | Evaluative judgment about prior-session quality, intent adherence, efficiency, or recommendations beyond factual reconstruction. |
 | `triage` | Human-authorized specialist read-only diagnosis of an unexplained unexpected symptom. Apply the escalation gate below; causal reasoning is also part of bounded worker investigation. |
-| `architect` | Authorized architecture options and recommendation when sustained synthesis would burden the coordinator. |
+| `architect` | Architecture options and recommendation, only by explicit human selection or acceptance of a recommendation to use this specialist. |
 | `ui-ux-designer` | Authorized interface direction or critique when design judgment is needed. |
 | `agent-author` | Substantial, settled, authorized AI-instruction implementation when coherence, records/evals, or isolated execution benefits. Consultation, brainstorming, evaluation, or design requires explicit human selection of this agent. |
-| `artifact-author` | Only by explicit human selection, turns accepted/supplied working context into a durable artifact for another person. Supply the relevant synthesis. |
+| `artifact-author` | Default owner of requested reader-facing diagrams and HTML explanation pages; other communication artifacts require explicit human selection. Turns accepted/supplied context into an artifact for another person. |
 | `prototype` | Authorized runnable throwaway artifact testing a bounded unsettled logic, state-model, or UI-design question. |
 | `operator` | Explicitly requested settled procedural or operational outcome, including Git, generation/install/refresh as supplied, configuration, services, environments, infrastructure, and external systems. Immediate completion steps may remain with an implementation owner under Mutation and delivery. |
 | `worker` | Explicitly requested application/OpenSpec implementation, substantive software behavior, remediation, difficult implementation investigation, or novel troubleshooting. |
 | `super-worker` | The worker contract, only when explicitly selected by the human for this task or batch. Never automatic escalation. |
-| `reviewer` | Requested independent review of known work with accepted intent/design, implementation brief, and validation history. |
-| `pr-reviewer` | Requested holistic due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. |
+| `reviewer` | Human-selected specialist review of known work with accepted intent/design, implementation brief, and validation history. Apply the explicit-selection gate in Design, prototype, and review. |
+| `pr-reviewer` | Human-selected specialist due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. Apply the same explicit-selection gate. |
 
-Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits in the warm human-facing coordinator unless the human selects `agent-author`. A requested reader-facing artifact also stays here when the context and access are already held; naming Markdown, HTML, Jira, or Confluence does not select `artifact-author`.
+Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits in the warm human-facing coordinator unless the human selects `agent-author`. Other requested text artifacts may stay here when context and access are already held; naming Markdown, Jira, or Confluence alone does not select `artifact-author`.
 
 For instruction refreshes, use `operator` for settled generation or copying without content judgment, `explore` for source-only comparison, and `inspect` for command-derived facts. Have the operator verify procedure and output, surfacing customizations or unresolved adaptation. Generator failure alone does not select authoring. Give each specialist its owning domain workflow; separate independent responsibilities while allowing one coherent authorized outcome to share an owner.
+
+## Diagrams and HTML explanation pages
+
+Delegate creation and revision to `artifact-author` without requiring the human to name the agent. Keep human discussion, accepted meaning, feedback, and acceptance in the coordinator. This route covers communication artifacts; application UI implementation and throwaway design experiments retain their worker and prototype owners.
+
+Supply the current artifact when present, audience, accepted content and decisions, relevant synthesis, requested changes, must-preserve behavior, destination, authority, and existing validation evidence. Specify required validation coverage and any task-specific creation workflow. The artifact-author prompt owns diagram-quality loading, screenshot-first inspection, and immediate corrections; the author returns the artifact and bounded completion evidence. Apply normal coordinator acceptance rather than routinely replaying the author's browser work. Choose revision continuity under [Recovery and continuity](recovery-and-continuity.md#choose-child-continuity).
 
 ## Evidence and diagnostic judgment
 

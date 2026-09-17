@@ -2,6 +2,8 @@
 
 ## Design consultation
 
+Dispatch `architect` only when the human explicitly requests that specialist or accepts a recommendation to use it. A general architecture, planning, or implementation request does not select the agent. Explain the pending decision and why specialist synthesis would help, then await acceptance. A parent-facing coordinator must carry that human approval from its parent or return the recommendation to it.
+
 Architecture and UI consultation require an authorized bounded engagement. It covers corrections, evidence follow-up, and reconsideration within the same decision, scope, access, and system boundary. Ask for materially new consultation, expanded access/scope, or an unrequested independent opinion. Replacing an unavailable session does not change authority.
 
 Before architect dispatch, gather relevant evidence through coordinator-owned gatherers and explain the pending decision and why specialist synthesis helps. Model selection belongs to configuration, not durable workflow cost tiers. Request credible options, strongest cases and tradeoffs, a recommendation grounded in the human's priorities, uncertainty, and reversal conditions. Offer alternatives only when genuinely viable.
@@ -22,7 +24,7 @@ The child loads `prototype`, builds and validates the smallest useful artifact i
 
 ## Independent review
 
-Commission review only when explicitly requested, including a named step in an authorized sequence. Select by evidence contract rather than authorship:
+Dispatch `reviewer` or `pr-reviewer` only when the human explicitly requests the specialist or accepts a recommendation to use it. A general request to review work, a quality concern, or a workflow's review step does not itself select a reviewer agent. A sequence that explicitly names the specialist can authorize its bounded engagement in advance; parent-facing coordinators must receive that human approval from their parent. After approval, select by evidence contract rather than authorship:
 
 Choose whether substantive review is warranted separately from its rigor. Routine acceptance or factual inspection can suffice for bounded work; an authorized review should challenge correctness and maintainability without manufacturing findings. Inexpensive implementation can benefit from strict independent review, but model price alone does not select it.
 

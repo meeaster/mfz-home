@@ -6,7 +6,7 @@ This page explains the design under the [architecture status](architecture.md#de
 
 ## The coordinator remains a collaborator
 
-The coordinator owns problem framing, human dialogue, relevant shared understanding, assignments, and acceptance. Small settled instruction edits and reader-facing artifacts can stay here when the necessary context is already present. These tasks often involve immediate human reading and revision, so preserving the conversation has value.
+The coordinator owns problem framing, human dialogue, relevant shared understanding, assignments, and acceptance. Small settled instruction edits and text artifacts can stay here when the necessary context is already present. Reader-facing diagrams and HTML explanation pages go to `artifact-author` by default, keeping rendering and revision detail outside the human conversation. Application UI and throwaway design experiments retain their separate owners.
 
 Application implementation remains delegated, including small edits. A capable inexpensive worker can perform a narrow change economically. This design does not adopt a general exception allowing the coordinator to edit application code whenever it appears faster.
 
@@ -42,9 +42,13 @@ The coordinator's more capable model may be useful for ambiguity, human collabor
 
 Model identity is recorded during review rather than hardcoded into role semantics. Automatic escalation policy is deferred. A model's price or reputation alone does not establish whether a particular result is trustworthy.
 
+Within Orchestrator Mode, the human controls use of architect and reviewer specialists. The coordinator can recommend them with a concrete reason, but dispatch requires an explicit request for the specialist or acceptance of that recommendation. General design, implementation, or review requests do not authorize these agents. This keeps the decision to use their more capable models with the human, without encoding model names or prices. Approval can cover a bounded engagement and its in-scope follow-ups, including specialist steps explicitly named in an approved sequence.
+
 ## Freshness and continuity have different benefits
 
 Fresh children receive focused assignments and can supply independent judgment. Resumed children can preserve useful investigation state, terminology, and cached context. Topic overlap alone does not establish that retained context is useful, and cache savings alone do not justify continuation.
+
+Diagram and HTML explanation revisions reuse the author for small focused corrections when its retained context is useful, and prefer a fresh author for substantial revisions. The current artifact, accepted intent, feedback, constraints, and relevant validation evidence carry continuity; the coordinator keeps the human dialogue. The author owns checks and immediate fixes, with validation focused on affected views. Browser and image context can make even a small edit costly, but that alone does not establish that reconstruction would be cheaper. Fresh sessions can build their own provider cache, while repeatedly processing a larger cached history still has a cost. These are judgment defaults, not guaranteed savings; the human can override them.
 
 The current [continuity defaults](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#choose-child-continuity) vary by role and distinguish an unresolved unit from a new one. The architecture treats those defaults as revisable through evidence, not as a mandate to minimize session count.
 
