@@ -99,3 +99,6 @@ skills:
   visual-pr:
     commit: ca7c8088db69e315a8b2deea43820270457f8f3c
     digest: 1126dfee31e388e2b0e78520606721b760ddf8e294cd24c87cc7934695373f1f
+  browser-control:
+    commit: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
+    digest: b7a7498436ef4952e13bd5120da8b267d660dbb052eab2cc6f3c00c4dd0f84b1

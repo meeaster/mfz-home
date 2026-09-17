@@ -499,6 +499,14 @@ skills:
     repo: https://github.com/vercel-labs/agent-browser
     ref: main
     subtree: skills/agent-browser
+  - name: browser-control
+    description: >
+      Drive the user's existing Chromium-family browser with deterministic
+      Playwright, including authenticated browser workflows and human handoffs.
+    source: vendored
+    repo: https://github.com/anomalyco/browser-control
+    ref: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
+    subtree: skills/browser-control
   - name: tradingview
     source: local
     skill: active/tradingview

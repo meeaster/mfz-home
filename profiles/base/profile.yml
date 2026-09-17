@@ -60,6 +60,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   agent-browser:
     agents: { opencode: true, claude-code: true, codex: true }
+  browser-control:
+    agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
     agents: { opencode: false, claude-code: false, codex: false }
   thermo-nuclear-code-quality-review:
@@ -160,6 +162,8 @@ skills:
   visual-pr:
     agents: { opencode: true, claude-code: true, codex: true }
 mcp:
+  browser-control:
+    agents: [opencode]
   context7:
     agents: [opencode, claude-code, codex]
   deepwiki:

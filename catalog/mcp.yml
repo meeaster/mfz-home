@@ -112,3 +112,8 @@ servers:
     type: remote
     transport: http
     url: https://docs.mcp.cloudflare.com/mcp
+  browser-control:
+    description: Browser Control MCP server for visible Chromium browser automation.
+    type: local
+    transport: stdio
+    command: [browser-control-mcp]
