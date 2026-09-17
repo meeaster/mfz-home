@@ -1,0 +1,13 @@
+{
+  "name": "mindframe-z-session-usage",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.0.3",
+    "zod": "4.1.8"
+  }
+}
