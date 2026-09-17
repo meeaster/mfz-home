@@ -155,6 +155,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   show-me:
     agents: { opencode: true, claude-code: true, codex: true }
+  visual-pr:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   context7:
     agents: [opencode, claude-code, codex]
