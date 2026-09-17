@@ -1,5 +1,11 @@
 # Recovery and continuity
 
+## Choose a coordinator phase transition
+
+At meaningful phase boundaries, compare continuing with useful conversation context against compaction or a fresh session supported by accepted artifacts. Completed design or implementation can provide a boundary; unresolved decisions and reconstruction costs can favor continuity. Base the choice on the next responsibility and retained value, not token thresholds or a mandatory reset.
+
+Before a transition, reconcile existing coordinator files with current authority, accepted decisions, unresolved work and verification limits, mutable state, and authoritative artifact locations. Preserve child handles when continuation needs them. Replace superseded assertions rather than appending competing current states; no extra handoff file is required. A completed proposal does not itself authorize implementation. After transition, use the same-effort reconciliation below and refresh relevant mutable state before acting.
+
 ## Reconcile the same effort
 
 A genuinely new unit after deliberate manual compaction needs no recovery of the completed phase. For continuing work, including a new session resuming an earlier effort, begin with available conversation context. Before the next external action or creating/replacing coordinator files:
@@ -14,7 +20,7 @@ The index is a derived catalog. If missing or inconsistent, rebuild from complet
 
 If `context.md` is missing, reconstruct it from available conversation and effort files after reconciliation, marking uncertainty and reconstruction accurately. Missing context alone does not require session-history inspection. Maintain it under [Workspace and coordination](workspace-and-coordination.md).
 
-An interrupted response is not compaction. Reconcile pending tools, children, and possible effects before retrying; inspect state before repeating a side effect. Continue a durably available accepted request without requiring repetition from the human. Return the exact blocker if context or state cannot support continuation.
+An interrupted response is not compaction. A missing final packet does not establish that a child produced no evidence or effects. Reconcile pending tools, available partial findings, and known effects, including ignored files or installed copies, before retrying. Inspect state before repeating a side effect. Continue a durably available accepted request without requiring repetition from the human. Return the exact blocker if context or state cannot support continuation.
 
 ## Recover missing session meaning
 
@@ -32,7 +38,7 @@ Authority is independent of session reuse. Apply these defaults within the autho
 | --- | --- |
 | `explore`, `research`, `inspect` | Fresh for each bounded unit. Resume only the same unresolved investigation and downstream decision, in the same role and overlapping evidence family, without an independence need, when retained state adds value a compact note cannot preserve. Topic/repository overlap alone is insufficient. |
 | `architect`, `ui-ux-designer` | Resume within the same decision and system boundary, including correction, disagreement, reframing, new evidence, or bounded extension. Start fresh for a materially new decision, unavailable/unusable session, or an authorized independent opinion. For suspected anchoring, first try explicit correction and reconsideration; a separately approved second opinion supplements prior work using verified constraints. |
-| `triage` | Fresh after a looping mutation blocker passes the diagnostic gate. Otherwise resume the same symptom/incident, including new evidence or eliminated hypotheses; fresh for a different symptom, incident, environment, or independent diagnosis. |
+| `triage` | After the diagnostic and human-authorization gate, start fresh for a looping mutation blocker. Resume within the authorized symptom/incident as evidence develops; a different scope needs its own authority before choosing a fresh session. |
 | `agent-author`, `prototype`, `operator`, `worker` | Fresh for a distinct accepted unit. Resume a clean stop for one decision when the answer preserves the underlying objective/artifact, relevant checkout and useful context, sufficient authority, and safely preserved state. Corrected implementation route, mechanism, provenance, or placement alone need not make a new unit. |
 | `artifact-author` | Fresh for a distinct artifact/set; resume feedback, correction, or approved publication in the same editorial lifecycle. Start fresh when audience, destination, artifact set, authority, or outcome materially changes. |
 | `reviewer`, `pr-reviewer` | Fresh for independent initial judgment; resume only missing evidence or conflict adjudication within an unconcluded review. Repairs use another owner; a separately approved independent rereview starts fresh. |

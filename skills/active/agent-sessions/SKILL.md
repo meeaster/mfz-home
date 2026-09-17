@@ -60,11 +60,11 @@ Keep the ledger compact enough to survive compaction. An incomplete checkpoint r
 
 Read structure before content: identity, timestamps, counts, record types, tool and status aggregates, child metadata, fork provenance, compactions, terminal positions, and short previews.
 
-For question-driven OpenCode work, compose bounded read-only SQL or authenticated API requests around the question. Order projected messages by `session_message.seq`. Distinguish all durable projected history from active context, which starts at the latest completed compaction sequence. Keep exhaustive SQLite reads in one read transaction when possible. Otherwise pin the terminal sequences and counts, then recheck them before reporting.
+For question-driven OpenCode work, compose bounded read-only SQL or authenticated API requests around the question. Order projected messages by `session_message.seq`. Shape large or multi-session reads so the known session scope narrows message work before expensive JSON processing. Treat runtime that is disproportionate to the requested scope, repeated setup, and unexpectedly broad output as signals to reconsider the approach. Distinguish all durable projected history from active context, which starts at the latest completed compaction sequence. Keep exhaustive SQLite reads in one read transaction when possible. Otherwise pin the terminal sequences and counts, then recheck them before reporting.
 
 Use `scripts/opencode-session-evidence.py snapshot` and `delta` only when a refreshable consumer needs a deterministic parent-and-direct-child checkpoint. A delta is valid only for a structurally verified pure append. Existing-message changes, deletions, replacements, child-set changes, topology changes, source replacement, and active-context movement return `rebuild_required`. Never merge evidence from a rejected delta.
 
-For OpenCode cost, run `scripts/opencode-session-cost.py` directly. It uses only current usage records and recursive `parent_id` topology. Transcript evidence is unnecessary.
+For OpenCode cost, prefer `scripts/opencode-session-cost.py` when its current-schema contract fits the request. It uses only current usage records and recursive `parent_id` topology, so transcript evidence is unnecessary. Use another body-free approach when the source or requested scope falls outside that contract.
 
 Read full content only when it can change the answer. Count and locate reasoning records without surfacing their bodies. Enumerate children before reading them, and treat fork provenance separately from ancestry.
 

@@ -34,6 +34,8 @@ Validate `session_v2` and `session_message` plus the columns needed by the query
 
 `session_message` stores `id`, `session_id`, `type`, `seq`, timestamps, and JSON `data`. The unique `(session_id, seq)` index defines transcript order. Message updates preserve `seq` and update the row timestamp.
 
+On a large store, bounded SQL text does not guarantee bounded execution. For recursive or fixed multi-session work, favor a shape that lets the known session scope and relevant message predicates reduce rows before JSON extraction. Runtime that barely changes with scope size can indicate that SQLite is scanning much more of `session_message` than intended. Query-plan inspection is one useful diagnostic when observed performance warrants it; choose the final query shape from the current schema, indexes, scope, and planner behavior.
+
 Start with bounded structure:
 
 ```sql
@@ -88,11 +90,11 @@ ORDER BY m.seq, CAST(item.key AS INTEGER)
 LIMIT :limit;
 ```
 
-Use `(session_id, seq, message_id)` as the message locator. Add `content_id` or `content_index` for one assistant content item. Bound tool input, output, error, provider metadata, and text to records that can change the answer. Count reasoning items by type and owning message without selecting their text.
+Use `(session_id, seq, message_id)` as the message locator. Add `content_id` or `content_index` for one assistant content item. Bound tool input, output, error, provider metadata, and text to records that can change the answer. Start with projected fields and bounded previews, then expand a relevant locator when more detail can change the answer. Count reasoning items by type and owning message without selecting their text.
 
 Compaction is a `session_message` with `type = 'compaction'`. A completed compaction has `json_extract(data, '$.status') = 'completed'`. All-history analysis uses the requested durable sequence range. Active-context analysis starts at the greatest completed compaction sequence, inclusive. Compaction does not delete earlier projected rows.
 
-For exhaustive active-store work, use one read transaction. If that is not practical, capture terminal sequence, message count, maximum update, and session update state before paging. Apply the terminal sequence to every page, then recheck the boundary. Report movement instead of mixing boundaries.
+For exhaustive active-store work, prefer one coherent read transaction when practical. Before issuing many similar reads, consider whether grouping known sessions would avoid repeated setup and inconsistent boundaries. Iterative follow-up reads remain appropriate when earlier evidence determines the next question. If one transaction is not practical, capture terminal sequence, message count, maximum update, and session update state before paging. Apply the terminal sequence to every page, then recheck the boundary. Report movement instead of mixing boundaries.
 
 ## Use the authenticated API
 
@@ -139,7 +141,7 @@ Snapshot and delta output include bounded user text, assistant text and tool str
 
 ## Calculate cost
 
-Calculate current-catalog cost for a parent and all recursive `parent_id` descendants:
+The bundled calculator handles current-catalog cost for a parent and all recursive `parent_id` descendants:
 
 ```bash
 python3 <skill-dir>/scripts/opencode-session-cost.py \
@@ -149,7 +151,7 @@ python3 <skill-dir>/scripts/opencode-session-cost.py \
 
 The calculator reads complete assistant usage from `session_message` without selecting content. It attributes each turn to the stored provider, model, and variant, guards recursive cycles, and excludes forks that are not descendants. Partial usage fails validation instead of undercounting.
 
-The calculator fetches `https://models.dev/api.json` by default. Use `--models-file /path/to/api.json` for a reproducible pricing snapshot. Exact catalog model IDs win; an explicit `<base-model>-<mode>` ID may use `experimental.modes[mode].cost`. Context tiers apply per turn. Missing optional cache rates are zero, and reasoning uses its explicit rate or the selected output rate. The result is a current-catalog estimate, not historical billing or a provider invoice.
+The calculator fetches `https://models.dev/api.json` by default. Use `--models-file /path/to/api.json` when a reproducible pricing snapshot matters. For several calculations in one task, consider reusing a retained catalog and narrowing the roots first; repeated catalog fetches or one fresh process per root can dominate a bulk comparison. Choose batching or separate calls according to the requested scope and failure isolation. Exact catalog model IDs win; an explicit `<base-model>-<mode>` ID may use `experimental.modes[mode].cost`. Context tiers apply per turn. Missing optional cache rates are zero, and reasoning uses its explicit rate or the selected output rate. The result is a current-catalog estimate, not historical billing or a provider invoice.
 
 ## Read an export
 

@@ -185,9 +185,10 @@ def read_v2_database(
         scope_sql(
             """
             SELECT m.id AS record_id
-            FROM session_message AS m
-            JOIN scope ON scope.id = m.session_id
-            WHERE COALESCE(json_valid(m.data), 0) <> 1
+            FROM scope
+            CROSS JOIN session_message AS m
+            WHERE m.session_id = scope.id
+              AND COALESCE(json_valid(m.data), 0) <> 1
             LIMIT 1
             """,
             "session_v2",
@@ -251,9 +252,10 @@ def read_v2_database(
                    json_type(m.data, '$.model.id') AS model_type,
                    json_extract(m.data, '$.model.variant') AS variant,
                    json_type(m.data, '$.model.variant') AS variant_type
-            FROM session_message AS m
-            JOIN scope ON scope.id = m.session_id
-            WHERE m.type = 'assistant'
+            FROM scope
+            CROSS JOIN session_message AS m
+            WHERE m.session_id = scope.id
+              AND m.type = 'assistant'
               AND (json_type(m.data, '$.cost') IS NOT NULL
                    OR json_type(m.data, '$.tokens') IS NOT NULL)
             ORDER BY scope.order_key, m.seq, m.id

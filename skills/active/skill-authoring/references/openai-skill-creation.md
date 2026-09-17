@@ -54,7 +54,7 @@ After structural checks:
 3. Inspect artifacts and session evidence rather than relying on self-report.
 4. Iterate from observed struggles, inefficiencies, and regressions.
 
-Use Skill Authoring's authoring record `EVALS.md` and testing workflow for the behavioral evidence contract.
+Use the target's `EVALS.md` for scenarios and expectations, and Skill Authoring's testing workflow for execution and evidence handling.
 
 ## Adaptation Boundary
 

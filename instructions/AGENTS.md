@@ -25,9 +25,8 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - Push back on flawed assumptions and ask when intent is unclear.
 - Generally write responses according to the Google developer documentation style guide and ASD-STE100 Simplified Technical English.
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
-- Prefer the smallest correct implementation that fits the surrounding code. Avoid unused features, premature abstractions, unnecessary configuration, and compatibility paths without a concrete requirement.
 - When a required skill body is already active in the current context, follow it without loading it again. Load the skill when its instructions are absent, including in a fresh child or after compaction when the body is no longer available.
-- Load `development-principles` when making or evaluating a software design, implementation, test, refactor, or formal code review. For repository inventory, status checks, operational investigation, and source research, load it only when the work crosses into design or implementation judgment. Apply it after repository instructions and accepted requirements.
+- Load `development-principles` when making or evaluating software engineering decisions, including design, implementation, refactoring, test strategy, and substantive review. Coordinators load it when framing engineering scope, weighing design tradeoffs, or judging engineering quality. Routine dispatch, status reporting, factual gathering, and settled operations do not require it. Apply it within accepted requirements and repository conventions.
 
 ## Subagent Use
 

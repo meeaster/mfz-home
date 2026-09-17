@@ -1,5 +1,5 @@
 ---
-name: Orchestrator Task Evidence
+name: orchestrator-task-evidence
 description: Explicitly assigned task evidence production and selective reuse.
 slash: false
 metadata:
@@ -22,11 +22,11 @@ Reuse applicable findings, synthesis, and lessons. Gather only missing, stale, o
 
 ## Write the reusable result
 
-Keep one coherent note with a short producer label and as many useful findings as the task warrants. A downstream reader should be able to use those findings without replaying your session.
+Keep one coherent note with a short producer label and as many useful findings as the task warrants. Write economically without sacrificing evidence, meaning, applicability, or uncertainty; let the investigation determine depth and structure. A downstream reader should be able to use those findings without replaying your session.
 
 - Put consequential commands, API details, results, and source locators beside the claims they support. Mark claims as observed, expected, or uncertain, and add revision, time, or invalidation conditions when freshness matters.
 - Preserve exact records or excerpts when needed to act, reproduce, or decide. Summarize repetitive output and use pointers for cheap lookups.
-- Record a working approach and its conditions when it prevents a meaningful repeated failure; omit the attempt history.
+- Preserve discoveries that change a successor's decisions or actions, with the conditions needed to apply them. Record a working approach when it prevents a meaningful repeated failure; omit the attempt history. Recommendations remain proposals, not new assignment requirements.
 - Reference earlier findings and explain what you add, independently verify, qualify, or contradict. Remove repetition and content with no distinct downstream use.
 
 Use headings when helpful, without mandatory sections, quotas, word limits, or extra investigation for a short note. Keep assignments in briefs and full source, media, traces, and routine process history in the session. Omit secrets and unrelated sensitive data. Notes are temporary internal handoffs, not durable continuity or authority.

@@ -66,6 +66,8 @@ When a baseline applies, compare behavior, artifacts, trace efficiency, and asse
 
 Prefer the harness's durable structured session record or export. Use available environment guidance to locate and inspect it rather than duplicating session-store instructions here. Treat self-report as a claim to verify, not evidence.
 
+Report results in the task report with artifact or trace locators and the test contract. Keep `EVALS.md` limited to scenarios and expectations; neither it nor `MAINTENANCE.md` stores run reports. A separate durable results artifact requires an authorized reuse need under Skill Authoring's record rules.
+
 Complete this step when every pass or failure claim cites an artifact or trace event and uninspected evidence is named.
 
 ## 5. Classify The Result

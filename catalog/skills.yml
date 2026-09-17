@@ -18,10 +18,10 @@ skills:
     source: local
     skill: active/development-principles
     description: >
-      Use when designing, implementing, testing, refactoring, coordinating, or
-      reviewing software work. Guides happy-path-first design, evidence-based
-      complexity, phase-aware scope, stable-boundary tests, and bounded
-      code-health improvement.
+      Shared engineering judgment for software design, implementation, test
+      strategy, refactoring, review, and coordination decisions. Use when choosing
+      or assessing an engineering approach, not for routine dispatch, factual
+      gathering, or settled operations.
   - name: pr-review
     source: local
     skill: active/pr-review

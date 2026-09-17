@@ -1,5 +1,7 @@
 # Orchestrator, author, and operator workflow investigation
 
+For the maintained design explanation and session-review method, start with [Orchestrator architecture](orchestrator/architecture.md). This investigation preserves its dated observations and provisional options. Its activation status, model assignments, and proposals below are historical, not current runtime guidance.
+
 ## Status and current direction
 
 This document preserves an unfinished workflow investigation for continuation on another computer. It records current repository facts, observed problems, design options, cost evidence, accepted routing decisions, and remaining provisional directions. It does not authorize `mfz apply`, commit, push, Jira or Confluence changes, deployment, or publication.

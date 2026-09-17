@@ -57,13 +57,13 @@ When authorized work includes commits, commit changed runtime files in their rep
 The default record contains:
 
 - `VISION.md`: purpose, human priorities, consequential tradeoffs, and boundaries. Keep it concise; leave execution mechanics in the runtime artifact.
-- `EVALS.md`: concrete scenarios and observable expectations that distinguish success from plausible failure. Separate expected behavior from observed results. An unexecuted scenario is useful but is not evidence of success.
+- `EVALS.md`: only concrete scenarios and observable expectations that distinguish success from plausible failure. Group by behavior, consolidate overlapping cases, and express lessons from failures as reusable scenarios. Keep run results, status, session IDs, hashes, activation reports, and revision history out of this file.
 
 These are defaults, not a file-completeness requirement. A trivial skill may omit a record document that would add no useful information. Preserve enough intent and examples to assess future behavioral changes without manufacturing boilerplate.
 
-Create `MAINTENANCE.md` when external provenance, intentional adaptations, or non-obvious upkeep warrants it. Record adopted revisions and how to evaluate a refresh. Generic authoring procedures and readily discoverable configuration do not justify this file.
+Create `MAINTENANCE.md` only when an outside source materially influences the skill and future upkeep needs that relationship explained. Identify the source, adopted revision when applicable, intentional adaptations, and what a refresh must compare or preserve. Omit it when no such relationship needs explanation. Generic authoring procedures belong here or in Writing for Agents; runtime rules and readily discoverable configuration stay with their owners.
 
-Do not require `LOG.md`, create a replacement decision file by default, or append an entry for every edit. Preserve still-relevant rationale beside the concern it explains: tradeoffs in vision, upstream departures in maintenance, and demonstrated failures in evaluation scenarios. A separate decision record needs substantial reasoning that future authors are likely to revisit. Treat existing logs as historical material to consult when relevant; assess useful content and obtain authority before deleting or consolidating history.
+Do not require `LOG.md`, create a replacement decision file by default, or append an entry for every edit. Preserve still-relevant rationale beside the concern it explains: tradeoffs in vision, source adaptations in maintenance, and failure conditions in evaluation scenarios. A separate decision record needs substantial reasoning that future authors are likely to revisit. Treat existing logs as historical material to consult when relevant; assess useful content and obtain authority before deleting or consolidating history. An authorized cleanup does not require moving removed material into another archive.
 
 Additional evidence files need a concrete purpose and a reading condition. Keep substantial traces outside routine authoring context. Restatement earns its place only when it contributes a distinct decision, testable assertion, or maintenance fact. Let Git preserve ordinary textual history.
 
@@ -75,7 +75,7 @@ Check structure, reference links, and coherence for the changed branches. Evalua
 
 When the task requires live execution, session-based verification, or revision from an observed failure, read [testing workflow](references/testing-workflow.md). It owns isolated runs, neutral subagent prompts, evidence classification, comparisons, and reruns. Static review and writing scenarios do not require that reference.
 
-Record observed results with the artifact revision, model, harness, relevant configuration, and limitations. Prefer artifacts and traces to self-report. Mark untested behavior explicitly; static coherence does not prove execution quality.
+Report observed results in the task report, supported by existing artifacts and execution traces, with the artifact revision, model, harness, relevant configuration, and limitations. Prefer artifacts and traces to self-report. Identify untested behavior there; static coherence does not prove execution quality. Create a separate durable results report only for an authorized concrete reuse need, never as a routine authoring record or a substitute log.
 
 ## 4. Hand off
 

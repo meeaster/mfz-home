@@ -24,6 +24,8 @@ The child loads `prototype`, builds and validates the smallest useful artifact i
 
 Commission review only when explicitly requested, including a named step in an authorized sequence. Select by evidence contract rather than authorship:
 
+Choose whether substantive review is warranted separately from its rigor. Routine acceptance or factual inspection can suffice for bounded work; an authorized review should challenge correctness and maintainability without manufacturing findings. Inexpensive implementation can benefit from strict independent review, but model price alone does not select it.
+
 - Use `reviewer` when accepted intent/design, implementation brief, changes, and validation are known. For code, require `thermo-nuclear-code-quality-review`, covering correctness, maintainability, and substantive behavior-preserving simplification.
 - Use `pr-reviewer` with `pr-review` when PR intent, design rationale, implementation, validation, or holistic merge readiness must be reconstructed and challenged. Structural simplification alone does not require this role.
 
