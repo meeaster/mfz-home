@@ -1,0 +1,14 @@
+[Unit]
+Description=Paper MCP WSL loopback relay
+After=network.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:%h/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStart=%h/.local/share/mise/shims/node %h/.local/bin/paper-mcp-relay.mjs
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
