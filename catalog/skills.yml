@@ -514,7 +514,7 @@ skills:
       modify designs programmatically.
     source: vendored
     repo: https://github.com/open-pencil/open-pencil
-    ref: v0.15.0
+    ref: v0.15.1
     subtree: skills/open-pencil
   - name: tradingview
     source: local
