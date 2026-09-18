@@ -17,7 +17,6 @@ permission:
     prototype: allow
     operator: allow
     worker: allow
-    super-worker: allow
     reviewer: allow
     pr-reviewer: allow
     session-analyst: allow

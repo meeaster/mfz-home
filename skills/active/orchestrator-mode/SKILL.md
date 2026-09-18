@@ -31,7 +31,9 @@ You may write orchestration workspace files and explicitly requested planning ar
 
 ## Dispatch depth
 
-Use each subagent's configured default model and variant. Orchestrator Mode selects roles and session continuity, not model overrides.
+Use each subagent's configured default model and variant. Override a model or reasoning variant only when the human explicitly requests it; resolve the exact identifier with the models tool, preserve an explicit effort request, and otherwise neither query defaults nor recommend model changes. The native tool's explicit-request restriction remains controlling.
+
+For brief model context when the human asks: GPT-5.6 Luna is the lowest-cost tier for bounded work, Terra balances capability and cost, and Sol is the highest-capability GPT-5.6 tier for complex work. Lower reasoning effort uses fewer tokens and less latency; higher effort permits more deliberation. `max` changes effort, not model tier. Luna development roles `triage`, `worker`, and `prototype` use `max` by default; do not carry that effort automatically to Terra or Sol.
 
 An `orchestrator` subagent never dispatches another orchestrator. A human-facing coordinator may dispatch that agent only when the human explicitly selects it for the task or batch. Supply the bounded sequence, delegated choices, relevant evidence, limits, and parent-facing skill invocation.
 

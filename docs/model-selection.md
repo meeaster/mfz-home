@@ -257,12 +257,14 @@ The current native agent assignments are:
 ```text
 worker: openai/gpt-5.6-luna@max
 operator: openai/gpt-5.6-luna@high (base)
-reviewer: openai/gpt-5.6-sol@high (Personal), openai/gpt-5.6-terra@high (Work)
+triage: openai/gpt-5.6-luna@max (base), openai/gpt-5.6-sol@medium (Personal)
+prototype: openai/gpt-5.6-luna@max (base), openai/gpt-5.6-sol@medium (Personal)
+architect: openai/gpt-5.6-sol@high (base), openai/gpt-6-astra@medium (Personal)
+reviewer: openai/gpt-5.6-sol@high (base and Personal), openai/gpt-5.6-terra@high (Work override)
 pr-reviewer: openai/gpt-5.6-sol@high
 explore: openai/gpt-5.6-luna@high
 research: openai/gpt-5.6-luna@high
 session-analyst: openai/gpt-5.6-sol@medium
-prototype: openai/gpt-5.6-terra@max (base), openai/gpt-5.6-sol@medium (Personal)
 ```
 
 Agent descriptions route by task shape rather than model rank. The model and variant remain replaceable configuration policy: `worker` is the application implementation, substantive code, focused remediation, difficult implementation investigation, and novel troubleshooting lane; `operator` is the settled procedural and operational mutation lane for configuration, source control, supported CLI workflows, infrastructure, deployments, environment preparation, and external-system state; `reviewer` is the focused independent completed-work judgment lane; `pr-reviewer` performs holistic due diligence when a pull request's intent, design, or validation must be reconstructed and challenged; `explore` and `research` retain their specialized discovery scopes; `inspect` owns factual session lookup and reconstruction alongside other bounded evidence gathering; `session-analyst` owns evaluative reasoning about prior-session behavior and quality; and `prototype` builds throwaway decision artifacts through the existing `prototype` skill. Workflow prompts own task-specific briefs, review cadence, and acceptance.

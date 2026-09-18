@@ -18,7 +18,6 @@ Choose the smallest adequate role by cognitive outcome, then evidence source. Co
 | `prototype` | Authorized runnable throwaway artifact testing a bounded unsettled logic, state-model, or UI-design question. |
 | `operator` | Explicitly requested settled procedural or operational outcome, including Git, generation/install/refresh as supplied, configuration, services, environments, infrastructure, and external systems. Immediate completion steps may remain with an implementation owner under Mutation and delivery. |
 | `worker` | Explicitly requested application/OpenSpec implementation, substantive software behavior, remediation, difficult implementation investigation, or novel troubleshooting. |
-| `super-worker` | The worker contract, only when explicitly selected by the human for this task or batch. Never automatic escalation. |
 | `reviewer` | Human-selected specialist review of known work with accepted intent/design, implementation brief, and validation history. Apply the explicit-selection gate in Design, prototype, and review. |
 | `pr-reviewer` | Human-selected specialist due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. Apply the same explicit-selection gate. |
 
