@@ -30,7 +30,7 @@ references:
   - openspec
   - mise
   - herdr
-  - executor
+  # - executor
   - mattpocock-skills
   - codex
   - openai-skills

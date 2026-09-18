@@ -32,7 +32,7 @@ yamllint = "1"
 # "npm:hunkdiff" = "0"
 "npm:aws-cdk" = "2"
 "npm:sfw" = "2"
-"npm:executor" = "1"
+# "npm:executor" = "1"
 "npm:@fission-ai/openspec" = "1"
 "npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"], trust_policy_excludes = ["@smithy/core@3.33.0", "@smithy/node-http-handler@4.11.0"] }
 "github:Infisical/agent-vault" = "0"
@@ -49,7 +49,7 @@ bat = "0"
 
 [settings]
 minimum_release_age = "3d"
-minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:executor", "npm:opencode-drive", "herdr", "cargo:terminal-control"]
+minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:opencode-drive", "herdr", "cargo:terminal-control"]
 
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
