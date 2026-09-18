@@ -46,6 +46,8 @@ thread:
       - claude-code
       - opencode
 skills:
+  open-pencil:
+    agents: { opencode: true, claude-code: false, codex: false }
   orchestrator-mode:
     agents: { opencode: true, claude-code: false, codex: false }
   orchestrator-task-evidence:
@@ -176,6 +178,8 @@ mcp:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
     agents: [opencode, claude-code, codex]
+  openpencil:
+    agents: [opencode]
 opencode:
   global_instructions: true
   config:

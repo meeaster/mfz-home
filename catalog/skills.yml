@@ -507,6 +507,15 @@ skills:
     repo: https://github.com/anomalyco/browser-control
     ref: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
     subtree: skills/browser-control
+  - name: open-pencil
+    description: >
+      Work with Figma .fig design files and the running OpenPencil editor — inspect
+      structure, query nodes, analyze design tokens, export PNG/SVG/PDF/JSX, and
+      modify designs programmatically.
+    source: vendored
+    repo: https://github.com/open-pencil/open-pencil
+    ref: v0.15.0
+    subtree: skills/open-pencil
   - name: tradingview
     source: local
     skill: active/tradingview
