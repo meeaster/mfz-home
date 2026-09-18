@@ -60,7 +60,7 @@ Inspect every produced artifact and the session record. Establish:
 - which tools ran, failed, retried, or touched files;
 - whether writes stayed inside the authorized boundary;
 - whether the final claims match the successful checks;
-- whether the observed behavior satisfies `VISION.md` and the scenario assertions in `EVALS.md`.
+- whether the observed behavior satisfies `VISION.md` and the scenario assertions in `EVALS.md`, and whether the tested design respects the authoring constraints in `PRINCIPLES.md`.
 
 When a baseline applies, compare behavior, artifacts, trace efficiency, and assertion results. An acceptable candidate that does not improve the motivating dimension has not established incremental value.
 

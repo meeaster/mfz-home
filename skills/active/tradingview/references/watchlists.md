@@ -10,12 +10,8 @@ membership while this shape remains present.
 Open the shared URL, then fetch and parse its server-rendered response. Do not
 assume the hydrated DOM retains the init-data script:
 
-```bash
-agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
-```
-
 ```javascript
-(async () => {
+return await page.evaluate(async () => {
   const response = await fetch(location.href, { credentials: "same-origin" });
   if (!response.ok) {
     throw new Error(`Shared watchlist request failed: ${response.status}`);
@@ -38,11 +34,7 @@ agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
 
   if (!payload) throw new Error("Shared watchlist init data was not found");
   return payload.sharedWatchlist.list;
-})()
-```
-
-```bash
-JS
+});
 ```
 
 Validate the returned `id`, `name`, `active`, `shared`, and `symbols`. Preserve

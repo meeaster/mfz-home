@@ -8,7 +8,13 @@ At baseline `fec8a524`, [Orchestrator Mode](../../skills/active/orchestrator-mod
 
 The revised source contract replaces that unconditional worker gate with coordinator-owned, proportionate acceptance. Historical sessions must still be evaluated against their own loaded rules. Activation and behavioral observation are recorded separately from source implementation.
 
-## Workers own completion evidence
+## Completion evidence and validation ownership
+
+For diagrams and HTML explanation pages, the author dispatches `inspect` for routine rendered validation, views selected final captures, interprets the findings, repairs confirmed defects, and requests focused rechecks. The inspector uses the shared browser workflow, normally Browser Control, and saves useful images under the effort's `screenshots/` directory. Selected evidence identifies the exact artifact revision, viewport, relevant state, and an accessible locator. The inspector checks capture completeness, scale, and obscuring browser overlays before returning the images. The author's final image review uses a small coverage-based selection rather than every screenshot or a fixed quota.
+
+The author returns the artifact version, inspector session IDs, selected evidence, and remaining limits through its own handoff. The coordinator handles inspection dispatch only when nested delegation is unavailable and retains final acceptance. A targeted author browser check can resolve a disputed finding or guide a repair; viewing inspector captures does not require another routine browser pass. Reuse unaffected checks and scope rechecks to the affected behavior. Author continuity follows the soft freshness preference and hard non-resumption rule in [Ownership and delegation](ownership-and-delegation.md#freshness-and-continuity-have-different-benefits).
+
+The implementation-owner guidance below applies to ordinary application work. Its completion requirements do not reassign the visual-artifact inspector's work to the author.
 
 A coherent assignment includes its immediate validation and authorized immediate activation where that completes the same outcome. The worker reports what changed, what its checks establish, and what remains unresolved. Finishing the edits is not itself completion.
 
@@ -29,6 +35,8 @@ The same obligation applies when evidence changes during implementation. If a wo
 ## Trust applies to consequential claims
 
 The coordinator judges whether the reported checks support the conclusion, cover the relevant boundary, and agree with other evidence. The cost of being wrong also matters. This is a focused acceptance judgment, not a new checklist that must be repeated in every prompt.
+
+A failed check remains unresolved until repaired or accepted as an intentional exception by the authorized decision owner with supporting rationale. A passing summary cannot contradict the measurements. For example, no horizontal page overflow does not establish that SVG text fits its node. Findings identify the affected elements and meaningful extent of a failure rather than selecting the smallest violation. The author resolves conflicting visual evidence before the coordinator accepts the result.
 
 A cheaper model does not automatically require inspection, and a stronger model does not establish correctness. A newer-runtime observation supports that runtime. Repeating it in subsequent notes cannot broaden it into proof of a declared minimum version.
 

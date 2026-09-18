@@ -18,6 +18,8 @@ Descriptions can still help the coordinator suggest likely relevant skills to a 
 
 Fresh children do not inherit loaded skill bodies. Applicable mandatory guidance can therefore be repeated legitimately across sessions. Its cost must be evaluated alongside its benefit and the model doing the work, rather than treated automatically as waste.
 
+Provider-level caching is separate from inherited context. A fresh session can reuse a matching provider-cached prefix, but reading the same files does not guarantee that result. Aggregate cache counts do not identify which content matched. Cached input still occupies context and incurs charges. Review observed request costs separately from expected savings; orchestration uses configured default models rather than selecting alternatives to chase cache or price differences.
+
 OpenSpec's generated skills retain their own reading and execution requirements. The [OpenSpec routing contract](../../skills/active/orchestrator-mode/references/routing-and-roles.md#openspec-units) keeps local ownership guidance in Orchestrator Mode. A coordinator authoring a proposal follows Propose's required reads. For delegated apply, it establishes readiness and acceptance from current accepted artifacts without first running the implementation workflow just to prepare the worker's context. The implementation owner loads Apply and follows its current-state and mandatory reading requirements. The coordinator still reads deeper for material decisions and refreshes uncertain evidence; avoiding duplicate ownership does not authorize skipping workflow requirements.
 
 ## Workspace files have separate jobs
@@ -27,7 +29,8 @@ Efforts use `/tmp/opencode/orchestrator-workspaces/<effort>/`. Names describe th
 | Material | Purpose |
 | --- | --- |
 | `context.md` | Required current understanding: goal, motivation, preferences, constraints, waivers, accepted decisions and rationale, consequential rejected directions, open questions, and next step. |
-| `evidence/<producer-id>.md` | Attributed findings from one producer, with supporting observations, uncertainty, applicability, and useful lessons. Required for each evidence-producing dispatch under the current contract. |
+| `evidence/<producer-id>.md` | Attributed findings from one direct producer, with supporting observations, uncertainty, applicability, and useful lessons. Required for each evidence-producing dispatch by the coordinating orchestrator; internal helpers contribute through their parent's note unless separately assigned one. |
+| `screenshots/` | Useful rendered captures when validation produces images. The existing owner note or helper return maps selected images to artifact revisions, viewports, relevant state, and recipient-accessible paths. |
 | `index.md` | Catalog of completed, checked notes and their relevance, freshness, conflicts, and supersession. Required after the first checked producer note. |
 | `synthesis/<topic>.md` | Authorized evidence-informed reasoning with concrete reuse value. Creation requires a human request or acceptance of a recommendation. |
 | `design.md` | Optional accepted technical background shared by several units. |
@@ -38,6 +41,10 @@ The workspace is temporary internal memory, not publication or new authority. A 
 ## Notes preserve findings, not the whole investigation
 
 Evidence producers choose the depth and structure their findings warrant. Economical language removes unnecessary wording, not useful source detail, conflicting evidence, reasoning, or uncertainty. A substantial freeform note can prevent repeated investigation; its length alone is not a defect. Briefs and returns select what the immediate consumer needs rather than duplicate that depth.
+
+Shared handoff ownership follows the coordinating orchestrator's direct children. For example, artifact-author's nested inspector returns findings directly to the author without loading Task Evidence or writing a separate shared note by default. The author incorporates relevant findings, attribution, artifact versions, screenshots or measurement links, and limits into its own handoff. Detailed traces stay with the inspector. An explicit independent evidence-note assignment is the exception; an authorized child orchestrator still assigns notes to its own direct producers.
+
+Saving a capture does not prove that it contains usable evidence. The inspector checks content, readable scale, and overlays, and the author views selected final images before handing back a visual artifact. A fresh author receives the current artifact and selected evidence rather than an automatic replay of obsolete images. The [screenshot contract](../../skills/active/orchestrator-mode/references/child-contracts.md#screenshot-evidence) defines the runtime obligations without another shared note or manifest.
 
 Preserve discoveries that can improve a successor's decisions or actions, including the conditions for applying them. No fixed word limit, mandatory lesson section, or additional lesson file is required. Evaluate whether the discovery was captured, selected, applied, and useful. Cross-effort promotion requires deliberate maintenance through the owning workflow.
 
@@ -68,6 +75,8 @@ A later authorization to commit should replace an earlier no-commit constraint. 
 Resumption reads context first and reconciles selected working files with the current request and mutable state. Prior-session inspection requires a specific unresolved fact blocking the next action, or an explicit historical investigation request. Missing temporary files or a new session alone do not justify replaying history.
 
 The [continuity reference](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#choose-a-coordinator-phase-transition) treats an accepted design, completed proposal, or accepted implementation as a possible transition, not a mandatory reset. Continuing preserves useful discussion; compaction retains session continuity with less history; a fresh session depends more on current artifacts. The next responsibility and reconstruction cost determine which is useful.
+
+Coordinator transitions are distinct from the role-specific child non-resumption limit. Artifact-author, agent-author, and explicitly authorized super-worker require a fresh child above 150,000 recorded request-input tokens at the next dispatch. Preserve necessary meaning through selected artifacts and evidence even when little work remains. This policy does not establish a degradation threshold for inspectors or other roles.
 
 Before a transition, current context must agree with accepted artifacts about authority, decisions, remaining work and verification limits, mutable state, and the next action. Relevant child handles preserve useful continuity. A completed proposal does not grant implementation authority, and a stale read-only constraint does not describe later authorized implementation. Existing files can carry this state without another handoff document. Refresh relevant mutable state on resumption rather than assume the recorded checkout is unchanged.
 

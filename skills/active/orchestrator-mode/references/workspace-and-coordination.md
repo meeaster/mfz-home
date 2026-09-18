@@ -8,7 +8,7 @@ Add an empty `sessions/<current-session-id>.md` marker and retain earlier marker
 
 The human approved this temporary root for orchestration. Keep session working directories outside it and confirm it is external to each writer's active Location and project worktree; carry that confirmation in the brief.
 
-Every dispatched producer, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. It adds no research phase and does not apply to ordinary conversation outside orchestration.
+Every producer dispatched directly by the coordinating orchestrator, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. Internal helpers return findings to their immediate parent; the direct child preserves relevant results, attribution, evidence links, and limits in its own note. A helper needs the skill and a separate shared note only when explicitly assigned that evidence responsibility. An authorized child orchestrator applies this contract to its own direct producers. This adds no research phase and does not apply to ordinary conversation outside orchestration.
 
 Check the child's skill and edit permissions. The home's Explore override permits assigned evidence notes while ordinary exploration remains read-only. A blocked producer returns the exact conflict and attributed file-ready findings; assign the fallback to yourself and preserve attribution with minimal rewriting. Never bypass denied writes or silently change roles.
 
@@ -21,6 +21,7 @@ Write files for their purpose below, keeping decisions, useful reasoning, and ev
 | File | Purpose and creation condition |
 | --- | --- |
 | `context.md` | Required when establishing the workspace. Capture the current understanding from the conversation: goal and why it matters, human priorities/preferences, constraints and waivers, accepted decisions and rationale, consequential rejected directions, open questions, and next step. |
+| `screenshots/` | Selected rendered evidence when validation produces captures. Use the [screenshot evidence contract](child-contracts.md#screenshot-evidence); retain the revision and view mapping in the existing owner note or helper return. |
 | `design.md` | Optional accepted technical design needed across units: boundaries, responsibilities, flows, interfaces, invariants, and tradeoffs. Create only after acceptance. |
 | `synthesis/<topic>.md` | Focused evidence-informed reasoning for reuse, created only on explicit request or acceptance of the root skill's recommendation. May connect findings, compare options, and include preferences and decisions. Mark its reasoning as provisional, recommended, or accepted. A summary, checklist, readiness marker, or worker brief alone is not synthesis. |
 | `coordination.md` | Optional multi-unit dependencies, owners, status, must-preserve invariants, acceptance criteria, and evidence locators. One coherent worker keeps acceptance in its brief. |

@@ -1,91 +1,21 @@
-# Browser Setup
+# Browser setup
 
-Use an isolated browser for public TradingView pages. Use the user's dedicated
-Windows Chrome profile when login, private watchlists, saved layouts, or private
-Pine scripts are required.
+Load `browser-control` and follow the shared browser instructions. Use a new session-owned page for public TradingView pages. When the task needs a private watchlist, saved layout, or Pine script, attach and adopt the intended authenticated tab through Browser Control. A separate session owns its page but shares the relay's browser profile; it is not an isolated account.
 
-## Start Agent-Browser
+## Choose and verify the tab
 
-Load the version-matched browser workflow before use:
+Create a distinct session for the task and pass its ID on later calls. For an existing user tab, ask the human to attach it with the Browser Control toolbar button and adopt that exact target. Verify the URL, intended account, chart layout, symbol, and timeframe before proceeding. Report unavailable attachment or capability rather than switching browser tools or opening remote-debugging ports.
 
-```bash
-agent-browser skills get core
-```
+The human handles login, security keys, and other authentication prompts through the browser workflow's handoff. Verify the destination after completion. Keep authentication storage and browser profiles outside inspection or copies.
 
-For a public page:
+## Run page recipes in the correct runtime
 
-```bash
-SESSION=$(agent-browser session id --scope worktree --prefix tradingview-public)
-agent-browser --session "$SESSION" open "https://www.tradingview.com/"
-```
+The reference recipes use `page.evaluate` inside Browser Control's `execute` runtime. They can run through its MCP execute tool or a local script passed to `browser-control execute --session <id> --file <path>`. Browser Control supplies `page`; ordinary shell JavaScript or the outer tool-orchestration runtime does not.
 
-Close isolated sessions when the task ends. Do not close a user-attached Windows
-Chrome session.
+The function passed to `page.evaluate` runs in the TradingView page, where `window.TradingViewApi` and the page DOM exist. Return only the requested bounded result. Snapshot, locator actions, and browser helpers run outside that page function, within Browser Control's runtime.
 
-## Persistent Windows Profile
+## Make controls visible and finish cleanly
 
-From Windows PowerShell, launch a dedicated profile without remote debugging for
-the first login:
+TradingView hides some sidebar and legend controls in a narrow viewport. Adjust only the task page's viewport before concluding a control is absent. Take a fresh snapshot after menus, dialogs, layouts, symbols, or sidebars change; old element references may be stale.
 
-```powershell
-& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `
-  --user-data-dir="$env:LOCALAPPDATA\agent-browser\tradingview-profile" `
-  "https://www.tradingview.com/chart/"
-```
-
-Complete identity-provider and TradingView login in that window, then close the
-profile completely. Relaunch the same profile with debugging:
-
-```powershell
-& "$env:ProgramFiles\Google\Chrome\Application\chrome.exe" `
-  --remote-debugging-port=9222 `
-  --user-data-dir="$env:LOCALAPPDATA\agent-browser\tradingview-profile" `
-  "https://www.tradingview.com/chart/"
-```
-
-Google may reject login while remote debugging is active. Authenticate in the
-normal launch instead of weakening browser security checks.
-
-## Connect From WSL
-
-Try discovery first:
-
-```bash
-agent-browser --auto-connect tab
-```
-
-When discovery checks only localhost, obtain the Windows gateway and connect to
-it directly:
-
-```bash
-GATEWAY=$(ip -j route show default | jq -r '.[0].gateway')
-curl --silent --show-error --max-time 3 "http://${GATEWAY}:9222/json/version"
-agent-browser --cdp "http://${GATEWAY}:9222" tab
-```
-
-If WSL cannot reach the gateway, the user runs these commands separately in an
-elevated Windows Command Prompt:
-
-```cmd
-netsh interface portproxy add v4tov4 listenaddress=0.0.0.0 listenport=9222 connectaddress=127.0.0.1 connectport=9222
-```
-
-```cmd
-netsh advfirewall firewall add rule name="WSL Chrome Debug" dir=in action=allow protocol=TCP localport=9222
-```
-
-Verify `/json/version` before retrying agent-browser. Do not print cookies,
-profile contents, or authentication storage while diagnosing connectivity.
-
-## Make TradingView Controls Visible
-
-TradingView hides the right sidebar and some chart legend controls in a narrow
-viewport. Before searching for missing controls:
-
-```bash
-agent-browser --cdp "<cdp-url>" set viewport 1440 900
-agent-browser --cdp "<cdp-url>" snapshot -i -c
-```
-
-Re-snapshot after opening a menu, dialog, layout, symbol, or sidebar because
-element refs become stale.
+Preserve and restore chart state as required by the assignment. At completion, delete the task's Browser Control session unless follow-up needs it. Session deletion releases an adopted user tab without closing it; keep ownership explicit.

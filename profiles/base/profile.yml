@@ -59,7 +59,7 @@ skills:
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
   agent-browser:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   browser-control:
     agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
@@ -153,11 +153,15 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
     agents: { opencode: true, claude-code: true, codex: true }
+  diagram-design:
+    agents: { opencode: true, claude-code: true, codex: true }
   diagram-quality:
     agents: { opencode: true, claude-code: true, codex: true }
   ui-ux-design:
     agents: { opencode: false, claude-code: false, codex: false }
   show-me:
+    agents: { opencode: true, claude-code: true, codex: true }
+  visual-explainer:
     agents: { opencode: true, claude-code: true, codex: true }
   visual-pr:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -176,7 +180,7 @@ opencode:
   global_instructions: true
   config:
     experimental:
-      subagent_depth: 2
+      subagent_depth: 3
     agent:
       agent-author:
         model: openai/gpt-5.6-sol

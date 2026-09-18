@@ -7,7 +7,7 @@ argument-hint: "What skill or command are you authoring, reviewing, or evaluatin
 
 # Skill Authoring
 
-Turn intended agent behavior into useful, economical instructions. Preserve human intent, discriminating evaluation scenarios, and maintenance knowledge that is costly to reconstruct. Create additional records only for a concrete need. Load and update material relevant to the current change.
+Turn intended agent behavior into useful, economical instructions. Preserve human intent, authoring principles, discriminating evaluation scenarios, and maintenance knowledge that is costly to reconstruct. Load and update material relevant to the current change.
 
 Load `writing-for-agents` and read [planning guidance](references/openai-skill-creation.md) before authoring work. Follow Writing for Agents' `SKILL-MECHANICS.md` pointer for skill packaging and invocation. Read [OpenCode command mechanics](references/opencode-commands.md) when a command is the target or a genuine candidate.
 
@@ -27,7 +27,7 @@ External records contain a short `TARGET.md` identifying the repository, artifac
 
 ### Load by relevance
 
-Start with the target's runtime instructions and concise `VISION.md`, when present. Select further material by the task:
+Start with the target's runtime instructions and its authoring record's `PRINCIPLES.md` and `VISION.md`, when present. Read the principles before proposing changes; they guide authoring, not ordinary execution of the target skill. Select further material by the task:
 
 | Task | Additional context |
 |---|---|
@@ -54,22 +54,25 @@ When authorized work includes commits, commit changed runtime files in their rep
 
 ### Preserve the next author's context
 
-The default record contains:
+Every skill authoring record requires `PRINCIPLES.md`, including small skills. Create it when authoring a new skill or next revising an existing one that lacks it; migrate only the target, not other skills. A read-only assessment reports a missing required file without creating it. Explicit-command records may use the same form, but this requirement applies to skills.
 
-- `VISION.md`: purpose, human priorities, consequential tradeoffs, and boundaries. Keep it concise; leave execution mechanics in the runtime artifact.
+Record responsibilities:
+
+- `VISION.md`: purpose, intended outcomes, and scope boundaries.
+- `PRINCIPLES.md`: concise, target-specific rules for future authoring choices, preserving the human's priorities, consequential tradeoffs, and their rationale. Extract these from accepted discussion and existing intent rather than inventing requirements to fill the file. Move principles out of vision instead of duplicating them. Keep procedures in the runtime artifact and measurements in supporting evidence. Principles are human-owned and can change through an explicit accepted direction.
 - `EVALS.md`: only concrete scenarios and observable expectations that distinguish success from plausible failure. Group by behavior, consolidate overlapping cases, and express lessons from failures as reusable scenarios. Keep run results, status, session IDs, hashes, activation reports, and revision history out of this file.
 
-These are defaults, not a file-completeness requirement. A trivial skill may omit a record document that would add no useful information. Preserve enough intent and examples to assess future behavioral changes without manufacturing boilerplate.
+Keep principles in the resolved authoring record, outside runtime discovery and ordinary skill loading. Beyond required principles and external identity, a trivial skill may omit a record document that adds no useful information. Preserve enough intent and examples to assess future changes without empty templates or copied generic guidance.
 
 Create `MAINTENANCE.md` only when an outside source materially influences the skill and future upkeep needs that relationship explained. Identify the source, adopted revision when applicable, intentional adaptations, and what a refresh must compare or preserve. Omit it when no such relationship needs explanation. Generic authoring procedures belong here or in Writing for Agents; runtime rules and readily discoverable configuration stay with their owners.
 
-Do not require `LOG.md`, create a replacement decision file by default, or append an entry for every edit. Preserve still-relevant rationale beside the concern it explains: tradeoffs in vision, source adaptations in maintenance, and failure conditions in evaluation scenarios. A separate decision record needs substantial reasoning that future authors are likely to revisit. Treat existing logs as historical material to consult when relevant; assess useful content and obtain authority before deleting or consolidating history. An authorized cleanup does not require moving removed material into another archive.
+Do not require `LOG.md`, create a replacement decision file by default, or append an entry for every edit. Preserve still-relevant rationale beside the concern it explains: authoring tradeoffs in principles, source adaptations in maintenance, and failure conditions in evaluation scenarios. A separate decision record needs substantial reasoning that future authors are likely to revisit. Treat existing logs as historical material to consult when relevant; assess useful content and obtain authority before deleting or consolidating history. An authorized cleanup does not require moving removed material into another archive.
 
 Additional evidence files need a concrete purpose and a reading condition. Keep substantial traces outside routine authoring context. Restatement earns its place only when it contributes a distinct decision, testable assertion, or maintenance fact. Let Git preserve ordinary textual history.
 
 ## 3. Check behavior
 
-Apply Writing for Agents' pruning tests to runtime instructions and references. For records, ask whether each passage helps a future author decide or verify something. Remove stale material and repetition that adds no distinct value.
+Check the change against the target's principles and surface unresolved conflicts with the requested direction. Apply Writing for Agents' pruning tests to runtime instructions and references. For records, ask whether each passage helps a future author decide or verify something. Remove stale material and repetition that adds no distinct value.
 
 Check structure, reference links, and coherence for the changed branches. Evaluate applicable invocation and execution behavior separately: realistic positive and adjacent prompts for model invocation, explicit invocation and argument handling for commands, and observable outcomes after loading.
 

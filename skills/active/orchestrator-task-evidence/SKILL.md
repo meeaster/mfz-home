@@ -12,7 +12,7 @@ Use only when the human or assigning parent explicitly requests this skill. The 
 
 Write only your explicitly assigned note beneath `/tmp/opencode/orchestrator-workspaces/`, with confirmation that the root is external to your active Location and project worktree. General `/tmp/opencode/*` capability provides neither assignment nor per-producer isolation. The coordinator owns paths, selected readings, coordinator files, acceptance, and release. This note allowance grants no project/system mutation, publication, or durable promotion.
 
-Every orchestration evidence producer gets a note, including a small lookup. Request a missing path before writing. Outside orchestration, ordinary findings remain file-free unless explicitly assigned. If placement, instructions, access, or permissions block writing, return the exact conflict and attributed file-ready findings with source locators. The coordinator owns the fallback; never bypass a denied edit through shell, broaden permissions, or substitute roles.
+The coordinating orchestrator assigns shared notes to its direct producers, including small lookups. Internal helpers return findings to their immediate parent without automatically loading this skill or creating shared notes; their parent preserves relevant findings in its own handoff. A separate helper note requires an explicit evidence assignment. For an assigned note, request a missing path before writing. Outside orchestration, ordinary findings remain file-free unless explicitly assigned. If placement, instructions, access, or permissions block writing, return the exact conflict and attributed file-ready findings with source locators. The coordinator owns the fallback; never bypass a denied edit through shell, broaden permissions, or substitute roles.
 
 ## Read and reuse
 
@@ -28,6 +28,7 @@ Keep one coherent note with a short producer label and as many useful findings a
 - Preserve exact records or excerpts when needed to act, reproduce, or decide. Summarize repetitive output and use pointers for cheap lookups.
 - Preserve discoveries that change a successor's decisions or actions, with the conditions needed to apply them. Record a working approach when it prevents a meaningful repeated failure; omit the attempt history. Recommendations remain proposals, not new assignment requirements.
 - Reference earlier findings and explain what you add, independently verify, qualify, or contradict. Remove repetition and content with no distinct downstream use.
+- Incorporate relevant internal-helper findings with attribution, evidence links, versions, and coverage limits. Preserve the facts needed for acceptance or continuation; a helper session ID alone is not a handoff.
 
 Use headings when helpful, without mandatory sections, quotas, word limits, or extra investigation for a short note. Keep assignments in briefs and full source, media, traces, and routine process history in the session. Omit secrets and unrelated sensitive data. Notes are temporary internal handoffs, not durable continuity or authority.
 

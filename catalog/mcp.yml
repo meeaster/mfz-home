@@ -51,6 +51,11 @@ servers:
     type: remote
     transport: http
     url: http://192.168.30.39:9583/{env:HA_MCP_SECRET_PATH}
+  paper:
+    description: Paper.design visual HTML/CSS design canvas MCP server (Paper Desktop).
+    type: remote
+    transport: http
+    url: http://127.0.0.1:29979/mcp
   unifi-network:
     description: UniFi Network MCP server for managing the UniFi gateway, networks, clients, and firewall.
     type: local

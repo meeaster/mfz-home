@@ -6,12 +6,8 @@ Confirm the active layout, exchange-qualified symbol, interval, and loaded
 studies before reading values. The fastest observed inventory route uses checked
 chart APIs:
 
-```bash
-agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
-```
-
 ```javascript
-(() => {
+return await page.evaluate(() => {
   const api = window.TradingViewApi;
   const chart = api?.activeChart?.();
   const studies = chart?.getAllStudies?.();
@@ -25,11 +21,7 @@ agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
     chartType: chart.chartType?.(),
     studies: studies.map(({ id, name }) => ({ id, name })),
   };
-})()
-```
-
-```bash
-JS
+});
 ```
 
 For one study's inputs, find exactly one semantic name match and inspect its
@@ -37,7 +29,7 @@ checked study API. Return only requested inputs when the full list would be
 large:
 
 ```javascript
-(() => {
+return await page.evaluate(() => {
   const requested = "B-Xtrender MTF";
   const chart = window.TradingViewApi?.activeChart?.();
   const matches = chart?.getAllStudies?.()
@@ -65,7 +57,7 @@ large:
       value,
     })),
   };
-})()
+});
 ```
 
 Use Object Tree when these methods are absent, when UI-visible settings must be
@@ -152,8 +144,7 @@ When the current plan enables chart-data export:
 
 Export includes loaded plotted indicator values, not arbitrary internal Pine
 variables. Add an explicitly authorized validation plot when a needed value is
-not exposed. Agent-browser may automate an entitled download; it must not use
-another route to defeat a disabled export control.
+not exposed. Browser Control's extension-backed tabs cannot use Playwright download artifacts. Use a supported payload exposed by the entitled export, or have the human save the file and provide its path. Do not substitute internal extraction for a disabled export control.
 
 ## Loaded Study Rows
 
@@ -166,12 +157,8 @@ use it to reproduce a disabled bulk export.
 
 First list studies semantically:
 
-```bash
-agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
-```
-
 ```javascript
-(() => {
+return await page.evaluate(() => {
   const chart = window.TradingViewApi?.activeChart?.();
   const model = chart?.chartModel?.();
   if (!model) throw new Error("Active TradingView chart model is unavailable");
@@ -186,21 +173,13 @@ agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
       title: safeCall(source, "title"),
     }))
     .filter((source) => source.name || source.title);
-})()
-```
-
-```bash
-JS
+});
 ```
 
 Then inspect the chosen study's plot metadata and a bounded row sample:
 
-```bash
-agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
-```
-
 ```javascript
-(() => {
+return await page.evaluate(() => {
   const studyName = "B-Xtrender MTF";
   const chart = window.TradingViewApi?.activeChart?.();
   const model = chart?.chartModel?.();
@@ -249,11 +228,7 @@ agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
     rowCount: rows.length,
     sample: rows.slice(-10).map(({ index, value }) => ({ index, value })),
   };
-})()
-```
-
-```bash
-JS
+});
 ```
 
 In the observed PlotList-backed B-Xtrender study, `value[0]` was UNIX time and

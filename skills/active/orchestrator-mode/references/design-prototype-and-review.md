@@ -2,7 +2,7 @@
 
 ## Design consultation
 
-Dispatch `architect` only when the human explicitly requests that specialist or accepts a recommendation to use it. A general architecture, planning, or implementation request does not select the agent. Explain the pending decision and why specialist synthesis would help, then await acceptance. A parent-facing coordinator must carry that human approval from its parent or return the recommendation to it.
+Dispatch `architect` or `ui-ux-designer` only when the human explicitly requests that specialist or accepts a recommendation to use it. General architecture, planning, UI-design, critique, or layout-option requests do not select either agent. When specialist consultation would help, explain the pending decision and why, then await acceptance. Otherwise continue through the ordinary task owner. A parent-facing coordinator must carry that human approval from its parent or return the recommendation to it.
 
 Architecture and UI consultation require an authorized bounded engagement. It covers corrections, evidence follow-up, and reconsideration within the same decision, scope, access, and system boundary. Ask for materially new consultation, expanded access/scope, or an unrequested independent opinion. Replacing an unavailable session does not change authority.
 
@@ -14,7 +14,7 @@ Surface the substantive returned options and reasoning to the decision recipient
 
 Architects return evidence requests to the coordinator. Use [Child contracts](child-contracts.md)'s missing-evidence cycle, surface the checked evidence, and resume the same engagement with the combined delta unless it reveals a consequential decision or changes its basis. Keep broad traces with gatherers.
 
-An explicit UI-design request authorizes suitable `ui-ux-designer` consultation; otherwise explain and ask. Require `ui-ux-design` and a read-only handoff covering relevant layout, interaction/component states, accessibility, constraints, and verification. Surface its direction for acceptance under the same prospective-selection rule. Settled UI edits need no consultation.
+For authorized `ui-ux-designer` consultation, require `ui-ux-design` and a read-only handoff covering relevant layout, interaction/component states, accessibility, constraints, and verification. Surface its direction for acceptance under the same prospective-selection rule. Settled UI edits need no consultation.
 
 ## Prototype
 

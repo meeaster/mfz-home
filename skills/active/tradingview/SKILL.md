@@ -3,14 +3,12 @@ name: tradingview
 description: >
   TradingView browser operations. Use when interacting with TradingView charts,
   layouts, indicators, the Data Window, Pine editor, alerts, shared or private
-  watchlists, chart-data exports, or loaded study values through agent-browser.
+  watchlists, chart-data exports, or loaded study values through Browser Control.
 ---
 
 # TradingView
 
-This is a TradingView field guide layered on `agent-browser`. Load the
-`agent-browser` skill and run `agent-browser skills get core` before issuing
-browser commands; this skill owns TradingView routes, not browser mechanics.
+This is a TradingView field guide layered on `browser-control`. Load that skill before browser operations; it owns execution, session attachment, authentication handoffs, and recovery. This skill owns TradingView routes and account-state boundaries.
 
 ## Workflow
 
@@ -22,7 +20,7 @@ browser commands; this skill owns TradingView routes, not browser mechanics.
    Require explicit user authority before saving layouts, changing indicator
    settings, editing Pine, creating or changing alerts, modifying watchlists,
    publishing, or trading. Open
-   [browser setup](references/browser-setup.md) for login or WSL attachment,
+   [browser setup](references/browser-setup.md) for login or tab attachment,
    [watchlists](references/watchlists.md) for universe work, and
    [charts and data](references/charts-and-data.md) for chart or study values.
    Use [TradingView operations](references/operations.md) for layouts,
@@ -97,8 +95,7 @@ browser commands; this skill owns TradingView routes, not browser mechanics.
 
 - Keep credentials, cookies, auth tokens, Chrome profiles, and private account
   data out of commands, logs, screenshots, fixtures, and skill files.
-- Use Google or other identity-provider login in a normal browser launch, then
-  relaunch the same dedicated profile with remote debugging.
+- The human completes identity-provider login and security prompts through Browser Control's supported handoff. Verify the intended account and chart after the handoff.
 - Preserve the user's active layout. Do not switch layouts, apply templates, or
   save incidental panel and chart changes without authority.
 - Treat symbol and timeframe changes as potentially persistent. Use a copy or

@@ -18,12 +18,8 @@ For an authorized symbol change on the active chart, the fastest observed route
 uses TradingView's in-page chart object. This is undocumented, so check the live
 shape and retain the semantic UI fallback:
 
-```bash
-agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
-```
-
 ```javascript
-(async () => {
+return await page.evaluate(async () => {
   const requested = "NASDAQ:QQQ";
   const ticker = requested.split(":").at(-1);
   const chart = window.TradingViewApi?.activeChart?.();
@@ -49,11 +45,7 @@ agent-browser --cdp "<cdp-url>" eval --stdin <<'JS'
     throw new Error(`TradingView did not switch to ${ticker}; current symbol is ${after}`);
   }
   return { requested, before, after, interval: chart.resolution?.() };
-})()
-```
-
-```bash
-JS
+});
 ```
 
 Report the resolved exchange because TradingView may canonicalize the requested
@@ -120,9 +112,7 @@ ambiguous, or does not match the selected script identity and saved version, use
 the clipboard fallback in one local process. Read and retain the prior clipboard
 in memory first; abort before selecting source if that read fails. Foreground the
 detached editor, focus its textbox, press `Control+a`, copy the selection, and
-read it with agent-browser's JSON clipboard command without emitting subprocess
-output. Take the exact string from `data.text`; plain-text CLI output can make a
-terminal newline ambiguous. In `finally`, re-read the current clipboard and
+read the exact clipboard string without emitting it to command output. Verify supported clipboard read and restore access before selecting or copying source; if unavailable, request a human-provided source export instead. Plain-text CLI output can make a terminal newline ambiguous. In `finally`, re-read the current clipboard and
 restore the prior value only when it still equals the extracted Pine source. If
 another application changed it, preserve that newer value and report that the
 original could not be restored. After restoration, re-read and compare in memory.

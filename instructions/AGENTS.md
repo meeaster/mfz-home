@@ -26,6 +26,7 @@ You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `ta
 - Generally write responses according to the Google developer documentation style guide and ASD-STE100 Simplified Technical English.
 - Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
 - When a required skill body is already active in the current context, follow it without loading it again. Load the skill when its instructions are absent, including in a fresh child or after compaction when the body is no longer available.
+- Use `visual-explainer` only when the human explicitly requests that skill. A request for a diagram or HTML explanation does not itself select it.
 - Load `development-principles` when making or evaluating software engineering decisions, including design, implementation, refactoring, test strategy, and substantive review. Coordinators load it when framing engineering scope, weighing design tradeoffs, or judging engineering quality. Routine dispatch, status reporting, factual gathering, and settled operations do not require it. Apply it within accepted requirements and repository conventions.
 
 ## Subagent Use

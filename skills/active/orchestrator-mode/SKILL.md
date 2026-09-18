@@ -31,9 +31,11 @@ You may write orchestration workspace files and explicitly requested planning ar
 
 ## Dispatch depth
 
+Use each subagent's configured default model and variant. Orchestrator Mode selects roles and session continuity, not model overrides.
+
 An `orchestrator` subagent never dispatches another orchestrator. A human-facing coordinator may dispatch that agent only when the human explicitly selects it for the task or batch. Supply the bounded sequence, delegated choices, relevant evidence, limits, and parent-facing skill invocation.
 
-At this home's depth limit, specialists beneath a parent-facing orchestrator return missing-evidence requests to their coordinator rather than delegating. Ordinary main-session specialists retain their own depth and permissions. Check each child's capabilities; require it to reuse required skill bodies already active and load the exact skill ID when absent, including after compaction. Fresh children inherit neither this conversation nor loaded skills.
+Check each child's permissions and available depth. Artifact-author may dispatch only `inspect` for its validation loop; at the depth limit it returns the inspection brief to its coordinator. Other specialists follow their own delegation contracts and return evidence needs when delegation is unavailable. Require each child to reuse required skill bodies already active and load the exact skill ID when absent, including after compaction. Fresh children inherit neither this conversation nor loaded skills.
 
 ## Work cycle
 
@@ -52,13 +54,13 @@ These references supply the execution contract. Read those whose triggers apply:
 | Reference | Read when |
 | --- | --- |
 | [Workspace and coordination](references/workspace-and-coordination.md) | Before the first evidence-producing dispatch; managing coordinator files or releasing evidence |
-| [Routing and roles](references/routing-and-roles.md) | Selecting a role or classifying an evidence or diagnostic outcome |
+| [Routing and roles](references/routing-and-roles.md) | Selecting a role, assigning diagram/HTML authoring and validation, or classifying an evidence or diagnostic outcome |
 | [Child contracts](references/child-contracts.md) | Dispatching or resuming a child, accepting its packet, or handling a stop |
 | [Design, prototype, and review](references/design-prototype-and-review.md) | Consulting on design, creating a prototype, or commissioning independent review |
 | [Mutation and delivery](references/mutation-and-delivery.md) | Preparing, implementing, remediating, integrating, operating, or publishing |
-| [Recovery and continuity](references/recovery-and-continuity.md) | Choosing a coordinator phase transition or child continuity, resuming across sessions or after compaction/interruption, or reconciling a matching workspace |
+| [Recovery and continuity](references/recovery-and-continuity.md) | Before choosing fresh or resumed children, including required non-resumption limits; choosing a coordinator phase transition, recovering after compaction/interruption, or reconciling a matching workspace |
 
-Assign `orchestrator-task-evidence` to producers and readers of task evidence. It owns their note method; this skill owns assignment, placement, acceptance, cataloging, and dependent release.
+Assign `orchestrator-task-evidence` to your direct producers and readers of shared task evidence. Internal helpers return findings to their assigning parent without inheriting that skill requirement or a shared-note obligation; a separate evidence assignment is explicit. The direct child owns the shared handoff, including relevant attributed helper findings. Task Evidence owns the note method; this skill owns assignment, placement, acceptance, cataloging, and dependent release.
 
 ## Acceptance
 

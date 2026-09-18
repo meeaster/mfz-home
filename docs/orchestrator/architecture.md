@@ -18,13 +18,17 @@ The source contracts were revised on 2026-09-16 following the discussion and aud
 | Implemented in source | Development Principles remains shared judgment guidance; owning workflows and repository policy supply execution requirements. Ordinary-use reviews observed the shorter skill in watch and overview work, without establishing causal equivalence. |
 | Implemented in source | Coverage-based briefs recognize aggregate equivalence; coordinator phase transitions consider artifact readiness; consequential orchestration choices receive brief explanations. Reviews retain all standing categories, evidence-backed strengths, and decision-ready recommendations. |
 | Implemented in source | Orchestrator Mode distinguishes coordinator readiness from delegated OpenSpec application work. Generated OpenSpec skills remain unchanged; their mandatory reads, schema, store, scope, and authorization contracts remain controlling. |
+| Implemented in source | Subagents use configured default models and variants. Artifact-author, agent-author, and explicitly authorized super-worker sessions above 150,000 recorded request-input tokens are replaced at the next dispatch, including near-complete units. |
+| Implemented in source | Diagram and HTML authors own composition, static checks, selected final-image review, and the inspection-and-repair loop. They may dispatch only inspect for routine browser validation. The coordinator retains final acceptance and handles inspection dispatch when nested delegation is unavailable. |
+| Implemented in source | After a completed validated revision, artifact-author has a soft preference for fresh context around 100k when the artifact and compact handoff suffice. The firm 150k next-dispatch rule still takes precedence. |
+| Implemented in source | Browser Control is the standard browser workflow, and agent-browser is disabled in base. Visual Explainer is available but requires explicit human selection; diagram work otherwise uses Diagram Design and Diagram Quality. |
 | Deferred | Technical Writing's unrelated maintenance obligation needs separate consideration. |
 
 ## Purpose and priorities
 
 The coordinator retains the understanding needed to discuss the problem, challenge assumptions, explain tradeoffs, and direct the effort. Specialists absorb detail that does not improve those responsibilities. Human back-and-forth is a primary use of the main context, not overhead to eliminate.
 
-Delegation addresses both finite context and cost. Extensive research, tool output, and implementation history can crowd out decisions and make later turns expensive. The architecture does not depend on a fixed context threshold or pricing tier. Those depend on the model and provider at the time of use.
+Delegation addresses both finite context and cost. Extensive research, tool output, and implementation history can crowd out decisions and make later turns expensive. The human-selected non-resumption limit applies to three roles, not to every agent or the coordinator. It is a cost-control policy rather than a claim about model capacity, degradation, or a provider pricing tier. Other continuity decisions weigh useful retained understanding and context headroom.
 
 The governing priority is to minimize unnecessary context while preserving useful behavior. Moving long instructions behind links is insufficient when an effort eventually loads them all. Each distinct requirement should have one owner, and ordinary mechanics should remain with the model where judgment is adequate.
 
@@ -50,6 +54,7 @@ The usual flow is collaborative framing, decision-relevant evidence, an accepted
 - [Context and evidence](context-and-evidence.md) explains what belongs in the main session, briefs, returns, and workspace files.
 - [Acceptance and verification](acceptance-and-verification.md) explains proportionate acceptance and the handoff it requires.
 - [Review orchestrator sessions](session-review.md) provides the method for assessing real behavior, alternatives, and model-specific costs.
+- [Update and test Orchestrator Mode](updating-and-testing.md) describes bounded instruction changes, same-scenario comparisons, new-scenario checks, and handoff validation.
 
 ## Authority and sources of truth
 
@@ -57,7 +62,7 @@ A child brief operates alongside global, workspace, and project instructions, bu
 
 Runtime instructions determine current execution behavior. These architecture documents explain accepted intent, tradeoffs, and pending changes. The review method evaluates behavior without authorizing implementation. A human request remains the source of authority for changes, external actions, and publication.
 
-Target-specific authoring records live in the separate Personal knowledge repository at `authoring-records/mfz-home/skills/orchestrator-mode/` and `orchestrator-task-evidence/`. Their `VISION.md` preserves intent, `EVALS.md` contains scenarios and expectations, and optional `MAINTENANCE.md` explains outside sources, adaptations, and refresh considerations. They are local references rather than dependencies required to understand these pages. Task reports and execution traces retain observed results for their recorded revisions.
+Target-specific authoring records live in the separate Personal knowledge repository at `authoring-records/mfz-home/skills/orchestrator-mode/` and `orchestrator-task-evidence/`. `VISION.md` preserves purpose and scope, `PRINCIPLES.md` records authoring priorities and tradeoffs, `EVALS.md` contains scenarios and expectations, and optional `MAINTENANCE.md` explains outside sources, adaptations, and refresh considerations. Skill Authoring requires principles for new skills and adds them to existing skills when next revised. These records are local references rather than dependencies required to understand these pages. Task reports and execution traces retain observed results for their recorded revisions.
 
 When a pending design is implemented, reconcile the affected runtime instructions and scenarios, then update this status. Report validation separately from expected behavior and keep detailed traces out of routine architecture reading. Record cleanup does not require a replacement archive.
 
