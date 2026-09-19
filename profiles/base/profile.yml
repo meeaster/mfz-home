@@ -46,6 +46,8 @@ thread:
       - claude-code
       - opencode
 skills:
+  open-pencil-design:
+    agents: { opencode: true, claude-code: false, codex: false }
   open-pencil:
     agents: { opencode: true, claude-code: false, codex: false }
   orchestrator-mode:
