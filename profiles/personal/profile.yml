@@ -57,8 +57,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
-executor:
-  bridge: false
 mcp:
   x-docs:
     agents: [opencode, claude-code, codex]
