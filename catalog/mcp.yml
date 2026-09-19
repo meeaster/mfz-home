@@ -122,6 +122,11 @@ servers:
     type: local
     transport: stdio
     command: [browser-control-mcp]
+  terminal-control:
+    description: Terminal Control MCP server for existing termctrl sessions.
+    type: local
+    transport: stdio
+    command: [termctrl, mcp]
   openpencil:
     description: OpenPencil design editor MCP trial endpoint.
     type: remote

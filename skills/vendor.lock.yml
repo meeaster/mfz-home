@@ -105,3 +105,6 @@ skills:
   open-pencil:
     commit: 6cf1748e31a0e43d3794d43abbd003ce9caa3c6f
     digest: 5516b4f917ac6b1862ba76cdbe011dae5bdb08862fe5d75b6a1fbb80dfebc86f
+  terminal-control:
+    commit: c1d4f95e4f1b7638f6229e9bfc9599a955f95ce2
+    digest: 64f6cfb0c1682a28aa3b6df68b0145ad730162c3775595aadc22fb37ca03e0b1

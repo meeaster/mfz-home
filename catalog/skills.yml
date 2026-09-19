@@ -507,6 +507,13 @@ skills:
     repo: https://github.com/anomalyco/browser-control
     ref: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
     subtree: skills/browser-control
+  - name: terminal-control
+    description: >
+      Drive and verify terminal applications with the termctrl CLI in a real PTY.
+    source: vendored
+    repo: https://github.com/anomalyco/terminal-control
+    ref: v1.2.1
+    subtree: skills/terminal-control
   - name: open-pencil-design
     source: local
     skill: active/open-pencil-design

@@ -66,6 +66,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   browser-control:
     agents: { opencode: true, claude-code: true, codex: true }
+  terminal-control:
+    agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
     agents: { opencode: false, claude-code: false, codex: false }
   thermo-nuclear-code-quality-review:
@@ -182,6 +184,8 @@ mcp:
     agents: [opencode, claude-code, codex]
   openpencil:
     agents: [opencode]
+  terminal-control:
+    agents: [opencode, claude-code, codex]
 opencode:
   global_instructions: true
   config:
