@@ -75,6 +75,8 @@ mcp:
     agents: [opencode, claude-code, codex]
   cloudflare-docs:
     agents: [opencode, claude-code, codex]
+  discord:
+    agents: [opencode]
 claude:
   settings:
     permissions:

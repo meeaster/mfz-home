@@ -1,0 +1,19 @@
+[Unit]
+Description=Discord MCP Streamable HTTP server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/repos/mfz-home/mcp/discord
+Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:%h/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=DISCORD_MCP_HOST=127.0.0.1
+Environment=DISCORD_MCP_PORT=29980
+Environment="DISCORD_DESTINATIONS_JSON={\"opencode\":\"1550738885615554621\"}"
+Environment=DISCORD_DEFAULT_DESTINATION=opencode
+ExecStart=/usr/bin/zsh -c 'fixed_home="$HOME"; fixed_path="$PATH"; fixed_host="$DISCORD_MCP_HOST"; fixed_port="$DISCORD_MCP_PORT"; fixed_destinations="$DISCORD_DESTINATIONS_JSON"; fixed_default="$DISCORD_DEFAULT_DESTINATION"; source "$HOME/.mindframe-z/secrets/zsh.env"; if [[ -z "${DISCORD_BOT_TOKEN:-}" ]]; then print -u2 "[discord-mcp] invalid configuration; server not started"; exit 1; fi; exec /usr/bin/env -i HOME="$fixed_home" PATH="$fixed_path" DISCORD_MCP_HOST="$fixed_host" DISCORD_MCP_PORT="$fixed_port" DISCORD_DESTINATIONS_JSON="$fixed_destinations" DISCORD_DEFAULT_DESTINATION="$fixed_default" DISCORD_BOT_TOKEN="$DISCORD_BOT_TOKEN" %h/.local/share/mise/shims/node %h/workspace/repos/mfz-home/mcp/discord/dist/http-server.js'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

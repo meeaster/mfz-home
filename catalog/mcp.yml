@@ -127,6 +127,11 @@ servers:
     type: local
     transport: stdio
     command: [termctrl, mcp]
+  discord:
+    description: Send plain-text messages to configured Discord destinations.
+    type: remote
+    transport: http
+    url: http://127.0.0.1:29980/mcp
   openpencil:
     description: OpenPencil design editor MCP trial endpoint.
     type: remote

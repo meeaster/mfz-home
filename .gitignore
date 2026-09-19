@@ -2,3 +2,4 @@ node_modules/
 .vitest/
 __pycache__/
 *.pyc
+mcp/discord/dist/
