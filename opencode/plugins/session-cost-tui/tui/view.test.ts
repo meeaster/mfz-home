@@ -9,7 +9,7 @@ type Handler = (event: { data: { sessionID: string; parentID?: string } }) => vo
 
 type State = { estimate?: CostEstimate; error?: string };
 
-type TestContext = { data: { on: (type: string, handler: Handler) => () => number; session: { family: (id: string) => string[]; message: { list: () => never[] } } } };
+type TestContext = { data: { on: (type: string, handler: Handler) => () => number; session: { family: (id: string) => string[] } } };
 
 function asContext(value: TestContext): Context {
   // SAFETY: The lifecycle only accesses the data API represented by this test contract.
@@ -31,8 +31,7 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
         return () => cleanups.push(type);
       },
       session: {
-        family: (id: string) => id === "one" ? family : ["two"],
-        message: { list: () => [] }
+        family: (id: string) => id === "one" ? family : ["two"]
       }
     }
   };
@@ -146,26 +145,6 @@ describe("session cost lifecycle", () => {
     test.handlers.get("session.deleted")?.({ data: { sessionID: "child" } });
     await vi.advanceTimersByTimeAsync(10);
     expect(estimate).toHaveBeenCalledTimes(8);
-  });
-
-  it("refreshes derived cached input state for model and compaction changes", async () => {
-    vi.useFakeTimers();
-    let cachedInputCost = 1;
-    const test = harness(async () => ({ ...result(1), cachedInputCost }));
-
-    test.lifecycle.refresh();
-    await vi.advanceTimersByTimeAsync(10);
-    expect(test.state.estimate?.cachedInputCost).toBe(1);
-
-    cachedInputCost = 2;
-    test.handlers.get("session.model.selected")?.({ data: { sessionID: "one" } });
-    await vi.advanceTimersByTimeAsync(10);
-    expect(test.state.estimate?.cachedInputCost).toBe(2);
-
-    cachedInputCost = 3;
-    test.handlers.get("session.compaction.ended")?.({ data: { sessionID: "one" } });
-    await vi.advanceTimersByTimeAsync(10);
-    expect(test.state.estimate?.cachedInputCost).toBe(3);
   });
 
   it("invalidates when a child is removed before the deletion listener runs", async () => {

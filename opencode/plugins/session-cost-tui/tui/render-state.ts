@@ -1,4 +1,4 @@
-import type { CostEstimate } from "./pricing.js";
+import type { Cost, CostEstimate } from "./pricing.js";
 
 export type CatalogRenderState =
   | { type: "loading" }
@@ -13,8 +13,8 @@ export function catalogRenderState(estimate: CostEstimate | undefined, error: st
   return { type: "loading" };
 }
 
-export function formatCachedInputCost(amount: number | undefined) {
-  if (amount === undefined || !Number.isFinite(amount) || amount < 0) return undefined;
+export function formatCost(cost: Cost) {
+  const sinceCompaction = cost.sinceCompaction ?? cost.amount;
 
-  return `Cached input now: ~$${amount.toFixed(3)}`;
+  return `${cost.model}: $${sinceCompaction.toFixed(3)} ($${cost.amount.toFixed(3)})`;
 }

@@ -27,6 +27,8 @@ export type SessionMessage = {
   };
 };
 
+export type SessionMessageGroup = { sessionID: string; messages: SessionMessage[] };
+
 export async function loadSessionMessages(client: Context["client"], sessionID: string): Promise<SessionMessage[]> {
   const messages: SessionMessage[] = [];
   const cursors = new Set<string>();
@@ -49,31 +51,52 @@ export async function loadSessionMessages(client: Context["client"], sessionID: 
   return messages;
 }
 
-export async function loadFamilyMessages(client: Context["client"], sessionIDs: readonly string[]) {
-  return (await Promise.all(sessionIDs.map((sessionID) => loadSessionMessages(client, sessionID)))).flat();
+export async function loadFamilySessionMessages(
+  client: Context["client"],
+  sessionIDs: readonly string[]
+): Promise<SessionMessageGroup[]> {
+  return Promise.all(sessionIDs.map(async (sessionID) => ({
+    sessionID,
+    messages: await loadSessionMessages(client, sessionID)
+  })));
 }
 
-export function latestAssistantWithUsage(messages: readonly SessionMessage[], boundary?: string) {
-  const boundaryIndex = boundary ? messages.findIndex((message) => message.id === boundary) : -1;
+export async function loadFamilyMessages(client: Context["client"], sessionIDs: readonly string[]) {
+  return (await loadFamilySessionMessages(client, sessionIDs)).flatMap(({ messages }) => messages);
+}
 
-  if (boundary && boundaryIndex === -1) return undefined;
-
-  const end = boundaryIndex === -1 ? messages.length : boundaryIndex;
-
-  const compactionIndex = messages.findLastIndex(
-    (message, index) => message.type === "compaction" && message.status === "completed" && index < end
+export function latestCompletedCompactionIndex(messages: readonly SessionMessage[]) {
+  return messages.findLastIndex(
+    (message) => message.type === "compaction" && message.status === "completed"
   );
+}
 
-  return messages.findLast(
-    (message, index) =>
-      message.type === "assistant" &&
-      message.model?.providerID &&
-      message.model.id &&
-      message.time?.completed !== undefined &&
-      message.tokens !== undefined &&
-      index > compactionIndex &&
-      index < end
-  );
+export function familyPricingUsages(
+  family: readonly SessionMessageGroup[],
+  selectedSessionID: string
+) {
+  const selected = family.find(({ sessionID }) => sessionID === selectedSessionID);
+  const compactionIndex = latestCompletedCompactionIndex(selected?.messages ?? []);
+
+  const pricedGroups = family.map(({ sessionID, messages }) => ({
+    sessionID,
+    usages: messages.flatMap((message, index) => {
+      const usage = pricingUsage(message);
+
+      return usage ? [{ index, usage }] : [];
+    })
+  }));
+
+  const selectedUsages = pricedGroups.find(({ sessionID }) => sessionID === selectedSessionID)?.usages ?? [];
+
+  const sinceCompaction = compactionIndex === -1
+    ? undefined
+    : selectedUsages.flatMap(({ index, usage }) => index > compactionIndex ? [usage] : []);
+
+  return {
+    all: pricedGroups.flatMap(({ usages }) => usages.map(({ usage }) => usage)),
+    sinceCompaction
+  };
 }
 
 export function pricingUsage(message: SessionMessage): PricingUsage | undefined {

@@ -1,13 +1,14 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCachedInputCost } from "./render-state.js";
+import { formatCost } from "./render-state.js";
 
-describe("cached input render state", () => {
-  it("renders one concise approximate currency line", () => {
-    expect(formatCachedInputCost(0.14)).toBe("Cached input now: ~$0.140");
+describe("session cost render state", () => {
+  it("renders the post-compaction cost before the full-session total", () => {
+    expect(formatCost({ model: "Priced", amount: 1.234, sinceCompaction: 0.456 }))
+      .toBe("Priced: $0.456 ($1.234)");
   });
 
-  it("omits the line when the estimate is unavailable", () => {
-    expect(formatCachedInputCost(undefined)).toBeUndefined();
+  it("uses the full-session total when no compaction boundary exists", () => {
+    expect(formatCost({ model: "Priced", amount: 1.234 })).toBe("Priced: $1.234 ($1.234)");
   });
 });

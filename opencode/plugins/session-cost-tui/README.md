@@ -27,10 +27,11 @@ plugins.
 The implementation uses `ctx.data.session.family`, `ctx.data.session.cost`,
 `ctx.data.on`, and the paginated `ctx.client.message.list` API, matching
 `/home/mark/workspace/references/opencode` at `origin/v2` commit
-`a6a712a3ac72248c9b2f2f883e752e6e18ef8c40`. The compact sidebar presentation
-shows per-model API estimates followed by a total. The estimate covers the
-complete current projected transcript for each family session currently known
-to the TUI.
+`a6a712a3ac72248c9b2f2f883e752e6e18ef8c40`. The `Session Estimate` sidebar
+shows each model's estimate since the latest compaction in the selected session
+followed by its full-session total in parentheses and a full total.
+The full total covers the complete current projected transcript for each family
+session currently known to the TUI.
 
 The plugin targets OpenCode V2 2.0.3 through the `opencode` CLI and
 `@opencode/plugin@2.0.3`. The TUI development peers are pinned to OpenTUI

@@ -1,7 +1,6 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
-import { cachedInputCost } from "./context-cost.js";
-import { loadFamilyMessages, pricingUsage } from "./messages.js";
+import { familyPricingUsages, loadFamilySessionMessages } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
 
 type CostLifecycleOptions = {
@@ -82,19 +81,10 @@ async function estimateCost(context: Context, sessionID: string) {
     Promise.resolve(context.data.session.family(sessionID))
   ]);
 
-  const usages = (await loadFamilyMessages(context.client, sessionIDs))
-    .map(pricingUsage)
-    .filter((usage) => usage !== undefined);
+  const familyMessages = await loadFamilySessionMessages(context.client, sessionIDs);
+  const usages = familyPricingUsages(familyMessages, sessionID);
 
-  const estimate = aggregateCost(usages, priceCatalog);
-
-  const cachedCost = cachedInputCost(
-    context.data.session.message.list(sessionID),
-    context.data.session.get(sessionID),
-    priceCatalog
-  );
-
-  return cachedCost === undefined ? estimate : { ...estimate, cachedInputCost: cachedCost };
+  return aggregateCost(usages.all, priceCatalog, usages.sinceCompaction);
 }
 
 type RejectionReason = Parameters<typeof String>[0];

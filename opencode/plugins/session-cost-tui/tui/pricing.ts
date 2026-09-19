@@ -23,9 +23,9 @@ export type Model = {
 
 export type Catalog = Record<string, { models?: Record<string, Model> }>;
 
-export type Cost = { model: string; amount: number };
+export type Cost = { model: string; amount: number; sinceCompaction?: number };
 
-export type CostEstimate = { costs: Cost[]; unpriced: number; cachedInputCost?: number };
+export type CostEstimate = { costs: Cost[]; unpriced: number };
 
 let catalog: Promise<Catalog> | undefined;
 
@@ -52,20 +52,13 @@ export function ratesFor(model: Model, usage: PricingUsage): Rates | undefined {
   return contextTier(cost, prompt) ?? cost;
 }
 
-export function cacheReadCost(model: Model, contextTokens: number): number | undefined {
-  if (!Number.isFinite(contextTokens) || contextTokens <= 0) return undefined;
-
-  const cost = model.cost && legacyContextTier(model.cost);
-  const rates = contextTier(cost, contextTokens) ?? cost;
-  const cacheRead = rates?.cache_read;
-
-  if (cacheRead === undefined || !Number.isFinite(cacheRead) || cacheRead < 0) return undefined;
-
-  return (contextTokens * cacheRead) / 1_000_000;
-}
-
-export function aggregateCost(usages: readonly PricingUsage[], priceCatalog: Catalog): CostEstimate {
+export function aggregateCost(
+  usages: readonly PricingUsage[],
+  priceCatalog: Catalog,
+  sinceCompactionUsages?: readonly PricingUsage[]
+): CostEstimate {
   const costs = new Map<string, Cost>();
+  const sinceCompaction = sinceCompactionUsages && new Set(sinceCompactionUsages);
   let unpriced = 0;
 
   for (const usage of usages) {
@@ -79,7 +72,14 @@ export function aggregateCost(usages: readonly PricingUsage[], priceCatalog: Cat
 
     const key = `${usage.providerID}/${usage.modelID}`;
     const item = costs.get(key) ?? { model: model.name ?? usage.modelID, amount: 0 };
-    item.amount += price(usage, rates);
+    const amount = price(usage, rates);
+
+    if (sinceCompaction && item.sinceCompaction === undefined) item.sinceCompaction = 0;
+
+    item.amount += amount;
+
+    if (sinceCompaction?.has(usage)) item.sinceCompaction = (item.sinceCompaction ?? 0) + amount;
+
     costs.set(key, item);
   }
 
@@ -119,18 +119,6 @@ function contextTier(cost: Rates | undefined, prompt: number) {
   return cost?.tiers
     ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
     .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
-}
-
-function legacyContextTier(cost: Rates): Rates {
-  if (!cost.context_over_200k) return cost;
-
-  return {
-    ...cost,
-    tiers: [
-      ...(cost.tiers ?? []),
-      { tier: { type: "context", size: 200_000 }, ...cost.context_over_200k }
-    ]
-  };
 }
 
 function normalizeRates(input: Rates | undefined): Rates | undefined {
