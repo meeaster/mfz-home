@@ -30,8 +30,9 @@ Efforts use `/tmp/opencode/orchestrator-workspaces/<effort>/`. Names describe th
 | --- | --- |
 | `context.md` | Required current understanding: goal, motivation, preferences, constraints, waivers, accepted decisions and rationale, consequential rejected directions, open questions, and next step. |
 | `evidence/<producer-id>.md` | Attributed findings from one direct producer, with supporting observations, uncertainty, applicability, and useful lessons. Required for each evidence-producing dispatch by the coordinating orchestrator; internal helpers contribute through their parent's note unless separately assigned one. |
+| `sources/` | Raw material retained from another system, such as an extracted Teams meeting transcript. Created when needed, with provenance and extraction limits recorded in a linked note or index entry. |
 | `screenshots/` | Useful rendered captures when validation produces images. The existing owner note or helper return maps selected images to artifact revisions, viewports, relevant state, and recipient-accessible paths. |
-| `index.md` | Catalog of completed, checked notes and their relevance, freshness, conflicts, and supersession. Required after the first checked producer note. |
+| `index.md` | Catalog of completed, checked notes and source captures, with their relevance, freshness, conflicts, and supersession. Required after the first checked producer note or source capture. |
 | `synthesis/<topic>.md` | Authorized evidence-informed reasoning with concrete reuse value. Creation requires a human request or acceptance of a recommendation. |
 | `design.md` | Optional accepted technical background shared by several units. |
 | `coordination.md` | Optional cross-unit ownership, dependencies, status, and acceptance state. |
@@ -50,7 +51,7 @@ Preserve discoveries that can improve a successor's decisions or actions, includ
 
 Research findings establish external facts, options, constraints, and uncertainty. Implementation handoffs explain changes, relevant validation, unexpected effects, and discoveries. Review findings support acceptance or challenge a previous claim. They currently share `evidence/` because each can inform downstream decisions.
 
-Separating these families into directories remains open. A `sources/` name could imply original material even when a note contains agent interpretation. The distinction in purpose is useful now; a storage change needs a concrete discovery or maintenance benefit.
+The `sources/` folder holds retained inputs, while these interpreted findings remain in `evidence/`. For example, an extracted meeting transcript can be retained before anyone analyzes it. Notes link to the capture rather than replacing its content with a summary. Source captures share the workspace's temporary lifetime.
 
 The primary consumers are the next decision and likely effort continuation. Full auditability does not require every note to repeat a session trace. Exact commands, excerpts, versions, and hashes earn their space when they make a claim actionable, reproducible, or correctly bounded. Routine command histories and unchanged file inventories usually do not.
 

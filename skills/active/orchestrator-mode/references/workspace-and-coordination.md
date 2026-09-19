@@ -12,7 +12,15 @@ Every producer dispatched directly by the coordinating orchestrator, including a
 
 Check the child's skill and edit permissions. The home's Explore override permits assigned evidence notes while ordinary exploration remains read-only. A blocked producer returns the exact conflict and attributed file-ready findings; assign the fallback to yourself and preserve attribution with minimal rewriting. Never bypass denied writes or silently change roles.
 
-Workspace writes cover assigned notes and coordinator files only. The broad temporary-directory permission does not enforce ownership or grant project mutation. Preserve privacy, omit secrets and unrelated sensitive data, and promote needed durable material only through a separately authorized owning workflow. Temporary files may disappear; session history owns the trace.
+Workspace writes cover assigned notes, assigned source captures, and coordinator files only. The broad temporary-directory permission does not enforce ownership or grant project mutation. Preserve privacy, omit secrets and unrelated sensitive data, and promote needed durable material only through a separately authorized owning workflow. Temporary files may disappear; session history owns the trace.
+
+## Source captures
+
+Use `sources/` for raw material extracted or exported from another system when the task calls for retaining it, such as a Teams meeting transcript. Create it when needed. Source captures are inputs; producer findings belong in `evidence/` and link to the captures they use. Retaining a source does not require an analytical finding.
+
+Assign each capture an owner and exact path in the brief, subject to the writer's permissions. Preserve the extracted content in its supplied format when practical; keep summaries and interpretation outside the capture. Record its origin or source locator, extraction time, and material omissions, conversion, or redaction in the producer note or existing index entry. Describe a partial extraction as partial. Preserve earlier captures when collecting a changed version.
+
+Release captures after writing completes, and select their paths for downstream readers as needed. Catalog retained captures in `index.md` with their provenance and limits; storage alone does not establish accuracy or acceptance.
 
 ## Coordinator files
 
@@ -25,7 +33,7 @@ Write files for their purpose below, keeping decisions, useful reasoning, and ev
 | `design.md` | Optional accepted technical design needed across units: boundaries, responsibilities, flows, interfaces, invariants, and tradeoffs. Create only after acceptance. |
 | `synthesis/<topic>.md` | Focused evidence-informed reasoning for reuse, created only on explicit request or acceptance of the root skill's recommendation. May connect findings, compare options, and include preferences and decisions. Mark its reasoning as provisional, recommended, or accepted. A summary, checklist, readiness marker, or worker brief alone is not synthesis. |
 | `coordination.md` | Optional multi-unit dependencies, owners, status, must-preserve invariants, acceptance criteria, and evidence locators. One coherent worker keeps acceptance in its brief. |
-| `index.md` | Required catalog after the first producer note is complete and checked. Update after each checked note or parallel batch. Record path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
+| `index.md` | Required catalog after the first producer note or source capture is complete and checked. Update after each checked return or parallel batch. Record path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
 
 Maintain `context.md` when discussion materially changes the goal, constraints, decisions, or direction, and at phase boundaries that change the next step. Reconcile changed authority and completed actions with existing constraints, current state, and next steps instead of appending competing updates. Keep operational detail in producer notes and mark superseded state in the index. Preserve useful reasoning rather than a transcript or activity log. Keep proposals and unresolved choices distinct from accepted decisions. Include its path in child briefs when higher-level understanding helps, while keeping the child's assignment and authority explicit in the brief.
 
