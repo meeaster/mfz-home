@@ -1,0 +1,5 @@
+# Vendored-skill update preparation
+
+This package replaces model-composed repository and publication setup with two reviewed, read-only actions. The actions verify the clean `main` baseline and print a publication-disabled plan. The runtime keeps the persistent root at the shared agent-jobs state root and starts each occurrence in a fresh workspace worker. The actions do not fetch, switch branches, create worktrees, stage or promote candidates, push, change pull requests, run `mfz apply`, or send notifications.
+
+The replacement timer is active and runs through the stable local `agent-jobs` release. The legacy profile-wide agents have been removed, so the old vendored-skill unit is not a usable rollback path. Its prompt, workspace, and inactive unit remain only as migration evidence. Scheduled acceptance remains pending until the first replacement occurrence is validated. The package's `no-publication` path remains the validation path. The job requires Node.js 22.5 or newer, Git, OpenCode 2.0.9, and a reachable systemd user manager.

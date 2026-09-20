@@ -1,0 +1,43 @@
+version: 1
+id: vendored-skill-update
+name: Daily vendored-skill update preparation
+task: task.md
+worker: worker.md
+timeout: 10800
+run:
+  sessionStrategy: persistent-thread
+  executionStrategy: wrapper-worker
+  provider: openai
+  model: gpt-5.6-luna
+  variant: high
+  permissions:
+    tools:
+      - read
+      - grep
+      - glob
+    paths:
+      - /home/mark/.mindframe-z/skill-candidates
+    mcp: []
+workspace:
+  type: git
+  repository: git@github.com:meeaster/mfz-home.git
+  branch: main
+  cleanliness: clean
+  allowDetached: false
+  allowDiverged: false
+scratch: false
+preRunActions: [prepare-repository, prepare-publication]
+schedule:
+  calendar: '*-*-* 08:00:00'
+  persistent: true
+actions:
+  - id: prepare-repository
+    path: actions/prepare-repository.sh
+    description: Verify the clean canonical-origin baseline without changing it
+    inputs: []
+    outputs: [origin, branch, baseline]
+  - id: prepare-publication
+    path: actions/prepare-publication.sh
+    description: Produce a no-publication branch plan without changing or publishing it
+    inputs: [no-publication]
+    outputs: [base, branch, publication]
