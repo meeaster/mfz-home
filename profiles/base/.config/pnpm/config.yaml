@@ -1,0 +1,10 @@
+minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - "@fission-ai/openspec"
+  - "openwiki"
+  - "opencode-drive"
+  - "@opencode/plugin"
+  - "deepagents"
+  - "herdr"
+  - "executor"
+  - "opencode-chatgpt-websearch"
