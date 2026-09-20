@@ -14,6 +14,8 @@ Check the child's skill and edit permissions. The home's Explore override permit
 
 Workspace writes cover assigned notes, assigned source captures, and coordinator files only. The broad temporary-directory permission does not enforce ownership or grant project mutation. Preserve privacy, omit secrets and unrelated sensitive data, and promote needed durable material only through a separately authorized owning workflow. Temporary files may disappear; session history owns the trace.
 
+Producers own their evidence notes. The coordinator owns decisions and acceptance. On explicit coordinator instruction, the scribe may maintain shared state files that transcribe decided state, including `context.md`, evidence cataloging in `index.md`, and authorized synthesis. That maintenance transfers neither decision authority nor ownership of producer notes.
+
 ## Source captures
 
 Use `sources/` for raw material extracted or exported from another system when the task calls for retaining it, such as a Teams meeting transcript. Create it when needed. Source captures are inputs; producer findings belong in `evidence/` and link to the captures they use. Retaining a source does not require an analytical finding.
@@ -36,6 +38,8 @@ Write files for their purpose below, keeping decisions, useful reasoning, and ev
 | `index.md` | Required catalog after the first producer note or source capture is complete and checked. Update after each checked return or parallel batch. Record path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
 
 Maintain `context.md` when discussion materially changes the goal, constraints, decisions, or direction, and at phase boundaries that change the next step. Reconcile changed authority and completed actions with existing constraints, current state, and next steps instead of appending competing updates. Keep operational detail in producer notes and mark superseded state in the index. Preserve useful reasoning rather than a transcript or activity log. Keep proposals and unresolved choices distinct from accepted decisions. Include its path in child briefs when higher-level understanding helps, while keeping the child's assignment and authority explicit in the brief.
+
+Resume one scribe session across an effort's cycles and pass it no marker; the scribe remembers and uses its own position. Keep the workspace's `Scribe cursor:` value only as a recovery anchor for diagnostics or a lost scribe, not as a routine seed. A fresh scribe calls `session_context` without `sinceMarker` and receives the full active post-compaction window. An orchestrator compaction or session boundary invalidates the prior marker by design. This v1.1 cursor convention should be revised from real scribe usage.
 
 Working files supply background, not new assignments. Keep required constraints and the complete current assignment in the dispatch prompt or its expressly designated authoritative specification. Avoid worker-brief files, planned index placeholders, copied findings, skill inventories, and process histories. Distinguish changed state or resolved gaps from contradictions; one superseded claim need not invalidate its whole note.
 
