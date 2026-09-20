@@ -1,5 +1,5 @@
 blockExoticSubdeps: true
-trustPolicy: allow
+trustPolicy: off
 strictDepBuilds: true
 allowBuilds:
   esbuild: true
@@ -12,7 +12,10 @@ packages:
   - opencode/plugins/pstack
   - opencode/plugins/session-cost-tui
   - opencode/plugins/session-usage
+  - opencode/plugins/session-context
   - opencode/plugins/work-ledger
+minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@opencode/*'
   - '@opentui/*'
+  - opencode-drive@2.1.3

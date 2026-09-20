@@ -208,10 +208,8 @@ function createSetupFixture(
         return session;
       },
     },
-    catalog: {
-      model: {
-        list: async () => ({ data: modelMetadata ? [{ providerID: "openai", id: "model", modelID: "model", ...modelMetadata }] : [] }),
-      },
+    model: {
+      list: async () => ({ data: modelMetadata ? [{ providerID: "openai", id: "model", modelID: "model", ...modelMetadata }] : [] }),
     },
     tool: {
       transform: async (callback: (editor: { add(tool: RegisteredTool): void }) => void) => {
@@ -227,7 +225,7 @@ function createSetupFixture(
     },
   };
 
-  // SAFETY: The fixture implements the event, session, catalog, and tool methods used by setupSessionUsage.
+  // SAFETY: The fixture implements the event, session, model, and tool methods used by setupSessionUsage.
   const context = Object.assign(Object.create(null), contextFixture) as Plugin.Context;
 
   return {

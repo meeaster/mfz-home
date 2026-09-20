@@ -73,7 +73,7 @@ export function appendUsageContent(
 
 type SessionSnapshot = Awaited<ReturnType<Plugin.Context["session"]["get"]>>;
 
-type ModelInfo = Awaited<ReturnType<Plugin.Context["catalog"]["model"]["list"]>>["data"][number];
+type ModelInfo = Awaited<ReturnType<Plugin.Context["model"]["list"]>>["data"][number];
 
 export async function setupSessionUsage(
   context: Plugin.Context,
@@ -388,9 +388,9 @@ function subtractTokens(actual: Tokens, baseline: Tokens): Tokens {
 }
 
 async function modelMetadata(context: Plugin.Context, ref: ModelRef) {
-  const catalog = await context.catalog.model.list().catch(() => undefined);
+  const models = await context.model.list().catch(() => undefined);
 
-  return catalog?.data.find((model) => model.providerID === ref.providerID && (model.modelID === ref.id || model.id === ref.id));
+  return models?.data.find((model) => model.providerID === ref.providerID && (model.modelID === ref.id || model.id === ref.id));
 }
 
 function formatSessionUsage(
