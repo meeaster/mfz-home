@@ -1,0 +1,47 @@
+version: 1
+id: opencode-pr-review
+name: OpenCode v2 daily delta
+task: task.md
+worker: worker.md
+timeout: 10800
+run:
+  sessionStrategy: persistent-thread
+  executionStrategy: wrapper-worker
+  provider: openai
+  model: gpt-5.6-luna
+  variant: high
+  permissions:
+    tools:
+      - read
+      - grep
+      - glob
+      - shell:date --date=*
+      - shell:date --utc --date=*
+      - shell:git log *
+      - shell:git diff *
+      - shell:git show *
+      - shell:git rev-parse *
+      - shell:git status *
+      - shell:gh pr list *
+      - shell:gh pr view *
+      - shell:gh pr diff * --repo anomalyco/opencode --patch
+    paths: []
+    mcp: []
+workspace:
+  type: git
+  repository: https://github.com/anomalyco/opencode.git
+  branch: v2
+  cleanliness: clean
+  allowDetached: false
+  allowDiverged: false
+scratch: true
+preRunActions: [prepare-review-repository]
+schedule:
+  calendar: '*-*-* 08:00:00'
+  persistent: true
+actions:
+  - id: prepare-review-repository
+    path: actions/prepare-review-repository.sh
+    description: Verify the provisioned v2 review checkout without changing it
+    inputs: []
+    outputs: [origin, branch, baseline]
