@@ -237,6 +237,7 @@ opencode:
       name: dracula
   plugins:
     - session-usage
+    - session-context
   tui_plugins:
     - handoff-tui
     - session-cost-tui
@@ -259,6 +260,7 @@ opencode:
     - research
     - reviewer
     - scheduled-worker
+    - scribe
     - session-analyst
     - triage
     - worker
