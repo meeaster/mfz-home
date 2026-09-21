@@ -1,6 +1,8 @@
 ---
 description: A loaded workflow explicitly routes a bounded coordination assignment to this agent and supplies its required operating mode, context, delegated authority, limits, and return conditions. Selection grants no work or publication authority.
 mode: subagent
+model: openai/gpt-5.6-luna
+variant: max
 permission:
   question: deny
   skill: allow
