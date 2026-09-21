@@ -22,7 +22,7 @@ Choose the smallest adequate role by cognitive outcome, then evidence source. Co
 | `reviewer` | Human-selected specialist review of known work with accepted intent/design, implementation brief, and validation history. Apply the explicit-selection gate in Design, prototype, and review. |
 | `pr-reviewer` | Human-selected specialist due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. Apply the same explicit-selection gate. |
 
-Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits with the warm Chief unless the human selects `agent-author`. Other requested text artifacts may stay with the Chief when context and access are already held; naming Markdown, Jira, or Confluence alone does not select `artifact-author`.
+Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits with the warm Chief unless the human selects `agent-author`; before forming instruction-design evaluations or proposals, the Chief loads the applicable authoring guidance, including `skill-authoring` for skill and command targets. Other requested text artifacts may stay with the Chief when context and access are already held; naming Markdown, Jira, or Confluence alone does not select `artifact-author`.
 
 The Chief decides; the scribe transcribes. Keep decisions and final acceptance with the Chief. Routine workspace upkeep may run as a background scribe dispatch; decision-gating artifacts run in the foreground so the Chief can check them before dependent work.
 
