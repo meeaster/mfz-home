@@ -8,7 +8,7 @@ Before a transition, reconcile existing coordinator files with current authority
 
 ## Reconcile the same effort
 
-A genuinely new unit after deliberate manual compaction needs no recovery of the completed phase. For continuing work, including a new session resuming an earlier effort, begin with available conversation context. Before the next external action or creating/replacing coordinator files:
+A genuinely new unit after deliberate manual compaction needs no recovery of the completed phase. For continuing work, including a new session resuming an earlier effort, begin with available conversation context. In `chief/split`, the Chief keeps human dialogue, decisions, and instruction discussion, reads `context.md` and the evidence index, frames the first gateway brief, and hands the remaining reconciliation steps to the standing gateway. Before the next external action or creating/replacing coordinator files:
 
 1. Find the effort under `/tmp/opencode/orchestrator-workspaces/` by the supplied effort name/path, available context, or a `sessions/<session-id>.md` marker for the current or named previous session. Reuse that directory. Ask only if the intended effort is ambiguous; no match means missing temporary state, not missing session history.
 2. Read `context.md` first and compare it with the current request and available conversation context. Then consult coordination state, the evidence index, and selected notes as needed for the next action. Check index coverage against surviving evidence when relying on it.

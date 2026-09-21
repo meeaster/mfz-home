@@ -13,7 +13,9 @@ Use only when explicitly loaded. The caller selects one user-facing mode: `baked
 | Mode | Dispatcher | Assignment owner | Return surface |
 | --- | --- | --- | --- |
 | `baked-in` | The current session dispatches specialists directly. | The current orchestrator owns `assignments/`, the child roster, and producer notes. | The current session accepts producer packets and returns checked results to the human or assigning parent. Its scribe is a direct subordinate. |
-| `chief/split` | The current session is Chief; a standing `orchestrator` is the gateway for specialists. The Chief does not dispatch specialists directly. | The standing orchestrator owns `assignments/`, the child roster, and producer notes. | The gateway accepts producer packets and returns an envelope to the Chief. The Chief's scribe remains a direct subordinate. |
+| `chief/split` | The current session is Chief; a standing `orchestrator` is the gateway for all cycle work. | The standing orchestrator owns `assignments/`, the child roster, and producer notes. | The gateway accepts producer packets and returns an envelope to the Chief. The Chief's scribe remains a direct subordinate. |
+
+In `chief/split`, establish the standing gateway before the first cycle unit — evidence, verification, or synthesis — and route every unit through it, even when prior effort evidence seems to cover the request. The Chief's only direct child is the scribe; the Chief synthesizes from gateway envelopes and note locators, opening full evidence notes only under Acceptance's full-inspection conditions. When gateway ceremony would outweigh the split, recommend a mode switch to the human rather than act as the other mode.
 
 Background dispatch is the default in both modes. Keep at most one active cycle per standing orchestrator only in `chief/split`; dependent dispatches wait for their producing child in either mode. This table is the topology layer; the shared contracts below do not assume a gateway.
 
