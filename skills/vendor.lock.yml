@@ -1,7 +1,7 @@
 skills:
   diagram-design:
-    commit: 8585047d16a7973f1c1a126e3eea3c38027e52d0
-    digest: f816017bc032a001ea284011be712ecc692b87949aa77e2c52a10413eea61531
+    commit: dc1ace47b99a419e42d01a03cb6ace5346efa8ae
+    digest: 27f3e2f8b4d3b4148d6c53a7eedf1c3b945dafd2fae44dacb484630b82a83753
   opencode-drive:
     commit: f0b55f8e5a69f6311feb2576cd9840bb1443c912
     digest: bbda4b599475aeb30d3cf6b4d9da07830a5780f313b1d5c3ea0a310b860cdffd
@@ -100,11 +100,14 @@ skills:
     commit: ca7c8088db69e315a8b2deea43820270457f8f3c
     digest: 1126dfee31e388e2b0e78520606721b760ddf8e294cd24c87cc7934695373f1f
   browser-control:
-    commit: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
-    digest: b7a7498436ef4952e13bd5120da8b267d660dbb052eab2cc6f3c00c4dd0f84b1
+    commit: 868a8832e340cb4445da8fc555db57c16eeb6fa5
+    digest: a617a0b6d6eeff0847ff49fa3da42dfe44bda7ae5dd598cc5a8c7d5636387b7f
   open-pencil:
     commit: 6cf1748e31a0e43d3794d43abbd003ce9caa3c6f
     digest: 5516b4f917ac6b1862ba76cdbe011dae5bdb08862fe5d75b6a1fbb80dfebc86f
   terminal-control:
     commit: c1d4f95e4f1b7638f6229e9bfc9599a955f95ce2
     digest: 64f6cfb0c1682a28aa3b6df68b0145ad730162c3775595aadc22fb37ca03e0b1
+  transitions-dev:
+    commit: e2d5551656e4d3274e075d1cbd9a95af50f53225
+    digest: ad6d7e548390f62a89c746aa980cb50c5247a1f0269685033ace3a643b58dd31

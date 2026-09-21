@@ -149,9 +149,9 @@ skills:
       Production-ready CSS transitions and motion tokens for common web app
       interactions. Use when implementing, reviewing, or refining interface
       transitions and accessible motion.
-    source: git
+    source: vendored
     repo: https://github.com/Jakubantalik/transitions.dev.git
-    commit: 598d3d6ad89dabb4bdf742fd2e887ca53914a888
+    ref: main
     subtree: skills/transitions-dev
   - name: find-animation-opportunities
     description: >
@@ -505,7 +505,7 @@ skills:
       Playwright, including authenticated browser workflows and human handoffs.
     source: vendored
     repo: https://github.com/anomalyco/browser-control
-    ref: 3bb4e05b178e2b482877ab56297aa89fa6f72b91
+    ref: main
     subtree: skills/browser-control
   - name: terminal-control
     description: >
