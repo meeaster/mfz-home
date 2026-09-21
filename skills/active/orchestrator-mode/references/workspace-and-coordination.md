@@ -2,19 +2,19 @@
 
 ## Establish the workspace
 
-Before the first evidence-producing dispatch, establish or resume `/tmp/opencode/orchestrator-workspaces/<effort>/`. Name the effort for the user's overall goal, using their terminology. Keep that name across research, design, implementation, and verification. Use an accepted project name when available; otherwise use a descriptive name without inventing a product name.
+Before the first evidence-producing dispatch, the Chief establishes or resumes `/tmp/opencode/orchestrator-workspaces/<effort>/`. Name the effort for the user's overall goal, using their terminology. Keep that name across research, design, implementation, and verification. Use an accepted project name when available; otherwise use a descriptive name without inventing a product name.
 
 Add an empty `sessions/<current-session-id>.md` marker and retain earlier markers. These filenames support filesystem lookup across sessions; they carry no content. When asked to resume a named effort, reuse its directory and working files through [Recovery and continuity](recovery-and-continuity.md).
 
 The human approved this temporary root for orchestration. Keep session working directories outside it and confirm it is external to each writer's active Location and project worktree; carry that confirmation in the brief.
 
-Every producer dispatched directly by the coordinating orchestrator, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. Internal helpers return findings to their immediate parent; the direct child preserves relevant results, attribution, evidence links, and limits in its own note. A helper needs the skill and a separate shared note only when explicitly assigned that evidence responsibility. An authorized child orchestrator applies this contract to its own direct producers. This adds no research phase and does not apply to ordinary conversation outside orchestration.
+The standing orchestrator owns `<effort>/assignments/<assignment-id>/`, including its coordinator files, full child roster, index, and producer notes. Every producer it dispatches directly, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` beneath that assignment and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. Internal helpers return findings to their immediate parent; the direct child preserves relevant results, attribution, evidence links, and limits in its own note. A helper needs the skill and a separate shared note only when explicitly assigned that evidence responsibility. This adds no mandatory research stage and does not apply to ordinary conversation outside orchestration.
 
 Check the child's skill and edit permissions. The home's Explore override permits assigned evidence notes while ordinary exploration remains read-only. A blocked producer returns the exact conflict and attributed file-ready findings; assign the fallback to yourself and preserve attribution with minimal rewriting. Never bypass denied writes or silently change roles.
 
 Workspace writes cover assigned notes, assigned source captures, and coordinator files only. The broad temporary-directory permission does not enforce ownership or grant project mutation. Preserve privacy, omit secrets and unrelated sensitive data, and promote needed durable material only through a separately authorized owning workflow. Temporary files may disappear; session history owns the trace.
 
-Producers own their evidence notes. The coordinator owns decisions and acceptance. On explicit coordinator instruction, the scribe may maintain shared state files that transcribe decided state, including `context.md`, evidence cataloging in `index.md`, and authorized synthesis. That maintenance transfers neither decision authority nor ownership of producer notes.
+Producers own their evidence notes. The orchestrator accepts producer packets; the Chief owns effort decisions and final acceptance. On explicit Chief instruction, the scribe maintains shared state files that transcribe decided state, including `context.md`, one assignment-pointer row in the effort `index.md` for each completed assignment, and authorized synthesis. That maintenance transfers neither decision authority nor ownership of producer notes.
 
 ## Source captures
 
@@ -26,7 +26,7 @@ Release captures after writing completes, and select their paths for downstream 
 
 ## Coordinator files
 
-Write files for their purpose below, keeping decisions, useful reasoning, and evidence links rather than execution logs. Routine coordinator files need no general writing skill.
+Write files for their purpose below, keeping decisions, useful reasoning, and evidence links rather than execution logs. The Chief owns effort-level coordinator files and delegates their transcription to the scribe; the orchestrator owns assignment-level coordinator files. Routine coordinator files need no general writing skill.
 
 | File | Purpose and creation condition |
 | --- | --- |
@@ -35,15 +35,15 @@ Write files for their purpose below, keeping decisions, useful reasoning, and ev
 | `design.md` | Optional accepted technical design needed across units: boundaries, responsibilities, flows, interfaces, invariants, and tradeoffs. Create only after acceptance. |
 | `synthesis/<topic>.md` | Focused evidence-informed reasoning for reuse, created only on explicit request or acceptance of the root skill's recommendation. May connect findings, compare options, and include preferences and decisions. Mark its reasoning as provisional, recommended, or accepted. A summary, checklist, readiness marker, or worker brief alone is not synthesis. |
 | `coordination.md` | Optional multi-unit dependencies, owners, status, must-preserve invariants, acceptance criteria, and evidence locators. One coherent worker keeps acceptance in its brief. |
-| `index.md` | Required catalog after the first producer note or source capture is complete and checked. Update after each checked return or parallel batch. Record path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
+| `index.md` | At effort level, one scribe-maintained pointer row per checked assignment. At assignment level, the orchestrator's catalog after the first producer note or source capture is complete and checked; update it after each checked return or parallel batch with path, contents, reuse value, and material freshness, gaps, conflicts, or supersession at claim/topic level. |
 
-Maintain `context.md` when discussion materially changes the goal, constraints, decisions, or direction, and at phase boundaries that change the next step. Reconcile changed authority and completed actions with existing constraints, current state, and next steps instead of appending competing updates. Keep operational detail in producer notes and mark superseded state in the index. Preserve useful reasoning rather than a transcript or activity log. Keep proposals and unresolved choices distinct from accepted decisions. Include its path in child briefs when higher-level understanding helps, while keeping the child's assignment and authority explicit in the brief.
+Maintain `context.md` when discussion materially changes the goal, constraints, decisions, direction, or next step. Reconcile changed authority and completed actions with existing constraints, current state, and next steps instead of appending competing updates. Keep operational detail in producer notes and mark superseded state in the index. Preserve useful reasoning rather than a transcript or activity log. Keep proposals and unresolved choices distinct from accepted decisions. Include its path in child briefs when higher-level understanding helps, while keeping the child's assignment and authority explicit in the brief.
 
-Resume one scribe session across an effort's cycles and pass it no marker; the scribe remembers and uses its own position. Keep the workspace's `Scribe cursor:` value only as a recovery anchor for diagnostics or a lost scribe, not as a routine seed. A fresh scribe calls `session_context` without `sinceMarker` and receives the full active post-compaction window. An orchestrator compaction or session boundary invalidates the prior marker by design. This v1.1 cursor convention should be revised from real scribe usage.
+Resume each coordinator's scribe session across its workspace cycles. Scribe dispatches default to pointer briefs naming the dispatching coordinator's `sessionID` and focus so every cycle pulls the current delta; pass no marker because the scribe remembers and uses its own position. Mark a cycle `no pull` only for a purely mechanical file operation fully specified in the brief. Keep the applicable workspace's `Scribe cursor:` value only as a recovery anchor for diagnostics or a lost scribe, not as a routine seed. A fresh scribe calls `session_context` without `sinceMarker` and receives the full active post-compaction window; after a marker mismatch or empty delta caused by source compaction, it performs one full pull and continues normally.
 
 Working files supply background, not new assignments. Keep required constraints and the complete current assignment in the dispatch prompt or its expressly designated authoritative specification. Avoid worker-brief files, planned index placeholders, copied findings, skill inventories, and process histories. Distinguish changed state or resolved gaps from contradictions; one superseded claim need not invalidate its whole note.
 
-An explicitly selected child orchestrator may own `<effort>/assignments/<assignment-id>/` with its own coordinator files, index, and producer notes. Link selected parent context rather than copying it. Directory nesting does not change the depth boundary.
+Link selected effort context into assignment briefs rather than copying it. Directory nesting does not change the depth boundary, and the standing orchestrator never dispatches another orchestrator.
 
 ## Select and release evidence
 
