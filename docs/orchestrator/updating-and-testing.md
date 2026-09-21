@@ -32,6 +32,8 @@ Fix the model, variant, scenario prompt, capability facts, response format, and 
 
 For a quick interpretation test, use fresh general subagents and allow only installed-skill and applicable-reference reads. Explicitly waive workspace-file creation and actual dispatch for this tabletop scope. This tests choices and briefs after loading the skill, not automatic invocation, application behavior, or successful delegation.
 
+Scenario coverage must include both modes and mode selection: `/orchestrate` loads `baked-in`, `/orchestrate-chief` loads `chief/split`, and complexity alone selects neither mode.
+
 ## 3. Edit and activate the candidate
 
 Inspect repository state and preserve existing work. Follow `mfz guide` and its skill routing before configuration changes. Edit canonical source rather than rendered files. Update affected authoring scenarios and records within the agreed scope; keep observed test results out of `EVALS.md`.
@@ -47,8 +49,8 @@ Use the exact previous scenario prompts with fresh general subagents on the same
 A reusable tabletop prompt structure is:
 
 ```text
-Read-only tabletop decision task. Explicitly load installed orchestrator-mode
-for human-facing coordination and read references whose triggers apply.
+Read-only tabletop decision task. Explicitly select `baked-in` or `chief/split` and
+load installed orchestrator-mode in the selected mode for human-facing coordination and read references whose triggers apply.
 Only read-only skill and reference loads are permitted. Do not write files,
 run commands, inspect real artifacts, or dispatch children in this test.
 

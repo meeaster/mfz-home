@@ -2,19 +2,19 @@
 
 ## Establish the workspace
 
-Before the first evidence-producing dispatch, the Chief establishes or resumes `/tmp/opencode/orchestrator-workspaces/<effort>/`. Name the effort for the user's overall goal, using their terminology. Keep that name across research, design, implementation, and verification. Use an accepted project name when available; otherwise use a descriptive name without inventing a product name.
+Before the first evidence-producing dispatch, the current coordinator establishes or resumes `/tmp/opencode/orchestrator-workspaces/<effort>/`. Name the effort for the user's overall goal, using their terminology. Keep that name across research, design, implementation, and verification. Use an accepted project name when available; otherwise use a descriptive name without inventing a product name.
 
 Add an empty `sessions/<current-session-id>.md` marker and retain earlier markers. These filenames support filesystem lookup across sessions; they carry no content. When asked to resume a named effort, reuse its directory and working files through [Recovery and continuity](recovery-and-continuity.md).
 
 The human approved this temporary root for orchestration. Keep session working directories outside it and confirm it is external to each writer's active Location and project worktree; carry that confirmation in the brief.
 
-The standing orchestrator owns `<effort>/assignments/<assignment-id>/`, including its coordinator files, full child roster, index, and producer notes. Every producer it dispatches directly, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` beneath that assignment and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. Internal helpers return findings to their immediate parent; the direct child preserves relevant results, attribution, evidence links, and limits in its own note. A helper needs the skill and a separate shared note only when explicitly assigned that evidence responsibility. This adds no mandatory research stage and does not apply to ordinary conversation outside orchestration.
+The assignment owner named by the topology layer owns `<effort>/assignments/<assignment-id>/`, including its coordinator files, full child roster, index, and producer notes. Every direct producer, including a small lookup, consultation, implementation, or review, receives a unique owned `evidence/<producer-id>.md` beneath that assignment and the `orchestrator-task-evidence` skill requirement. This provides reusable findings without predicting their future value. Internal helpers return findings to their immediate parent; the direct child preserves relevant results, attribution, evidence links, and limits in its own note. A helper needs the skill and a separate shared note only when explicitly assigned that evidence responsibility. This adds no mandatory research stage and does not apply to ordinary conversation outside orchestration.
 
 A producer that cannot write its assigned note returns the exact conflict and attributed file-ready findings; assign the fallback to yourself and preserve attribution with minimal rewriting. Never bypass a harness denial or silently change roles.
 
 Workspace writes cover assigned notes, assigned source captures, and coordinator files only. The broad temporary-directory permission does not enforce ownership or grant project mutation. Preserve privacy, omit secrets and unrelated sensitive data, and promote needed durable material only through a separately authorized owning workflow. Temporary files may disappear; session history owns the trace.
 
-Producers own their evidence notes. The orchestrator accepts producer packets; the Chief owns effort decisions and final acceptance. On explicit Chief instruction, the scribe maintains shared state files that transcribe decided state, including `context.md`, one assignment-pointer row in the effort `index.md` for each completed assignment, and authorized synthesis. That maintenance transfers neither decision authority nor ownership of producer notes.
+Producers own their evidence notes. The coordinator accepts producer packets; the return recipient owns decisions and final acceptance. On explicit coordinator instruction, the scribe maintains assigned state files that transcribe decided state, including `context.md`, one assignment-pointer row in the effort `index.md` for each completed assignment, and authorized synthesis. That maintenance transfers neither decision authority nor ownership of producer notes.
 
 ## Source captures
 
@@ -26,7 +26,7 @@ Release captures after writing completes, and select their paths for downstream 
 
 ## Coordinator files
 
-Write files for their purpose below, keeping decisions, useful reasoning, and evidence links rather than execution logs. The Chief owns effort-level coordinator files and delegates their transcription to the scribe; the orchestrator owns assignment-level coordinator files. Routine coordinator files need no general writing skill.
+Write files for their purpose below, keeping decisions, useful reasoning, and evidence links rather than execution logs. The coordinator owns its level's coordinator files and delegates their transcription to the scribe. Routine coordinator files need no general writing skill.
 
 | File | Purpose and creation condition |
 | --- | --- |
@@ -43,7 +43,7 @@ Resume each coordinator's scribe session across its workspace cycles. Scribe dis
 
 Working files supply background, not new assignments. Keep required constraints and the complete current assignment in the dispatch prompt or its expressly designated authoritative specification. Avoid worker-brief files, planned index placeholders, copied findings, skill inventories, and process histories. Distinguish changed state or resolved gaps from contradictions; one superseded claim need not invalidate its whole note.
 
-Link selected effort context into assignment briefs rather than copying it. Directory nesting does not change the depth boundary, and the standing orchestrator never dispatches another orchestrator.
+Link selected effort context into assignment briefs rather than copying it. Directory nesting does not change the depth boundary, and an orchestrator role never dispatches another orchestrator.
 
 ## Select and release evidence
 

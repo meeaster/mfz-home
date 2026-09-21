@@ -1,9 +1,9 @@
 ---
-description: Coordinate work through specialized subagents while keeping implementation out of the primary session
+description: Coordinate bounded work directly from the current session
 subtask: false
 ---
 
-Load the `orchestrator-mode` skill explicitly with the skill tool and follow it in `human-facing` context in this conversation. The final `User prompt` section is the human's current input, interpreted with the prior conversation. This command does not select the orchestrator subagent.
+Load the `orchestrator-mode` skill explicitly with the skill tool in `baked-in` mode. Treat this current session as the orchestrator: dispatch specialists directly, own the effort's `assignments/` workspace, accept producer packets, and return checked results to the human. Follow the skill's baked-in topology and shared contracts. This command does not select the orchestrator subagent.
 
 ## User prompt
 

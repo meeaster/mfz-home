@@ -8,6 +8,8 @@ At baseline `fec8a524`, [Orchestrator Mode](../../skills/active/orchestrator-mod
 
 The revised source contract replaces that unconditional worker gate with coordinator-owned, proportionate acceptance. Historical sessions must still be evaluated against their own loaded rules. Activation and behavioral observation are recorded separately from source implementation.
 
+In `chief/split`, acceptance has two layers: the gateway accepts producer packets and returns a checked envelope; the Chief accepts the envelope by default and re-verifies only for material uncertainty, disagreement, or an unsupported consequential decision. See the root skill's [acceptance section](../../skills/active/orchestrator-mode/SKILL.md#acceptance).
+
 ## Completion evidence and validation ownership
 
 For diagrams and HTML explanation pages, the author dispatches `inspect` for routine rendered validation, views selected final captures, interprets the findings, repairs confirmed defects, and requests focused rechecks. The inspector uses the shared browser workflow, normally Browser Control, and saves useful images under the effort's `screenshots/` directory. Selected evidence identifies the exact artifact revision, viewport, relevant state, and an accessible locator. The inspector checks capture completeness, scale, and obscuring browser overlays before returning the images. The author's final image review uses a small coverage-based selection rather than every screenshot or a fixed quota.

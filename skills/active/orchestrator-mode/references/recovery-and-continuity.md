@@ -1,6 +1,6 @@
 # Recovery and continuity
 
-## Choose a Chief continuity transition
+## Choose a coordinator continuity transition
 
 At meaningful effort boundaries, compare continuing with useful conversation context against compaction or a fresh session supported by accepted artifacts. Completed design or implementation can provide a boundary; unresolved decisions and reconstruction costs can favor continuity. Base the choice on the next responsibility and retained value, not token thresholds or a mandatory reset.
 
@@ -26,7 +26,7 @@ An interrupted response is not compaction. A missing final packet does not estab
 
 Resume from the effort's working files and relevant current state. A new session, compaction, incomplete historical context, or a session marker alone does not justify reconstruction. Recover only enough context for the next bounded action.
 
-Route `inspect` through the standing orchestrator for prior-session history only when a specific material gap blocks the next action and available conversation, effort files, and current state cannot resolve it, or when the human explicitly requests historical investigation. Name the missing fact and the action it controls. Supply session/known child IDs, objective and relevant effort segment, relevant boundary, exclusions, and the smallest sufficient result. For multi-compaction work, follow the relevant segment rather than replay the whole history. The parent-facing orchestrator reads effort and assignment files only; it returns missing Chief context in its envelope and never pulls the Chief transcript.
+Route `inspect` through the topology layer for prior-session history only when a specific material gap blocks the next action and available conversation, effort files, and current state cannot resolve it, or when the human explicitly requests historical investigation. Name the missing fact and the action it controls. Supply session/known child IDs, objective and relevant effort segment, relevant boundary, exclusions, and the smallest sufficient result. For multi-compaction work, follow the relevant segment rather than replay the whole history. A parent-facing coordinator reads effort and assignment files only; it returns missing context through the selected return surface and never pulls the decision recipient's transcript.
 
 Require only facts affecting continuation: decisions, useful evidence and locators, child continuity, mutations and verification, unresolved state, freshness, and next action. Check against current context, resolve material conflicts, and synthesize. Use `session-analyst` only if evaluation, rather than factual reconstruction, is needed. Persistent handoffs or knowledge require their separately requested owning workflows.
 
@@ -40,7 +40,7 @@ Provider caching can reuse matching prefixes across fresh sessions, but reading 
 
 | Role | Continue or start fresh |
 | --- | --- |
-| `orchestrator` | Establish one standing session per effort through one human selection and reuse it across discovery, execution, verification, and reconciliation cycles. Rotate for a new effort, repeated-compaction drift, or looping or stale behavior; rotation needs no new human selection, and the fresh orchestrator reads the same effort files before continuing. |
+| `orchestrator` | Keep one current coordinator per effort and reuse it across discovery, execution, verification, and reconciliation cycles. In `chief/split`, this is the standing gateway. Rotate for a new effort, repeated-compaction drift, or looping or stale behavior; the replacement reads the same effort files before continuing. |
 | `explore`, `research`, `inspect` | Fresh for each bounded unit. Resume only the same unresolved investigation and downstream decision, in the same role and overlapping evidence family, without an independence need, when retained state adds value a compact note cannot preserve. Topic/repository overlap alone is insufficient. |
 | `architect`, `ui-ux-designer` | Resume within the same decision and system boundary, including correction, disagreement, reframing, new evidence, or bounded extension. Start fresh for a materially new decision, unavailable/unusable session, or an authorized independent opinion. For suspected anchoring, first try explicit correction and reconsideration; a separately approved second opinion supplements prior work using verified constraints. |
 | `triage` | After the diagnostic and human-authorization gate, start fresh for a looping mutation blocker. Resume within the authorized symptom/incident as evidence develops; a different scope needs its own authority before choosing a fresh session. |

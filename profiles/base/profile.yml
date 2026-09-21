@@ -245,6 +245,7 @@ opencode:
     - apply-spec
     - implement-design
     - orchestrate
+    - orchestrate-chief
     - openspec-rolling-apply
     - rmslop
   agents:

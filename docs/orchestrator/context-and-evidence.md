@@ -29,10 +29,10 @@ Efforts use `/tmp/opencode/orchestrator-workspaces/<effort>/`. Names describe th
 | Material | Purpose |
 | --- | --- |
 | `context.md` | Required current understanding: goal, motivation, preferences, constraints, waivers, accepted decisions and rationale, consequential rejected directions, open questions, and next step. |
-| `evidence/<producer-id>.md` | Attributed findings from one direct producer, with supporting observations, uncertainty, applicability, and useful lessons. Required for each evidence-producing dispatch by the coordinating orchestrator; internal helpers contribute through their parent's note unless separately assigned one. |
+| `assignments/<assignment-id>/evidence/<producer-id>.md` | Attributed findings from one direct producer, with supporting observations, uncertainty, applicability, and useful lessons. The topology's assignment owner owns the note: the current session in `baked-in` and the standing orchestrator in `chief/split`. Required for each evidence-producing dispatch; internal helpers contribute through their parent's note unless separately assigned one. |
 | `sources/` | Raw material retained from another system, such as an extracted Teams meeting transcript. Created when needed, with provenance and extraction limits recorded in a linked note or index entry. |
 | `screenshots/` | Useful rendered captures when validation produces images. The existing owner note or helper return maps selected images to artifact revisions, viewports, relevant state, and recipient-accessible paths. |
-| `index.md` | Catalog of completed, checked notes and source captures, with their relevance, freshness, conflicts, and supersession. Required after the first checked producer note or source capture. |
+| `index.md` | At effort level, one scribe-maintained pointer row per completed assignment. At assignment level, a catalog of checked notes and source captures, with their relevance, freshness, conflicts, and supersession; it is required after the first checked producer note or source capture. |
 | `synthesis/<topic>.md` | Authorized evidence-informed reasoning with concrete reuse value. Creation requires a human request or acceptance of a recommendation. |
 | `design.md` | Optional accepted technical background shared by several units. |
 | `coordination.md` | Optional cross-unit ownership, dependencies, status, and acceptance state. |
@@ -69,13 +69,13 @@ The return identifies the completed note and the material result, uncertainty, b
 
 ## Continuity preserves meaning without replay
 
-The coordinator updates `context.md` when discussion changes the shared understanding or a phase boundary changes the next step. It replaces stale statements instead of appending an activity log. The index preserves discoverability and supersession; context does not need to duplicate it.
+On coordinator instruction, the scribe transcribes assigned state files, including `context.md`, effort-level `index.md` pointer rows, and authorized synthesis, using pointer briefs with `session_context` pulls. The coordinator owns the decisions and content and updates `context.md` when discussion changes the shared understanding or a phase boundary changes the next step. It replaces stale statements instead of appending an activity log. The index preserves discoverability and supersession; context does not need to duplicate it.
 
 A later authorization to commit should replace an earlier no-commit constraint. After completion, context should state the resulting commit status and remaining authority, with operational details in the producer note. Appending an authorization section while retaining contradictory constraints or obsolete pending actions leaves the successor to reconcile a history that the coordinator already understands. No dedicated publication section is required.
 
 Resumption reads context first and reconciles selected working files with the current request and mutable state. Prior-session inspection requires a specific unresolved fact blocking the next action, or an explicit historical investigation request. Missing temporary files or a new session alone do not justify replaying history.
 
-The [continuity reference](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#choose-a-coordinator-phase-transition) treats an accepted design, completed proposal, or accepted implementation as a possible transition, not a mandatory reset. Continuing preserves useful discussion; compaction retains session continuity with less history; a fresh session depends more on current artifacts. The next responsibility and reconstruction cost determine which is useful.
+The [continuity reference](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#choose-a-coordinator-continuity-transition) treats an accepted design, completed proposal, or accepted implementation as a possible transition, not a mandatory reset. Continuing preserves useful discussion; compaction retains session continuity with less history; a fresh session depends more on current artifacts. The next responsibility and reconstruction cost determine which is useful.
 
 Coordinator transitions are distinct from the role-specific child non-resumption limit. Artifact-author and agent-author regardless of model, plus any subagent explicitly assigned Sol by the human, require a fresh child above 150,000 recorded request-input tokens at the next dispatch. Determine Sol coverage from the known explicit selection rather than querying configured defaults. Preserve necessary meaning through selected artifacts and evidence even when little work remains. This policy does not establish a degradation threshold for other sessions.
 

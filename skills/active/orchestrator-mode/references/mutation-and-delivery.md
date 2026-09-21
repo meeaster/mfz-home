@@ -1,10 +1,10 @@
 # Mutation and delivery
 
-This is the parent-facing orchestrator's operating contract for gateway-routed mutation and delivery. The Chief supplies accepted decisions and authority, judges envelopes, and does not handle producer briefs, packets, or mutation mechanics.
+This is the coordinator's operating contract for bounded mutation and delivery. The decision recipient supplies accepted decisions and authority; the coordinator handles producer briefs, packets, and the selected return surface.
 
 ## Outcome-scoped authority
 
-A concrete request can authorize several named steps and their necessary inherent operations. Continue without renewed approval while the outcome, target, scope/system boundary, access, consequential cost, risk, reversibility, design assumptions, and acceptance contract remain materially consistent. Ordinary newly discovered implementation details do not invalidate that sequence.
+A concrete request can authorize several named steps and their necessary inherent operations. Continue while the outcome, target, scope/system boundary, access, consequential cost, risk, reversibility, design assumptions, and acceptance contract remain materially consistent. Ordinary newly discovered implementation details do not invalidate that sequence.
 
 Pause for a changed basis, unresolved consequential choice, failed gate, different procedure, broader or independent outcome, missing authority, or material blocker. Return the result, changed assumption, affected downstream steps, and smallest needed decision. Vague future work is not authority.
 
@@ -22,7 +22,7 @@ Classify preparation before dispatch:
 - Use separate `inspect` for a requested read-only outcome, absent mutation authority, or readiness dependent on a distinct live system, access boundary, human decision, or uncertainty beyond ordinary operator preflight.
 - Use an authorized preparation operator for substantial mechanically separable setup that changes the brief/state or would crowd useful build context. Check its handoff and normally start the build agent fresh. Serialize shared-state preparation and build.
 
-Preserve unrecognized local changes, including untracked source. Before editing, return any checkout or isolation decision required by applicable instructions through the orchestrator's envelope to the Chief; a promise to preserve files does not replace that decision. Clarify ambiguous “get latest” intent. Worktree creation, Git, Jira, and environment mutations retain their own authority; combine only operations inherent in one explicitly requested transaction or concrete sequence.
+Preserve unrecognized local changes, including untracked source. Before editing, surface any checkout or isolation decision required by applicable instructions through the mode's return surface; a promise to preserve files does not replace that decision. Clarify ambiguous “get latest” intent. Worktree creation, Git, Jira, and environment mutations retain their own authority; combine only operations inherent in one explicitly requested transaction or concrete sequence.
 
 Decompose by coherent outcome, ownership, mutable state, dependencies, and compatible acceptance/validation, not file or repository counts. Keep tightly coupled changes together; split independent domains, lifecycle concerns, authority boundaries, or validation environments. Order units by dependencies, normally one coherent outcome per worker. Use optional `coordination.md` for cross-unit criteria, owner, status, and evidence; put a single unit's acceptance in its prompt.
 
@@ -34,7 +34,7 @@ Specify required validation coverage, consequential environments, and any requir
 
 Reuse results while they apply to the current code and environment. Additional execution should resolve a relevant change, missing coverage, contradictory evidence, or a material need for independent confirmation. Select checks by affected behavior and dependencies, including transitive callers and integration boundaries; changed filenames alone do not establish sufficient coverage. Reuse existing coverage maps or gather bounded evidence when selection is materially uncertain. Preserve useful red/green checks without adding a mandatory preparation agent or repeating suites solely because ownership changed.
 
-Make validation through the relevant user-facing boundary part of the completion contract: browser interaction for UI behavior, executable invocation for CLI behavior, or a bounded live request when a claim depends on an external integration. Existing tests can supply that evidence when they exercise the boundary adequately. Add focused runtime checks for material gaps within authorized access and effects; report any unexercised behavior and why. Workers normally own these checks, including omitted completion coverage. When validation is substantial, such as an extended browser session, compare continuing with useful implementation context against a fresh inspector's setup, reconstruction, and defect-handoff costs. Assign bounded validation to a fresh inspector when focused context or independent assurance adds material value. The worker still supplies immediate checks and exact remaining coverage; the inspector reports findings without repair, the orchestrator routes defects and accepts the resulting packet, and the Chief retains final acceptance. An operator owns a distinct operational outcome, not validation merely because it uses a browser or command.
+Make validation through the relevant user-facing boundary part of the completion contract: browser interaction for UI behavior, executable invocation for CLI behavior, or a bounded live request when a claim depends on an external integration. Existing tests can supply that evidence when they exercise the boundary adequately. Add focused runtime checks for material gaps within authorized access and effects; report any unexercised behavior and why. Workers normally own these checks, including omitted completion coverage. When validation is substantial, such as an extended browser session, compare continuing with useful implementation context against a fresh inspector's setup, reconstruction, and defect-handoff costs. Assign bounded validation to a fresh inspector when focused context or independent assurance adds material value. The worker still supplies immediate checks and exact remaining coverage; the inspector reports findings without repair, the coordinator routes defects and accepts the resulting packet, and the decision recipient retains final acceptance. An operator owns a distinct operational outcome, not validation merely because it uses a browser or command.
 
 ## Worker readiness
 
@@ -55,7 +55,7 @@ Serialize mutation by default and whenever overlap is unknown. Parallelize only 
 
 Use only authorized isolation. Defer shared integration, rendering, runtime probes, and repository-wide validation until isolated work is ready. A sequential fresh agent receives its predecessor's checked state and relevant handoff.
 
-When combining results requires mutation or distinct shared validation, the orchestrator assigns an authorized operator for procedural integration or worker for substantive software integration. Supply accepted inputs, exact state, conflict boundaries, acceptance, and final shared validation ownership. Keep final validation with the last mutation unit when coherent; omit a separate integration agent when there is no distinct integration outcome. Neither the Chief nor the orchestrator integrates by mutation.
+When combining results requires mutation or distinct shared validation, the coordinator assigns an authorized operator for procedural integration or worker for substantive software integration. Supply accepted inputs, exact state, conflict boundaries, acceptance, and final shared validation ownership. Keep final validation with the last mutation unit when coherent; omit a separate integration agent when there is no distinct integration outcome. The coordinator does not integrate by mutation unless the assignment explicitly owns that implementation outcome.
 
 ## Preparation and publication handoffs
 
@@ -65,7 +65,7 @@ One authorized coordinated operation may use one sequential operator across know
 
 ## External operations
 
-Send narrow, understood, readily reversible operations directly to the authorized operator. Add evidence proportional to material uncertainty, impact, dependencies, selectors, access, or recovery; production scope alone does not create a fixed approval or investigation cycle.
+Send narrow, understood, readily reversible operations directly to the authorized operator. Add evidence proportional to material uncertainty, impact, dependencies, selectors, access, or recovery; production scope alone does not create a fixed authorization or investigation cycle.
 
 Require these operational conditions in the brief:
 

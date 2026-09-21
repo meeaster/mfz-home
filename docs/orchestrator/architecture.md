@@ -8,6 +8,8 @@ This document set explains the design for the human and future maintainers. It i
 
 The source contracts were revised on 2026-09-16 following the discussion and audit in session `ses_f554f2fb4ffeGRvDV6x1fnVR0V`. They supersede the unconditional inspection policy at baseline `fec8a524`. Source implementation, runtime activation, and observed behavioral improvement are separate claims; task reports and execution evidence support validation and activation results.
 
+**2026-09-21 restructuring.** The dual-mode topology is implemented in source, with `baked-in` loaded by `/orchestrate` and `chief/split` loaded by `/orchestrate-chief`. In `chief/split`, the standing orchestrator is the assignment owner; the scribe is a dual-use subordinate with per-cycle context pulls. The orchestrator agent default is `openai/gpt-5.6-luna` with variant `max`, and `opencode.config.experimental.subagent_depth` is `3`. The source refactor is uncommitted, and activation through `mfz apply` has run for the skill; no behavioral validation is claimed.
+
 | Status | Decision |
 | --- | --- |
 | Implemented | Explicit orchestration, bounded child assignments, producer-owned evidence notes, required maintained `context.md`, workspace-first recovery, and ownership-based skill loading with optional child hints. |
@@ -41,6 +43,8 @@ Strict substantive review is a deliberate quality-control choice, including for 
 ## How the parts fit together
 
 The human-facing coordinator interprets the request, develops understanding with the human, selects bounded work, and accepts or challenges returned results. An explicitly selected parent-facing orchestrator coordinates only its delegated assignment and returns consequential questions to its parent. It does not recursively dispatch another orchestrator.
+
+The caller selects the mode. In `baked-in`, the current session dispatches specialists directly; in `chief/split`, a standing orchestrator gateway owns assignments and returns envelopes while the Chief retains human dialogue and consequential decisions. The scribe is the coordinator's direct subordinate in both modes.
 
 The [Orchestrator Mode skill](../../skills/active/orchestrator-mode/SKILL.md) owns coordination, routing, authority, and acceptance. Its branch references contain the applicable execution contracts. [Task Evidence](../../skills/active/orchestrator-task-evidence/SKILL.md) owns how producers write and reuse their assigned notes. A child brief supplies the current assignment and authority; background files do not grant more work.
 

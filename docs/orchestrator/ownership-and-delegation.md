@@ -6,11 +6,13 @@ This page explains the design under the [architecture status](architecture.md#de
 
 ## The coordinator remains a collaborator
 
-The coordinator owns problem framing, human dialogue, relevant shared understanding, assignments, and acceptance. Small settled instruction edits and text artifacts can stay here when the necessary context is already present. Reader-facing diagrams and HTML explanation pages go to `artifact-author` by default, keeping rendering and revision detail outside the human conversation. Application UI and throwaway design experiments retain their separate owners.
+In `baked-in`, the current session owns problem framing, human dialogue, relevant shared understanding, assignments, and packet acceptance. In `chief/split`, the standing orchestrator owns `assignments/` and accepts producer packets, while the Chief retains human dialogue, consequential decisions, and envelope acceptance. Small settled instruction edits and text artifacts can stay here when the necessary context is already present. Reader-facing diagrams and HTML explanation pages go to `artifact-author` by default, keeping rendering and revision detail outside the human conversation. Application UI and throwaway design experiments retain their separate owners.
 
 Application implementation remains delegated, including small edits. A capable inexpensive worker can perform a narrow change economically. This design does not adopt a general exception allowing the coordinator to edit application code whenever it appears faster.
 
-The current runtime also delegates substantive evidence gathering and permits narrow direct corroboration for acceptance. This keeps broad search and execution traces outside the main session while allowing the coordinator to resolve a specific question about a returned claim.
+Substantive evidence gathering over unbounded corpora routes to evidence roles, while bounded artifacts whose exact content is under judgment, such as instruction packages, agent or command definitions, and authoring records, are read directly by the coordinator.
+
+The scribe is the coordinator's transcription subordinate, not a general prose writer.
 
 ## Assign coherent outcomes
 
