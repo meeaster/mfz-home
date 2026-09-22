@@ -1,0 +1,10 @@
+packages:
+  - "."
+allowBuilds:
+  '@parcel/watcher': set this to true or false
+  msgpackr-extract: set this to true or false
+  protobufjs: set this to true or false
+  tree-sitter-bash: set this to true or false
+  tree-sitter-powershell: set this to true or false
+patchedDependencies:
+  '@hona/openeval@0.3.2': patches/@hona__openeval@0.3.2.patch

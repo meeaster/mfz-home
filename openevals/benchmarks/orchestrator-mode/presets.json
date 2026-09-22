@@ -1,0 +1,54 @@
+{
+  "default": "luna",
+  "roles": [
+    "orchestrator",
+    "scribe",
+    "explore",
+    "research",
+    "inspect",
+    "triage",
+    "architect",
+    "ui-ux-designer",
+    "agent-author",
+    "artifact-author",
+    "prototype",
+    "operator",
+    "worker",
+    "reviewer",
+    "pr-reviewer",
+    "session-analyst"
+  ],
+  "presets": {
+    "luna": {
+      "candidate": "opencode-go/gpt-5.6-luna#high",
+      "judge": "opencode-go/gpt-5.6-luna#high",
+      "agents": {
+        "orchestrator": "opencode-go/gpt-5.6-luna#max",
+        "scribe": "opencode-go/gpt-5.6-luna#high",
+        "explore": "opencode-go/gpt-5.6-luna#high",
+        "research": "opencode-go/gpt-5.6-luna#high",
+        "inspect": "opencode-go/gpt-5.6-luna#high",
+        "triage": "opencode-go/gpt-5.6-luna#max",
+        "architect": "opencode-go/gpt-5.6-luna#high",
+        "ui-ux-designer": "opencode-go/gpt-5.6-luna#medium",
+        "agent-author": "opencode-go/gpt-5.6-luna#medium",
+        "artifact-author": "opencode-go/gpt-5.6-luna#medium",
+        "prototype": "opencode-go/gpt-5.6-luna#max",
+        "operator": "opencode-go/gpt-5.6-luna#high",
+        "worker": "opencode-go/gpt-5.6-luna#max",
+        "reviewer": "opencode-go/gpt-5.6-luna#high",
+        "pr-reviewer": "opencode-go/gpt-5.6-luna#high",
+        "session-analyst": "opencode-go/gpt-5.6-luna#high"
+      }
+    },
+    "glm": {
+      "candidate": "zai-coding-plan/glm-5.3#high",
+      "judge": "zai-coding-plan/glm-5.3#high",
+      "agents": {
+        "orchestrator": "zai-coding-plan/glm-5.3#high",
+        "explore": "zai-coding-plan/glm-5.3-flash#low",
+        "*": "zai-coding-plan/glm-5.3-flash#high"
+      }
+    }
+  }
+}

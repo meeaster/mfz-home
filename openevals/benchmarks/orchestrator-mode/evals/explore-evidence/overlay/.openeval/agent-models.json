@@ -1,0 +1,18 @@
+{
+  "orchestrator": "zai-coding-plan/glm-5.3#high",
+  "scribe": "zai-coding-plan/glm-5.3-flash#high",
+  "explore": "zai-coding-plan/glm-5.3-flash#low",
+  "research": "zai-coding-plan/glm-5.3-flash#high",
+  "inspect": "zai-coding-plan/glm-5.3-flash#high",
+  "triage": "zai-coding-plan/glm-5.3-flash#high",
+  "architect": "zai-coding-plan/glm-5.3-flash#high",
+  "ui-ux-designer": "zai-coding-plan/glm-5.3-flash#high",
+  "agent-author": "zai-coding-plan/glm-5.3-flash#high",
+  "artifact-author": "zai-coding-plan/glm-5.3-flash#high",
+  "prototype": "zai-coding-plan/glm-5.3-flash#high",
+  "operator": "zai-coding-plan/glm-5.3-flash#high",
+  "worker": "zai-coding-plan/glm-5.3-flash#high",
+  "reviewer": "zai-coding-plan/glm-5.3-flash#high",
+  "pr-reviewer": "zai-coding-plan/glm-5.3-flash#high",
+  "session-analyst": "zai-coding-plan/glm-5.3-flash#high"
+}

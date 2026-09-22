@@ -1,0 +1,22 @@
+{
+  "name": "@mfz-home/openevals",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "materialize": "bun src/materialize-cli.ts",
+    "calibrate": "bun src/calibrate-judge.ts",
+    "test": "bun test --path-ignore-patterns \"**/results/**\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hona/openeval": "0.3.2",
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.9",
+    "@types/node": "24.13.2",
+    "typescript": "6.0.3"
+  }
+}
