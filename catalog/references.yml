@@ -12,6 +12,12 @@ references:
     group: agent-tooling
     summary: OpenSpec
     signals: [OpenSpec, specifications, change proposals]
+  - name: openevals
+    url: https://github.com/Hona/openeval.git
+    description: "TypeScript evaluation framework for agent benchmarks. Inspect it for eval prompts, rubrics, candidate and judge runs, evidence collection, result schemas, or benchmark execution. Main entrypoints: package APIs and CLI documentation."
+    group: agent-tooling
+    summary: OpenEval
+    signals: [OpenEval, agent evaluation, benchmarks]
   - name: compound-engineering-plugin
     url: https://github.com/EveryInc/compound-engineering-plugin.git
     description: "Cross-harness agent plugin providing skills for planning, implementation, debugging, simplification, review, and reusable engineering knowledge. Inspect it when designing agent workflows, resolving bugs, reviewing changes, or capturing project learnings. Main entrypoint: src/index.ts."

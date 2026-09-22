@@ -28,6 +28,7 @@ capability_groups:
 references:
   - opencode
   - openspec
+  - openevals
   - mise
   # - executor
   - mattpocock-skills
