@@ -12,10 +12,10 @@ Use only when explicitly loaded. The caller selects one user-facing mode: `baked
 
 | Mode | Dispatcher | Assignment owner | Return surface |
 | --- | --- | --- | --- |
-| `baked-in` | The current session dispatches specialists directly. | The current orchestrator owns `assignments/`, the child roster, and producer notes. | The current session accepts producer packets and returns checked results to the human or assigning parent. Its scribe is a direct subordinate. |
+| `baked-in` | The current session dispatches specialists directly. | The current orchestrator owns `assignments/`, the child roster, and producer notes. | The current session accepts producer packets and returns accepted results to the human or assigning parent. Its scribe is a direct subordinate. |
 | `chief/split` | The current session is Chief; a standing `orchestrator` is the gateway for all cycle work. | The standing orchestrator owns `assignments/`, the child roster, and producer notes. | The gateway accepts producer packets and returns an envelope to the Chief. The Chief's scribe remains a direct subordinate. |
 
-In `chief/split`, establish the standing gateway before the first cycle unit — evidence, verification, or synthesis — and route every unit through it, even when prior effort evidence seems to cover the request. The Chief's only direct child is the scribe; the Chief synthesizes from gateway envelopes and note locators, opening full evidence notes only under Acceptance's full-inspection conditions. When gateway ceremony would outweigh the split, recommend a mode switch to the human rather than act as the other mode.
+In `chief/split`, establish the standing gateway before the first cycle unit — evidence, verification, or synthesis — and route every unit through it, even when prior effort evidence seems to cover the request. The Chief's only direct child is the scribe; the Chief synthesizes from gateway envelopes and note locators, opening full evidence notes only when the envelope leaves a material gap. When gateway ceremony would outweigh the split, recommend a mode switch to the human rather than act as the other mode.
 
 Background dispatch is the default in both modes. Keep at most one active cycle per standing orchestrator only in `chief/split`; dependent dispatches wait for their producing child in either mode. This table is the topology layer; the shared contracts below do not assume a gateway.
 
@@ -54,13 +54,13 @@ Direct producers of shared task evidence use `orchestrator-task-evidence`. Inter
 
 ## Acceptance
 
-The coordinator accepts producer results against their briefs; a producer return is evidence, not acceptance. Inspect full source, media, or broad output only for material uncertainty, disagreement, inconclusive validation, an unsupported consequential decision, or an explicit detailed-inspection request. In `chief/split`, the Chief accepts the checked gateway envelope by default. In `baked-in`, the current session returns the checked result directly. Do not repeat producer validation. Repair a bounded packet or envelope gap through a focused follow-up when continuity is useful.
+The coordinator accepts producer results against their briefs; the accepted packet is the effort's evidence of record. Keep coordinator context lean: assignment state and synthesis, not raw sources or producer traces. Treat packet distress — contradiction, insufficiency, implausibility, or a locator that does not resolve — as a dispatch signal: send a focused follow-up to the producer or another specialist rather than loading sources into coordinator context. Reading the bounded artifact under judgment — an instruction package, agent or command definition, or authoring record — is the work itself, per [Routing and roles](references/routing-and-roles.md); outside that target and human-requested detailed inspection, do not repeat producer validation. In `chief/split`, the Chief accepts the gateway envelope by default. In `baked-in`, the current session returns the accepted result directly.
 
 Recheck only coordination criteria invalidated by later changes and close or explicitly waive all criteria before completion. Report independent review findings separately from coordinator acceptance of later repairs; claim rereview only when it occurred. Git publication requires current evidence of repository status, commit identity, branch/upstream relation, and push state. Do not let a producer approve its own repair.
 
 ## Boundary closure
 
-Use the selected return surface: a split gateway returns only decisions needed, material findings with note locators, current state, and the next cycle in an envelope; a baked-in coordinator returns the checked result without routing mechanics. Keep briefs, packet traffic, patches, and raw tool output in child sessions and effort files. Reconcile totals with itemized evidence before returning.
+Use the selected return surface: a split gateway returns only decisions needed, material findings with note locators, current state, and the next cycle in an envelope; a baked-in coordinator returns the accepted result without routing mechanics. Keep briefs, packet traffic, patches, and raw tool output in child sessions and effort files. Reconcile totals with itemized evidence before returning.
 
 Before returning evidence, decide whether synthesis has concrete later reuse. If the caller says the reasoning will inform a later plan, decision, or worker cycle, recommend exactly one focused synthesis unless it exists or was declined without material change. Otherwise recommend only for equally concrete later reuse and say nothing when declining. Name its focus and value, state that creation requires human acceptance, and create no file or blocking stage from the recommendation.
 
