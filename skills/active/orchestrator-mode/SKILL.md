@@ -58,7 +58,7 @@ An orchestrator selects the smallest coherent unit by outcome, dependencies, and
 - Give each assignment enough purpose to understand how it fits. Supply a short explanation or selected `context.md` pointer, not both copies of the same background.
 - Require `orchestrator-task-evidence` for assigned evidence production, operational learnings, or selective reuse. Internal helpers do not inherit shared-file obligations without an explicit assignment.
 - Release dependent readers after the producer has returned and completed its writes. Coordinate overlapping source changes and shared runtime operations.
-- Verify proportionately. Concrete worker checks can suffice for straightforward work; use independent factual inspection for uncertain results, external effects, multi-component changes, or missing assurance. Use authorized review for deeper correctness and maintainability judgment.
+- Verify proportionately. Accept concrete worker or operator checks for straightforward work, including routine publication. Add independent factual inspection for a specific evidence gap, contradiction, or independence requirement; external effects or multiple components alone do not require another verifier. Use authorized review for deeper correctness and maintainability judgment.
 
 ## Accept and return
 

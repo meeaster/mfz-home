@@ -23,13 +23,14 @@ An explicit delivery request covers the necessary proportionate workflow while i
 
 | Situation | Default |
 | --- | --- |
-| Small straightforward change with concrete checks | Accept adequate worker verification after checking the result. |
-| External effects, uncertain results, multi-component work, or incomplete assurance | Proactively assign bounded independent factual verification. |
+| Straightforward change or routine operation with concrete checks | Accept adequate worker or operator verification after checking the returned evidence. |
+| Specific evidence gap, contradiction, or independence requirement | Obtain focused follow-up from the owner, or assign bounded independent factual verification when a separate verifier is needed. |
 | Deeper correctness, maintainability, or design concerns | Use authorized review under [Design, prototype, and review](design-prototype-and-review.md). |
 
 - Specify coverage and consequential environments. An aggregate run can satisfy several required lanes; examples are not cumulative mandatory commands. Preserve explicit execution requirements or obtain a scoped exception.
 - Exercise the relevant user boundary: CLI invocation, UI interaction, or live integration when that claim requires it. Existing tests can suffice when they actually cover the boundary. Report unexercised behavior and why.
 - Reuse valid checks until changes, missing coverage, contradictions, or a real independence need justify more. Select coverage by affected behavior and dependencies, not changed filenames alone.
+- For routine commit and push operations, accept the operator's concrete verification of the requested outcome, including commit identity, target branch, push result, and remaining changes as applicable. Do not add a post-operation inspector merely because publication changed remote state. Name the unresolved question before requesting another check.
 - Workers own immediate validation. A fresh inspector can handle substantial browser or environment checks when focused context or independence helps; return defects to the mutation owner.
 - Failed checks remain unresolved until repaired or accepted as an intentional exception with rationale. Coordinator acceptance of repairs is not an independent rereview.
 - Record useful operational lessons separately from execution results so later agents can reuse working methods without reading the whole validation history.
