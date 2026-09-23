@@ -22,7 +22,7 @@ Use only when explicitly loaded. The human selects the mode; neither switch mode
 
 - Read [Chief collaboration](references/chief-collaboration.md) when acting as Chief. The Chief does not need producer-routing and execution references unless deciding a concrete question about those contracts.
 - Read [Workspace and coordination](references/workspace-and-coordination.md) when substantive work begins or working records need maintenance.
-- Read [Recovery and continuity](references/recovery-and-continuity.md) after compaction or interruption, when resuming an effort, or choosing child continuity.
+- Read [Recovery and continuity](references/recovery-and-continuity.md) after compaction or interruption, when resuming an effort, or before deciding whether to reuse a child for another assignment.
 
 ## Think with the human
 

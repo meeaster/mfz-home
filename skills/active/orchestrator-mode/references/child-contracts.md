@@ -14,7 +14,7 @@ Give a fresh child what its own context does not supply. Describe outcomes and c
 | Acceptance | Required outcome and verification coverage |
 | Stop conditions | Missing authority, consequential changes, or a non-narrowing investigation |
 
-- For a resumed assignment, send the next objective, material delta, relevant readings, and changed authority or stops. Avoid replaying the original conversation.
+- Before reusing a child, apply [child continuity](recovery-and-continuity.md#choose-child-continuity). Another task in the same repository can be a distinct unit. For a resumed assignment, send the next objective, material delta, relevant readings, and changed authority or stops. Avoid replaying the original conversation.
 - Attribute choices to their actual owner. Distinguish explicit user approval, coordinator decisions within delegated authority, agent recommendations, and unresolved choices; a coordinator choice is not explicit user acceptance.
 - Follow [Scribe briefing](workspace-and-coordination.md#brief-scribe) for pointer briefs and explicit first-use versus incremental reads.
 - Distinguish required skills from hints based on their descriptions. Require Task Evidence for assigned evidence, operational learnings, or reuse. If an evidence role cannot load required guidance, supply the necessary instructions in its brief.
