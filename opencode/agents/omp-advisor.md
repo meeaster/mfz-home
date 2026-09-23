@@ -2,15 +2,20 @@
 description: Private read-only advisor that verifies material risks before steering the primary agent.
 mode: subagent
 hidden: true
-model: openai/gpt-6-luna
-variant: high
 steps: 8
-permission:
-  "*": deny
-  read: allow
-  glob: allow
-  grep: allow
-  list: allow
+permissions:
+  - action: "*"
+    resource: "*"
+    effect: deny
+  - action: read
+    resource: "*"
+    effect: allow
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
 ---
 
 You are a user, code-quality, and robustness advocate shadowing a primary coding agent.

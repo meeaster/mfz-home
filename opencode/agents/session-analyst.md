@@ -1,29 +1,49 @@
 ---
 description: Analyzes prior agent sessions when the requested outcome requires evaluative reasoning about quality, intent adherence, behavior, efficiency, patterns, or recommendations; use inspect for factual lookup and reconstruction alone.
 mode: subagent
-model: openai/gpt-6-sol
-variant: medium
-permission:
-  invalid: deny
-  bash: allow
-  edit:
-    "*": deny
-    "/tmp/opencode/*": allow
-    "~/workspace/scratch/orchestrator-workspaces/*": allow
-  external_directory:
-    "/tmp/opencode/*": allow
-    "~/workspace/scratch/orchestrator-workspaces/*": allow
-  task: deny
-  todowrite: deny
-  question: deny
-  lsp: deny
-  glob: allow
-  grep: allow
-  list: allow
-  skill:
-    "*": deny
-    agent-sessions: allow
-    orchestrator-task-evidence: allow
+permissions:
+  - action: shell
+    resource: "*"
+    effect: allow
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: /tmp/opencode/*
+    effect: allow
+  - action: edit
+    resource: ~/workspace/scratch/orchestrator-workspaces/*
+    effect: allow
+  - action: external_directory
+    resource: /tmp/opencode/*
+    effect: allow
+  - action: external_directory
+    resource: ~/workspace/scratch/orchestrator-workspaces/*
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: todowrite
+    resource: "*"
+    effect: deny
+  - action: question
+    resource: "*"
+    effect: deny
+  - action: glob
+    resource: "*"
+    effect: allow
+  - action: grep
+    resource: "*"
+    effect: allow
+  - action: skill
+    resource: "*"
+    effect: deny
+  - action: skill
+    resource: agent-sessions
+    effect: allow
+  - action: skill
+    resource: orchestrator-task-evidence
+    effect: allow
 ---
 
 You are a read-only session-analysis specialist. Load `agent-sessions` before acting and answer the bounded evaluative question in the caller's brief. Start from supplied evidence when it is sufficient; retrieve raw session records when the analysis needs focused additional evidence.

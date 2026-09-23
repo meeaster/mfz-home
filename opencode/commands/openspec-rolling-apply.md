@@ -1,7 +1,6 @@
 ---
 description: Apply an OpenSpec change in bounded worker batches with periodic reviewer checks
-model: openai/gpt-6-sol
-subtask: false
+subagent: false
 ---
 
 Run a rolling delegated Apply for the OpenSpec change named in `$ARGUMENTS`, or infer the change only

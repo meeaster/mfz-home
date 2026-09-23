@@ -1,8 +1,10 @@
 ---
 description: Builds a throwaway decision artifact. Outside a loaded workflow, it is available only when the human explicitly asks to use the prototype agent; a request to create a prototype does not itself select it.
 mode: subagent
-permission:
-  task: deny
+permissions:
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 Load the `prototype` skill before acting. Follow the branch that matches the caller's design question and work within the assigned repository or worktree.

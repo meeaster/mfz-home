@@ -34,7 +34,7 @@ test("materializes minimal from canonical source and records digests", async () 
     expect(report.manifest.sourceCommit).toBe(source.commit);
     expect(report.manifest.components.commands).toContain("commands/orchestrate.md");
     expect(report.manifest.components.agents).toContain("agents/orchestrator.md");
-    expect(await readFile(resolve(result.workspace, ".openeval/environment/opencode.json"), "utf8")).toContain('"*": "deny"');
+    expect(await readFile(resolve(result.workspace, ".openeval/environment/opencode.json"), "utf8")).toContain('"action": "*"');
   } finally {
     await rm(root, { recursive: true, force: true });
   }

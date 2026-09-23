@@ -52,7 +52,6 @@ function safePersonalProfile(
     opencode: {
       commands: commands.length > 0 ? commands : ["orchestrate"],
       agents: agents.length > 0 ? agents : ["orchestrator", "scribe"],
-      config: { permission: { "*": "deny", read: "allow" } },
     },
     mcp: {},
   };

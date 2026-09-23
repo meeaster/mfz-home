@@ -199,11 +199,16 @@ Conceptual body-free worker definition:
 ---
 description: Executes one isolated scheduled job and may delegate bounded discovery to explore and research agents.
 mode: subagent
-permission:
-  subagent:
-    "*": deny
-    explore: allow
-    research: allow
+permissions:
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: explore
+    effect: allow
+  - action: subagent
+    resource: research
+    effect: allow
 ---
 ```
 

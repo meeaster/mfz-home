@@ -1,6 +1,6 @@
 ---
 description: Implement the accepted current-session design through a fresh worker subagent
-subtask: false
+subagent: false
 ---
 
 Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `worker` subagent.

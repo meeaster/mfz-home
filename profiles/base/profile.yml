@@ -193,56 +193,59 @@ opencode:
   dependencies:
     "@opencode/client": "2.0.9"
   config:
-    permission:
-      external_directory:
-        "~/workspace/scratch/orchestrator-workspaces/*": allow
     experimental:
       subagent_depth: 3
-    agent:
+    agents:
       agent-author:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
       artifact-author:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
       architect:
-        model: openai/gpt-6-astra
-        variant: high
+        model: openai/gpt-6-astra#high
+      inspect:
+        model: openai/gpt-6-luna#high
+      omp-advisor:
+        model: openai/gpt-6-luna#high
       explore:
-        model: openai/gpt-6-luna
-        variant: high
-        permission:
-          edit:
-            "*": deny
-            "/tmp/opencode/*": allow
-            "~/workspace/scratch/orchestrator-workspaces/*": allow
-          external_directory:
-            "/tmp/opencode/*": allow
-            "~/workspace/scratch/orchestrator-workspaces/*": allow
+        model: openai/gpt-6-luna#high
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       operator:
-        model: openai/gpt-6-luna
-        variant: high
+        model: openai/gpt-6-luna#high
       worker:
-        model: openai/gpt-6-luna
-        variant: max
+        model: openai/gpt-6-luna#max
       triage:
-        model: openai/gpt-6-luna
-        variant: max
+        model: openai/gpt-6-luna#max
       prototype:
-        model: openai/gpt-6-luna
-        variant: max
+        model: openai/gpt-6-luna#max
       reviewer:
-        model: openai/gpt-6-sol
-        variant: high
+        model: openai/gpt-6-sol#high
       pr-reviewer:
-        model: openai/gpt-6-sol
-        variant: high
+        model: openai/gpt-6-sol#high
       ui-ux-designer:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
       orchestrator:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
+      research:
+        model: openai/gpt-6-luna#high
+      session-analyst:
+        model: openai/gpt-6-sol#medium
+      scribe:
+        model: openai/gpt-6-luna#high
   websearch:
     provider: exa
   cli:

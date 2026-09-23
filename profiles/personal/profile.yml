@@ -91,31 +91,22 @@ claude:
       defaultMode: auto
 opencode:
   config:
-    agent:
+    agents:
       compaction:
-        model: openai/gpt-6-luna
-        variant: max
+        model: openai/gpt-6-luna#max
       worker:
-        model: openai/gpt-6-sol
-        variant: high
+        model: openai/gpt-6-sol#high
       operator:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
       agent-author:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium
       architect:
-        model: openai/gpt-6-astra
-        variant: medium
+        model: openai/gpt-6-astra#medium
       prototype:
-        model: openai/gpt-6-sol
-        variant: high
+        model: openai/gpt-6-sol#high
       reviewer:
-        model: openai/gpt-6-astra
-        variant: medium
+        model: openai/gpt-6-astra#medium
       triage:
-        model: openai/gpt-6-sol
-        variant: high
+        model: openai/gpt-6-sol#high
       orchestrator:
-        model: openai/gpt-6-sol
-        variant: medium
+        model: openai/gpt-6-sol#medium

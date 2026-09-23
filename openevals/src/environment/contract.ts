@@ -30,7 +30,13 @@ const manifestSchema = z.object({
 
 const configSchema = z.object({
   mcp: z.object({ servers: z.record(z.string(), z.object({}).passthrough()).optional() }).optional(),
-  permission: z.record(z.string(), z.string()).optional(),
+  permissions: z.array(
+    z.object({
+      action: z.string(),
+      resource: z.string(),
+      effect: z.enum(["allow", "ask", "deny"]),
+    }),
+  ).optional(),
 }).passthrough();
 
 function includesEvery(value: string[], expected: string[], label: string, errors: string[]): void {
@@ -64,7 +70,10 @@ export async function checkEnvironmentContract(root: string): Promise<Environmen
   includesEvery(manifest.components.commands, ["commands/orchestrate.md"], "command", errors);
   includesEvery(manifest.components.agents, ["agents/orchestrator.md"], "agent", errors);
 
-  if (config.permission?.["*"] !== "deny")
+  if (!config.permissions?.some(
+    (permission) =>
+      permission.action === "*" && permission.resource === "*" && permission.effect === "deny",
+  ))
     errors.push("External writes are not denied by the environment permission overlay");
 
   if (Object.keys(config.mcp?.servers ?? {}).length > 0)

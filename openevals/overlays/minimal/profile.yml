@@ -11,8 +11,4 @@ skills:
 opencode:
   commands: [orchestrate]
   agents: [orchestrator, scribe]
-  config:
-    permission:
-      "*": deny
-      read: allow
 mcp: {}

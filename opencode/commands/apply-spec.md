@@ -1,6 +1,6 @@
 ---
 description: Load OpenSpec with codebase and external research context
-subtask: false
+subagent: false
 ---
 
 Load the openspec apply skill and the thermo-nuclear-code-quality-review skill, then read the "$1" spec.

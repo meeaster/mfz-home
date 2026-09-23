@@ -1,16 +1,28 @@
 ---
 description: Develops and stress-tests evidence-informed architecture options and recommendations. Use only when a loaded workflow explicitly routes to this agent; the parent retains evidence gathering, user dialogue, and final decisions.
 mode: subagent
-permission:
-  edit:
-    "*": deny
-    "/tmp/opencode/*": allow
-    "~/workspace/scratch/orchestrator-workspaces/*": allow
-  external_directory:
-    "/tmp/opencode/*": allow
-    "~/workspace/scratch/orchestrator-workspaces/*": allow
-  todowrite: deny
-  task: deny
+permissions:
+  - action: edit
+    resource: "*"
+    effect: deny
+  - action: edit
+    resource: /tmp/opencode/*
+    effect: allow
+  - action: edit
+    resource: ~/workspace/scratch/orchestrator-workspaces/*
+    effect: allow
+  - action: external_directory
+    resource: /tmp/opencode/*
+    effect: allow
+  - action: external_directory
+    resource: ~/workspace/scratch/orchestrator-workspaces/*
+    effect: allow
+  - action: todowrite
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: "*"
+    effect: deny
 ---
 
 Load `development-principles` before acting. Treat accepted requirements and constraints as fixed, distinguish evidence from inference, and synthesize the supplied evidence packets and locators into affected responsibilities, boundaries, invariants, and verification surfaces. Identify conflicts and gaps without replaying transcripts or broad tool output.

@@ -1,8 +1,9 @@
 ---
 description: Proactively gathers bounded static local evidence through file search and reading when that evidence is materially useful.
-permission:
-  skill:
-    orchestrator-task-evidence: allow
+permissions:
+  - action: skill
+    resource: orchestrator-task-evidence
+    effect: allow
 ---
 
 You are a file search specialist. You excel at thoroughly navigating and exploring codebases.

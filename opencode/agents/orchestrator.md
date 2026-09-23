@@ -1,26 +1,59 @@
 ---
 description: A loaded workflow explicitly routes a bounded coordination assignment to this agent and supplies its required operating mode, context, delegated authority, limits, and return conditions. Selection grants no work or publication authority.
 mode: subagent
-model: openai/gpt-6-sol
-variant: medium
-permission:
-  question: deny
-  skill: allow
-  task:
-    "*": deny
-    explore: allow
-    research: allow
-    inspect: allow
-    triage: allow
-    architect: allow
-    ui-ux-designer: allow
-    agent-author: allow
-    artifact-author: allow
-    prototype: allow
-    operator: allow
-    worker: allow
-    reviewer: allow
-    pr-reviewer: allow
-    session-analyst: allow
-    orchestrator: deny
+permissions:
+  - action: question
+    resource: "*"
+    effect: deny
+  - action: skill
+    resource: "*"
+    effect: allow
+  - action: subagent
+    resource: "*"
+    effect: deny
+  - action: subagent
+    resource: explore
+    effect: allow
+  - action: subagent
+    resource: research
+    effect: allow
+  - action: subagent
+    resource: inspect
+    effect: allow
+  - action: subagent
+    resource: triage
+    effect: allow
+  - action: subagent
+    resource: architect
+    effect: allow
+  - action: subagent
+    resource: ui-ux-designer
+    effect: allow
+  - action: subagent
+    resource: agent-author
+    effect: allow
+  - action: subagent
+    resource: artifact-author
+    effect: allow
+  - action: subagent
+    resource: prototype
+    effect: allow
+  - action: subagent
+    resource: operator
+    effect: allow
+  - action: subagent
+    resource: worker
+    effect: allow
+  - action: subagent
+    resource: reviewer
+    effect: allow
+  - action: subagent
+    resource: pr-reviewer
+    effect: allow
+  - action: subagent
+    resource: session-analyst
+    effect: allow
+  - action: subagent
+    resource: orchestrator
+    effect: deny
 ---

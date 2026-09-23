@@ -160,6 +160,11 @@ async function rewriteConfig(runtimeRoot: string, destination: string): Promise<
     ),
   };
 
+  rewritten.permissions.push(
+    { action: "*", resource: "*", effect: "deny" },
+    { action: "read", resource: "*", effect: "allow" },
+  );
+
   await writeFile(resolve(destination, "opencode.json"), `${JSON.stringify(rewritten, null, 2)}\n`, "utf8");
   await writeFile(resolve(destination, "opencode.jsonc"), `${JSON.stringify(rewritten, null, 2)}\n`, "utf8");
 }
