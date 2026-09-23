@@ -281,6 +281,10 @@ skills:
     repo: https://github.com/cursor/plugins
     ref: main
     subtree: pstack/skills/unslop
+  - name: technical-blog
+    source: local
+    skill: active/technical-blog
+    description: Write a conversational, source-grounded technical blog post from a PR, implementation, or technical idea. Explicit invocation only.
   - name: skill-authoring
     source: local
     skill: active/skill-authoring

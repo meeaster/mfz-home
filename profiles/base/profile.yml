@@ -109,6 +109,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
+  technical-blog:
+    agents: { opencode: true, claude-code: false, codex: false }
   artifact-context:
     agents: { opencode: true, claude-code: true, codex: true }
   technical-writing:
