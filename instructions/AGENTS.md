@@ -7,6 +7,7 @@
 ## Tool selection
 
 - **Tool:** Use `visual-explainer` only when the user explicitly requests that skill.
+- **Tool:** Load `technical-writing` and `unslop` only when explicitly requested or when drafting or substantively revising a human-facing deliverable, such as a README, documentation page, RFC, article, or PR description. Routine replies, short commit messages, and primarily agent-consumed instructions, plans, handoffs, coordination records, and evidence do not trigger these skills. Choose by intended audience and purpose, not file type or location. This restriction takes precedence over broader loading directives in either skill.
 
 ## Working preferences
 
