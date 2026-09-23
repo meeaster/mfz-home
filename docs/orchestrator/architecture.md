@@ -2,6 +2,8 @@
 
 The [2026-09-22 accepted redesign](redesign-2026-09-22.md) supersedes this page's earlier topology, universal-note, Scribe, and recovery contracts. The material below is retained as historical design context. Use the current [runtime skill](../../skills/active/orchestrator-mode/SKILL.md) for execution and the redesign document for the accepted rationale.
 
+The subsequent session review refined that design. Scribe now synchronizes with the parent through `session_context` on every dispatch, replacing the mechanical-update exception. Briefs use the routing reference's declared role capabilities instead of inspecting permission configuration during dispatch. Handoffs preserve actual decision ownership, and efficiency judgments account for model-priced parent and child work rather than treating token volume alone as waste. Working records retain separate purposes, producer returns state substantive results, and routine bookkeeping stays out of the human conversation. These refinements preserve the existing topology and authority boundaries.
+
 Orchestrator Mode keeps the main session available as the human's design and implementation partner while specialists handle bounded investigation and execution. It supports an effort from an unclear problem through decisions, implementation, and acceptance without requiring the entire investigation to fit in one conversation.
 
 This document set explains the design for the human and future maintainers. It is not an additional runtime skill or a requirement to load every page during orchestration.

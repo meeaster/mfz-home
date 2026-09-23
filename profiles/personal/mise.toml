@@ -4,6 +4,8 @@ ffmpeg = "8.0.1"
 yt-dlp = "2026.08.19"
 websocat = "1"
 usage = "6"
+"npm:wrangler" = "4"
+"npm:shadcn" = "4"
 "github:xdevplatform/xurl" = "1"
 
 [tools."github:truenas/truenas-mcp"]

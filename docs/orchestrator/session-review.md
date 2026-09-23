@@ -114,7 +114,7 @@ Separate content reuse from provider cache reuse. Repeatedly reading a file prov
 
 Map substantial repeated skills, files, or passages across consumers. Record whether the content changed, why each consumer needed it, and what alternative could supply sufficient understanding. A low-cost Luna reread may be preferable to an expensive coordinator-written condensation. Independent source verification can also justify repetition.
 
-Classify repeats as useful, inexpensive and acceptable, avoidable, or unresolved. Consider attention and latency as well as dollars: cached irrelevant context can still distract. Conversely, a large cached input count does not itself identify a problem.
+Classify repeats as useful, inexpensive and acceptable, avoidable, or unresolved. Consider attention and latency as well as dollars: cached irrelevant context can still distract. Conversely, a large cached input count does not itself identify a problem. Substantial cheap-model reading can be preferable to expensive-parent condensation. Include the parent's briefing and acceptance work before recommending fewer child reads or turns; context size alone is not a cost finding.
 
 Aggregate costs by meaningful phases and outcomes, including coordinator acceptance and rework. Identify avoidable repair loops separately from work necessary to deliver the artifact. Automatic model escalation is outside the current design scope.
 

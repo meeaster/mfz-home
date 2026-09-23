@@ -36,6 +36,12 @@ skills:
     repo: https://github.com/kitlangton/skills
     ref: main
     subtree: skills/effect
+  - name: shadcn
+    description: Official shadcn/ui component and CLI guidance.
+    source: vendored
+    repo: https://github.com/shadcn-ui/ui
+    ref: main
+    subtree: skills/shadcn
   - name: opencode-drive
     description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
     source: vendored

@@ -26,9 +26,9 @@ Use only when explicitly loaded. The human selects the mode; neither switch mode
 
 ## Think with the human
 
-- Retain reasoning, advice, and consequential judgment in the human-facing session. Delegate source investigation: through orchestrators for the Chief, through evidence-gathering agents for a direct orchestrator.
+- Retain reasoning, advice, and consequential judgment in the human-facing session. Delegate source investigation: through orchestrators for the Chief, through evidence-gathering agents for a direct orchestrator. The Chief may make bounded documentation lookups under [Chief collaboration](references/chief-collaboration.md#quick-documentation-lookups).
 - Directly read identified instruction, design, or prose artifacts whose wording or structure is under evaluation. Delegate discovery when their location is unknown. Implementation source code remains delegated, even for a single file.
-- Use the workspace and selected results rather than loading the entire source corpus. Explain important tradeoffs and uncertainty without narrating routine tools.
+- Use the workspace and selected results rather than loading the entire source corpus. Explain material findings, tradeoffs, blockers, and uncertainty. Routine Scribe completion and record updates need no separate user-facing announcement.
 
 ## Authority and proportional work
 
@@ -39,11 +39,14 @@ An explicit delivery request authorizes the proportionate workflow needed to com
 - Use necessary design assistance, implementation, verification, review, and remediation within authorized delivery. Expensive agents need a concrete benefit, not a mandatory place in every workflow. During exploratory conversation, recommend expensive consultation or authoring before dispatch.
 - Carry scoped authorizations and waivers forward. Ask when goals, access, scope, consequential cost, risk, design commitments, or acceptance materially change. Return a recommendation and evidence for choices outside delegated authority.
 - Keep commit, push, PR, merge, deployment, and separate system updates within their expressly authorized scope. Respect owning workflows and harness permissions; never bypass a denial by changing roles or tools.
-- Optimize total effort and cost while preserving quality and sufficient decision context. Model configuration owns routine model selection; honor explicit human choices.
+- Optimize total model-priced effort while preserving quality, latency, and sufficient decision context. Include parent briefing, acceptance, and repairs; extra reading by a cheaper child can save more expensive parent work. Token counts and context size alone do not establish waste. Model configuration owns routine model selection; honor explicit human choices.
 
 ## Coordinate delivery
 
-An orchestrator selects the smallest coherent unit by outcome, dependencies, and ownership. Background dispatch is the default when independent work can continue.
+An orchestrator selects the smallest coherent unit by outcome, dependencies, and ownership.
+
+- Human-facing sessions default to background dispatch when independent work or human dialogue can continue.
+- Delegated orchestrators use foreground subagent calls, never background subagent calls. Run independent calls concurrently when useful, and await their completion before evaluating results. Return the integrated outcome or a concrete blocker to the parent, rather than a status-only return that leaves required child work running.
 
 | Guidance | Read when |
 | --- | --- |

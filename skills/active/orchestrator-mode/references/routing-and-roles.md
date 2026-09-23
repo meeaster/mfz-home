@@ -26,6 +26,20 @@ The orchestrator chooses the smallest adequate role by outcome and evidence sour
 - For instruction refreshes, use operator for settled generation or copying, explore for static comparison, and inspect for command-derived facts. A generator failure does not automatically require an author.
 - Give each agent its applicable owning workflow. Distinguish required skill loads from suggested relevant skills. Preserve role and permission boundaries even when an agent could technically run another tool.
 
+## Capability-aware assignments
+
+Use these role capabilities when briefing agents; routine dispatch does not require inspecting agent definitions or permission configuration. Capabilities do not grant assignment authority.
+
+| Agent | Available methods and assignment limits |
+| --- | --- |
+| `explore` | File search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Evidence and edit explicitly assigned evidence under the external orchestration workspace, but cannot edit project source. |
+| `research` | Remote documentation and upstream-source retrieval, including shell-based source inspection within its research authority; assigned evidence writes. |
+| `inspect` | Shell, tools, and source reads for command-derived, runtime, external-system, and session facts; assigned evidence writes. Application changes remain with a mutation owner. |
+| `scribe` | `session_context`, file reads, and edits to assigned working records; no child delegation. Synchronization supplies its understanding rather than independent research. |
+
+- Give `explore` static questions without command prerequisites. Route Git status, executable checks, and other necessary command-derived facts to `inspect`; a static read-only lookup needs no Git-status gate.
+- If a tool rejects an assigned action, use the existing blocked-result contract. A briefing cannot expand permissions or authorize a workaround.
+
 ## Diagrams and HTML explanation pages
 
 Use `artifact-author` for authorized creation or revision of reader-facing diagrams and HTML explanations. Application UI and throwaway experiments retain worker and prototype ownership. Keep human dialogue, accepted meaning, and final acceptance with the decision owner.

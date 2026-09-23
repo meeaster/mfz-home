@@ -2,7 +2,7 @@
 
 ## Brief the assignment
 
-Give a fresh child what its own context does not supply. Describe outcomes and consequential constraints; prescribe mechanics when needed for correctness, repeatability, or an accepted choice.
+Give a fresh child what its own context does not supply. Describe outcomes and consequential constraints; prescribe mechanics when needed for correctness, repeatability, or an accepted choice. Point to owning procedures rather than repeating them, and use the [role capabilities](routing-and-roles.md#capability-aware-assignments) to keep the assignment executable. Detail should follow the task, not a word limit or mandatory template.
 
 | Brief element | Include when applicable |
 | --- | --- |
@@ -15,6 +15,7 @@ Give a fresh child what its own context does not supply. Describe outcomes and c
 | Stop conditions | Missing authority, consequential changes, or a non-narrowing investigation |
 
 - For a resumed assignment, send the next objective, material delta, relevant readings, and changed authority or stops. Avoid replaying the original conversation.
+- Attribute choices to their actual owner. Distinguish explicit user approval, coordinator decisions within delegated authority, agent recommendations, and unresolved choices; a coordinator choice is not explicit user acceptance.
 - Follow [Scribe briefing](workspace-and-coordination.md#brief-scribe) for pointer briefs and explicit first-use versus incremental reads.
 - Distinguish required skills from hints based on their descriptions. Require Task Evidence for assigned evidence, operational learnings, or reuse. If an evidence role cannot load required guidance, supply the necessary instructions in its brief.
 - Internal helpers return to their parent without inherited shared-file obligations. Session IDs do not substitute for useful accessible evidence.
@@ -22,7 +23,7 @@ Give a fresh child what its own context does not supply. Describe outcomes and c
 
 ## Check the return
 
-- Require the material result, completed paths when assigned, verification and limits, uncertainty, blockers, unresolved side effects, and exact mutation or publication state.
+- Require the answer or resulting state needed for the next decision, with completed paths when assigned, verification and limits, uncertainty, blockers, unresolved side effects, and exact mutation or publication state. A report's existence or list of topics is not its result; retain supporting depth in the evidence file.
 - Keep raw sources and traces with the producer. Pass selected relevant notes to successors rather than chains of parent summaries. Reassess suggested procedures before converting them into assignment requirements.
 - Identify consequential residual state, such as an ignored installed application copy. A clean Git tree does not establish that all runtime state is clean or authorize cleanup.
 - A failed check remains unresolved until repaired or accepted as a supported exception. A passing summary must agree with its measurements and describe the meaningful extent of any failures.

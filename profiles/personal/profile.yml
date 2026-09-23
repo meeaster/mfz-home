@@ -57,11 +57,15 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
+  shadcn:
+    agents: { opencode: true, claude-code: true, codex: true }
   tradingview:
     agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
+  shadcn:
+    agents: [opencode, claude-code, codex]
   x-docs:
     agents: [opencode, claude-code, codex]
   paper:
@@ -92,8 +96,11 @@ opencode:
         model: openai/gpt-6-luna
         variant: max
       worker:
-        model: openai/gpt-6-luna
-        variant: max
+        model: openai/gpt-6-sol
+        variant: high
+      operator:
+        model: openai/gpt-6-sol
+        variant: medium
       agent-author:
         model: openai/gpt-6-sol
         variant: medium
@@ -102,10 +109,13 @@ opencode:
         variant: medium
       prototype:
         model: openai/gpt-6-sol
-        variant: medium
+        variant: high
       reviewer:
+        model: openai/gpt-6-astra
+        variant: medium
+      triage:
         model: openai/gpt-6-sol
         variant: high
-      triage:
+      orchestrator:
         model: openai/gpt-6-sol
         variant: medium

@@ -5,8 +5,10 @@ permission:
   edit:
     "*": deny
     "/tmp/opencode/*": allow
+    "~/workspace/scratch/orchestrator-workspaces/*": allow
   external_directory:
     "/tmp/opencode/*": allow
+    "~/workspace/scratch/orchestrator-workspaces/*": allow
   todowrite: deny
   task: deny
 ---

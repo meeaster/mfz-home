@@ -2,7 +2,7 @@
 
 ## Resume the effort
 
-- Locate the supplied effort or its session marker under `/tmp/opencode/orchestrator-workspaces/`. Reuse surviving files and preserve prior markers. A missing directory is missing temporary state, not proof that session history must be reconstructed.
+- Locate the supplied effort or its session marker under `~/workspace/scratch/orchestrator-workspaces/`. Reuse surviving files and preserve prior markers. A missing directory is missing working state, not proof that session history must be reconstructed.
 - Read `context.md`, coordination state, and the index. Select relevant evidence and accepted design for the next action. Reconcile current authority with material mutable state through the appropriate evidence agent.
 - Rebuild missing working records from available context and evidence, marking uncertainty. Label partial index coverage rather than presenting a newest-note-only index as complete.
 - An interrupted response is not compaction. Reconcile pending work and known effects before retrying a side effect; a missing return does not establish that nothing happened.
@@ -38,7 +38,7 @@ The retained human-selected cost limit still applies: do not resume `artifact-au
 
 | Role | Continuity preference |
 | --- | --- |
-| `orchestrator` | Reuse within a coherent workstream, with one active request. Use additional sessions for independent scopes. Replace stale or looping context with a workspace-backed handoff. |
+| `orchestrator` | Reuse within a coherent workstream, with one active execution. Follow [Chief workstream guidance](chief-collaboration.md#own-workstreams) for related follow-ups and approval of additional orchestrators. Replace stale or looping context with a workspace-backed handoff. |
 | `scribe` | Reuse with incremental pulls until parent compaction, then complete the continuity check and rotate. |
 | `explore`, `research`, `inspect` | Fresh for a new bounded unit. Resume an unresolved investigation when retained state helps and independence is not needed. Shared repository or topic alone is insufficient. |
 | `architect`, `ui-ux-designer` | Resume the same decision and system boundary for corrections or new evidence. Start fresh for a distinct decision or authorized independent opinion. |

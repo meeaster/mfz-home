@@ -5,7 +5,7 @@ instructions:
 instruction_references:
   - name: browser
     path: instructions/BROWSER.md
-    description: Browser automation, website interaction, authenticated Chrome, or user-managed login
+    description: Frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
   - name: personal-knowledge
     path: instructions/PERSONAL_KNOWLEDGE.md
     description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
@@ -174,6 +174,8 @@ skills:
 mcp:
   browser-control:
     agents: [opencode]
+  agent-browser:
+    agents: [opencode]
   context7:
     agents: [opencode, claude-code, codex]
   deepwiki:
@@ -191,6 +193,9 @@ opencode:
   dependencies:
     "@opencode/client": "2.0.9"
   config:
+    permission:
+      external_directory:
+        "~/workspace/scratch/orchestrator-workspaces/*": allow
     experimental:
       subagent_depth: 3
     agent:
@@ -210,8 +215,10 @@ opencode:
           edit:
             "*": deny
             "/tmp/opencode/*": allow
+            "~/workspace/scratch/orchestrator-workspaces/*": allow
           external_directory:
             "/tmp/opencode/*": allow
+            "~/workspace/scratch/orchestrator-workspaces/*": allow
       operator:
         model: openai/gpt-6-luna
         variant: high
@@ -231,6 +238,9 @@ opencode:
         model: openai/gpt-6-sol
         variant: high
       ui-ux-designer:
+        model: openai/gpt-6-sol
+        variant: medium
+      orchestrator:
         model: openai/gpt-6-sol
         variant: medium
   websearch:

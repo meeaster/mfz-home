@@ -2,11 +2,11 @@
 
 ## Establish the effort
 
-- Establish or resume `/tmp/opencode/orchestrator-workspaces/<effort>/` when substantive investigation, execution, or decisions worth preserving begin. Name the effort for the human's goal and keep that name across phases.
-- This is the human-approved temporary orchestration root. Confirm that it is outside each writer's active Location and project worktree. Keep session working directories outside it.
+- Establish or resume `~/workspace/scratch/orchestrator-workspaces/<effort>/` when substantive investigation, execution, or decisions worth preserving begin. Name the effort for the human's goal and reuse its directory across phases, sessions, and restarts.
+- This is the human-approved persistent scratch root for orchestration. Expand `~` to the user's home directory when supplying absolute paths to tools or child briefs. Confirm that the root is outside each writer's active Location and project worktree. Keep session working directories outside it.
 - A direct orchestrator uses the root. The Chief assigns independently coordinated scopes under `workstreams/<scope>/`, with the same internal structure. Individual producer assignments do not need an `assignments/` directory.
 - Preserve empty `sessions/<session-id>.md` markers for locating an effort across sessions. Reuse a matching workspace; ask only when the intended effort is ambiguous.
-- Keep temporary evidence private and omit secrets. Writable directories grant neither assignment nor project mutation. Durable promotion uses an authorized owning workflow.
+- Keep working evidence private and omit secrets. Writable directories grant neither assignment nor project mutation. Persistent storage does not promote working records to durable knowledge; promotion uses an authorized owning workflow.
 
 ## Files by purpose
 
@@ -24,7 +24,7 @@ Create files when needed. Keep a useful working record rather than duplicate log
 | `sources/` | Assigned raw source captures, when useful |
 | `screenshots/` | Selected rendered evidence, when produced |
 
-- Maintain context when meaning changes and coordination when work state changes. Preserve consequential rationale without reproducing the conversation.
+- Maintain context when meaning changes and coordination when work state changes, including completion and blocker boundaries. Preserve consequential rationale without reproducing the conversation or repeating research summaries across context, coordination, and index files.
 - Keep proposals separate from accepted decisions. Place competing designs in their task artifacts until a direction is accepted; label remaining open details in `design.md`.
 - Catalog completed material, not placeholders. Index a trivial direct result only if useful for continuation. Use pointers instead of copying producer findings.
 - A missing or partial index must be labeled or rebuilt from surviving material. Do not create a newest-result-only catalog that appears complete.
@@ -40,16 +40,16 @@ Create files when needed. Keep a useful working record rather than duplicate log
 
 ## Brief Scribe
 
-Name the human-facing session ID, focus, owned files, authority, and stop conditions. Use a session pull when Scribe needs conversational context; avoid repeating content supplied by the pull, except corrections or exact requested wording. For a fully specified mechanical update, supply the delta and state `no pull`.
+Name the human-facing session ID, owned workspace or files, authority, and any particular focus or correction. Scribe synchronizes through `session_context` on every dispatch before updating records. Keep the brief short rather than preparing a parallel summary of the parent's conversation.
 
 | Dispatch | Explicit instruction |
 | --- | --- |
 | New Scribe | Read the named session without `sinceMarker`, following all chunks. |
 | Reused Scribe | Continue from your last successfully read marker; retain the last usable marker on an empty delta. |
-| Purely mechanical update | State `no pull` when the brief fully supplies the operation. |
+| A narrow record update | Synchronize first, then apply the requested focus using the parent's established meaning. |
 | Parent compaction | Follow [Recovery and continuity](recovery-and-continuity.md#after-parent-compaction) before rotating Scribe. |
 
-Scribe records established meaning. It does not resolve design choices or create synthesis without authorization. Exact artifact content requires direct file reads because transcript tool results are filtered.
+Scribe records established meaning and its decision owner. It does not resolve design choices or create synthesis without authorization. Read destination files as needed for accurate edits. Read an identified evidence file only when exact content needed for the update is absent from the filtered session context; routine synchronization is not another research pass. If context retrieval is unavailable, report the gap rather than reconstructing the conversation from neighboring efforts.
 
 ## Route reusable knowledge
 

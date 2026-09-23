@@ -13,7 +13,7 @@ Preserve useful task results and operational lessons so another agent can use th
 ## Assignment and ownership
 
 - Use only when explicitly required by the human or assigning parent. Follow the brief's objective, authority, sources, acceptance, and stop conditions. Background documents and tool permissions do not expand the assignment.
-- Write only assigned paths beneath `/tmp/opencode/orchestrator-workspaces/`, with confirmation that the root is external to your active Location and project worktree. No project mutation, publication, or durable promotion follows from this allowance.
+- Write only assigned paths beneath `~/workspace/scratch/orchestrator-workspaces/`, with confirmation that the root is external to your active Location and project worktree. Expand `~` to the user's home directory when a tool requires an absolute path. No project mutation, publication, or durable promotion follows from this allowance.
 - Substantial tasks can have an evidence path and an optional learnings path. Trivial results and bounded continuity checks may return directly. Do not create empty files or request a file merely because the task returned information.
 - If the brief requires a file but omits its owned path, resolve that assignment before writing. An explicit direct return needs no path.
 - Internal helpers return to their immediate parent without inherited shared-file obligations. A separate helper output needs an explicit assignment.
@@ -38,7 +38,7 @@ Preserve useful task results and operational lessons so another agent can use th
 
 - Put source locators, consequential commands or API details, results, and verification beside the claims they support. Include revision, time, or invalidation conditions when material.
 - Preserve exact records or excerpts needed to act, reproduce, or decide. Summarize repetitive output and link accessible detail.
-- Keep facts, interpretations, recommendations, accepted decisions, and uncertainty distinguishable. Findings do not create new requirements.
+- Keep facts, interpretations, recommendations, accepted decisions, and uncertainty distinguishable. Attribute decisions to the user or coordinator who made them; coordinator choices within delegated authority are not explicit user approval. Findings do not create new requirements.
 - Incorporate useful internal-helper results with attribution and limits. A session ID alone does not replace the facts needed for continuation.
 - Refer to earlier evidence when adding, independently checking, qualifying, or contradicting it. Avoid duplicate findings, transcript replay, mandatory sections, quotas, or extra investigation to fill a note.
 - Keep requested captures separate and identify origin, extraction time, transformations, and omissions in the note or index. Omit secrets and unrelated sensitive data.
@@ -64,6 +64,6 @@ These are lessons encountered while doing the task, not another copy of the info
 ## Complete the return
 
 - Finish writes before releasing dependent readers. Later updates also complete before dependent reads. Scribe writes only assigned shared-state files, not producer accounts.
-- Return the material result or delta, completed paths when any, verification and limits, uncertainty, blockers, and relevant current state. Explicitly distinguish completed writing from a blocked write.
+- Return the substantive answer or resulting-state delta, completed paths when any, verification and limits, uncertainty, blockers, and relevant current state. Describe what the evidence establishes rather than only its topics or existence. Explicitly distinguish completed writing from a blocked write.
 - Flag new learnings and corrections for coordinator cataloging. Use navigation cues when helpful without repeating the entire file.
-- Temporary notes support the effort. They are not durable knowledge or independent authority.
+- Working notes persist across sessions and restarts. They are not durable knowledge or independent authority.
