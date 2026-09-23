@@ -28,7 +28,7 @@ const controls = resolve(benchmark, "calibration/baked-in-dispatch");
 
 const output = resolve(import.meta.dir, "../.materialized/calibration");
 
-const model = "opencode-go/gpt-5.6-luna#high";
+const model = "openai/gpt-6-luna#high";
 
 const failAll: Criteria = {
   mode_selection: "fail",

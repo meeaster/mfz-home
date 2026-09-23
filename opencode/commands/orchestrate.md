@@ -3,7 +3,7 @@ description: Coordinate bounded work directly from the current session
 subtask: false
 ---
 
-Load the `orchestrator-mode` skill explicitly with the skill tool in `baked-in` mode. Treat this current session as the orchestrator: dispatch specialists directly, own the effort's `assignments/` workspace, accept producer packets, and return accepted results to the human. Follow the skill's baked-in topology and shared contracts. This command does not select the orchestrator subagent.
+Load `orchestrator-mode` explicitly with the skill tool in `baked-in` mode. Work with the human in this session, dispatch agents directly, and use the effort root for working context, evidence, and learnings. Keep Scribe as this human-facing session's transcription delegate. Follow the skill's direct-orchestrator contracts. This command does not select an orchestrator subagent.
 
 ## User prompt
 

@@ -13,6 +13,7 @@ const manifestSchema = z.object({
   mfzVersion: z.string(),
   openEvalVersion: z.string(),
   overlays: z.array(z.string()),
+  sourceOverrides: z.array(z.object({ path: z.string(), sha256: z.string() })).optional(),
   components: z.object({
     instructions: z.array(z.string()),
     skills: z.array(z.string()),

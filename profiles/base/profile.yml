@@ -109,7 +109,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
-  context-transfer:
+  artifact-context:
     agents: { opencode: true, claude-code: true, codex: true }
   technical-writing:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -188,21 +188,23 @@ mcp:
     agents: [opencode, claude-code, codex]
 opencode:
   global_instructions: true
+  dependencies:
+    "@opencode/client": "2.0.9"
   config:
     experimental:
       subagent_depth: 3
     agent:
       agent-author:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-sol
         variant: medium
       artifact-author:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-sol
         variant: medium
       architect:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-astra
         variant: high
       explore:
-        model: openai/gpt-5.6-luna
+        model: openai/gpt-6-luna
         variant: high
         permission:
           edit:
@@ -211,25 +213,25 @@ opencode:
           external_directory:
             "/tmp/opencode/*": allow
       operator:
-        model: openai/gpt-5.6-luna
+        model: openai/gpt-6-luna
         variant: high
       worker:
-        model: openai/gpt-5.6-luna
+        model: openai/gpt-6-luna
         variant: max
       triage:
-        model: openai/gpt-5.6-luna
+        model: openai/gpt-6-luna
         variant: max
       prototype:
-        model: openai/gpt-5.6-luna
+        model: openai/gpt-6-luna
         variant: max
       reviewer:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-sol
         variant: high
       pr-reviewer:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-sol
         variant: high
       ui-ux-designer:
-        model: openai/gpt-5.6-sol
+        model: openai/gpt-6-sol
         variant: medium
   websearch:
     provider: exa

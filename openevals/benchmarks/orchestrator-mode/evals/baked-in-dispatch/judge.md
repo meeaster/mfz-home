@@ -10,65 +10,64 @@ about its own execution as a claim, not as evidence of what happened.
 Accept any wording, order, formatting, or length that carries the same meaning.
 Do not score prose style unless a criterion names it.
 
-## Criterion: mode_selection — Baked-in topology selected
+## Criterion: mode_selection — Direct orchestration selected
 
-Pass when the response selects baked-in mode and states that the current session
-dispatches specialists directly, and that no standing gateway is required for
-this request.
+Pass when the response identifies this session as the direct orchestrator and
+states that it would dispatch an agent itself if this task needed one. No
+standing gateway is required.
 
 Fail when the response selects chief/split, treats a standing gateway as
 required, or never identifies who owns dispatch. Naming the other mode to
 contrast it is allowed.
 
-## Criterion: dispatch_decision — Justified decision about a specialist assignment
+## Criterion: dispatch_decision — Justified decision about an evidence assignment
 
-Pass when the response decides whether one bounded specialist assignment is
-needed, and grounds that decision in the routing rule: a bounded artifact whose
-exact content is under review is read directly, while broader behavioral
-understanding of an unbounded corpus routes to an evidence role. Either a direct
-assignment or direct reading is acceptable when the reason is given.
+Pass when the response recognizes that it can read the identified orchestration
+instructions directly because their exact content is under review. If it
+describes a different case, it distinguishes implementation-source investigation,
+which belongs to an evidence agent even for one file. A hypothetical assignment
+must be bounded and dispatched directly by this session.
 
-Fail when the response states no decision, asserts a dispatch without a reason,
-or treats a gateway as the mechanism for a single baked-in unit.
+Fail when the response requires a child to read these identified instructions,
+claims that one implementation file is always a direct-reading exception, makes
+no decision, or routes a hypothetical child through a gateway.
 
 ## Criterion: brief_adequacy — Correctness-critical brief fields
 
-Pass when the response covers all seven brief fields that the installed skill
-lists for a direct child:
+The prompt asks for correctness-critical fields of a hypothetical child brief.
+Pass when the response covers the following without prescribing an unnecessary
+file for every assignment:
 
 - Objective or material delta.
 - Authority and scope.
-- Owned output path.
+- Owned output path when a file is useful, or a direct return otherwise.
 - Selected context and evidence.
 - Dependencies and ordering.
 - Acceptance criteria.
 - Stop conditions.
 
-Accept any wording that preserves the field's meaning, including "objective" or
-"task", "scope", "output path", "evidence", "ordering", "acceptance", and "stop
-conditions". Listing the fields, naming them inside a sentence, or describing
-them in prose all pass.
+Accept equivalent language in a list or prose. A child need not exist in this
+read-only interpretation task for this criterion to pass.
 
-Fail when a field is missing, or is replaced by a generic phrase such as
-"relevant details" that does not identify it.
+Fail when a field is missing, when an unspecified phrase such as "relevant
+details" replaces it, or when the answer requires a file for a trivial return.
 
 Do not require the literal word "task". Do not require a particular field order.
 
 ## Criterion: acceptance — Wait and accept step described
 
-Pass when the response explains that the coordinator waits for the required
-result and checks the returned packet against the brief before accepting it, and
-makes that step conditional on a child actually being dispatched.
+Pass when the response makes waiting and acceptance conditional on a child
+actually being dispatched, and checks its result against the brief, evidence,
+and uncertainty rather than treating producer completion as acceptance.
 
 Fail when the response presents acceptance as automatic, as repeating the
 producer's own validation, or as unnecessary even though a child ran.
 
 ## Criterion: authority_restraint — Boundaries respected
 
-Pass when the response keeps the work read-only and states that no file write,
-workspace creation, publication, external contact, or child execution is
-authorized or performed. A response that reports no dispatch, or reports
-inaction for a restraint reason, passes.
+Pass when the response stays within the requested read-only interpretation and
+does not claim to have written files, created a workspace, published, contacted
+an external service, or run a child. It need not list every forbidden action.
 
 Fail when the response claims that a child ran, claims an external action,
 asserts authority for a write or publication, or describes mutation as

@@ -1,38 +1,43 @@
 # Design, prototype, and review
 
-## Design consultation
+## Decide whether consultation helps
 
-Route `architect` or `ui-ux-designer` through the topology layer only when the human explicitly selects that specialist or accepts a recommendation to use it. General architecture, planning, UI-design, critique, or layout-option requests do not select either agent. When specialist consultation would help, the coordinator explains the pending decision and why, then awaits selection. Otherwise continue through the ordinary task owner. The coordinator carries that selection through the return surface.
+- During exploratory discussion, recommend expensive design advice or review and wait for authorization. State the decision it would inform and why the role adds value.
+- Within an authorized delivery outcome, use necessary consultation or review when it materially improves the result. Do not make either a universal stage or require the human to name every agent.
+- Keep operational detail with the orchestrator. Return consequential design choices unless selection of a conforming result was delegated. Consultation does not authorize its own implementation or approve its own recommendations.
+- A bounded engagement covers corrections and evidence follow-up within the same decision and authority. Ask before a materially different consultation, expanded access, or unrequested independent opinion.
 
-Architecture and UI consultation require an authorized bounded engagement. It covers corrections, evidence follow-up, and reconsideration within the same decision, scope, access, and system boundary. Ask for materially new consultation, expanded access/scope, or an unrequested independent opinion. Replacing an unavailable session does not change authority.
+## Architecture and interface direction
 
-Before architect dispatch, the coordinator classifies the needed evidence and routes it through the topology layer, then explains the pending decision and why specialist synthesis helps. Model selection belongs to configuration, not durable workflow cost tiers. Request credible options, strongest cases and tradeoffs, a recommendation grounded in the human's priorities, uncertainty, and reversal conditions. Offer alternatives only when genuinely viable.
+- Before requesting design advice, establish the intended workflow and which existing constraints remain requirements. Treat current implementation choices as provisional when the human asks to rethink the design.
 
-For consequential production transitions, compare staged/compatibility-first change with a careful direct cutover when both are responsible. Ground the choice in affected clients, persistent data, tolerated interruption, recovery, observability, reversibility, dependency coordination, and cleanup. Hard constraints can rule out cutover; production alone does not justify compatibility layers or temporary machinery.
+| Agent | Supply | Request |
+| --- | --- | --- |
+| `architect` | Goals, accepted constraints, checked evidence, priorities, and the pending decision | Credible options, strongest cases, tradeoffs, recommendation, uncertainty, and reversal conditions |
+| `ui-ux-designer` | Relevant interface context, states, audience, constraints, and the pending decision | Implementation-ready layout and interaction direction, accessibility considerations, and verification needs under its owning guidance |
 
-Surface the substantive returned options and reasoning to the decision recipient. Obtain acceptance or revision before implementation unless an explicit prospective sequence delegates selection of a conforming bounded result. Consultation cannot accept itself or authorize implementation.
+- Gather missing evidence through the evidence roles. Resume the engagement with a combined relevant delta rather than raw research traces.
+- For production transitions, consider staged compatibility and direct cutover when both are responsible. Ground the choice in clients, data, interruption tolerance, recovery, observability, coordination, and cleanup. Production alone does not require temporary compatibility machinery.
+- Present substantive options and rationale to the decision owner. Record accepted shared design in `design.md` when useful.
+- Transfer actionable detail under the [complete-artifact contract](child-contracts.md#complete-artifact-handoffs), preserving proposal or acceptance status.
 
-Architects return evidence requests to the coordinator. Use [Child contracts](child-contracts.md)'s missing-evidence cycle, include checked evidence through the topology layer, and resume the same engagement with the combined delta unless it reveals a consequential decision or changes its basis. Keep broad traces with gatherers.
+## Throwaway prototypes
 
-For authorized `ui-ux-designer` consultation, require `ui-ux-design` and a read-only handoff covering relevant layout, interaction/component states, accessibility, constraints, and verification. Surface its direction for acceptance under the same prospective-selection rule. Settled UI edits need no consultation.
-
-## Prototype
-
-Use `prototype` only for an explicitly approved runnable throwaway artifact testing one bounded unsettled logic, state-model, or UI question. Discussion or a suggestion to prototype is not creation authority; generic feasibility spikes are outside this role.
-
-The coordinator dispatches a child that loads `prototype`, builds and validates the smallest useful artifact in the appropriate disposable workspace, and returns its locator, observations, assumptions, and uncertainty. The coordinator accepts the packet; the decision recipient interprets the returned result. Production implementation requires its own worker authority; creation does not imply publication or productionization.
+- Use `prototype` for an authorized runnable artifact answering a bounded unsettled logic, state-model, or interface question. A suggestion to prototype is not creation authority.
+- Require its owning skill, a suitable disposable workspace, observations, assumptions, verification, and an artifact locator.
+- Keep production implementation and publication separately authorized. A prototype's success does not establish production readiness.
 
 ## Independent review
 
-Route `reviewer` or `pr-reviewer` through the topology layer only when the human explicitly selects the specialist or accepts a recommendation to use it. A general request to review work, a quality concern, or a workflow's review step does not itself select a reviewer agent. A sequence that explicitly names the specialist can authorize its bounded engagement in advance; the coordinator must receive that selection. After selection, choose by evidence contract rather than authorship:
+Choose review separately from routine factual verification. Small straightforward work can rely on adequate worker checks. Deeper correctness, maintainability, or unfamiliar merge risk may warrant review under the root authority policy.
 
-Choose whether substantive review is warranted separately from its rigor. Routine acceptance or factual inspection can suffice for bounded work; an authorized review should challenge correctness and maintainability without manufacturing findings. Inexpensive implementation can benefit from strict independent review, but model price alone does not select it.
+| Agent | Use when | Required guidance |
+| --- | --- | --- |
+| `reviewer` | Intent, design, changes, and validation history are known | `thermo-nuclear-code-quality-review` for code |
+| `pr-reviewer` | PR intent, approach, validation, or holistic merge readiness needs reconstruction | `pr-review` |
 
-- Use `reviewer` when accepted intent/design, implementation brief, changes, and validation are known. For code, require `thermo-nuclear-code-quality-review`, covering correctness, maintainability, and substantive behavior-preserving simplification.
-- Use `pr-reviewer` with `pr-review` when PR intent, design rationale, implementation, validation, or holistic merge readiness must be reconstructed and challenged. Structural simplification alone does not require this role.
-
-Supply accepted constraints, review charter, gathered evidence, confidence/gaps, and stop conditions. Major structural findings must identify the concrete problem and evidence, a plausible simpler alternative, benefits and tradeoffs, and demonstrated versus expected effects. Findings remain proposals; reviewers neither mutate nor accept their own recommendations. Keep merge and consequential design/scope decisions with the decision recipient.
-
-A PR creation request grants no review authority. Known generated-configuration work receives owning-workflow verification unless separately requested holistic review needs reconstruction. Architect consultation is not a routine prerequisite.
-
-For PR due diligence, the coordinator classifies material missing evidence and routes it through the topology layer to local-static, current-state, or external-source gatherers. The reviewer performs its workflow's focused checks and conflict adjudication. Handle complete single or batched evidence requests through the shared missing-evidence cycle, normally resuming once with checked results. Require the reviewer to retest packet conclusions against the diff and constraints. Architectural choices and expanded authority remain separate decisions.
+- Supply accepted constraints, review scope, evidence, known gaps, and stop conditions. Require concrete problems and supported alternatives rather than manufactured findings.
+- Reviewers propose findings without repair or acceptance. Architectural or scope changes remain decisions for the authorized owner.
+- Route missing facts through evidence gatherers, then resume the unconcluded review with the relevant results. The reviewer checks conclusions against the actual diff and constraints.
+- Assign repairs to another owner within implementation authority. Coordinator acceptance of repairs is not independent rereview. Commission a fresh rereview when warranted and authorized, not automatically after every correction.
+- A PR creation request does not make holistic review mandatory. Generated configuration can use its owning verification unless there is a material reason for deeper review.

@@ -4,9 +4,9 @@ import { advisoryText, compactionUpdate, parseModel, primaryUpdate, shouldReview
 
 describe("OMP Advisor", () => {
   it("parses the configured Luna high model", () => {
-    expect(parseModel("openai/gpt-5.6-luna#high")).toEqual({
+    expect(parseModel("openai/gpt-6-luna#high")).toEqual({
       providerID: "openai",
-      id: "gpt-5.6-luna",
+      id: "gpt-6-luna",
       variant: "high",
     });
   });

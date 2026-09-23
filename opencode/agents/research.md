@@ -1,7 +1,7 @@
 ---
 description: Proactively gathers bounded external documentation and upstream-source evidence, including through disposable repository clones, when materially useful. Use explore for static local workspace evidence.
 mode: subagent
-model: openai/gpt-5.6-luna
+model: openai/gpt-6-luna
 variant: high
 permission:
   invalid: deny

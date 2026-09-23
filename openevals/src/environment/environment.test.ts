@@ -56,3 +56,37 @@ test("materializes sanitized personal without private runtime material", async (
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("archives explicit local source overrides and records their digests", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-openeval-override-");
+
+  try {
+    const source = await sourceCommit();
+    const path = "skills/active/orchestrator-mode/SKILL.md";
+    const result = await materializePreset(source.home, source.commit, "minimal", root, [path]);
+    const captured = await readFile(resolve(root, "source-overrides", path), "utf8");
+    const rendered = await readFile(resolve(result.workspace, ".openeval/environment/skills/orchestrator-mode/SKILL.md"), "utf8");
+
+    expect(captured).toBe(await readFile(resolve(source.home, path), "utf8"));
+    expect(rendered).toBe(captured);
+    expect(result.manifest.sourceOverrides).toEqual([
+      { path, sha256: new Bun.CryptoHasher("sha256").update(captured).digest("hex") },
+    ]);
+    expect((await assertEnvironmentContract(`${result.workspace}/.openeval/environment`)).ok).toBe(true);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("rejects source overrides outside the scoped orchestration assets", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-openeval-override-");
+
+  try {
+    const source = await sourceCommit();
+
+    await expect(materializePreset(source.home, source.commit, "minimal", root, ["instructions/PERSONAL.md"]))
+      .rejects.toThrow("outside orchestration scope");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

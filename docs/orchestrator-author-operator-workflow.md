@@ -46,8 +46,8 @@ These statements describe the repository on 2026-09-15. They are not redesign pr
 - `opencode/agents/agent-author.md` owns AI-consumed behavioral instructions. It cannot dispatch children. Analysis does not authorize edits.
 - `opencode/agents/artifact-author.md` owns durable reader-facing communication artifacts. It cannot dispatch children. It names `confluence-writer` for Confluence and `visual-explainer` for self-contained HTML. It does not currently name `jira-writer`.
 - `opencode/agents/operator.md` owns explicitly requested, settled operational outcomes. It may dispatch only `explore` and `research` under its current task map.
-- `profiles/base/profile.yml` assigns `openai/gpt-5.6-sol`, variant `medium`, to `agent-author` and `artifact-author`.
-- `profiles/base/profile.yml` assigns `openai/gpt-5.6-luna`, variant `high`, to `explore` and `operator`. `opencode/agents/inspect.md` assigns the same model and variant to `inspect`.
+- `profiles/base/profile.yml` assigns `openai/gpt-6-sol`, variant `medium`, to `agent-author` and `artifact-author`.
+- `profiles/base/profile.yml` assigns `openai/gpt-6-luna`, variant `high`, to `explore` and `operator`. `opencode/agents/inspect.md` assigns the same model and variant to `inspect`.
 - `profiles/personal/profile.yml` retains Sol/medium for `agent-author`. It does not override `artifact-author`, `explore`, or `operator` in the inspected section.
 - The repository does not fix the main session model. An orchestrator with no model setting inherits the parent model at runtime. The observed coordinator session for this investigation used Sol/medium, but that observation is not a general configuration rule.
 - `profiles/base/profile.yml` sets `opencode.config.experimental.subagent_depth` to `2`. Repository documentation describes this as permitting `root -> worker -> child`; the setting does not grant task permission by itself.

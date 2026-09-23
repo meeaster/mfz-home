@@ -2,10 +2,15 @@ import type { Plugin } from "@opencode/plugin";
 import { z } from "zod";
 
 const SOURCE = "omp-advisor";
+
 const ADVISOR_AGENT = "omp-advisor";
-const DEFAULT_MODEL = "openai/gpt-5.6-luna#high";
+
+const DEFAULT_MODEL = "openai/gpt-6-luna#high";
+
 const activeReviews = new Set<string>();
+
 const activeResyncs = new Map<string, Promise<void>>();
+
 const watchedSessions = new Map<string, { primarySessionID: string; userID: string; advised: boolean }>();
 
 const CompactionSummary = z.object({
@@ -31,6 +36,7 @@ export function shouldReviewSession(agent: string | undefined, parentID?: string
 
 export function parseModel(value: string) {
   const separator = value.indexOf("/");
+
   if (separator <= 0) throw new Error(`Invalid OMP Advisor model "${value}". Use provider/model#variant.`);
 
   const providerID = value.slice(0, separator);
@@ -38,9 +44,11 @@ export function parseModel(value: string) {
   const variantSeparator = configured.indexOf("#");
   const id = configured.slice(0, variantSeparator < 0 ? undefined : variantSeparator);
   const variant = variantSeparator < 0 ? undefined : configured.slice(variantSeparator + 1);
+
   if (!id || (variantSeparator >= 0 && !variant)) {
     throw new Error(`Invalid OMP Advisor model "${value}". Use provider/model#variant.`);
   }
+
   return variant ? { providerID, id, variant } : { providerID, id };
 }
 
@@ -73,6 +81,7 @@ export default {
     const model = parseModel(DEFAULT_MODEL);
     const pending = new Map<string, PendingReview>();
     const events = context.event.subscribe()[Symbol.asyncIterator]();
+
     const toolRegistration = await context.tool.transform((draft) => {
       draft.add({
         name: "advise",
@@ -84,7 +93,9 @@ export default {
         options: { namespace: "omp_advisor", codemode: false },
         execute: async (input, tool) => {
           const watched = watchedSessions.get(tool.sessionID);
+
           if (!watched) return { content: "No watched primary session." };
+
           if (watched.advised) return { content: "Duplicate advice ignored." };
 
           await context.session.synthetic({
@@ -101,6 +112,7 @@ export default {
             resume: true,
           });
           watched.advised = true;
+
           return { content: "Recorded." };
         },
       });
@@ -109,6 +121,7 @@ export default {
     const advisorSession = async (primarySessionID: string, location: { directory: string; workspaceID?: string }) => {
       const storageKey = `advisor-session/${primarySessionID}`;
       const stored = String((await context.storage.get(storageKey)) ?? "");
+
       if (stored && (await context.session.get({ sessionID: stored }).catch(() => undefined))) return stored;
 
       const created = await context.session.create({
@@ -117,9 +130,11 @@ export default {
         model,
         location,
       });
+
       await context.storage.set(storageKey, created.id);
 
       const summary = CompactionSummary.safeParse(await context.storage.get(`latest-compaction/${primarySessionID}`));
+
       if (summary.success) {
         await context.session.prompt({
           sessionID: created.id,
@@ -131,22 +146,28 @@ export default {
         await context.session.wait({ sessionID: created.id });
         await context.storage.set(`resynced-compaction/${primarySessionID}`, summary.data.eventID);
       }
+
       return created.id;
     };
 
     const resync = (sessionID: string, summary: CompactionSummary) => {
       const active = activeResyncs.get(sessionID);
+
       if (active) return active;
 
       const work = (async () => {
         const session = await context.session.get({ sessionID });
+
         if (!shouldReviewSession(session.agent, session.parentID)) return;
 
         await context.storage.set(`latest-compaction/${sessionID}`, summary);
+
         if ((await context.storage.get(`resynced-compaction/${sessionID}`)) === summary.eventID) return;
 
         const advisorSessionID = String((await context.storage.get(`advisor-session/${sessionID}`)) ?? "");
+
         if (!advisorSessionID) return;
+
         if (!(await context.session.get({ sessionID: advisorSessionID }).catch(() => undefined))) return;
 
         watchedSessions.delete(advisorSessionID);
@@ -162,19 +183,24 @@ export default {
       })().finally(() => {
         if (activeResyncs.get(sessionID) === work) activeResyncs.delete(sessionID);
       });
+
       activeResyncs.set(sessionID, work);
+
       return work;
     };
 
     const review = async (sessionID: string, input: PendingReview) => {
       if (activeReviews.has(sessionID)) return;
       activeReviews.add(sessionID);
+
       try {
         await activeResyncs.get(sessionID);
         const session = await context.session.get({ sessionID });
+
         if (!shouldReviewSession(session.agent, session.parentID)) return;
 
         const reviewedKey = `reviewed/${sessionID}`;
+
         if ((await context.storage.get(reviewedKey)) === input.userID) return;
 
         const advisorSessionID = await advisorSession(sessionID, session.location);
@@ -199,8 +225,10 @@ export default {
     const consume = (async () => {
       for (;;) {
         const next = await events.next();
+
         if (next.done) return;
         const event = next.value;
+
         if (event.type === "session.compaction.ended") {
           void resync(event.data.sessionID, {
             eventID: event.id,
@@ -212,6 +240,7 @@ export default {
           });
           continue;
         }
+
         if (event.type === "session.inbox.enqueued") {
           if (event.data.item.type !== "user") continue;
           pending.set(event.data.sessionID, {
@@ -223,27 +252,34 @@ export default {
         }
 
         const input = "sessionID" in event.data ? pending.get(event.data.sessionID) : undefined;
+
         if (!input) continue;
+
         if (event.type === "session.text.ended") {
           input.transcript.push(`## Assistant\n${event.data.text}`);
           continue;
         }
+
         if (event.type === "session.tool.input.started") {
           input.tools.set(event.data.id, event.data.name);
           continue;
         }
+
         if (event.type === "session.tool.called") {
           input.transcript.push(`## Tool call: ${input.tools.get(event.data.id) ?? "unknown"}\n${JSON.stringify(event.data.input)}`);
           continue;
         }
+
         if (event.type === "session.tool.success") {
           input.transcript.push(`## Tool result: ${input.tools.get(event.data.id) ?? "unknown"}\n${JSON.stringify(event.data.content)}`);
           continue;
         }
+
         if (event.type === "session.tool.failed") {
           input.transcript.push(`## Tool failure: ${input.tools.get(event.data.id) ?? "unknown"}\n${JSON.stringify(event.data.error)}`);
           continue;
         }
+
         if (event.type !== "session.execution.succeeded") continue;
         void review(event.data.sessionID, input).catch((error) => {
           console.error(`[${SOURCE}] review failed`, error);

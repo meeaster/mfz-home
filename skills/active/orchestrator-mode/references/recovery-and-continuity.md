@@ -1,53 +1,53 @@
 # Recovery and continuity
 
-## Choose a coordinator continuity transition
+## Resume the effort
 
-At meaningful effort boundaries, compare continuing with useful conversation context against compaction or a fresh session supported by accepted artifacts. Completed design or implementation can provide a boundary; unresolved decisions and reconstruction costs can favor continuity. Base the choice on the next responsibility and retained value, not token thresholds or a mandatory reset.
+- Locate the supplied effort or its session marker under `/tmp/opencode/orchestrator-workspaces/`. Reuse surviving files and preserve prior markers. A missing directory is missing temporary state, not proof that session history must be reconstructed.
+- Read `context.md`, coordination state, and the index. Select relevant evidence and accepted design for the next action. Reconcile current authority with material mutable state through the appropriate evidence agent.
+- Rebuild missing working records from available context and evidence, marking uncertainty. Label partial index coverage rather than presenting a newest-note-only index as complete.
+- An interrupted response is not compaction. Reconcile pending work and known effects before retrying a side effect; a missing return does not establish that nothing happened.
+- Retain accepted requests and waivers while their basis remains stable. Return an exact blocker when current context or state cannot support continuation.
 
-Before a transition, reconcile existing coordinator files with current authority, accepted decisions, unresolved work and verification limits, mutable state, and authoritative artifact locations. Preserve child handles when continuation needs them. Replace superseded assertions rather than appending competing current states; no extra handoff file is required. A completed proposal does not itself authorize implementation. After transition, use the same-effort reconciliation below and refresh relevant mutable state before acting.
+## After parent compaction
 
-## Reconcile the same effort
+Initiate a bounded background continuity check after each recognized completed compaction, even when no omission is apparent. This skill-level instruction is not a guaranteed event callback. Never initiate compaction without an explicit human request.
 
-A genuinely new unit after deliberate manual compaction needs no recovery of the completed phase. For continuing work, including a new session resuming an earlier effort, begin with available conversation context. In `chief/split`, the Chief keeps human dialogue, decisions, and instruction discussion, reads `context.md` and the evidence index, frames the first gateway brief, and hands the remaining reconciliation steps to the standing gateway. Before the next external action or creating/replacing coordinator files:
+1. Identify the old Scribe and its last successfully read marker. Ask it to finish its assigned continuity work before transferring write ownership.
+2. Require `session_context` on the human-facing session with `previousCompaction: true`, starting from its retained marker and following chunks. If it has lost the cursor or prior context, read the selected previous window in full. Then read current active context and compare it with the workspace.
+3. Request only material additions or corrections: user requirements, decision status, consequential rationale, unfinished commitments, active work, unresolved questions, and useful locators. No material additions is a valid result. Update working records within the assignment; do not create synthesis or a separate recovery report without a request.
+4. Incorporate the result before a new consequential dispatch, implementation decision, or final completion claim. Conversation and independent evidence gathering can continue; already-authorized work in flight can continue.
+5. After outstanding writes finish, retire the old Scribe's write ownership and start a new Scribe. Supply current workspace paths and a markerless read of the parent's active context. Preserve the former session ID for reference.
 
-1. Find the effort under `/tmp/opencode/orchestrator-workspaces/` by the supplied effort name/path, available context, or a `sessions/<session-id>.md` marker for the current or named previous session. Reuse that directory. Ask only if the intended effort is ambiguous; no match means missing temporary state, not missing session history.
-2. Read `context.md` first and compare it with the current request and available conversation context. Then consult coordination state, the evidence index, and selected notes as needed for the next action. Check index coverage against surviving evidence when relying on it.
-3. Check relevant mutable source/runtime state. Identify absent, partial, stale, or contradictory information rather than silently choosing an account. Continue when context, workspace, and current state support the same next action and authority.
+- If the old Scribe is unavailable or cannot complete the check, assign a fresh `inspect` agent the named-session continuity check and a direct return. Arrange any record updates with a single permitted writer.
+- The tool's marker-mismatch notice already accompanies a full selected-window response. Do not reread it again. No previous window is an explicit limitation, not a reason to substitute current context or claim full recovery.
+- A second compaction during recovery may change which window the boolean selects. Report the changed boundary and obtain bounded historical retrieval through `agent-sessions` if needed; do not claim the original segment was recovered.
+- Parent compaction preserves the parent session ID, but a genuinely new parent cannot ordinarily resume a former parent's child. Use available records and a fresh owner in that case.
 
-Add an empty `sessions/<current-session-id>.md` if absent, preserving all previous markers and working files. Resuming the effort does not rename its directory or require a separate binding or takeover procedure.
+## Other historical recovery
 
-The index is a derived catalog. If missing or inconsistent, rebuild from completed notes and known handoffs; when full recovery is disproportionate or impossible, label coverage partial with unresolved ranges. Never initialize a normal-looking newest-note-only index while older evidence survives.
-
-If `context.md` is missing, reconstruct it from available conversation and effort files after reconciliation, marking uncertainty and reconstruction accurately. Missing context alone does not require session-history inspection. Maintain it under [Workspace and coordination](workspace-and-coordination.md).
-
-An interrupted response is not compaction. A missing final packet does not establish that a child produced no evidence or effects. Reconcile pending tools, available partial findings, and known effects, including ignored files or installed copies, before retrying. Inspect state before repeating a side effect. Continue a durably available accepted request without requiring repetition from the human. Return the exact blocker if context or state cannot support continuation.
-
-## Recover missing session meaning
-
-Resume from the effort's working files and relevant current state. A new session, compaction, incomplete historical context, or a session marker alone does not justify reconstruction. Recover only enough context for the next bounded action.
-
-Route `inspect` through the topology layer for prior-session history only when a specific material gap blocks the next action and available conversation, effort files, and current state cannot resolve it, or when the human explicitly requests historical investigation. Name the missing fact and the action it controls. Supply session/known child IDs, objective and relevant effort segment, relevant boundary, exclusions, and the smallest sufficient result. For multi-compaction work, follow the relevant segment rather than replay the whole history. A parent-facing coordinator reads effort and assignment files only; it returns missing context through the selected return surface and never pulls the decision recipient's transcript.
-
-Require only facts affecting continuation: decisions, useful evidence and locators, child continuity, mutations and verification, unresolved state, freshness, and next action. Check against current context, resolve material conflicts, and synthesize. Use `session-analyst` only if evaluation, rather than factual reconstruction, is needed. Persistent handoffs or knowledge require their separately requested owning workflows.
+- Use bounded `inspect` retrieval when explicitly requested or when a consequential historical gap requires authorized recovery. Name the needed fact, relevant sessions or segment, and the decision it informs.
+- The automatic post-compaction check above is its own bounded authorization. It does not authorize unrelated session archaeology or a general historical recap.
+- A delegated orchestrator uses its assigned workstream and context. It does not pull the human-facing session unless explicitly assigned a named-session read.
+- Use `session-analyst` for authorized evaluative analysis, rather than factual reconstruction. Durable knowledge and synthesis retain their separate request boundaries.
 
 ## Choose child continuity
 
-Authority is independent of session reuse. Before applying the role defaults, check the non-resumption limit: do not resume `artifact-author`, `agent-author`, or any subagent known from the human's explicit selection to be using Sol when its latest recorded request-input context exceeds 150,000 tokens. The two author roles remain covered regardless of model. Start fresh in the same authorized role even for a small correction or near-complete unit. Transfer the current artifact, accepted decisions, exact remaining work, relevant evidence, and safely preserved state. Surface a material handoff gap instead of resuming past the limit. This governs the next dispatch, not interruption of an active call, and is a human-selected cost boundary rather than a model-degradation claim. Do not query configured defaults to infer Sol coverage. Unknown model selection or context remains unknown; cumulative processed input is not the current context window.
+Authority is independent of session reuse. Choose the owner first, then decide whether its retained context helps the next assignment.
 
-Within that boundary, choose continuity by what the session learned and what the next assignment needs. Retained rationale, unresolved hypotheses, and difficult-to-recreate state can justify continuation. Prefer fresh context when current artifacts and selected evidence preserve that understanding without obsolete revisions or bulky tool history. Consider remaining investigation, validation, and handoff work, not edit size alone.
+The retained human-selected cost limit still applies: do not resume `artifact-author`, `agent-author`, or a child explicitly known from the human's selection to use Sol when its latest recorded request-input context exceeds 150,000 tokens. Start fresh in the same authorized role. This does not interrupt an active call. Unknown telemetry remains unknown; cumulative processed input is not the current context size. Do not inspect configured defaults or commission archaeology to infer coverage.
 
-Provider caching can reuse matching prefixes across fresh sessions, but reading the same files does not guarantee a cache hit. Cached history still costs money and occupies context. Label expected savings as estimates unless measured. Apply these role defaults within the authorized engagement:
-
-| Role | Continue or start fresh |
+| Role | Continuity preference |
 | --- | --- |
-| `orchestrator` | Keep one current coordinator per effort and reuse it across discovery, execution, verification, and reconciliation cycles. In `chief/split`, this is the standing gateway. Rotate for a new effort, repeated-compaction drift, or looping or stale behavior; the replacement reads the same effort files before continuing. |
-| `explore`, `research`, `inspect` | Fresh for each bounded unit. Resume only the same unresolved investigation and downstream decision, in the same role and overlapping evidence family, without an independence need, when retained state adds value a compact note cannot preserve. Topic/repository overlap alone is insufficient. |
-| `architect`, `ui-ux-designer` | Resume within the same decision and system boundary, including correction, disagreement, reframing, new evidence, or bounded extension. Start fresh for a materially new decision, unavailable/unusable session, or an authorized independent opinion. For suspected anchoring, first try explicit correction and reconsideration; a separately approved second opinion supplements prior work using verified constraints. |
-| `triage` | After the diagnostic and human-authorization gate, start fresh for a looping mutation blocker. Resume within the authorized symptom/incident as evidence develops; a different scope needs its own authority before choosing a fresh session. |
-| `agent-author`, `prototype`, `operator`, `worker` | Fresh for a distinct accepted unit. Within the applicable non-resumption limit, resume a clean stop for one decision when the answer preserves the underlying objective/artifact, relevant checkout and useful context, sufficient authority, and safely preserved state. Corrected implementation route, mechanism, provenance, or placement alone need not make a new unit. |
-| `artifact-author` | After a completed, validated revision, prefer a fresh author for the next revision when the latest recorded request-input context is around 100,000 tokens or more and the current artifact plus a compact handoff preserve the needed understanding. This is a soft preference, not a pricing threshold or a rule for other roles. Below the hard limit, continue an unresolved revision or repair when retained reasoning or state materially helps. Otherwise weigh useful design context against reconstruction; change size alone does not decide. Start fresh for a distinct artifact/set or materially changed audience, destination, authority, or outcome. Validation ownership follows [Routing and roles](routing-and-roles.md#diagrams-and-html-explanation-pages). |
-| `reviewer`, `pr-reviewer` | Fresh for independent initial judgment; resume only missing evidence or conflict adjudication within an unconcluded review. Repairs use another owner; a separately approved independent rereview starts fresh. |
+| `orchestrator` | Reuse within a coherent workstream, with one active request. Use additional sessions for independent scopes. Replace stale or looping context with a workspace-backed handoff. |
+| `scribe` | Reuse with incremental pulls until parent compaction, then complete the continuity check and rotate. |
+| `explore`, `research`, `inspect` | Fresh for a new bounded unit. Resume an unresolved investigation when retained state helps and independence is not needed. Shared repository or topic alone is insufficient. |
+| `architect`, `ui-ux-designer` | Resume the same decision and system boundary for corrections or new evidence. Start fresh for a distinct decision or authorized independent opinion. |
+| `worker`, `operator`, `agent-author`, `prototype` | Fresh for a distinct unit. Resume a clean stop when the answer preserves objective, authority, useful context, and safe state. |
+| `artifact-author` | Continue a useful unresolved revision below the hard limit. After a validated revision, prefer fresh context around 100,000 request-input tokens when the artifact and handoff preserve understanding. This is a soft role-specific preference. |
+| `reviewer`, `pr-reviewer` | Fresh initial independent judgment. Resume missing evidence or adjudication within an unconcluded review. Repairs have another owner; independent rereview uses a fresh reviewer. |
+| `triage` | Fresh for a looping mutation blocker; resume within the same authorized incident as evidence develops. |
 
-Across roles, stale/overloaded/looping context, a distinct acceptance contract or ownership boundary, independence, and substantial preparation with no useful build context favor freshness. A checked looping-worker diagnosis or separate remediation unit normally goes to a fresh worker. A diagnosed operator problem requiring novel troubleshooting also goes to worker, not a resumed operator. Select the owner before continuity: an instruction task becoming a mechanical refresh belongs to operator despite retained author context.
-
-Apply the author's soft preference using already available usage. A fresh author receives the current artifact, accepted intent and decisions, remaining work, and selected evidence, rather than automatically loading every earlier screenshot. Beyond this preference and the hard non-resumption limit, trace burden, retries, and compaction inform judgment without further numeric rules. Missing telemetry is neutral; cache savings alone never justify resume. Do not commission session archaeology to estimate routine dispatch cost. Use explicitly requested post-hoc assessment, not automatic monitoring, to evaluate these policies.
+- Preserve current artifacts, accepted decisions, relevant evidence, exact remaining work, and safely retained state in a fresh handoff. Report material gaps instead of resuming past the hard limit.
+- A changed implementation mechanism alone need not create a new unit. A new ownership boundary, independent judgment, obsolete revisions, or looping investigation favors fresh context.
+- Novel troubleshooting belongs to a worker, not a resumed operator merely because it has history. A mechanical refresh belongs to operator even when an author previously owned the artifact.
+- Cached input still occupies context and costs money; fresh sessions do not guarantee cache hits. Treat cost savings as estimates unless measured. Do not invent further retry, turn, or compaction thresholds.

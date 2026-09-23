@@ -1,17 +1,21 @@
-# Personal Workspace
+# Personal workspace
 
-- Put temporary research, experiments, and other scratch work under `/home/mark/workspace/scratch/` and follow its local instructions. Use a different location when the user names one.
+- **Behavior:** Put temporary research, experiments, and scratch work under `/home/mark/workspace/scratch/` and follow its local instructions, unless the user names another location.
 
-# Wayfinder Planning
+## Wayfinder planning
 
-- Store Personal Wayfinder maps, decision tickets, and companion evidence packs under `/home/mark/workspace/specs/workspace-specs/wayfinder/<effort>/` by default. Use this local Markdown store instead of GitHub issues, `.scratch/`, or another tracker unless the user names a different location.
-- Keep each effort's human-owned `vision.md`, `map.md`, `issues/`, and companion `evidence/` together under its Wayfinder directory, and treat `workspace-specs` as the owning Git repository.
+- **Behavior:** Store Personal Wayfinder maps, decision tickets, and evidence under `/home/mark/workspace/specs/workspace-specs/wayfinder/<effort>/`, unless the user names another location.
+- **Behavior:** Keep each effort's human-owned `vision.md`, `map.md`, `issues/`, and `evidence/` together.
+- **Fact:** The `workspace-specs` repository owns these planning files.
 
-# Personal Mindframe-Z Home
+## Mindframe-Z home
 
-- For changes to the Personal Mindframe-Z home or profile, work in `/home/mark/workspace/repos/mfz-home` and follow its `AGENTS.md`.
-- The Personal profile extends `base`; put shared behavior in `base` and Personal-only configuration in `personal`.
+- **Fact:** `/home/mark/workspace/repos/mfz-home` is the source repository for the Personal Mindframe-Z home.
+- **Behavior:** Make Personal home and profile changes in that repository and follow its `AGENTS.md`.
+- **Fact:** The Personal profile extends `base`.
+- **Behavior:** Put shared configuration and behavior in `base` and Personal-only configuration in `personal`.
 
-# Skill Authoring Records
+## Skill authoring records
 
-- Use `/home/mark/workspace/knowledge/personal-knowledge/authoring-records` as the Skill Authoring record root. Skill Authoring owns the structure beneath this root.
+- **Fact:** The Skill Authoring record root is `/home/mark/workspace/knowledge/personal-knowledge/authoring-records`.
+- **Behavior:** Follow Skill Authoring's structure beneath that root.

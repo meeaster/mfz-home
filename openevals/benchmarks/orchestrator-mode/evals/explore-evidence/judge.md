@@ -1,15 +1,39 @@
-# Evidence routing to the explore specialist
+# Evidence routing to an explore agent
 
 This task asks the orchestrator, in baked-in mode, to answer a mechanism question
 about the OpenEval repository checked out at `checkout/`. Deterministic criteria
-in `judge.ts` record whether an `explore` child was dispatched, whether the
-repository stayed unchanged, and whether the coordinator stayed lean after
-dispatch (no coordinator evidence-tool calls after the first producer dispatch).
-Do not add your own routing or workflow criterion.
+in `judge.ts` record whether an `explore` child was dispatched and whether the
+repository stayed unchanged. This rubric grades how the coordinator handled
+source evidence. Do not add your own routing or workflow criterion.
 
-Grade only what the response says. Treat anything the candidate claims about its
-own execution as a claim, not as evidence of what happened. Accept any wording,
-order, or length that preserves the meaning. Do not score prose style.
+Grade `coordinator_lean` from the recorded tool inputs, results, and producer
+packet; apply each remaining criterion's own evidence rule. Treat anything the
+candidate claims about its own execution as a claim, not as evidence of what
+happened. Accept any wording, order, or length that preserves the meaning. Do
+not score prose style.
+
+## Criterion: coordinator_lean — Source evidence stays with the assigned agent
+
+Pass when the coordinator does not take over application-code investigation:
+it may work from a producer's packet and request a focused follow-up if that
+packet lacks required evidence. Reading skill instructions, assignment state,
+or the producer's packet, and writing authorized coordination notes, do not count
+as taking over the investigation. Whether an `explore` child was actually
+dispatched is scored separately. An empty answer may pass this restraint
+criterion while failing completeness and grounding.
+
+Fail when the coordinator reads or searches checkout application source to
+establish, supplement, or verify the mechanism itself rather than requesting the
+missing evidence from the producer. This applies before and after dispatch; a
+correct final answer does not erase the source rewalk. In this read-only source
+question, the application code is not a bounded instruction artifact under direct
+review or a file being edited by the coordinator.
+
+Inspect the relevant tool inputs and completed results, including session
+ownership and chronology. Judge the purpose and target of each action, not the
+number of calls or the tool name alone; shell commands can manage coordination
+state or inspect source. If the recording cannot establish whether a material
+action accessed source, use null rather than assuming either result.
 
 ## Criterion: completeness — Decisive mechanism findings present
 

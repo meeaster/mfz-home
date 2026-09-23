@@ -1,5 +1,7 @@
 # Context and evidence
 
+The [2026-09-22 redesign](redesign-2026-09-22.md#workspace-structure-and-ownership) replaces the earlier file layout and continuity policy below. The prior explanation is retained for historical context. Current evidence and operational-learning ownership are defined in [Task Evidence](../../skills/active/orchestrator-task-evidence/SKILL.md).
+
 The coordinator needs enough understanding to be an informed partner, not a copy of every specialist's working context. Evidence files preserve facts and reasoning that influence decisions, design, implementation, and acceptance. Session history retains the detailed execution trace.
 
 This page explains the implemented [workspace contract](../../skills/active/orchestrator-mode/references/workspace-and-coordination.md) and the rationale for selective handoffs. Worker acceptance is described separately in [Acceptance and verification](acceptance-and-verification.md).
@@ -20,7 +22,7 @@ Fresh children do not inherit loaded skill bodies. Applicable mandatory guidance
 
 Provider-level caching is separate from inherited context. A fresh session can reuse a matching provider-cached prefix, but reading the same files does not guarantee that result. Aggregate cache counts do not identify which content matched. Cached input still occupies context and incurs charges. Review observed request costs separately from expected savings; orchestration uses configured default models rather than selecting alternatives to chase cache or price differences.
 
-OpenSpec's generated skills retain their own reading and execution requirements. The [OpenSpec routing contract](../../skills/active/orchestrator-mode/references/routing-and-roles.md#openspec-units) keeps local ownership guidance in Orchestrator Mode. A coordinator authoring a proposal follows Propose's required reads. For delegated apply, it establishes readiness and acceptance from current accepted artifacts without first running the implementation workflow just to prepare the worker's context. The implementation owner loads Apply and follows its current-state and mandatory reading requirements. The coordinator still reads deeper for material decisions and refreshes uncertain evidence; avoiding duplicate ownership does not authorize skipping workflow requirements.
+OpenSpec's generated skills retain their own reading and execution requirements. The [OpenSpec routing contract](../../skills/active/orchestrator-mode/references/routing-and-roles.md#openspec) keeps local ownership guidance in Orchestrator Mode. A coordinator authoring a proposal follows Propose's required reads. For delegated apply, it establishes readiness and acceptance from current accepted artifacts without first running the implementation workflow just to prepare the worker's context. The implementation owner loads Apply and follows its current-state and mandatory reading requirements. The coordinator still reads deeper for material decisions and refreshes uncertain evidence; avoiding duplicate ownership does not authorize skipping workflow requirements.
 
 ## Workspace files have separate jobs
 
@@ -75,7 +77,7 @@ A later authorization to commit should replace an earlier no-commit constraint. 
 
 Resumption reads context first and reconciles selected working files with the current request and mutable state. Prior-session inspection requires a specific unresolved fact blocking the next action, or an explicit historical investigation request. Missing temporary files or a new session alone do not justify replaying history.
 
-The [continuity reference](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#choose-a-coordinator-continuity-transition) treats an accepted design, completed proposal, or accepted implementation as a possible transition, not a mandatory reset. Continuing preserves useful discussion; compaction retains session continuity with less history; a fresh session depends more on current artifacts. The next responsibility and reconstruction cost determine which is useful.
+The earlier continuity policy treated an accepted design, completed proposal, or accepted implementation as a possible transition, not a mandatory reset. The current [continuity reference](../../skills/active/orchestrator-mode/references/recovery-and-continuity.md#after-parent-compaction) keeps compaction explicitly human-requested and defines the subsequent automatic recovery check.
 
 Coordinator transitions are distinct from the role-specific child non-resumption limit. Artifact-author and agent-author regardless of model, plus any subagent explicitly assigned Sol by the human, require a fresh child above 150,000 recorded request-input tokens at the next dispatch. Determine Sol coverage from the known explicit selection rather than querying configured defaults. Preserve necessary meaning through selected artifacts and evidence even when little work remains. This policy does not establish a degradation threshold for other sessions.
 

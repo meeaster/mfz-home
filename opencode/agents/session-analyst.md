@@ -1,7 +1,7 @@
 ---
 description: Analyzes prior agent sessions when the requested outcome requires evaluative reasoning about quality, intent adherence, behavior, efficiency, patterns, or recommendations; use inspect for factual lookup and reconstruction alone.
 mode: subagent
-model: openai/gpt-5.6-sol
+model: openai/gpt-6-sol
 variant: medium
 permission:
   invalid: deny

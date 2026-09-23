@@ -1,5 +1,19 @@
-# Personal Knowledge
+# Personal knowledge
 
-- When private Personal context is relevant, start with the matching entry point under `/home/mark/workspace/knowledge/personal-knowledge`: `.openwiki/wiki/quickstart.md` for accepted synthesis, `practices/index.md` for current guidance, `session-captures/index.md` for capture boundaries, `threads/index.md` for retrospective evidence, or the relevant `work-units/` entry for continuity. Load only what is relevant.
-- Canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`. Use the `session-derived-knowledge` skill for a new or revised Session Capture or Practice, then follow the destination's `AGENTS.md`.
-- Session Captures are evidence, not automatically current guidance; Practices may guide future work but do not override source systems. Treat this material as private derived context: preserve provenance and uncertainty, keep source systems authoritative, and do not copy it into Work without explicit approval.
+## Entry points
+
+- **Fact:** Personal knowledge lives under `/home/mark/workspace/knowledge/personal-knowledge`.
+- **Tool:** For accepted synthesis, start with `.openwiki/wiki/quickstart.md` under that root.
+- **Tool:** For current guidance, start with `practices/index.md`.
+- **Tool:** For capture boundaries, start with `session-captures/index.md`.
+- **Tool:** For retrospective evidence, start with `threads/index.md`.
+- **Tool:** For work continuity, start with the relevant `work-units/` entry.
+- **Behavior:** Load only the material relevant to the task.
+
+## Sources and authority
+
+- **Fact:** Canonical Session Captures live under `/home/mark/workspace/knowledge/personal-sources/session-captures`.
+- **Behavior:** Follow the destination's `AGENTS.md` when creating or revising a Session Capture or Practice.
+- **Fact:** Session Captures are historical evidence; Practices contain maintained guidance.
+- **Behavior:** Preserve provenance and uncertainty, and keep source systems authoritative over derived knowledge.
+- **Behavior:** Keep Personal derived context private; copying it into Work requires explicit approval.

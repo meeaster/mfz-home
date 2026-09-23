@@ -1,76 +1,57 @@
 # Mutation and delivery
 
-This is the coordinator's operating contract for bounded mutation and delivery. The decision recipient supplies accepted decisions and authority; the coordinator handles producer briefs, packets, and the selected return surface.
+## Ground the assignment
 
-## Outcome-scoped authority
+An explicit delivery request covers the necessary proportionate workflow while its outcome, scope, access, consequential cost, risk, reversibility, design assumptions, and acceptance remain materially consistent.
 
-A concrete request can authorize several named steps and their necessary inherent operations. Continue while the outcome, target, scope/system boundary, access, consequential cost, risk, reversibility, design assumptions, and acceptance contract remain materially consistent. Ordinary newly discovered implementation details do not invalidate that sequence.
+- Reuse current evidence first. Gather missing or conflicting facts likely to change the approach. A simple settled operation need not pass through a separate research agent.
+- Before dispatch, establish either a clear local implementation pattern or checked evidence resolving material ambiguity. External APIs, unfamiliar CLIs, version-sensitive contracts, and non-obvious integrations need applicable evidence, not a promise that the worker will discover everything later.
+- Keep ordinary instruction discovery, Git status and topology checks, dirty-state preservation, immediate preflight, and validation selection with the mutation owner. Separate preparation only for a useful independent outcome or materially different access, state, or context needs.
+- Preserve unrecognized local changes. Respect repository and worktree rules. Clarify ambiguous requests such as "get latest" when the interpretation changes effects.
+- Give the owner the accepted outcome, authority, selected context, exact targets, constraints, and verification needs. Working files supply background, not a new assignment or approval.
 
-Pause for a changed basis, unresolved consequential choice, failed gate, different procedure, broader or independent outcome, missing authority, or material blocker. Return the result, changed assumption, affected downstream steps, and smallest needed decision. Vague future work is not authority.
+## Decompose and schedule
 
-Apply role selection from [Routing and roles](routing-and-roles.md) and consultation/review authority from [Design, prototype, and review](design-prototype-and-review.md). Carry explicit human selections of gated named agents and their scope in the brief. Investigation alone authorizes findings; implementation requires an implementation request. Review plus remediation includes corrections and verification, not automatic independent rereviews.
+- Split by coherent outcome, ownership, mutable state, dependencies, and acceptance. Keep tightly coupled changes together; file counts do not determine task boundaries.
+- Aim for units that fit useful implementation and validation into a manageable context. Allow room for debugging without inventing token quotas or mandatory resets.
+- Keep substantial source gathering out of the coordinator's context. Focused in-unit discovery remains with workers; broad or non-narrowing gaps return under the [stop contract](child-contracts.md#mutation-stop-contract).
+- Parallelize demonstrably independent work when useful. Serialize overlap or unknown shared state, including lockfiles, checkout/index operations, generated outputs, installation, caches, services, and external resources.
+- Use only authorized isolation. Coordinate rendering, shared probes, and integration after affected source work is ready. Different directories alone do not prove independent effects.
+- Assign procedural integration to operator and substantive code integration to worker. Keep final shared verification with the last mutation owner when coherent; do not add an integration agent without a distinct outcome.
 
-Publication steps remain distinct: commit does not imply push, push does not imply PR or merge, drafting does not imply publication, and one system update does not imply another. A PR request includes necessary in-scope commit and branch push, not merge, deployment, or Jira updates. An explicitly selected artifact-author may publish only when authorized within its owning editorial lifecycle; mechanical Git, deployment, and other publication belong to operator.
+## Verify the outcome
 
-Planning artifacts use their owning workflow and grant no implementation authority. Follow the OpenSpec proposal/implementation split in routing. Task-local accepted design remains background; mutation receives a bounded current brief. Split substantial application, behavioral-instruction, and reader-facing authoring responsibilities when their ownership differs, keeping the accepted interface clear.
+| Situation | Default |
+| --- | --- |
+| Small straightforward change with concrete checks | Accept adequate worker verification after checking the result. |
+| External effects, uncertain results, multi-component work, or incomplete assurance | Proactively assign bounded independent factual verification. |
+| Deeper correctness, maintainability, or design concerns | Use authorized review under [Design, prototype, and review](design-prototype-and-review.md). |
 
-## Prepare and decompose
+- Specify coverage and consequential environments. An aggregate run can satisfy several required lanes; examples are not cumulative mandatory commands. Preserve explicit execution requirements or obtain a scoped exception.
+- Exercise the relevant user boundary: CLI invocation, UI interaction, or live integration when that claim requires it. Existing tests can suffice when they actually cover the boundary. Report unexercised behavior and why.
+- Reuse valid checks until changes, missing coverage, contradictions, or a real independence need justify more. Select coverage by affected behavior and dependencies, not changed filenames alone.
+- Workers own immediate validation. A fresh inspector can handle substantial browser or environment checks when focused context or independence helps; return defects to the mutation owner.
+- Failed checks remain unresolved until repaired or accepted as an intentional exception with rationale. Coordinator acceptance of repairs is not an independent rereview.
+- Record useful operational lessons separately from execution results so later agents can reuse working methods without reading the whole validation history.
 
-Classify preparation before dispatch:
+## Scope changes and publication
 
-- Keep ordinary instruction discovery, status/diff and Git topology checks, dirty-state preservation, validation selection, artifact safety, and final-state verification with the mutation owner.
-- Use separate `inspect` for a requested read-only outcome, absent mutation authority, or readiness dependent on a distinct live system, access boundary, human decision, or uncertainty beyond ordinary operator preflight.
-- Use an authorized preparation operator for substantial mechanically separable setup that changes the brief/state or would crowd useful build context. Check its handoff and normally start the build agent fresh. Serialize shared-state preparation and build.
-
-Preserve unrecognized local changes, including untracked source. Before editing, surface any checkout or isolation decision required by applicable instructions through the mode's return surface; a promise to preserve files does not replace that decision. Clarify ambiguous “get latest” intent. Worktree creation, Git, Jira, and environment mutations retain their own authority; combine only operations inherent in one explicitly requested transaction or concrete sequence.
-
-Decompose by coherent outcome, ownership, mutable state, dependencies, and compatible acceptance/validation, not file or repository counts. Keep tightly coupled changes together; split independent domains, lifecycle concerns, authority boundaries, or validation environments. Order units by dependencies, normally one coherent outcome per worker. Use optional `coordination.md` for cross-unit criteria, owner, status, and evidence; put a single unit's acceptance in its prompt.
-
-Prefer units reasonably likely to complete within one context window, including required reading, implementation, likely debugging, validation, and completion evidence. Leave room for unexpected work rather than estimating a token quota. Split large features into coherent, independently verifiable outcomes where possible; preserve necessary shared validation after integration. Compaction remains available and does not itself invalidate the unit.
-
-For application implementation, keep authorized immediate validation and activation with the implementation owner when they complete the same settled outcome. Diagram and HTML communication artifacts use the author/inspector division in [Routing and roles](routing-and-roles.md#diagrams-and-html-explanation-pages), including for immediate completion checks. Use a separate operator for a distinct operational outcome, procedure, authority boundary, environment, or useful handoff. This does not extend implementation authority to publication or unrelated operations.
-
-Specify required validation coverage, consequential environments, and any required execution stage. Distinguish instructions naming test lanes from explicit requirements for separate runs. An aggregate that executes the required lanes satisfies their coverage; keep command examples from becoming cumulative obligations in plans or briefs. Preserve explicit execution requirements, or obtain an authorized, scoped exception before substituting for them.
-
-Reuse results while they apply to the current code and environment. Additional execution should resolve a relevant change, missing coverage, contradictory evidence, or a material need for independent confirmation. Select checks by affected behavior and dependencies, including transitive callers and integration boundaries; changed filenames alone do not establish sufficient coverage. Reuse existing coverage maps or gather bounded evidence when selection is materially uncertain. Preserve useful red/green checks without adding a mandatory preparation agent or repeating suites solely because ownership changed.
-
-Make validation through the relevant user-facing boundary part of the completion contract: browser interaction for UI behavior, executable invocation for CLI behavior, or a bounded live request when a claim depends on an external integration. Existing tests can supply that evidence when they exercise the boundary adequately. Add focused runtime checks for material gaps within authorized access and effects; report any unexercised behavior and why. Workers normally own these checks, including omitted completion coverage. When validation is substantial, such as an extended browser session, compare continuing with useful implementation context against a fresh inspector's setup, reconstruction, and defect-handoff costs. Assign bounded validation to a fresh inspector when focused context or independent assurance adds material value. The worker still supplies immediate checks and exact remaining coverage; the inspector reports findings without repair, the coordinator routes defects and accepts the resulting packet, and the decision recipient retains final acceptance. An operator owns a distinct operational outcome, not validation merely because it uses a browser or command.
-
-## Worker readiness
-
-Before dispatch, record one explicit decision in the live session or working model and expose it in the brief:
-
-- `ready: direct`: a small self-contained unit with an apparent local pattern and no material external, unfamiliar, version-sensitive, or non-obvious dependency. State the concrete reason.
-- `ready: prepared`: checked applicable evidence resolves material implementation ambiguity. Name selected evidence/synthesis paths, status, applicability, and version or freshness limits.
-
-External APIs, library/SDK integrations, unfamiliar CLIs, version-sensitive contracts, and non-obvious integrations select prepared readiness unless current evidence already resolves them. Anticipated worker lookup after dispatch is not preparation. Reuse current evidence first; gather only missing, stale, or conflicting facts likely to change implementation. Use local integration evidence, authoritative version-specific documentation/source, and installed/runtime facts according to the source roles.
-
-Readiness requires no separate file, mandatory research phase, every-dependency research, speculative edge cases, or duplicate immediate worker preflight. Documentation volume is not readiness. Use authorized synthesis if available; otherwise carry necessary reasoning in the brief. A synthesis recommendation never blocks dispatch.
-
-Workers retain focused in-unit discovery. Broad, inaccessible, or depth-blocked gaps return through [Child contracts](child-contracts.md), preserving the accepted unit and authority. Supply its mutation stop contract. Apply the root skill's acceptance decision before dependent work; surface material design/behavior mismatches rather than silently reconciling them.
-
-## Schedule and integrate
-
-Serialize mutation by default and whenever overlap is unknown. Parallelize only demonstrably independent responsibilities and mutable state with material concurrency value. Different directories are insufficient: checkout/index, lockfiles, dependency installation, generated output, test caches, runtimes, schemas, and external systems can remain shared.
-
-Use only authorized isolation. Defer shared integration, rendering, runtime probes, and repository-wide validation until isolated work is ready. A sequential fresh agent receives its predecessor's checked state and relevant handoff.
-
-When combining results requires mutation or distinct shared validation, the coordinator assigns an authorized operator for procedural integration or worker for substantive software integration. Supply accepted inputs, exact state, conflict boundaries, acceptance, and final shared validation ownership. Keep final validation with the last mutation unit when coherent; omit a separate integration agent when there is no distinct integration outcome. The coordinator does not integrate by mutation unless the assignment explicitly owns that implementation outcome.
-
-## Preparation and publication handoffs
-
-A preparation result identifies workspace/repository, branch and base commit, dirty/worktree state, external IDs, prepared tools, mutations, baseline validation, blockers, and the exact assumptions the build agent may use. Transfer those checked assumptions and the accepted build contract without mechanical setup history. For an artifact-author, include audience, destination, owning workflow, source fidelity, publication authority/state, and relevant synthesis.
-
-One authorized coordinated operation may use one sequential operator across known repositories. Preserve each repository's instructions, validation, Git history, commit boundary, remote, and authority. When practical, validate all before publication. Authorized commits are separate Conventional Commits. Report commit/push results per repository; partial publication remains in place if a later operation fails, with no destructive rollback and a clear recovery action. Split operators only for genuine independence and worthwhile concurrency.
+- Continue ordinary implementation details within authority. Pause for changed goals or design commitments, broader access, material risk, unusually costly expansion, or an unresolved consequential choice. Return affected downstream steps and the smallest needed decision.
+- Investigation alone does not authorize implementation. Review findings remain proposals until remediation is authorized or covered by the delivery request.
+- Keep commit, push, PR, merge, deployment, and separate system updates distinct. A PR request can include necessary in-scope commits and branch push, but not merge, deployment, or unrelated tracker changes. Drafting does not authorize publication.
+- Use operator for settled Git or operational publication under the active workflow. Follow each repository's instructions, history, validation, and authority. Report commit identity, branch/upstream relation, push state, and remaining changes when applicable.
+- One sequential operator can perform an authorized multi-repository operation. Preserve separate commits and histories. If publication partly succeeds, report it and a recovery action rather than attempting destructive rollback.
+- Pass prepared state, branch/base, local changes, external IDs, performed mutations, validation, blockers, and assumptions to the next owner. Avoid copying setup history that adds no useful constraint.
 
 ## External operations
 
-Send narrow, understood, readily reversible operations directly to the authorized operator. Add evidence proportional to material uncertainty, impact, dependencies, selectors, access, or recovery; production scope alone does not create a fixed authorization or investigation cycle.
+Send narrow, understood operations to operator with evidence proportional to uncertainty and impact. Production scope alone does not create a fixed approval or investigation ceremony.
 
-Require these operational conditions in the brief:
+1. Establish the exact target, intended effects, semantics, affected dependencies, recovery, and must-preserve invariants. Distinguish required outcome probes from optional diagnostics.
+2. Capture minimal safely available pre-change state needed to identify, verify, and restore configuration. Exclude secrets and unrelated data. Explain missing meaningful recovery information before mutation.
+3. Revalidate consequential assumptions immediately before the narrow mutation. Stop if target, impact, recovery, procedure, or authority materially differs.
+4. Read resulting state and check the outcome and invariants. Report residual irreversible effects such as notifications or downstream events.
+5. For asynchronous work, preserve current state and an authoritative readiness or completion signal. Launch is not completion. Follow applicable tool waiting rules and release dependencies only after completion is established.
 
-1. Ground the exact target/effect, operation semantics, affected resources/dependencies, impact, recovery, and must-preserve invariants in current evidence. Resolve material uncertainty or return the smallest decision. Separate required outcome/safety probes from informational diagnostics; invented/nonessential assertions cannot trigger rollback.
-2. Capture minimal safely available pre-change state needed to identify, verify, and restore mutable configuration. This is inherent read-only preflight. Session/tool evidence usually suffices; use a restoration file only when useful. Exclude secrets, unrelated sensitive data, volatile and non-reapplicable fields. Surface unavailable meaningful state and its recovery consequence before mutation.
-3. Treat backups separately. Ask before an existing on-demand backup/snapshot/export unless already authorized, explaining material cost, time, retention, and effects. Do not build backup infrastructure or alter/invoke independently managed automated backups for compliance. Existence does not prove restorability; absence alone does not block responsible work.
-4. Revalidate consequential assumptions immediately before the narrowest correct mutation. Stop with preserved state for material differences in target, state, impact, recovery, procedure, or authority. Read resulting state and verify the outcome/invariants afterward; report irreversible residual effects such as notifications, deletions, or downstream events.
-5. For asynchronous or coordinator-disrupting operations, record current state and a durable readiness/terminal signal. Use narrow pending-state probes until that signal establishes readiness or completion, then release dependent acceptance. Launch is not completion and a pending probe does not consume the acceptance unit.
+- On-demand backups, snapshots, or exports need authority when not already included; explain material cost, time, retention, and effects. Do not create backup infrastructure as an unsolicited precaution. A backup's existence does not prove restorability, and absence alone does not block responsible work.
+- Operators may correct within a settled procedure. Novel troubleshooting or a software-behavior problem belongs to a worker. Preserve state and return the exact blocker when the procedure stops applying.

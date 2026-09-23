@@ -21,6 +21,12 @@ When the question is whether a skill or revision adds value, define a baseline u
 - for a revision, run the same task with the previous revision;
 - keep the harness, model, effort, fixture, assertions, and relevant configuration aligned.
 
+Define the outcome that would count as added value before running the comparison.
+
+- Allow ties, regressions, and inconclusive results.
+- Record other loaded guidance and source material available to each participant, including whether a receiving agent reads the original request.
+- Judge the intended outcome, not prompt length or similarity to the skill's wording.
+
 Skip the baseline when the test only needs to verify an explicit behavioral contract or its extra cost would not change the decision.
 
 Complete this step when pass, fail, and out-of-scope behavior are distinguishable before the run begins.
@@ -37,13 +43,18 @@ Complete this step when all authorized task writes are confined to the disposabl
 
 ### Subagent scenarios
 
-Use subagents when fresh context, independent work, or staged follow-up gives stronger evidence. Prompt as a normal user would, with the task and operational guardrails only. Do not name a model-invoked skill, prescribe implementation choices, or require tests and tools when those choices are under evaluation. Explicitly invoke user-invoked artifacts when testing their intended entrypoint.
+Use subagents when fresh context, independent work, or staged follow-up gives stronger evidence. Prompt as a normal user would, with the task and operational guardrails only. When testing automatic selection, do not name the skill. Avoid prescribing implementation choices, tests, or tools when those choices are under evaluation. Explicitly invoke user-invoked artifacts when testing their intended entrypoint.
 
 Use fresh context for independent runs. For staged work, let one agent establish the fixture and a fresh agent receive an ordinary follow-up in the same isolated workspace. Inspect both sessions and the combined artifacts. Vary task complexity and requirement shape to test proportionality. Let agents choose verification appropriate to the task; judge the resulting evidence.
 
 ### Capture execution
 
 For a model-invoked skill, use realistic positive, negative, and adjacent prompts without naming or preloading the skill. For a user-invoked skill, invoke it explicitly with a representative request. Confirm that the harness has discovered the revision under test.
+
+Execution-only comparisons can deliberately supply a skill rather than test its discovery.
+
+- Explicitly load the candidate when the test contract calls for it, and report that setup separately from automatic discovery.
+- Verify the actual model, variant, skill loads, and delegated prompts instead of assuming the requested setup was followed.
 
 Use a fresh session or process of the target harness with the tested skill available, as required by the test boundary. Capture the session identifier, parent CLI event stream when available, final response, created artifacts, and command-level failures or retries. Use available environment guidance to operate the harness rather than embedding its commands here.
 
@@ -63,6 +74,12 @@ Inspect every produced artifact and the session record. Establish:
 - whether the observed behavior satisfies `VISION.md` and the scenario assertions in `EVALS.md`, and whether the tested design respects the authoring constraints in `PRINCIPLES.md`.
 
 When a baseline applies, compare behavior, artifacts, trace efficiency, and assertion results. An acceptable candidate that does not improve the motivating dimension has not established incremental value.
+
+Interpret the comparison within what its evidence can establish.
+
+- Separate user-required outcomes from additional evaluator preferences.
+- Report concrete gains as well as omissions, and qualify conclusions by the tested tasks and sample size.
+- Compare human inspectability through human review. Model judgments can flag issues but do not establish that the human finds a skill easier to understand.
 
 Prefer the harness's durable structured session record or export. Use available environment guidance to locate and inspect it rather than duplicating session-store instructions here. Treat self-report as a claim to verify, not evidence.
 

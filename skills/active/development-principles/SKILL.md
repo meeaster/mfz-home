@@ -1,9 +1,13 @@
 ---
 name: development-principles
-description: Shared engineering judgment for software design, implementation, test strategy, refactoring, review, and coordination decisions. Use when choosing or assessing an engineering approach, not for routine dispatch, factual gathering, or settled operations.
+description: Shared engineering judgment for explicit requests or workflows that require Development Principles.
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Development principles
+
+Load only when the user explicitly requests this skill or an active workflow or agent instruction requires it.
 
 Apply these engineering preferences within accepted requirements and repository conventions. They guide software judgment; the owning workflow supplies task steps, validation commands, and completion requirements. Coordination needs them when deciding design, scope, or acceptance. Factual gathering and settled operations do not require them merely because software is involved.
 

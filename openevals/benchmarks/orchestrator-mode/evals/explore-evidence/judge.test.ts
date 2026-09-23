@@ -1,6 +1,6 @@
 import { expect, test } from "bun:test";
 import type { RecordedFile, ToolCall } from "@hona/openeval";
-import { changedPaths, coordinatorEvidenceCalls, gradeFacts, subagentTargets } from "./judge.js";
+import { changedPaths, gradeFacts, subagentTargets } from "./judge.js";
 
 const rootID = "ses_root";
 
@@ -15,7 +15,6 @@ function file(path: string, sha256: string): RecordedFile {
 const root = { parentID: undefined };
 
 const cleanRun = {
-  rootSessionID: rootID,
   tools: [tool("read"), tool("subagent", { agent: "explore" })],
   sessions: [root, { parentID: "ses_root" }],
   initial: [file("checkout/README.md", "a"), file("opencode.json", "c")],
@@ -28,7 +27,6 @@ test("passes a run that dispatched explore without touching the checkout", () =>
   expect(result.scores).toEqual({
     explore_dispatched: true,
     repository_unchanged: true,
-    coordinator_lean: true,
   });
 });
 
@@ -69,42 +67,6 @@ test("ignores VCS metadata and dependency directories", () => {
   );
 
   expect(changed).toEqual([]);
-});
-
-test("fails coordinator_lean when the coordinator gathers evidence after dispatch", () => {
-  const result = gradeFacts({
-    ...cleanRun,
-    tools: [tool("subagent", { agent: "explore" }), tool("glob"), tool("grep"), tool("bash")],
-  });
-
-  expect(result.scores.coordinator_lean).toBe(false);
-  expect(result.observations.postDispatchEvidenceCalls).toEqual(["glob", "grep", "bash"]);
-});
-
-test("ignores producer-session reads after the dispatch", () => {
-  const result = gradeFacts({
-    ...cleanRun,
-    tools: [tool("subagent", { agent: "explore" }), tool("read", undefined, "succeeded", "ses_child")],
-  });
-
-  expect(result.scores.coordinator_lean).toBe(true);
-  expect(result.observations.postDispatchEvidenceCalls).toEqual([]);
-});
-
-test("passes coordinator_lean vacuously when no dispatch occurred", () => {
-  const result = gradeFacts({ ...cleanRun, tools: [tool("read"), tool("grep")] });
-
-  expect(result.scores.coordinator_lean).toBe(true);
-  expect(coordinatorEvidenceCalls(cleanRun.tools, rootID)).toEqual([]);
-});
-
-test("ignores failed post-dispatch coordinator calls", () => {
-  const result = gradeFacts({
-    ...cleanRun,
-    tools: [tool("subagent", { agent: "explore" }), tool("read", undefined, "failed")],
-  });
-
-  expect(result.scores.coordinator_lean).toBe(true);
 });
 
 test("subagentTargets ignores failed calls and malformed inputs", () => {

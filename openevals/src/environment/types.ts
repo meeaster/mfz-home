@@ -7,6 +7,7 @@ export type EnvironmentSpec = {
   sourceCommit: string;
   profile: EnvironmentName;
   overlays?: string[];
+  sourceOverrides?: string[];
 };
 
 export type EnvironmentComponent =
@@ -29,6 +30,7 @@ export type EnvironmentManifest = {
   mfzVersion: string;
   openEvalVersion: string;
   overlays: string[];
+  sourceOverrides?: { path: string; sha256: string }[];
   components: {
     instructions: string[];
     skills: string[];

@@ -1,5 +1,7 @@
 # Orchestrator architecture
 
+The [2026-09-22 accepted redesign](redesign-2026-09-22.md) supersedes this page's earlier topology, universal-note, Scribe, and recovery contracts. The material below is retained as historical design context. Use the current [runtime skill](../../skills/active/orchestrator-mode/SKILL.md) for execution and the redesign document for the accepted rationale.
+
 Orchestrator Mode keeps the main session available as the human's design and implementation partner while specialists handle bounded investigation and execution. It supports an effort from an unclear problem through decisions, implementation, and acceptance without requiring the entire investigation to fit in one conversation.
 
 This document set explains the design for the human and future maintainers. It is not an additional runtime skill or a requirement to load every page during orchestration.

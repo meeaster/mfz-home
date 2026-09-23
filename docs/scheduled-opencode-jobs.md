@@ -10,7 +10,7 @@ The source lives in `/home/mark/workspace/repos/mfz-home`. The disposable protot
 
 Run bounded OpenCode jobs on a schedule without building a scheduler, adding Windows infrastructure, or filling the normal OpenCode session list with one top-level session per run.
 
-The first job is a daily report of pull requests opened against `anomalyco/opencode`'s `v2` branch during the previous local 08:00-to-08:00 window. It uses `build`, `--auto`, and `openai/gpt-5.6-luna#high`. Mutation guardrails remain in the job prompt.
+The first job is a daily report of pull requests opened against `anomalyco/opencode`'s `v2` branch during the previous local 08:00-to-08:00 window. It uses `build`, `--auto`, and `openai/gpt-6-luna#high`. Mutation guardrails remain in the job prompt.
 
 The design should also support implementation workers that gather bounded local or external evidence through `explore` and `research` children.
 
@@ -33,7 +33,7 @@ The timer runs daily at 08:00 in the machine's local timezone and uses `Persiste
 opencode run \
   --auto \
   --session ses_fc3c5bf1fffejuszN98FNWiG1K \
-  --model openai/gpt-5.6-luna#high \
+  --model openai/gpt-6-luna#high \
   --agent build
 ```
 

@@ -1,59 +1,72 @@
 # Child contracts
 
-## Brief and return
+## Brief the assignment
 
-A fresh child needs this correctness-critical brief core when its own context does not supply it:
+Give a fresh child what its own context does not supply. Describe outcomes and consequential constraints; prescribe mechanics when needed for correctness, repeatability, or an accepted choice.
 
-- Objective or material delta.
-- Authority and scope.
-- Owned output path.
-- Selected context and evidence.
-- Dependencies and ordering.
-- Acceptance criteria.
-- Stop conditions.
+| Brief element | Include when applicable |
+| --- | --- |
+| Objective and purpose | What to accomplish and how it fits the effort |
+| Authority and scope | Permitted work, targets, constraints, and explicit waivers |
+| Outputs | Owned paths for useful files, or an explicit direct return |
+| Context | Selected evidence, accepted design, working context, and operational learnings with status and applicability |
+| Dependencies | Inputs that must finish first, shared-state restrictions, and independent-review exclusions |
+| Acceptance | Required outcome and verification coverage |
+| Stop conditions | Missing authority, consequential changes, or a non-narrowing investigation |
 
-Describe outcomes and consequential constraints; prescribe mechanics only for correctness, safety, repeatability, or an accepted choice. Preserve relevant terminology and system boundaries. Omit transcript replay and instructions reliably supplied by the destination. Session IDs cannot substitute for inaccessible evidence. For a resumed unit, send only the next objective, material delta, relevant readings, authority changes, and stop condition.
+- For a resumed assignment, send the next objective, material delta, relevant readings, and changed authority or stops. Avoid replaying the original conversation.
+- Follow [Scribe briefing](workspace-and-coordination.md#brief-scribe) for pointer briefs and explicit first-use versus incremental reads.
+- Distinguish required skills from hints based on their descriptions. Require Task Evidence for assigned evidence, operational learnings, or reuse. If an evidence role cannot load required guidance, supply the necessary instructions in its brief.
+- Internal helpers return to their parent without inherited shared-file obligations. Session IDs do not substitute for useful accessible evidence.
+- Routine dispatch requires no additional prompting skill. Use `writing-for-agents` for actual instruction authoring and `artifact-context` for a durable artifact when reader or destination context materially changes its explanation.
 
-Scribe dispatches use pointer briefs. Keep the pointer core to objective, owned output path, authority, stop conditions, and an explicit `session_context` directive naming the target `sessionID` and focus. Do not inline decided-state that the pull supplies, except exact wording wanted verbatim or corrections to the source context. All seven of seven observed target scribe attempts duplicated decided-state supplied by pulls or context. Prompt input is billed to the delegator, so a scribe prompt larger than its useful output defeats the pointer's purpose. The available comparison distinguishes prompt size from patch payload and final return text; it does not measure exact semantic file delta, so do not claim a stronger prompt/output result. Reuse each coordinator's scribe session within its workspace scope and pass no marker; the scribe manages its own cursor across cycles. One-off non-scribe delegates may still receive an explicit `sinceMarker` for a separately authorized pull that does not retrieve coordinator context. Require direct file reads for exact content because pulls bound tool-result prefixes.
+## Check the return
 
-This shared-note contract covers the coordinating orchestrator's direct children. Internal helpers receive bounded briefs and return results to their immediate parent without automatically loading Task Evidence or receiving shared-note paths. Their parent owns the shared handoff unless a separate helper evidence assignment is explicit. Load `context-transfer` when audience, access, privacy, portability, publication, or lossless specialist handoff materially changes what must cross the boundary. Routine dispatch alone does not require it. Load `writing-for-agents` for actual instruction authoring, not routine briefs or coordinator notes.
+- Require the material result, completed paths when assigned, verification and limits, uncertainty, blockers, unresolved side effects, and exact mutation or publication state.
+- Keep raw sources and traces with the producer. Pass selected relevant notes to successors rather than chains of parent summaries. Reassess suggested procedures before converting them into assignment requirements.
+- Identify consequential residual state, such as an ignored installed application copy. A clean Git tree does not establish that all runtime state is clean or authorize cleanup.
+- A failed check remains unresolved until repaired or accepted as a supported exception. A passing summary must agree with its measurements and describe the meaningful extent of any failures.
 
-When useful, suggest likely relevant skills from available descriptions without loading their bodies. Label these as hints: the child checks applicability and selects any other skills needed. Distinguish hints from skills required by the human, applicable instructions, or the delegation contract, including `orchestrator-task-evidence` for assigned evidence production/reuse under the root skill's active-context load rule. If an evidence role cannot load required guidance, transfer the necessary instructions yourself.
+## Complete-artifact handoffs
 
-The producer return to the coordinator leads with the completed note locator and material result, decisions, what validation establishes and its limits, uncertainty, unresolved side effects, blocker, and exact current/publication state as applicable. Preserve critical evidence needed for acceptance without duplicating the note. Full source, media, domain references, iteration history, and tool traces stay with the specialist. The shared note carries reusable findings and lessons; a related successor receives the latest relevant notes rather than accumulated summary chains. Reassess a note's recommended procedure against remaining coverage before making it a new assignment requirement. After accepting producer packets, use the return surface defined in the root skill.
+When design, research, review, or planning output contains actionable detail for an implementer, preserve the complete artifact and its actual proposal or acceptance status.
 
-Identify observed residual state that can affect later behavior, such as an ignored installed application copy, specifically enough for a successor to recognize it. A clean Git status does not resolve that state or authorize cleanup. Omit copied metadata that does not support acceptance or reuse.
-
-A failed check remains unresolved until repaired or accepted as an intentional exception by the authorized decision owner with supporting rationale. A passing summary must agree with its measurements. Report the affected elements and meaningful extent of failures, not only the mildest example. For diagrams, page-level no-overflow does not establish text containment inside a node.
+- Inline the complete artifact when usable; otherwise give an accessible unchanged file. Do not replace it with a parent summary.
+- Put parent corrections in a separate overlay naming each overridden decision, its authoritative source, and replacement.
+- Check that every actionable decision is present unchanged or explicitly overridden. Transfer does not approve unaccepted proposals.
 
 ## Screenshot evidence
 
-When validation produces screenshots, save useful captures under the effort's `screenshots/` directory or the caller's designated evidence location. Associate each selected image with the exact artifact revision, viewport, relevant state, and a locator the recipient can open. Verify access across machines rather than assuming a browser-local path is available to the author.
-
-Inspect the captures before returning them. They must show the intended content at a useful scale without inspection overlays obscuring it. Choose overviews and details by coverage, not a fixed image count. Return concrete findings and relevant measurements alongside the selected images. Use the existing owner note or direct helper return for this mapping; screenshots do not require another note or manifest.
+- Save useful captures under `screenshots/` or an assigned evidence location. Associate each image with the exact revision, viewport, relevant state, and an accessible locator.
+- Verify access across machines. Inspect captures for useful scale, correct content, and unobscured inspection results before returning them.
+- Select overviews and details by coverage, not a fixed count. Put findings and relevant measurements in the existing owner note or direct helper return; no extra manifest is required.
+- For diagrams, page-level no-overflow does not establish text containment inside a node.
 
 ## Missing evidence
 
-Require a bounded request identifying the question, why it blocks the unit, evidence family and known locators, required version/freshness, and smallest sufficient result. Check materiality, scope, access, duplication, and overlap with existing children. Reuse available evidence and gather only the missing part; parallelize independent requests and serialize dependencies. Check every returned packet, then normally resume the same specialist once with the combined material delta when its engagement remains valid.
-
-Source facts belong in this cycle. Decisions, consultation, expanded access/scope, and mutation remain with their owning authority. At the depth limit, the dispatching coordinator owns additional gathering.
+- Require a bounded question, why it matters, known locators, evidence family, version or freshness needs, and the smallest useful result.
+- Check materiality, scope, access, duplication, and overlap with active agents. Reuse existing evidence; parallelize independent requests and wait on dependencies.
+- Check results and normally resume the same valid engagement with the combined delta. Source facts do not settle design choices or expand authority.
+- At the depth limit, the dispatching coordinator owns additional gathering. The child returns the request instead of substituting unauthorized roles.
 
 ## Mutation stop contract
 
-Include the applicable contract in mutation briefs:
+Include the applicable boundary in mutation briefs.
 
-- Operators may make bounded corrections while evidence narrows within the settled procedure. Stop when it no longer applies, attempts repeat, uncertainty stops shrinking, troubleshooting becomes novel/difficult, or software behavior becomes the primary outcome.
-- Workers may investigate immediate in-unit errors, try materially distinct hypotheses, and validate bounded corrections. Stop when diagnosis becomes open-ended, discovery expands without narrowing implementation, attempts repeat, an accepted assumption appears contradicted, acceptance cannot be reconciled, multiple independent outcomes emerge, or broader scope/access/evidence or another specialist is needed. A focused lookup alone is not a stop.
-- Compaction alone permits continued execution of a coherent active unit. A still-broad plan, repeated post-compaction discovery, unrelated streams, or another approaching compaction without validated progress favors a handoff. Reassess remaining implementation and validation against retained useful context and fresh-agent reconstruction cost; return a proposed boundary to the coordinator when separation would help. The dispatching coordinator applies [Recovery and continuity](recovery-and-continuity.md#choose-child-continuity) before a subsequent dispatch, including its non-resumption limit. Do not invent additional retry, turn, or compaction thresholds.
+| Owner | Continue | Stop and return |
+| --- | --- | --- |
+| Operator | Bounded corrections within a settled procedure while evidence narrows | The procedure no longer fits, attempts repeat, uncertainty stops shrinking, or novel troubleshooting or software behavior becomes the task |
+| Worker | Immediate in-unit investigation, distinct useful hypotheses, and bounded repairs | Open-ended or non-narrowing discovery, contradicted accepted assumptions, incompatible acceptance, multiple independent outcomes, or broader authority and evidence needs |
 
-On stop, preserve partial work and return the accepted contract, completed mutations and exact state, symptom/reproduction or blocking decision, distinct attempts and findings, current hypotheses, validation, and smallest missing evidence or decision. Label suspected implementation, environment, requirement/authority, or design-assumption causes as hypotheses. The child does not dispatch triage, architect, replacement workers, or remediation; difficulty alone does not invalidate the design.
+- A focused lookup alone is not a stop. Compaction alone does not invalidate a coherent active assignment.
+- Repeated broad discovery or little validated progress can justify a proposed handoff. Compare remaining work with retained useful context; do not invent retry, turn, or compaction quotas. Apply [child continuity](recovery-and-continuity.md#choose-child-continuity) on the next dispatch.
+- On stop, preserve partial changes and return the accepted contract, exact state, symptom or decision, distinct attempts and results, hypotheses, verification, and smallest missing evidence or authority.
+- The child does not dispatch its own replacement, architect, or triage. Difficulty alone does not invalidate the design.
 
 ## Diagnosis and remediation
 
-Apply the diagnostic and authorization gate in [Routing and roles](routing-and-roles.md). Check existing evidence and gather specific missing facts before choosing the next useful investigation. A known procedural correction belongs to operator; bounded diagnosis or novel implementation troubleshooting belongs to worker within explicit authority. Resume useful context or use a fresh worker when overload or prior looping warrants it, following [Recovery and continuity](recovery-and-continuity.md). A new child needs a changed evidence basis or investigation approach, not another copy of the failed assignment. When triage is warranted, recommend it and obtain any missing authorization before dispatch; supply the checked packet and relevant state rather than raw failed-command history.
-
-Require reproduction or falsification, impact/scope, likely cause and confidence, contribution of worker changes, contradicted assumptions, uncertainty, disposition, and whether correction fits the accepted contract. Triage diagnoses and flags design conflicts; it neither repairs nor decides architecture or requirements.
-
-After checked diagnosis, a fresh worker may remediate within existing implementation authority. Supply the accepted brief, partial diff/current state, diagnosis, approaches not to repeat, exact correction, acceptance, and verification history. A child that stopped cleanly for one decision may instead resume under [Recovery and continuity](recovery-and-continuity.md).
-
-For possible design conflict, return the smallest needed architecture-evidence request through the mode's return surface. The coordinator classifies it and routes any gathering through the selected dispatcher, surfaces it with the pending choice, and explains the value of another architect turn. Resume a still-authorized engagement or obtain new authority. Requirement, access, scope, and authority changes go to the decision recipient. Ordinary implementation/environment failures that fit the design need no architect.
+- Use [routing guidance](routing-and-roles.md#investigation-and-diagnosis) to choose the next owner. A new agent needs a better evidence basis or approach, not another copy of the failed assignment.
+- A settled procedural correction belongs to operator. Bounded diagnosis or novel troubleshooting belongs to worker within authority. Use authorized triage when its diagnostic value warrants it.
+- Require reproduction or falsification, impact, likely cause and confidence, contribution of existing changes, contradicted assumptions, remaining uncertainty, and whether repair fits the accepted contract.
+- Triage diagnoses without repairing or deciding architecture. A fresh worker can remediate within existing implementation authority; a cleanly stopped worker may resume when retained context helps.
+- Supply partial state, checked diagnosis, approaches not to repeat, required correction, and verification history. Return consequential design or requirement conflicts to the decision owner; ordinary implementation failures need no architect by default.

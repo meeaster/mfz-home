@@ -1,46 +1,45 @@
-## Host Environment
+## Host environment
 
-You run in WSL with a Windows host. Windows-side binaries (`powershell.exe`, `tasklist.exe`, anything on Windows `PATH`) are reachable from this shell; invoke them directly for Windows-side work.
+- **Fact:** This environment runs in WSL with a Windows host; Windows binaries are reachable from the shell.
+- **Fact:** This machine uses OpenCode V2.
+- **Fact:** OpenCode V2 reloads skills, agent definitions, reloadable configuration, and MCP servers in the running server when their runtime files change.
 
-## Documentation Sources
+## Tool selection
 
-- **OpenCode:** This machine uses OpenCode V2. Use `opencode` and V2 documentation and configuration unless the user explicitly requests V1.
-- For library, framework, SDK, API, or CLI usage, use Context7 even for familiar libraries. Resolve the library with the user's full question, prefer an exact or version-specific reputable match, then query that library. Do not use it for business logic, refactoring, code review, scripts from scratch, or general programming concepts.
-- For GitHub repository internals, inspect a matching clone from `~/.mindframe-z/references.md` first. Use DeepWiki only when no useful clone exists, the source is insufficient, or the user requests it; verify version-sensitive claims against source.
-- Start with one authoritative documentation source. Add another when the first is insufficient, a consequential claim needs verification, or the user asks for a comparison. Prefer documentation MCPs over general web search.
+- **Tool:** Use `visual-explainer` only when the user explicitly requests that skill.
 
-## Git And CI
+## Working preferences
 
-- Use Conventional Commits.
-- For GitHub Actions, prefer mature current releases pinned to commit SHAs; validate with `actionlint` and `zizmor --min-severity high`. Declare local or reusable action outputs in metadata and write step outputs to `$GITHUB_OUTPUT`.
+- **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
+- **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
 
-## Working Preferences
+## OpenCode background work
 
-- If you need to use `/tmp`, use `/tmp/opencode` instead.
-- Prefer exact dependency versions and packages older than 7 days.
-- Flag documentation made obsolete by code changes and avoid hardcoded counts.
-- For Impeccable detector scans, use `impeccable detect ...`; do not invoke the rendered skill's `scripts/detect.mjs` directly.
-- Before enumerating repository files or matches, scope by path and type, exclude dependencies and generated output, and prefer dedicated glob or grep tools. Request broad shell output only when the complete inventory is necessary.
-- Before calling a read-only API, consider whether its response may include sensitive data. When practical, prefer a narrower endpoint or field selection, and avoid surfacing sensitive fields that the task does not need.
-- Push back on flawed assumptions and ask when intent is unclear.
-- Generally write responses according to the Google developer documentation style guide and ASD-STE100 Simplified Technical English.
-- Write Markdown prose and list items as single logical lines. Let the renderer wrap display text; preserve line breaks only for Markdown structure, such as headings, tables, fenced code, blockquotes, and intentional hard breaks.
-- When a required skill body is already active in the current context, follow it without loading it again. Load the skill when its instructions are absent, including in a fresh child or after compaction when the body is no longer available.
-- Use `visual-explainer` only when the human explicitly requests that skill. A request for a diagram or HTML explanation does not itself select it.
-- Load `development-principles` when making or evaluating software engineering decisions, including design, implementation, refactoring, test strategy, and substantive review. Coordinators load it when framing engineering scope, weighing design tradeoffs, or judging engineering quality. Routine dispatch, status reporting, factual gathering, and settled operations do not require it. Apply it within accepted requirements and repository conventions.
+- **Fact:** OpenCode background subagents notify the parent session when they finish. Ending the parent response does not cancel their work.
+- **Behavior:** When progress depends on a background subagent and no useful independent work remains, briefly state what is pending and end the response.
+- **Behavior:** Do not issue tool calls solely to keep the session active or check whether a background subagent has finished.
 
-## Subagent Use
+## OpenCode session compaction
 
-- A manually loaded workflow may supply additional routing for its duration. Otherwise, use the ordinary-session routing below.
-- Use `explore`, `research`, and `inspect` proactively for bounded evidence gathering when materially useful. Route factual prior-session lookup, metadata, cost, chronology, and reconstruction to `inspect`; use `session-analyst` only when the requested outcome requires evaluative reasoning about session quality, intent adherence, behavior, efficiency, patterns, or recommendations.
-- Select `operator` proactively when the human explicitly requests a settled operational outcome involving source-control procedures, MFZ generation or apply, supported CLI or configuration operations, service or process lifecycle, environment preparation, deployments or infrastructure, or external-system mutation. Preserve the human's exact authority; selection creates none. Ordinary source implementation, behavioral instruction authoring, and novel troubleshooting do not select `operator`.
-- Outside a loaded workflow, use `worker`, `reviewer`, `prototype`, `triage`, or `ui-ux-designer` only when the human explicitly asks to use that agent. A request to create a prototype does not by itself select the `prototype` agent.
-- Fresh subagents do not share the parent conversation. Give them an intent-rich brief with the objective and why it matters, relevant user priorities and tradeoffs, accepted decisions, exact evidence and accessible paths, constraints and exclusions, authority limits, expected deliverable, verification, and stop conditions. Distill rather than transcribe, and name relevant skills for the child to load.
-- Load `context-transfer` when audience, access, privacy, portability, publication, or lossless specialist handoff materially changes what must cross the boundary.
-- When dispatching `ui-ux-designer`, tell it to load `ui-ux-design` before acting.
-- In OpenCode 2, skills, agent definitions, reloadable configuration, and MCP servers update in the running server. When validation is needed after a change reaches the watched runtime path, use the current session's next model attempt or a native subagent; reserve `opencode run` for testing the CLI, a separate process, isolation, or fresh top-level context.
+- **Behavior:** Invoke manual session compaction only when the user explicitly requests it. Context pressure or a task milestone alone does not authorize it.
+- **Tool:** For an explicit compaction request, use the command below directly without loading the `opencode` skill. Replace `<sessionID>` with the current conversation's session ID unless the user names another session. Load `opencode` if the command fails or the request needs additional procedure.
 
-## Code Conventions
+```sh
+opencode api post /api/session/<sessionID>/compact --data '{}'
+```
 
-- Do not use `isRecord`-style guard helpers; understand the code path types directly, and when input shape is uncertain validate it once at the boundary with a schema instead of scattering guards through the logic.
-- Before editing JavaScript or TypeScript, load `anti-slop` for its short preflight heuristics. After completing the batch, including delegated or subagent work, run it against the narrowest changed source or test path. The checkpoint must be clean for in-scope code: address diagnostics, remove source directives that suppress anti-slop rules, and rerun after edits. Do not scan dependencies or generated output, widen the change merely to silence a diagnostic, or claim a clean checkpoint while an in-scope suppression remains.
+- **Fact:** A successful response confirms that compaction was requested, not completed. It runs at the next safe model-step boundary.
+
+## Git and CI
+
+- **Tool:** In OpenCode, delegate explicitly requested routine Git commit or push operations to the built-in `general` subagent using `openai/gpt-6-luna#high`. When an active workflow defines delegation routing, follow that routing instead.
+- **Behavior:** For delegated Git operations, provide the repository, intended changes, authorized operations, and relevant validation results. Preserve the user's exact scope and require the resulting commit identity, push status, and remaining changes as applicable.
+- **Style:** Use Conventional Commits.
+- **Behavior:** For GitHub Actions, prefer mature current releases pinned to commit SHAs.
+- **Behavior:** Validate GitHub Actions with `actionlint` and `zizmor --min-severity high`.
+- **Tool:** Declare local or reusable action outputs in metadata and write step outputs to `$GITHUB_OUTPUT`.
+
+## JavaScript and TypeScript
+
+- **Tool:** Load `anti-slop` before editing JavaScript or TypeScript and run its final check on the changed source and test files, including delegated changes.
+- **Behavior:** Complete the anti-slop checkpoint without in-scope diagnostics or suppressions; follow the skill's scope and verification rules.

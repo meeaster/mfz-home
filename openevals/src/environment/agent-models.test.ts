@@ -26,13 +26,13 @@ async function fixture(root: string, overrides?: string): Promise<void> {
   // OpenEval writes the global config before preparation; preparation merges into it.
   await write(
     join(root, "home", ".config", "opencode", "opencode.json"),
-    `${JSON.stringify({ model: "opencode-go/gpt-5.6-luna" }, null, 2)}\n`,
+    `${JSON.stringify({ model: "openai/gpt-6-luna" }, null, 2)}\n`,
   );
 
   await write(join(environment, "AGENTS.md"), "# Instructions\n");
   await write(join(environment, "references.md"), "# References\n");
-  await write(join(environment, "agents", "orchestrator.md"), "---\nmodel: openai/gpt-5.6-luna\n---\nOrchestrate.\n");
-  await write(join(environment, "agents", "worker.md"), "---\nmodel: openai/gpt-5.6-luna\n---\nWork.\n");
+   await write(join(environment, "agents", "orchestrator.md"), "---\nmodel: openai/gpt-6-luna\n---\nOrchestrate.\n");
+   await write(join(environment, "agents", "worker.md"), "---\nmodel: openai/gpt-6-luna\n---\nWork.\n");
   await write(join(environment, "commands", "orchestrate.md"), "Command\n");
   await write(join(environment, "skills", "orchestrator-mode", "SKILL.md"), "# Skill\n");
   await write(
@@ -62,18 +62,18 @@ test("overrides defined agents and core built-ins, skipping unknown agents", asy
   try {
     await fixture(
       root,
-      `${JSON.stringify({ orchestrator: "opencode-go/gpt-5.6-luna#max", worker: "opencode-go/deepseek-v4.1-flash#high", explore: "opencode-go/gpt-5.6-luna#high", ghost: "opencode-go/gpt-5.6-luna#low" }, null, 2)}\n`,
+      `${JSON.stringify({ orchestrator: "openai/gpt-6-luna#max", worker: "opencode-go/deepseek-v4.1-flash#high", explore: "openai/gpt-6-luna#high", ghost: "openai/gpt-6-luna#low" }, null, 2)}\n`,
     );
 
     await configure(root);
 
     const project = await readJson<ProjectConfig>(join(root, "workspace", "opencode.json"));
 
-    expect(project.agents?.orchestrator?.model).toBe("opencode-go/gpt-5.6-luna#max");
+    expect(project.agents?.orchestrator?.model).toBe("openai/gpt-6-luna#max");
     expect(project.agents?.worker?.model).toBe("opencode-go/deepseek-v4.1-flash#high");
 
     // `explore` is an OpenCode core built-in: no environment definition, safe to override.
-    expect(project.agents?.explore?.model).toBe("opencode-go/gpt-5.6-luna#high");
+    expect(project.agents?.explore?.model).toBe("openai/gpt-6-luna#high");
     expect(project.agents?.ghost).toBeUndefined();
 
     const global = await readJson<{ skills?: string[]; mcp?: unknown }>(

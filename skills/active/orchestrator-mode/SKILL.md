@@ -1,69 +1,66 @@
 ---
 name: orchestrator-mode
-description: Explicit orchestration workflow for a direct coordinator or a Chief with a standing gateway.
+description: Explicit orchestration for direct human collaboration or Chief-led workstreams.
 slash: false
 metadata:
   opencode/autoinvoke: false
 ---
 
-## Mode and topology
+# Orchestrator Mode
 
-Use only when explicitly loaded. The caller selects one user-facing mode: `baked-in` or `chief/split`. A parent-facing orchestrator child uses the coordinator contract of the selected topology.
+Keep a useful thinking session while delegating source-heavy investigation and execution. Preserve working context and reusable evidence in an effort workspace so later agents can build on earlier work.
 
-| Mode | Dispatcher | Assignment owner | Return surface |
+## Select the role
+
+Use only when explicitly loaded. The human selects the mode; neither switch modes nor recommend switching. An explicitly assigned orchestrator child coordinates its own bounded workstream.
+
+| Role | Dialogue and decisions | Delegation | Workspace |
 | --- | --- | --- | --- |
-| `baked-in` | The current session dispatches specialists directly. | The current orchestrator owns `assignments/`, the child roster, and producer notes. | The current session accepts producer packets and returns accepted results to the human or assigning parent. Its scribe is a direct subordinate. |
-| `chief/split` | The current session is Chief; a standing `orchestrator` is the gateway for all cycle work. | The standing orchestrator owns `assignments/`, the child roster, and producer notes. | The gateway accepts producer packets and returns an envelope to the Chief. The Chief's scribe remains a direct subordinate. |
+| Direct orchestrator, `baked-in` | Work directly with the human on goals, options, and recommendations. | Dispatch appropriate agents. | Use the effort root. |
+| Chief, `chief/split` | Keep high-level thinking and human decisions in this session. | Ask orchestrators for outcomes and evidence; keep a direct Scribe. | Keep human-facing and cross-workstream state at the root. |
+| Delegated orchestrator | Resolve operational choices; return consequential choices outside assigned authority. | Coordinate agents within the assigned scope. | Use the assigned `workstreams/<scope>/` workspace. Maintain its state directly. |
 
-In `chief/split`, establish the standing gateway before the first cycle unit — evidence, verification, or synthesis — and route every unit through it, even when prior effort evidence seems to cover the request. The Chief's only direct child is the scribe; the Chief synthesizes from gateway envelopes and note locators, opening full evidence notes only when the envelope leaves a material gap. When gateway ceremony would outweigh the split, recommend a mode switch to the human rather than act as the other mode.
+- Read [Chief collaboration](references/chief-collaboration.md) when acting as Chief. The Chief does not need producer-routing and execution references unless deciding a concrete question about those contracts.
+- Read [Workspace and coordination](references/workspace-and-coordination.md) when substantive work begins or working records need maintenance.
+- Read [Recovery and continuity](references/recovery-and-continuity.md) after compaction or interruption, when resuming an effort, or choosing child continuity.
 
-Background dispatch is the default in both modes. Keep at most one active cycle per standing orchestrator only in `chief/split`; dependent dispatches wait for their producing child in either mode. This table is the topology layer; the shared contracts below do not assume a gateway.
+## Think with the human
 
-## Role and authority
+- Retain reasoning, advice, and consequential judgment in the human-facing session. Delegate source investigation: through orchestrators for the Chief, through evidence-gathering agents for a direct orchestrator.
+- Directly read identified instruction, design, or prose artifacts whose wording or structure is under evaluation. Delegate discovery when their location is unknown. Implementation source code remains delegated, even for a single file.
+- Use the workspace and selected results rather than loading the entire source corpus. Explain important tradeoffs and uncertainty without narrating routine tools.
 
-Interpret the current request in its conversation or parent brief, distinguish evidence from inference and accepted decisions, and explain consequential tradeoffs without narrating routine tools. The current coordinator owns bounded decomposition, assignment state, packet acceptance, and the return surface named above. The human or assigning parent retains consequential decisions not delegated in the brief.
+## Authority and proportional work
 
-Use one compact autonomy policy: explicit authority covers the named outcome and its necessary local reads, edits, tests, and workflow steps while outcome, scope, access, risk, reversibility, and acceptance remain consistent. Pause for a material change, missing authority, consequential ambiguity, failed gate, destructive or external write, or a separate publication outcome. Commit, push, pull request, merge, and system updates remain distinct. Carry scoped waivers forward without re-asking; higher-priority instructions and harness permissions still apply.
+An explicit delivery request authorizes the proportionate workflow needed to complete it. Agent selection and writable paths do not create authority.
 
-Select the smallest adequate role by outcome and evidence source. Load the references whose triggers apply. A role or tool grants no authority; a harness denial is a runtime result to return or handle, never a reason to inspect permissions or substitute roles. Fresh children inherit neither this conversation nor loaded skills; require an absent required skill explicitly.
+- Gather evidence proactively when the request is reasonably understood. Reuse sufficient current evidence instead of requiring a discovery stage for every operation.
+- Resolve ambiguity about the target repository or directory before dispatching source-heavy investigation. Use a narrow location check when needed.
+- Use necessary design assistance, implementation, verification, review, and remediation within authorized delivery. Expensive agents need a concrete benefit, not a mandatory place in every workflow. During exploratory conversation, recommend expensive consultation or authoring before dispatch.
+- Carry scoped authorizations and waivers forward. Ask when goals, access, scope, consequential cost, risk, design commitments, or acceptance materially change. Return a recommendation and evidence for choices outside delegated authority.
+- Keep commit, push, PR, merge, deployment, and separate system updates within their expressly authorized scope. Respect owning workflows and harness permissions; never bypass a denial by changing roles or tools.
+- Optimize total effort and cost while preserving quality and sufficient decision context. Model configuration owns routine model selection; honor explicit human choices.
 
-## Work cycle
+## Coordinate delivery
 
-1. Reconcile the effort and current mutable state through [Recovery and continuity](references/recovery-and-continuity.md) before the next external action or coordinator-file change.
-2. Read the selected references, classify evidence, and resolve consequential choices before dispatch.
-3. Dispatch the smallest coherent authorized unit in the background by default, using the topology layer's dispatcher and waiting for dependencies.
-4. Check each producer packet, update assignment state, and use the topology layer's return surface.
-5. Continue until verified, blocked, or awaiting a consequential decision.
+An orchestrator selects the smallest coherent unit by outcome, dependencies, and ownership. Background dispatch is the default when independent work can continue.
 
-Maintain a useful child roster, synthesize findings instead of repeating them, and keep raw traces below the return surface when the topology provides one.
-
-## Branch references
-
-These references supply the execution contract. Read those whose triggers apply:
-
-| Reference | Read when |
+| Guidance | Read when |
 | --- | --- |
-| [Workspace and coordination](references/workspace-and-coordination.md) | Before the first evidence-producing dispatch; managing coordinator files or releasing evidence |
-| [Routing and roles](references/routing-and-roles.md) | Selecting a role, assigning diagram/HTML authoring and validation, or classifying an evidence or diagnostic outcome |
-| [Child contracts](references/child-contracts.md) | Dispatching or resuming a child, accepting its packet, or handling a stop |
-| [Design, prototype, and review](references/design-prototype-and-review.md) | Consulting on design, creating a prototype, or commissioning independent review |
-| [Mutation and delivery](references/mutation-and-delivery.md) | Preparing, implementing, remediating, integrating, operating, or publishing |
-| [Recovery and continuity](references/recovery-and-continuity.md) | Before choosing fresh or resumed children, recovering after compaction/interruption, or reconciling a matching workspace |
+| [Routing and roles](references/routing-and-roles.md) | Selecting evidence, implementation, operations, authoring, or diagnostic agents |
+| [Child contracts](references/child-contracts.md) | Dispatching or resuming producers, accepting results, or handling missing evidence and stops |
+| [Design, prototype, and review](references/design-prototype-and-review.md) | Assigning design advice, a prototype, or review |
+| [Mutation and delivery](references/mutation-and-delivery.md) | Preparing, implementing, verifying, integrating, or publishing changes |
 
-Direct producers of shared task evidence use `orchestrator-task-evidence`. Internal helpers return findings to their assigning parent without inheriting that skill or a shared-note obligation unless separately assigned. Task Evidence owns note method; this skill owns assignment, placement, acceptance, cataloging, and dependent release.
+- Give each assignment enough purpose to understand how it fits. Supply a short explanation or selected `context.md` pointer, not both copies of the same background.
+- Require `orchestrator-task-evidence` for assigned evidence production, operational learnings, or selective reuse. Internal helpers do not inherit shared-file obligations without an explicit assignment.
+- Release dependent readers after the producer has returned and completed its writes. Coordinate overlapping source changes and shared runtime operations.
+- Verify proportionately. Concrete worker checks can suffice for straightforward work; use independent factual inspection for uncertain results, external effects, multi-component changes, or missing assurance. Use authorized review for deeper correctness and maintainability judgment.
 
-## Acceptance
+## Accept and return
 
-The coordinator accepts producer results against their briefs; the accepted packet is the effort's evidence of record. Keep coordinator context lean: assignment state and synthesis, not raw sources or producer traces. Treat packet distress — contradiction, insufficiency, implausibility, or a locator that does not resolve — as a dispatch signal: send a focused follow-up to the producer or another specialist rather than loading sources into coordinator context. Reading the bounded artifact under judgment — an instruction package, agent or command definition, or authoring record — is the work itself, per [Routing and roles](references/routing-and-roles.md); outside that target and human-requested detailed inspection, do not repeat producer validation. In `chief/split`, the Chief accepts the gateway envelope by default. In `baked-in`, the current session returns the accepted result directly.
-
-Recheck only coordination criteria invalidated by later changes and close or explicitly waive all criteria before completion. Report independent review findings separately from coordinator acceptance of later repairs; claim rereview only when it occurred. Git publication requires current evidence of repository status, commit identity, branch/upstream relation, and push state. Do not let a producer approve its own repair.
-
-## Boundary closure
-
-Use the selected return surface: a split gateway returns only decisions needed, material findings with note locators, current state, and the next cycle in an envelope; a baked-in coordinator returns the accepted result without routing mechanics. Keep briefs, packet traffic, patches, and raw tool output in child sessions and effort files. Reconcile totals with itemized evidence before returning.
-
-Before returning evidence, decide whether synthesis has concrete later reuse. If the caller says the reasoning will inform a later plan, decision, or worker cycle, recommend exactly one focused synthesis unless it exists or was declined without material change. Otherwise recommend only for equally concrete later reuse and say nothing when declining. Name its focus and value, state that creation requires human acceptance, and create no file or blocking stage from the recommendation.
-
-After accepted design, classify OpenSpec as recommended for consequential architecture, interfaces, data, security, infrastructure, multi-unit work, or likely session boundaries; optional for moderate one-session work; and not recommended for a small settled local change. Ask before creating it unless the sequence already requests it.
-
-At a meaningful boundary, recommend the single useful next step and request only the missing decision or authority. Report completed work, material decisions and basis, evidence locators, verification, exact mutation/publication state, and remaining risks. Distinguish coordinator acceptance from the return recipient's acceptance; preserve state and identify affected downstream steps when stopping.
+- Check the result against its objective, authority, evidence, and uncertainty. Read relevant evidence when it helps the decision; request focused follow-up for contradictions, missing support, or invalid locators rather than repeating source investigation.
+- Distinguish producer completion, coordinator acceptance, independent verification or review, and human acceptance. A repair is not independently rereviewed unless that actually occurred.
+- Return when complete or when progress needs a decision, authority, or unavailable evidence. Explain established results, remaining work, exact mutation and publication state, and useful evidence pointers. Reconcile summaries with measurements.
+- Update working context, coordination, and the evidence index when state changes. Read new operational learnings and select useful notes for later agents.
+- Create documents in `synthesis/` only on explicit request. Recommend synthesis when substantive reasoning merits fuller preservation, not automatically at every completion boundary. Working-state maintenance and ordinary result explanations do not require synthesis.

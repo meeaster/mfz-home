@@ -2,23 +2,23 @@
 
 The Codex reasoning model interprets the brief and constructs the built-in tool call. It does not render the pixels. Codex 0.146.1 currently routes built-in generation and editing to `gpt-image-2`, so image randomness can outweigh reasoning-model differences.
 
-## Default: GPT-5.6 Sol
+## Default: GPT-6 Sol
 
-Use `gpt-5.6-sol` at `high` unless the user chooses otherwise. In the August 2026 comparison, Sol produced the most expressive and visually distinctive compositions, which is the preferred default for this skill. It also showed the widest variation: one of three images missed an exact five-layer count, one leaned toward a figurative worker shape, and one run first sent an invalid empty image-reference argument before recovering automatically.
+Use `gpt-6-sol` at `high` unless the user chooses otherwise. In the August 2026 GPT-5.6 comparison, Sol produced the most expressive and visually distinctive compositions. That result has not been re-evaluated for GPT-6. It also showed the widest variation: one of three images missed an exact five-layer count, one leaned toward a figurative worker shape, and one run first sent an invalid empty image-reference argument before recovering automatically.
 
 Choose Sol when visual character and interpretation matter more than minimizing variation. Keep the brief explicit and visually verify counts and invariants.
 
-## GPT-5.6 Terra
+## Historical comparison: GPT-5.6 Terra
 
 Terra tended toward clean, legible system compositions and balanced interpretation. Two of three fresh runs called the image tool directly without reading the long system skill, while one of three images appeared to miss an exact layer count.
 
-Choose `gpt-5.6-terra` when the brief leaves meaningful composition or design judgment to the worker, or when restrained clarity is more important than expressive variation.
+Terra is not a GPT-6 selection. Use `gpt-6-sol` for a current Sol route; the Terra observations do not establish how GPT-6 Sol behaves.
 
-## GPT-5.6 Luna
+## GPT-6 Luna
 
 Luna was the most consistent in the observed comparison about five-path convergence and five-layer packets, with no tool-call failures. Its outputs were direct and structurally faithful, though one right-side assembly could be read as more character-like than requested.
 
-Choose `gpt-5.6-luna` for a tightly bounded relay where the calling agent has already resolved the design and constraint fidelity matters more than additional interpretation.
+Choose `gpt-6-luna` for a tightly bounded relay where the calling agent has already resolved the design and constraint fidelity matters more than additional interpretation. The observations above come from GPT-5.6 and need re-evaluation for GPT-6.
 
 ## Evidence Boundary
 

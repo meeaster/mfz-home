@@ -2,7 +2,7 @@
 description: Private read-only advisor that verifies material risks before steering the primary agent.
 mode: subagent
 hidden: true
-model: openai/gpt-5.6-luna
+model: openai/gpt-6-luna
 variant: high
 steps: 8
 permission:

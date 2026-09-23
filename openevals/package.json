@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hona/openeval": "0.3.2",
+    "@hona/openeval": "file:artifacts/hona-openeval-0.4.0.tgz",
     "yaml": "2.9.0",
     "zod": "4.4.3"
   },

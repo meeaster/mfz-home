@@ -1,6 +1,6 @@
-# GPT-5.6 Model Selection
+# GPT-5.6 Model Selection (Historical Evidence)
 
-Field guidance for choosing GPT-5.6 models and reasoning efforts in this
+Historical field guidance for choosing GPT-5.6 models and reasoning efforts in this
 Mindframe-Z home.
 
 **Status:** research snapshot as of 2026-07-11
@@ -69,7 +69,7 @@ reviewer is a separate model call:
 
 - The executor performs the bounded work with Luna.
 - The executor may call `advisor()` when it needs a stronger review.
-- The configured advisor is `openai/gpt-5.6-sol@high`.
+- The advisor in this evaluation was `openai/gpt-5.6-sol@high`.
 - The advisor sees the parent transcript and returns guidance. Its review
   session disables mutation, shell, task, recursive-advisor, and delegation
   tools.
@@ -255,16 +255,16 @@ tokens, latency, cost, and whether escalation was required.
 The current native agent assignments are:
 
 ```text
-worker: openai/gpt-5.6-luna@max
-operator: openai/gpt-5.6-luna@high (base)
-triage: openai/gpt-5.6-luna@max (base), openai/gpt-5.6-sol@medium (Personal)
-prototype: openai/gpt-5.6-luna@max (base), openai/gpt-5.6-sol@medium (Personal)
-architect: openai/gpt-5.6-sol@high (base), openai/gpt-6-astra@medium (Personal)
-reviewer: openai/gpt-5.6-sol@high (base and Personal), openai/gpt-5.6-terra@high (Work override)
-pr-reviewer: openai/gpt-5.6-sol@high
-explore: openai/gpt-5.6-luna@high
-research: openai/gpt-5.6-luna@high
-session-analyst: openai/gpt-5.6-sol@medium
+worker: openai/gpt-6-luna@max
+operator: openai/gpt-6-luna@high (base)
+triage: openai/gpt-6-luna@max (base), openai/gpt-6-sol@medium (Personal)
+prototype: openai/gpt-6-luna@max (base), openai/gpt-6-sol@medium (Personal)
+architect: openai/gpt-6-sol@high (base), openai/gpt-6-astra@medium (Personal)
+reviewer: openai/gpt-6-sol@high (base and Personal)
+pr-reviewer: openai/gpt-6-sol@high
+explore: openai/gpt-6-luna@high
+research: openai/gpt-6-luna@high
+session-analyst: openai/gpt-6-sol@medium
 ```
 
 Agent descriptions route by task shape rather than model rank. The model and variant remain replaceable configuration policy: `worker` is the application implementation, substantive code, focused remediation, difficult implementation investigation, and novel troubleshooting lane; `operator` is the settled procedural and operational mutation lane for configuration, source control, supported CLI workflows, infrastructure, deployments, environment preparation, and external-system state; `reviewer` is the focused independent completed-work judgment lane; `pr-reviewer` performs holistic due diligence when a pull request's intent, design, or validation must be reconstructed and challenged; `explore` and `research` retain their specialized discovery scopes; `inspect` owns factual session lookup and reconstruction alongside other bounded evidence gathering; `session-analyst` owns evaluative reasoning about prior-session behavior and quality; and `prototype` builds throwaway decision artifacts through the existing `prototype` skill. Workflow prompts own task-specific briefs, review cadence, and acceptance.
@@ -275,12 +275,11 @@ The permanent `prototype` assignment comes from a matched five-candidate
 evaluation recorded in `docs/prototype-agent-evaluation.md`. The temporary
 candidate agents were removed after their results were captured.
 
-The current advisor target is configured as:
+An earlier advisor target was configured as:
 
 ```text
 opencode:openai/gpt-5.6-sol@high
 ```
 
-The `delegate_general` catalog exposes Luna and Terra with `low`, `medium`,
-`high`, `xhigh`, and `max`. Sol exposes `low`, `medium`, `high`, and `xhigh`.
-`none` is intentionally not exposed for any model.
+The archived `delegate_general` catalog described GPT-5.6 model variants. It
+does not define current GPT-6 native agent routing.

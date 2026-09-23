@@ -7,5 +7,5 @@ WorkingDirectory=/home/mark/.local/state/opencode-jobs/vendored-skill-update/rep
 Environment=HOME=/home/mark
 Environment=PATH=/home/mark/.local/share/mise/shims:/home/mark/.local/bin:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 StandardInput=file:/home/mark/.config/opencode/jobs/vendored-skill-update.md
-ExecStart=/home/mark/.opencode/bin/opencode run --standalone --auto --model openai/gpt-5.6-luna#high --agent vendored-skill-job
+ExecStart=/home/mark/.opencode/bin/opencode run --standalone --auto --model openai/gpt-6-luna#high --agent vendored-skill-job
 TimeoutStartSec=3h

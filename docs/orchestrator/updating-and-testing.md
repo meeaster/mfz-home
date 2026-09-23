@@ -1,5 +1,7 @@
 # Update and test Orchestrator Mode
 
+Use the [accepted redesign](redesign-2026-09-22.md) and current authoring records when choosing scenarios. Older recordings may exercise superseded topology and evidence contracts; preserve their results as historical observations rather than treating them as current regression requirements. Compaction recovery now depends on the previous-window tool behavior and Scribe handoff, so static instruction checks alone cannot validate that path.
+
 Use this process when changing Orchestrator Mode's instructions. Refine a bounded scenario set until the behavior is acceptable, then test different scenarios without changing the candidate. Judge the decisions and briefs agents produce, not whether they agree with the explanation of the change.
 
 This is maintainer guidance, not additional runtime material for every orchestrator session. [Skill Authoring](../../skills/active/skill-authoring/SKILL.md) owns authoring requirements and its [testing workflow](../../skills/active/skill-authoring/references/testing-workflow.md) owns general test mechanics. Use [session review](session-review.md) for a broader assessment of completed orchestration.

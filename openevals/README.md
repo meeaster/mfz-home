@@ -16,7 +16,9 @@ MFZ_SOURCE_HOME="$(pwd)/.." bun src/materialize-cli.ts minimal .materialized/min
 MFZ_SOURCE_HOME="$(pwd)/.." bun src/materialize-cli.ts personal .materialized/personal
 ```
 
-Before planning the benchmark, copy the materialized environment into each eval: the full workspace into `benchmarks/orchestrator-mode/evals/baked-in-dispatch/workspace/`, and the `.openeval` directory into `benchmarks/orchestrator-mode/evals/explore-evidence/overlay/.openeval/`. Run the unchanged evals once for each preset. Keep materialized workspaces under `.materialized/` or another ignored path rather than committing them.
+Before planning a benchmark, copy the rendered `.openeval/environment/` into each eval's `workspace/` or `overlay/` without removing its task files. `baked-in-dispatch`, `identified-instruction`, and `single-source-file` use `workspace/`; `explore-evidence` uses `overlay/`. Preserve `configure-environment.ts` and `agent-models.json`. Keep materialization output under `.materialized/` or another ignored path. Run each selected eval separately for the minimal and sanitized Personal environments; do not mix their results as if they used identical instructions.
+
+For the uncommitted 2026-09-22 orchestration pilot, set `MFZ_SOURCE_COMMIT` to the base commit and `MFZ_SOURCE_OVERRIDES` to a comma-separated list of current orchestration source files. The optional override path accepts only `instructions/AGENTS.md`, `catalog/skills.yml`, `opencode/commands/orchestrate.md`, the two orchestration skills, and Orchestrator Mode references. The materializer archives the original commit, copies the named working-tree files into `source-overrides/`, records their SHA-256 digests in `manifest.json`, and renders from those captured bytes. Keep the materialization directory to reproduce this local candidate. A later run from a committed revision should omit overrides. Never treat the commit ID alone as a complete description when the manifest lists overrides.
 
 Run the contract check through the unit tests. The check verifies rendered instructions, required Orchestrator Mode references, command and agent files, denied external writes, empty MCP configuration, digests, and absence of private-material markers.
 
@@ -34,7 +36,7 @@ Changing this file, or the environment it applies to, changes the eval source ha
 
 `baked-in-dispatch` is deliberately a read-only interpretation eval. It uses a hybrid judge:
 
-- `judge.md` grades the interpretation with an LLM judge: mode selection, the dispatch decision, the correctness-critical brief fields, the wait and accept step, authority boundaries, and the return surface.
+- `judge.md` grades the interpretation with an LLM judge: direct-mode ownership, the identified-instruction reading decision, a conditional child brief, acceptance, authority boundaries, and the return to the human.
 - `judge.ts` grades archive facts: whether the candidate loaded the Orchestrator Mode skill, and whether it stayed read-only with no child session.
 
 The split exists because a deterministic judge only sees recorded data. It can decide state facts, such as which tools ran and whether the workspace changed. It cannot decide meaning, and a keyword rubric rejects correct answers that use the skill's own vocabulary. Keep behavioral criteria in `judge.md` and facts in `judge.ts`.
@@ -43,16 +45,16 @@ Validate the judge with `pnpm calibrate`. It records two constructed controls an
 
 The evaluator cannot force a dispatch; delegation is the behavior under test, not infrastructure. `baked-in-dispatch` keeps its read-only interpretation scope and infers nothing from the final response. `explore-evidence` measures a real dispatch from the recorded sessions; a run that never dispatches is a routing result, not an infrastructure failure.
 
-The broader `chief/split` and scenario matrix are intentionally out of scope.
+`identified-instruction` and `single-source-file` test the new direct-reading boundary with real tool recordings. The former presents an identified instruction under review; the latter asks about one implementation file. Their code judges check dispatch and workspace facts, while their Markdown judges check the answer and who read the source. Constructed pass, fail, and near-miss expectations are in `benchmarks/orchestrator-mode/calibration/direct-reading/boundaries.md`. The Chief, evidence reuse, and post-compaction Scribe cases are outside this pilot.
 
 ## Explore evidence routing
 
 `explore-evidence` tests the routing decision for a broad, static-local question. The prompt asks one resume-semantics question about a real repository checked out at `checkout/` and does not name a specialist, so the candidate may answer directly or delegate.
 
 - `judge.ts` records `explore_dispatched` (a successful `subagent` call naming `explore`, plus a child session) and `repository_unchanged` (checkout content unchanged, ignoring `.git`, `upstream.git`, and `node_modules`).
-- `judge.md` grades meaning: completeness of the decisive mechanism findings, grounding in real paths, restraint, and the return surface.
+- `judge.md` grades how the coordinator handles source evidence from the tool trace, alongside answer completeness, grounding in real paths, restraint, and the return surface.
 
-The routing rule in the skill routes factual understanding of an unbounded application-code corpus to the evidence roles, so delegation is the intended routing for this task shape. A run that answers correctly but never dispatches fails `explore_dispatched`. That criterion is the essential routing measurement; the mean of the remaining criteria is not a substitute for it.
+The routing rule delegates implementation-source investigation to an evidence agent, even for one file. A run that answers the broad source question correctly but never dispatches fails `explore_dispatched`. That criterion is the essential routing measurement; the mean of the remaining criteria is not a substitute for it.
 
 The repository is pinned by `workspace.repository` and a full commit. OpenEval lays it out at `<workspace>/checkout/` with the bare remote beside it, copies the overlay into `checkout/`, and runs preparation there.
 
@@ -61,9 +63,9 @@ The repository is pinned by `workspace.repository` and a full commit. OpenEval l
 `presets.json` defines named model presets. Each preset names the candidate session model and the agent model overrides that travel with it; a `"*"` entry covers roles it does not name.
 
 ```sh
-bun src/select-preset.ts glm   # or: luna
+bun src/select-preset.ts glm   # or: gpt6
 ```
 
 Selection writes `selected-preset.json` (ignored; the benchmark falls back to `presets.json`'s `default`) and rewrites every eval's `agent-models.json`. `benchmark.ts` reads the selection, so a bare `openeval run` executes exactly the selected preset — the candidate model, the judge, and the overrides can never disagree. Selection happens host-side because preparation steps receive no model information.
 
-Each preset names its judge too: `luna` judges with `opencode-go/gpt-5.6-luna#high`, `glm` with `zai-coding-plan/glm-5.3#high`. The judge model is part of the judge fingerprint, so recorded evidence is rejudged with the selected judge on the next run. Scores from presets with different judges measure different judges — compare within a preset, not across.
+The `gpt6` preset uses `openai/gpt-6-sol#medium` for the candidate and orchestrator, `openai/gpt-6-astra#medium` for the judge, and GPT-6 Luna for its other agents. The `glm` preset judges with `zai-coding-plan/glm-5.3#high`. The judge model is part of the judge fingerprint, so recorded evidence is rejudged with the selected judge on the next run. Scores from presets with different judges measure different judges — compare within a preset, not across.

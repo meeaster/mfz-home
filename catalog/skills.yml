@@ -2,11 +2,11 @@ skills:
   - name: orchestrator-task-evidence
     source: local
     skill: active/orchestrator-task-evidence
-    description: Explicitly assigned task evidence production and selective reuse.
+    description: Explicitly assigned task evidence, operational learnings, and selective reuse.
   - name: orchestrator-mode
     source: local
     skill: active/orchestrator-mode
-    description: Explicit orchestration workflow for human-facing conversation or a parent-facing bounded assignment.
+    description: Explicit orchestration for direct human collaboration or Chief-led workstreams.
   - name: anti-slop
     source: local
     skill: active/anti-slop
@@ -18,10 +18,8 @@ skills:
     source: local
     skill: active/development-principles
     description: >
-      Shared engineering judgment for software design, implementation, test
-      strategy, refactoring, review, and coordination decisions. Use when choosing
-      or assessing an engineering approach, not for routine dispatch, factual
-      gathering, or settled operations.
+      Shared engineering judgment for explicit requests or workflows that require
+      Development Principles.
   - name: pr-review
     source: local
     skill: active/pr-review
@@ -283,16 +281,13 @@ skills:
     description: >
       Design, create, revise, review, or evaluate an agent skill or explicit
       command from intended behavior. User-invoked.
-  - name: context-transfer
+  - name: artifact-context
     source: local
-    skill: active/context-transfer
+    skill: active/artifact-context
     description: >
-      Preserve meaning when context moves into an artifact for a different
-      consumer or environment. Use when creating or revising content for a
-      consumer who will not share all of the current conversation, workspace,
-      access, or assumptions, or when another skill needs to decide what must
-      cross that boundary. When an artifact-specific skill applies, keep it
-      primary and use this only as its context lens.
+      Preserve the context readers need in reports, proposals, design documents,
+      and references. Load on explicit request or when an owning artifact
+      workflow requires it.
   - name: opencode-plugin-authoring
     source: local
     skill: active/opencode-plugin-authoring

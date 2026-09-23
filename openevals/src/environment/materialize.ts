@@ -1,4 +1,5 @@
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { cp, lstat, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { z } from "zod";
 import { environmentSpec, isEnvironmentName } from "./presets.js";
@@ -57,6 +58,48 @@ async function archiveSource(sourceHome: string, sourceCommit: string, destinati
   await Bun.write(archive, bytes);
   await run(["tar", "-xf", archive, "-C", destination]);
   await rm(archive, { force: true });
+}
+
+/** Only current orchestration assets may override the committed source for a local pilot. */
+function allowedOverride(path: string): boolean {
+  return path === "instructions/AGENTS.md" ||
+    path === "catalog/skills.yml" ||
+    path === "opencode/commands/orchestrate.md" ||
+    path === "skills/active/orchestrator-task-evidence/SKILL.md" ||
+    /^skills\/active\/orchestrator-mode\/(?:SKILL\.md|references\/[a-z-]+\.md)$/u.test(path);
+}
+
+async function applySourceOverrides(
+  sourceHome: string,
+  source: string,
+  destination: string,
+  paths: readonly string[],
+): Promise<{ path: string; sha256: string }[]> {
+  const overrides: { path: string; sha256: string }[] = [];
+
+  for (const path of [...new Set(paths)].sort()) {
+    if (!allowedOverride(path)) throw new Error(`Source override is outside orchestration scope: ${path}`);
+
+    const sourceFile = resolve(sourceHome, path);
+
+    if (!(await lstat(sourceFile)).isFile()) throw new Error(`Source override must be a regular file: ${path}`);
+
+    const bytes = await readFile(sourceFile);
+
+    const hash = createHash("sha256").update(bytes).digest("hex");
+
+    for (const root of [source, resolve(destination, "source-overrides")]) {
+      const target = resolve(root, path);
+
+      await mkdir(resolve(target, ".."), { recursive: true });
+
+      await writeFile(target, bytes);
+    }
+
+    overrides.push({ path, sha256: hash });
+  }
+
+  return overrides;
 }
 
 async function mfzVersion(): Promise<string> {
@@ -155,6 +198,14 @@ export async function materializeEnvironment(
   try {
     await mkdir(source, { recursive: true });
     await archiveSource(spec.sourceHome, spec.sourceCommit, source);
+
+    const sourceOverrides = await applySourceOverrides(
+      spec.sourceHome,
+      source,
+      destination,
+      spec.sourceOverrides ?? [],
+    );
+
     await writeOverlay(source, spec.profile, source);
     await run([
       "mfz",
@@ -186,6 +237,8 @@ export async function materializeEnvironment(
       files,
     };
 
+    if (sourceOverrides.length > 0) manifest.sourceOverrides = sourceOverrides;
+
     const manifestPath = resolve(destination, "manifest.json");
 
     await writeFile(manifestPath, manifestJson(manifest), "utf8");
@@ -202,6 +255,10 @@ export async function materializePreset(
   sourceCommit: string,
   profile: EnvironmentName,
   destination: string,
+  sourceOverrides: string[] = [],
 ): Promise<MaterializedEnvironment> {
-  return materializeEnvironment(environmentSpec(sourceHome, sourceCommit, profile), destination);
+  return materializeEnvironment({
+    ...environmentSpec(sourceHome, sourceCommit, profile),
+    sourceOverrides,
+  }, destination);
 }

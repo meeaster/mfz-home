@@ -151,7 +151,7 @@ after implementation under Phase 5, but it is a read-only checkpoint, not a work
 Make exactly one initial read-only planning call with `delegate_general`:
 
 ```text
-Model: openai/gpt-5.6-sol
+Model: openai/gpt-6-sol
 Variant: high
 Agent: general
 ```
@@ -161,8 +161,8 @@ and stop. Do not silently substitute a cheaper model. The planning child may rea
 OpenSpec context and the current implementation repository, but it must not edit, commit, test,
 delegate, or inspect unrelated session history.
 
-The planning call uses `openai/gpt-5.6-sol` at `high`. Every implementation worker uses
-`openai/gpt-5.6-luna` at `xhigh`; Sol is not an implementation route. Reject any other model or
+The planning call uses `openai/gpt-6-sol` at `high`. Every implementation worker uses
+`openai/gpt-6-luna` at `xhigh`; Sol is not an implementation route. Reject any other model or
 variant in the planning result.
 
 Copy each `contextFiles` path verbatim into the delegate prompt. Before calling `delegate_general`,
@@ -173,7 +173,7 @@ added, or changed. Stop with an incomplete preparation report if the lists diffe
 
 Set the review route before implementation. `coordinator-only` is the default: the coordinator's
 diff review, write-scope check, and focused gate are the acceptance review. Plan one independent,
-fresh, read-only `openai/gpt-5.6-sol` at `high` checkpoint only for a user request or an explicit
+fresh, read-only `openai/gpt-6-sol` at `high` checkpoint only for a user request or an explicit
 material-risk trigger in the accepted contract. Size, novelty, or a desire for more ideas is not a
 trigger. An independent review is never an implementation worker and may not edit or delegate.
 
@@ -212,11 +212,11 @@ Static preflight facts:
   baseline, and operator-gated actions>
 
 Worker routing:
-- Planning call: `openai/gpt-5.6-sol` at `high`.
-- Every implementation worker: `openai/gpt-5.6-luna` at `xhigh`.
+- Planning call: `openai/gpt-6-sol` at `high`.
+- Every implementation worker: `openai/gpt-6-luna` at `xhigh`.
 - Do not assign Sol to implementation or use any other model/variant.
 - An independent review, only when its charter justifies one, is a fresh read-only
-  `openai/gpt-5.6-sol` at `high` checkpoint. It is not an implementation worker.
+  `openai/gpt-6-sol` at `high` checkpoint. It is not an implementation worker.
 
 Allowed planning inputs:
 - Every concrete path returned under contextFiles:
@@ -257,8 +257,8 @@ once, including tasks assigned to coordinator or operator checkpoints rather tha
 workers.
 
 Choose `current-session` only when the coordinator is explicitly running
-`openai/gpt-5.6-luna` at `xhigh`. If the coordinator route cannot be confirmed, choose `delegated`;
-every delegated implementation worker must use `openai/gpt-5.6-luna` at `xhigh`.
+`openai/gpt-6-luna` at `xhigh`. If the coordinator route cannot be confirmed, choose `delegated`;
+every delegated implementation worker must use `openai/gpt-6-luna` at `xhigh`.
 
 Worker-packing rules:
 - Optimize total execution cost, not each worker in isolation. A fresh worker duplicates OpenSpec
@@ -329,7 +329,7 @@ Required output:
      breadth, and iteration buffer;
    - expected repeated reads from earlier fresh sessions and duplicated payload;
    - the concrete comparison with one fewer or one more worker that justifies this boundary;
-   - `openai/gpt-5.6-luna` at `xhigh`;
+   - `openai/gpt-6-luna` at `xhigh`;
    - confidence and uncertainty.
 
    List coordinator and operator checkpoints separately. They may own OpenSpec tasks but are not
@@ -465,7 +465,7 @@ artifact before any implementation action.
 - Confirm that the recommendation names current-session versus delegated execution and, when
   delegated, names an exact sequential worker order.
 - If the recommendation is `current-session`, confirm that the coordinator is explicitly
-  `openai/gpt-5.6-luna` at `xhigh`; otherwise reject the recommendation.
+  `openai/gpt-6-luna` at `xhigh`; otherwise reject the recommendation.
 - Confirm that each delegated worker has an explicit model and variant and that the plan requires a
   fresh session with no `task_id`; the read-only planning child is never reused for implementation.
 - Confirm that each worker reports candidate reads, exact proposed writes, repeated reads, duplicated
@@ -482,7 +482,7 @@ artifact before any implementation action.
 - Confirm that each worker receives the complete `contextFiles` path list and is required to read
   every OpenSpec context file before editing. Full context grants understanding, not execution
   authority; only the accepted task ids, write set, dependencies, and gates are actionable.
-- Confirm that every implementation route is exactly `openai/gpt-5.6-luna` at `xhigh`.
+- Confirm that every implementation route is exactly `openai/gpt-6-luna` at `xhigh`.
 - Confirm that the worker contract requires per-worker diff review, write-scope verification,
   focused-gate acceptance, exact task-id acceptance, coordinator-only checkbox updates, and
   refreshed Apply progress reconciliation.
@@ -556,8 +556,8 @@ whose prompt includes the current diff, the failure, and the narrowed or correct
 deliberately trades duplicated context payload for bounded context windows and clean ownership.
 Confirm the selected model is allowlisted before calling it:
 
-- Every implementation worker: `openai/gpt-5.6-luna`, variant `xhigh`.
-- `openai/gpt-5.6-sol`, variant `high`, is reserved for the single initial planning call and any
+- Every implementation worker: `openai/gpt-6-luna`, variant `xhigh`.
+- `openai/gpt-6-sol`, variant `high`, is reserved for the single initial planning call and any
   chartered read-only independent review.
 
 These are routing rules, not claims that implementation-worker quality was benchmarked in the

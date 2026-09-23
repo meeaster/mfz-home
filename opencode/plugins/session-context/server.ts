@@ -1,4 +1,6 @@
 import { Plugin } from "@opencode/plugin";
+import { OpenCode } from "@opencode/client";
+import { Service } from "@opencode/client/service";
 
 const DEFAULT_BYTE_BUDGET = 40_000;
 
@@ -13,17 +15,19 @@ const sessionContextInput = {
   properties: {
     sessionID: { type: "string" },
     sinceMarker: { type: "string" },
+    previousCompaction: { type: "boolean", default: false },
   },
   required: ["sessionID"],
   additionalProperties: false,
 } as const;
 
 const sessionContextDescription =
-  "Loads the target session's FULL active context as a filtered transcript. WARNING: this can be very large — often tens of thousands of tokens — so call it ONLY when explicitly instructed: the user naming it in their request, or a dispatching parent's brief that explicitly directs you to call it. Never call it on your own initiative to gather background. Pass sinceMarker from a previous MARKER line to fetch only newer messages. While MORE: true, call again with the returned MARKER as sinceMarker.";
+  "Loads the target session's FULL active context as a filtered transcript, or the window before its latest completed compaction with previousCompaction: true. WARNING: this can be very large — often tens of thousands of tokens — so call it ONLY when explicitly instructed: the user naming it in their request, or a dispatching parent's brief that explicitly directs you to call it. Never call it on your own initiative to gather background. Pass sinceMarker from a previous MARKER line to fetch only newer messages within the selected window. While MORE: true, call again with the returned MARKER as sinceMarker.";
 
 export type SessionContextInput = {
   sessionID: string;
   sinceMarker?: string;
+  previousCompaction?: boolean;
 };
 
 type ContextMessage = Awaited<ReturnType<Plugin.Context["session"]["context"]>>[number];
@@ -53,6 +57,12 @@ export type SessionContextSource = {
   session: {
     get: (input: { sessionID: string }) => Promise<SessionHeader>;
     context: (input: { sessionID: string }) => Promise<readonly ContextMessage[]>;
+  };
+  message?: {
+    list: (input: { sessionID: string; order?: "desc"; cursor?: string; limit?: number }) => Promise<{
+      data: readonly ContextMessage[];
+      cursor: { next?: string | null };
+    }>;
   };
 };
 
@@ -184,7 +194,11 @@ function renderMessage(message: ContextMessage) {
     case "shell":
       return renderShell(message);
     case "compaction":
-      if (message.status === "completed") return `[COMPACTION SUMMARY] ${message.summary}`;
+      if (message.status === "completed") {
+        return message.recent
+          ? `[COMPACTION SUMMARY] ${message.summary}\n[RETAINED RECENT CONVERSATION — pre-serialized by OpenCode; may include reasoning, skill text, and longer tool output]\n${message.recent}`
+          : `[COMPACTION SUMMARY] ${message.summary}`;
+      }
 
       if (message.status === "running") return `[COMPACTION] running (${message.reason})`;
 
@@ -274,17 +288,21 @@ function outputFor(
   sinceMarker: string | undefined,
   markerFound: boolean,
   skipped: number,
+  previousCompaction: boolean,
 ) {
   const marker = markerFor(rows, count);
   const more = count < rows.length;
   const metadata = [`SESSION: ${sessionTitle} (${sessionID})`];
+  const window = previousCompaction ? "previous pre-compaction window" : "current window";
+
+  if (previousCompaction) metadata.push("WINDOW: previous pre-compaction window");
 
   if (sinceMarker !== undefined && markerFound) {
     metadata.push(`DELTA: ${count} messages after ${sinceMarker} (${skipped} skipped)`);
   } else if (sinceMarker !== undefined) {
-    metadata.push(`NOTICE: marker ${sinceMarker} not found in current window — returning full context`);
+    metadata.push(`NOTICE: marker ${sinceMarker} not found in ${window} — returning full selected window`);
   } else {
-    metadata.push(`CONTEXT: ${count} messages, active post-compaction window`);
+    metadata.push(`CONTEXT: ${count} messages, ${previousCompaction ? window : "active post-compaction window"}`);
   }
 
   metadata.push(`MARKER: ${marker.id}`, `MORE: ${more}`);
@@ -306,6 +324,7 @@ export function formatSessionContext(
   sessionID: string,
   sinceMarker?: string,
   byteBudget = DEFAULT_BYTE_BUDGET,
+  previousCompaction = false,
 ) {
   const allRows = prepareRows(messages);
   const requestedMarker = sinceMarker !== undefined;
@@ -316,12 +335,12 @@ export function formatSessionContext(
   const skipped = markerFound && markerIndex >= 0 ? startIndex : 0;
   const budget = Math.max(1, byteBudget);
 
-  if (rows.length === 0) return outputFor(rows, 0, sessionTitle, sessionID, sinceMarker, markerFound, skipped);
+  if (rows.length === 0) return outputFor(rows, 0, sessionTitle, sessionID, sinceMarker, markerFound, skipped, previousCompaction);
 
   let count = 0;
 
   for (let candidate = 1; candidate <= rows.length; candidate += 1) {
-    const output = outputFor(rows, candidate, sessionTitle, sessionID, sinceMarker, markerFound, skipped);
+    const output = outputFor(rows, candidate, sessionTitle, sessionID, sinceMarker, markerFound, skipped, previousCompaction);
 
     if (byteLength(output) <= budget) {
       count = candidate;
@@ -332,15 +351,60 @@ export function formatSessionContext(
     break;
   }
 
-  return outputFor(rows, count, sessionTitle, sessionID, sinceMarker, markerFound, skipped);
+  return outputFor(rows, count, sessionTitle, sessionID, sinceMarker, markerFound, skipped, previousCompaction);
+}
+
+export async function previousWindow(list: NonNullable<SessionContextSource["message"]>["list"], sessionID: string) {
+  const newer: ContextMessage[] = [];
+  let cursor: string | undefined;
+  let latestFound = false;
+
+  // The message endpoint is ordered by stored sequence, unlike timestamp or message ID order.
+  // Its descending cursor lets us stop as soon as the preceding completed checkpoint is found.
+  do {
+    const input = cursor ? { sessionID, limit: 100, cursor } : { sessionID, limit: 100, order: "desc" as const };
+    const page = await list(input);
+
+    for (const message of page.data) {
+      if (message.type === "compaction" && message.status === "completed") {
+        if (latestFound) {
+          newer.push(message);
+
+          return newer.reverse();
+        }
+
+        latestFound = true;
+        continue;
+      }
+
+      if (latestFound) newer.push(message);
+    }
+
+    if (!page.cursor.next) return latestFound ? newer.reverse() : undefined;
+
+    if (page.cursor.next === cursor || page.data.length === 0) throw new Error("historical message pagination did not advance");
+
+    cursor = page.cursor.next;
+  } while (true);
 }
 
 export async function readSessionContext(context: SessionContextSource, input: SessionContextInput) {
   try {
-    const [session, messages] = await Promise.all([
-      context.session.get({ sessionID: input.sessionID }),
-      context.session.context({ sessionID: input.sessionID }),
-    ]);
+    const session = await context.session.get({ sessionID: input.sessionID });
+
+    if (input.previousCompaction) {
+      if (!context.message) throw new Error("historical message reader is unavailable");
+
+      const messages = await previousWindow(context.message.list, input.sessionID);
+
+      if (!messages) return { content: `SESSION: ${session.title ?? "Untitled"} (${input.sessionID})\nNO PREVIOUS WINDOW: no completed compaction exists for this session` };
+
+      return {
+        content: formatSessionContext(messages, session.title ?? "Untitled", input.sessionID, input.sinceMarker, DEFAULT_BYTE_BUDGET, true),
+      };
+    }
+
+    const messages = await context.session.context({ sessionID: input.sessionID });
 
     return {
       content: formatSessionContext(messages, session.title ?? "Untitled", input.sessionID, input.sinceMarker),
@@ -352,7 +416,29 @@ export async function readSessionContext(context: SessionContextSource, input: S
   }
 }
 
+async function historicalReader(version: string) {
+  const endpoint = await Service.discover({ version });
+
+  if (!endpoint) throw new Error("historical messages require a discoverable local OpenCode service");
+
+  const client = OpenCode.make({ baseUrl: endpoint.url, headers: Service.headers(endpoint) });
+  const host = await client.server.info();
+
+  if (host.pid !== process.pid) {
+    throw new Error("historical message reader points to another OpenCode process; this server cannot read prior windows");
+  }
+
+  return client.message;
+}
+
 export async function setupSessionContext(context: Plugin.Context) {
+  const source: SessionContextSource = {
+    session: context.session,
+    message: {
+      list: async (input) => (await historicalReader(context.app.version)).list(input),
+    },
+  };
+
   const registration = await context.tool.transform((editor) => {
     editor.add({
       name: "session_context",
@@ -362,7 +448,7 @@ export async function setupSessionContext(context: Plugin.Context) {
         // SAFETY: OpenCode validates rawInput against the JSON schema declared above before execution.
         const input = rawInput as SessionContextInput;
 
-        return readSessionContext(context, input);
+        return readSessionContext(source, input);
       },
     });
   });

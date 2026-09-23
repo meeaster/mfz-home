@@ -1,20 +1,44 @@
 diff --git a/src/infra/opencode/session.ts b/src/infra/opencode/session.ts
-index 726a7c5a94d8f1a91219cafd5de005bf528716c0..4ccdbb8e1f3153cc81843eca78b7e3a2c9e08c1e 100644
+index 726a7c5a94d8f1a91219cafd5de005bf528716c0..0b3e67bb6c4289daeec1723d00aba0c476ae3e76 100644
 --- a/src/infra/opencode/session.ts
 +++ b/src/infra/opencode/session.ts
-@@ -65,7 +65,14 @@ export async function runSession(
+@@ -65,18 +65,29 @@ export async function runSession(
  ): Promise<SessionResult> {
    const location = { directory: input.directory };
    await client.plugin.awaitActivation({ location });
 -  const models = await client.model.list({ location });
 +  let models = await client.model.list({ location });
-+  // The server reports ready before its model catalog finishes loading, so
-+  // the first list call can return empty. Poll briefly before rejecting.
+   const selected = parseModel(input.model);
+-  const model = models.data.find(
+-    (model) =>
+-      model.providerID === selected.providerID && model.id === selected.id,
+-  );
+-  if (
+-    !model ||
+-    (selected.variant &&
+-      !model.variants.some((variant) => variant.id === selected.variant))
+-  )
++
++  const available = () =>
++    models.data.some(
++      (model) =>
++        model.providerID === selected.providerID &&
++        model.id === selected.id &&
++        (!selected.variant || model.variants.some((variant) => variant.id === selected.variant)),
++    );
++
++  // The catalog may initially be empty or contain older models while a live
++  // refresh loads. Wait for the requested model and variant, not any model.
 +  const catalogDeadline = Date.now() + 30_000;
-+  while (models.data.length === 0 && Date.now() < catalogDeadline) {
++
++  while (!available() && Date.now() < catalogDeadline) {
 +    await new Promise((resolve) => setTimeout(resolve, 500));
 +    models = await client.model.list({ location });
 +  }
-   const selected = parseModel(input.model);
-   const model = models.data.find(
-     (model) =>
++
++  if (!available())
+     throw new Error(`Model or reasoning variant unavailable: ${input.model}`);
++
+   const root = input.sessionId
+     ? await client.session.get({ sessionID: input.sessionId })
+     : await client.session.create({

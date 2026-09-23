@@ -7,7 +7,7 @@ description: Create or refresh a local Session Brief for one current or prior AI
 
 A Session Brief is a mutable, evidence-backed working view of one source session. It preserves useful context and a reusable refresh checkpoint without promoting the material into accepted guidance or an ongoing work container.
 
-Load `agent-sessions` for evidence acquisition and `context-transfer` for the consumer and destination contract. This skill owns artifact form, synthesis, merge, storage, acceptance, lifecycle, and validation.
+Load `agent-sessions` for evidence acquisition and `artifact-context` for reader context and accessible references in the durable brief. This skill owns artifact form, synthesis, merge, storage, acceptance, lifecycle, and validation.
 
 ## 1. Establish the brief
 

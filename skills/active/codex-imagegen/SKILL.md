@@ -19,7 +19,7 @@ Use the calling agent for context, judgment, and review. Use Codex only as a bou
 
 3. Select the Codex model.
 
-   Default to `gpt-5.6-sol` at `high` reasoning. Read [references/model-selection.md](references/model-selection.md) when choosing another model, comparing variants, or interpreting quality differences. The Codex model translates the brief into a tool call; built-in `image_gen` currently renders with `gpt-image-2`. Done when model and effort are explicit.
+   Default to `gpt-6-sol` at `high` reasoning. Read [references/model-selection.md](references/model-selection.md) when choosing another model, comparing variants, or interpreting quality differences. The Codex model translates the brief into a tool call; built-in `image_gen` currently renders with `gpt-image-2`. Done when model and effort are explicit.
 
 4. Run the isolated worker.
 
@@ -29,7 +29,7 @@ Use the calling agent for context, judgment, and review. Use Codex only as a bou
    python3 <skill-dir>/scripts/run_codex_imagegen.py \
      --brief <brief.md> \
      --out <final.png> \
-     --model gpt-5.6-sol \
+      --model gpt-6-sol \
      --effort high \
      --image <edit-target-or-reference.png> \
      --open

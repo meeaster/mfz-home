@@ -6,16 +6,9 @@ const subagentCall = z.object({ agent: z.string() });
 /** VCS metadata and dependency directories are not task content. */
 const ignoredSegments: ReadonlySet<string> = new Set([".git", "node_modules", "upstream.git"]);
 
-/**
- * Coordinator tools that gather evidence. Lean coordinator context forbids them
- * after the first producer dispatch: new evidence goes out as a follow-up dispatch.
- */
-const coordinatorEvidenceTools: ReadonlySet<string> = new Set(["read", "glob", "grep", "bash"]);
-
 export type RoutingFacts = {
   tools: readonly ToolCall[];
   sessions: readonly { parentID?: string }[];
-  rootSessionID: string | null;
   initial: readonly RecordedFile[];
   final: readonly RecordedFile[];
 };
@@ -66,33 +59,6 @@ export function changedPaths(
 }
 
 /**
- * Successful coordinator-session evidence-tool calls after the coordinator's
- * first successful `subagent` dispatch. Producer-session calls never count;
- * without a dispatch the result is empty.
- */
-export function coordinatorEvidenceCalls(
-  tools: readonly ToolCall[],
-  rootSessionID: string | null,
-): ToolCall[] {
-  const dispatchIndex = tools.findIndex(
-    (tool) =>
-      tool.name === "subagent" &&
-      tool.status === "succeeded" &&
-      tool.sessionID === rootSessionID,
-  );
-
-  if (dispatchIndex < 0) return [];
-
-  return tools.filter(
-    (tool, index) =>
-      index > dispatchIndex &&
-      tool.sessionID === rootSessionID &&
-      tool.status === "succeeded" &&
-      coordinatorEvidenceTools.has(tool.name),
-  );
-}
-
-/**
  * Grade the archive facts. The response is graded separately by `judge.md`;
  * these criteria must be decidable without reading the response.
  */
@@ -103,26 +69,21 @@ export function gradeFacts(facts: RoutingFacts) {
 
   const changed = changedPaths(facts.initial, facts.final);
 
-  const postDispatch = coordinatorEvidenceCalls(facts.tools, facts.rootSessionID);
-
   return {
     scores: {
       explore_dispatched: targets.includes("explore") && children.length > 0,
       repository_unchanged: changed.length === 0,
-      coordinator_lean: postDispatch.length === 0,
     },
     observations: {
       subagentTargets: targets,
       childSessions: children.length,
       changedPaths: changed,
-      postDispatchEvidenceCalls: postDispatch.map((call) => call.name),
     },
   };
 }
 
 export default async ({ recording, workspace }: JudgeContext) => {
   return gradeFacts({
-    rootSessionID: recording.sessionID,
     tools: recording.tools(),
     sessions: await recording.sessions(),
     initial: workspace.files("initial"),

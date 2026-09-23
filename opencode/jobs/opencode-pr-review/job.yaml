@@ -8,7 +8,7 @@ run:
   sessionStrategy: persistent-thread
   executionStrategy: wrapper-worker
   provider: openai
-  model: gpt-5.6-luna
+  model: gpt-6-luna
   variant: high
   permissions:
     tools:

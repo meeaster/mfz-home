@@ -40,6 +40,8 @@ Each `instruction_references` entry has a stable kebab-case `name`, a source `pa
 
 ### Reserve `context-transfer` for consequential boundaries
 
+This section describes the earlier state. The [2026-09-22 refactor](context-transfer/README.md) replaced the skill with `artifact-context`, retired general agent-briefing guidance, and moved specialist policy into Orchestrator Mode. The original runtime package is preserved in that archive.
+
 Routine delegation no longer requires every agent to load the full `context-transfer` skill. The always-loaded instructions now define a compact brief contract for ordinary subagent work.
 
 `context-transfer` remains the detailed workflow for transfers where audience, access, privacy, portability, publication, or lossless specialist handoff changes what the receiving consumer must know.

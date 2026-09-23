@@ -1,5 +1,7 @@
 # Ownership and delegation
 
+The [2026-09-22 redesign](redesign-2026-09-22.md#human-facing-roles-and-delegation) supersedes the standing-gateway, dual-use Scribe, and consultation gates described below. This earlier rationale is historical; use the [current routing rules](../../skills/active/orchestrator-mode/references/routing-and-roles.md) for execution.
+
 Delegation earns its cost when it improves capability, context isolation, independent judgment, parallel progress, or execution economics. Existing coordinator context matters: handing off a task cannot remove context already loaded, but it can keep subsequent investigation and execution details out of the conversation.
 
 This page explains the design under the [architecture status](architecture.md#design-status). It does not replace the runtime [routing rules](../../skills/active/orchestrator-mode/references/routing-and-roles.md).

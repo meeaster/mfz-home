@@ -9,7 +9,7 @@ Extract the useful result of an AI session into a durable artifact that supports
 future work without making the session a routine dependency. Preserve selected
 knowledge rather than reproducing the interaction.
 
-Load `context-transfer` before shaping the artifact. It owns the intended
+Load `artifact-context` before shaping the artifact. It supplies guidance on the intended
 consumer, destination context, accessible dependencies, level of detail, and
 proportional references. This skill owns session evidence, form selection, and
 the session-independence floor.

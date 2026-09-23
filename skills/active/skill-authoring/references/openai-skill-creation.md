@@ -1,6 +1,6 @@
 # Skill Creation Planning
 
-This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves planning and reusable-resource guidance. Skill Authoring owns behavior, authority, selective authoring records, and evaluation. Writing for Agents owns runtime writing quality.
+This is an agent-agnostic adaptation of OpenAI's deprecated Codex `skill-creator`. It preserves planning and reusable-resource guidance. Skill Authoring owns behavior, authority, selective records, evaluation, and local writing policy. Writing for Agents supplies supporting runtime writing guidance.
 
 ## Match Freedom To Fragility
 
@@ -70,5 +70,5 @@ Owned elsewhere or intentionally omitted:
 - Codex-only metadata and command syntax;
 - OpenAI initialization and metadata-generation scripts;
 - the upstream prohibition on auxiliary documents, because this workflow preserves useful intent, scenarios, and conditional maintenance records outside ordinary execution;
-- writing and progressive-disclosure doctrine already owned by Writing for Agents;
+- supporting writing and progressive-disclosure guidance supplied by Writing for Agents under Skill Authoring's local policy;
 - the complete upstream end-to-end workflow, which would conflict with Skill Authoring's behavior-first lifecycle.

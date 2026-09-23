@@ -7,6 +7,8 @@ const sourceHome = process.env.MFZ_SOURCE_HOME ?? resolve(import.meta.dir, "..")
 
 const sourceCommit = process.env.MFZ_SOURCE_COMMIT;
 
+const sourceOverrides = process.env.MFZ_SOURCE_OVERRIDES?.split(",").filter(Boolean);
+
 const destination = process.argv[3] ?? resolve(import.meta.dir, "../.materialized", profile ?? "unknown");
 
 const selectedProfile = environmentNames.find((name) => name === profile);
@@ -21,6 +23,7 @@ const result = await materializePreset(
   sourceCommit,
   selectedProfile,
   destination,
+  sourceOverrides,
 );
 
 console.log(JSON.stringify({ root: result.root, workspace: result.workspace, manifest: result.manifestPath }, null, 2));

@@ -16,7 +16,7 @@ from typing import Iterator
 
 
 PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
-DEFAULT_MODEL = "gpt-5.6-sol"
+DEFAULT_MODEL = "gpt-6-sol"
 DEFAULT_EFFORT = "high"
 
 

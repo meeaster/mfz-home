@@ -3,16 +3,16 @@ import { parsePresets, parseSelection, resolveAgents, selectPreset } from "./pre
 
 const source = `${JSON.stringify(
   {
-    default: "luna",
+    default: "gpt6",
     roles: ["orchestrator", "scribe", "explore"],
     presets: {
-      luna: {
-        candidate: "opencode-go/gpt-5.6-luna#high",
-        judge: "opencode-go/gpt-5.6-luna#high",
+      gpt6: {
+        candidate: "openai/gpt-6-sol#medium",
+        judge: "openai/gpt-6-astra#medium",
         agents: {
-          orchestrator: "opencode-go/gpt-5.6-luna#max",
-          scribe: "opencode-go/gpt-5.6-luna#high",
-          explore: "opencode-go/gpt-5.6-luna#high",
+          orchestrator: "openai/gpt-6-sol#medium",
+          scribe: "openai/gpt-6-luna#high",
+          explore: "openai/gpt-6-luna#high",
         },
       },
       glm: {
@@ -29,11 +29,13 @@ const source = `${JSON.stringify(
 const file = parsePresets(source);
 
 test("parses presets with their candidate and judge models", () => {
-  expect(file.default).toBe("luna");
+  expect(file.default).toBe("gpt6");
 
-  expect(file.presets.luna?.candidate).toBe("opencode-go/gpt-5.6-luna#high");
+  expect(file.presets.gpt6?.candidate).toBe("openai/gpt-6-sol#medium");
 
-  expect(file.presets.luna?.judge).toBe("opencode-go/gpt-5.6-luna#high");
+  expect(file.presets.gpt6?.judge).toBe("openai/gpt-6-astra#medium");
+
+  expect(file.presets.gpt6?.agents.orchestrator).toBe("openai/gpt-6-sol#medium");
 
   expect(file.presets.glm?.candidate).toBe("zai-coding-plan/glm-5.3#high");
 
@@ -41,7 +43,7 @@ test("parses presets with their candidate and judge models", () => {
 });
 
 test("rejects an unknown default preset", () => {
-  const broken = source.replace('"default": "luna"', '"default": "missing"');
+  const broken = source.replace('"default": "gpt6"', '"default": "missing"');
 
   expect(() => parsePresets(broken)).toThrow(/default preset missing/);
 });
@@ -53,7 +55,7 @@ test("rejects a candidate that is not a provider/model ref", () => {
 });
 
 test("rejects an agent role outside the declared roles", () => {
-  const broken = source.replace('"scribe": "opencode-go/gpt-5.6-luna#high"', '"scribbe": "opencode-go/gpt-5.6-luna#high"');
+  const broken = source.replace('"scribe": "openai/gpt-6-luna#high"', '"scribbe": "openai/gpt-6-luna#high"');
 
   expect(() => parsePresets(broken)).toThrow(/unknown role scribbe/);
 });
@@ -69,25 +71,25 @@ test("expands the wildcard fallback over every declared role", () => {
 });
 
 test("an explicit role entry wins over the wildcard", () => {
-  const luna = selectPreset(file, "luna");
+  const gpt6 = selectPreset(file, "gpt6");
 
-  const resolved = resolveAgents({ ...luna, agents: { ...luna.agents, "*": "opencode-go/gpt-5.6-luna#low" } }, file.roles);
+  const resolved = resolveAgents({ ...gpt6, agents: { ...gpt6.agents, "*": "openai/gpt-6-luna#low" } }, file.roles);
 
-  expect(resolved.orchestrator).toBe("opencode-go/gpt-5.6-luna#max");
+  expect(resolved.orchestrator).toBe("openai/gpt-6-sol#medium");
 
-  expect(resolved.scribe).toBe("opencode-go/gpt-5.6-luna#high");
+  expect(resolved.scribe).toBe("openai/gpt-6-luna#high");
 });
 
 test("a preset without a fallback must name every role", () => {
-  const luna = selectPreset(file, "luna");
+  const gpt6 = selectPreset(file, "gpt6");
 
-  const partial = { ...luna, agents: { orchestrator: luna.agents.orchestrator ?? "" } };
+  const partial = { ...gpt6, agents: { orchestrator: gpt6.agents.orchestrator ?? "" } };
 
   expect(() => resolveAgents(partial, file.roles)).toThrow(/no "\*" fallback/);
 });
 
 test("selecting an unknown preset names the available presets", () => {
-  expect(() => selectPreset(file, "claude")).toThrow(/Available presets: luna, glm/);
+  expect(() => selectPreset(file, "claude")).toThrow(/Available presets: gpt6, glm/);
 });
 
 test("parses a selection document and rejects a malformed one", () => {

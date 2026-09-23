@@ -1,6 +1,6 @@
 ---
 description: Apply an OpenSpec change in bounded worker batches with periodic reviewer checks
-model: openai/gpt-5.6-sol
+model: openai/gpt-6-sol
 subtask: false
 ---
 

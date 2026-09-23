@@ -2,62 +2,57 @@
 
 ## Select by outcome
 
-Choose the smallest adequate role by cognitive outcome, then evidence source. Complexity, file type, model preference, and tool use alone do not select a role. The current coordinator makes this classification and uses the topology layer's dispatcher; the role-selection rules below are unchanged by that topology.
+The orchestrator chooses the smallest adequate role by outcome and evidence source. The Chief requests outcomes through its orchestrators. Roles describe responsibilities, not price tiers or authority. Use agents as the umbrella term.
 
-Classify the evidence source before the role. A bounded artifact whose exact content is under judgment (an instruction package, agent or command definition, or authoring record) is read directly; specialist synthesis would paraphrase away the wording fidelity the judgment needs. Behavioral or factual understanding of an unbounded corpus such as application code routes to the evidence roles for synthesis, and direct reading returns at the point of a specific edit. Size and fidelity requirements decide this split; artifact class and file type are proxies, not the boundary.
+| Function | Agent | Assignment |
+| --- | --- | --- |
+| Evidence gathering | `explore` | Static local source search and reading |
+| Evidence gathering | `research` | Authoritative external documentation, releases, APIs, and upstream source |
+| Evidence gathering | `inspect` | Current repository, runtime, external-system, or session facts; independent factual verification |
+| Implementation | `worker` | Application implementation, OpenSpec tasks, remediation, or bounded novel troubleshooting |
+| Operations | `operator` | Settled procedural changes, Git, configuration, services, environments, or external operations |
+| Design advice | `architect`, `ui-ux-designer` | Authorized architecture or interface options and direction |
+| Review | `reviewer`, `pr-reviewer` | Authorized review of known work or due diligence requiring PR reconstruction |
+| Authoring | `agent-author` | Authorized AI-instruction work benefiting from a separate authoring context |
+| Authoring | `artifact-author` | Requested reader-facing artifacts, including diagrams and HTML explanations |
+| Session analysis | `session-analyst` | Authorized evaluative judgment about session quality, intent adherence, or efficiency |
+| Diagnosis | `triage` | Authorized read-only diagnosis when further ordinary investigation has poor prospects |
+| Prototype | `prototype` | Authorized runnable throwaway artifact answering an unsettled question |
+| Transcription | `scribe` | Human-facing session's assigned working records and continuity checks |
 
-| Role | Outcome and selection boundary |
-| --- | --- |
-| `explore` | Static local evidence from source search and reading. |
-| `research` | Authoritative external documentation, releases, APIs, registries, metadata, and upstream source. May run retrieval/analysis commands and use disposable clones. |
-| `inspect` | Bounded facts about repositories, runtimes, live/external systems, or prior sessions, including metadata, chronology, reconstruction, and post-worker acceptance evidence. |
-| `session-analyst` | Evaluative judgment about prior-session quality, intent adherence, efficiency, or recommendations beyond factual reconstruction. |
-| `triage` | Human-authorized specialist read-only diagnosis of an unexplained unexpected symptom. Apply the escalation gate below; causal reasoning is also part of bounded worker investigation. |
-| `architect` | Architecture options and recommendation, only by explicit human selection or acceptance of a recommendation to use this specialist. |
-| `ui-ux-designer` | Human-selected interface direction or critique. Apply the explicit-selection gate in [Design, prototype, and review](design-prototype-and-review.md#design-consultation). |
-| `agent-author` | Substantial, settled, authorized AI-instruction implementation when coherence, records/evals, or isolated execution benefits. Consultation, brainstorming, evaluation, or design requires explicit human selection of this agent. |
-| `artifact-author` | Default owner of requested reader-facing diagrams and HTML explanation pages; other communication artifacts require explicit human selection. Turns accepted/supplied context into an artifact for another person. |
-| `scribe` | Dispatching-coordinator-routed transcription of decided state into explicitly assigned effort- or assignment-workspace state, evidence cataloging, synthesis notes, or enablement artifacts. Not a general prose writer or an owner for work whose errors propagate into implementation. |
-| `prototype` | Authorized runnable throwaway artifact testing a bounded unsettled logic, state-model, or UI-design question. |
-| `operator` | Explicitly requested settled procedural or operational outcome, including Git, generation/install/refresh as supplied, configuration, services, environments, infrastructure, and external systems. Immediate completion steps may remain with an implementation owner under Mutation and delivery. |
-| `worker` | Explicitly requested application/OpenSpec implementation, substantive software behavior, remediation, difficult implementation investigation, or novel troubleshooting. |
-| `reviewer` | Human-selected specialist review of known work with accepted intent/design, implementation brief, and validation history. Apply the explicit-selection gate in Design, prototype, and review. |
-| `pr-reviewer` | Human-selected specialist due diligence on an unfamiliar or unobserved PR whose intent, approach, validation, or merge case needs reconstruction and challenge. Apply the same explicit-selection gate. |
-
-Keep interactive instruction discussion, behavioral evaluation, and small settled instruction edits with the current coordinator unless the human selects `agent-author`; before forming instruction-design evaluations or proposals, the coordinator loads the applicable authoring guidance, including `skill-authoring` for skill and command targets. Other requested text artifacts may stay with the current coordinator when context and access are already held; naming Markdown, Jira, or Confluence alone does not select `artifact-author`.
-
-The decision recipient decides; the scribe transcribes. Keep decisions and final acceptance with that recipient. Routine workspace upkeep may run as a background scribe dispatch; decision-gating artifacts run in the foreground so the recipient can check them before dependent work.
-
-For instruction refreshes, use the topology layer's dispatcher: use `operator` for settled generation or copying without content judgment, `explore` for source-only comparison, and `inspect` for command-derived facts. Have the operator verify procedure and output, surfacing customizations or unresolved adaptation. Generator failure alone does not select authoring. Give each specialist its owning domain workflow; separate independent responsibilities while allowing one coherent authorized outcome to share an owner.
+- Apply the root authority policy. Evidence gathering is proactive. Delivery can authorize necessary design or review; exploratory conversation does not automatically authorize expensive consultations or authoring.
+- Keep interactive instruction discussion and evaluation with the human-facing session under applicable authoring guidance. Small settled instruction edits may stay there. Use an authoring agent when the authorized outcome benefits from it or the human selects it.
+- Directly read identified instruction, design, or prose artifacts whose actual content is under judgment. Delegate unknown-location discovery and implementation-source investigation, even for one code file.
+- For instruction refreshes, use operator for settled generation or copying, explore for static comparison, and inspect for command-derived facts. A generator failure does not automatically require an author.
+- Give each agent its applicable owning workflow. Distinguish required skill loads from suggested relevant skills. Preserve role and permission boundaries even when an agent could technically run another tool.
 
 ## Diagrams and HTML explanation pages
 
-Route creation, layout options, and revision through the topology layer to `artifact-author` without requiring the human to name the agent. Route missing subject-matter evidence through the same dispatcher to the appropriate evidence role first. Keep discussion, accepted meaning, feedback, and acceptance with the decision recipient. This route covers communication artifacts; application UI implementation and throwaway design experiments retain their worker and prototype owners.
+Use `artifact-author` for authorized creation or revision of reader-facing diagrams and HTML explanations. Application UI and throwaway experiments retain worker and prototype ownership. Keep human dialogue, accepted meaning, and final acceptance with the decision owner.
 
-Supply the current artifact when present, audience, accepted content and decisions, relevant synthesis, requested changes, must-preserve behavior, destination, authority, and existing validation evidence. Preserve the author's judgment on ordinary layout details; ask about consequential ambiguity rather than unspecified implementation measurements. For diagrams, require `diagram-design` unless the human selects another creation workflow, and retain `diagram-quality`. Other HTML explanations use applicable craft guidance; Visual Explainer follows the global explicit-selection rule. Choose continuity under [Recovery and continuity](recovery-and-continuity.md#choose-child-continuity), including its soft freshness preference and hard non-resumption limit.
+- Supply audience, accepted content, relevant context, current artifact, requested changes, must-preserve behavior, destination, authority, and valid prior verification.
+- Require `diagram-design` unless the human selects another creation workflow, and retain `diagram-quality`. Other HTML explanations use applicable craft guidance. Visual Explainer remains explicit-selection only.
+- The author owns composition, static checks, visual judgment, and repairs. It dispatches only `inspect` for routine rendered validation. If depth or permissions prevent that child, return the bounded inspection brief to the coordinator.
+- The inspector receives the exact revision, intended behavior, affected views and sizes, valid prior checks, and missing coverage. It returns selected screenshots, concrete findings, and scoped DOM measurements when useful.
+- Follow the [screenshot contract](child-contracts.md#screenshot-evidence). The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.
+- Reuse unaffected checks and report unsatisfied mandatory craft checks. Static edits do not establish rendered acceptance; a passing inspection proves only the exercised conditions.
 
-The author owns composition, light static checks, inspector dispatch, visual judgment, and repairs. Its only permitted child is `inspect`, which performs routine rendered validation under the shared browser instructions. Before handoff, the author views a small selected set of final captures sufficient to judge the artifact, with further image reads when findings or repairs need them. This does not require another routine browser pass. The author returns the artifact version, inspector session IDs, evidence, and remaining limits to the coordinator, which accepts the packet through the topology layer. If permissions or available depth prevent nested dispatch, return the supplied inspection brief to the coordinator. Author browser work addresses a named uncertainty, disputed finding, or repair need. Preserve applicable craft-workflow coverage and disclose unsatisfied mandatory checks. Completed edits and static checks alone do not establish rendered acceptance.
+## Investigation and diagnosis
 
-Give the inspector the exact artifact version, intended behavior, affected views and display sizes, valid prior evidence, and remaining coverage. Require selected screenshots of affected views and scoped DOM measurements when needed for interaction, state, or a concrete uncertainty. Apply the [screenshot evidence contract](child-contracts.md#screenshot-evidence) to storage, accessibility, and capture quality. Keep detailed browser traces with the inspector; return concrete findings, selected image locators, and relevant measurements. Reuse unaffected checks. Prefer a fresh inspector for a new revision and resume it for a focused repair recheck when retained browser state or defect knowledge helps. Permit bounded read-only investigation of a persisting defect until evidence supports the author's next repair or a material blocker needs coordination. Route repairs to the author under the continuity rule. A passing recheck supports only the conditions exercised.
+- Prefer targeted facts when they can answer the question. A failed check does not automatically select triage. Workers may investigate bounded causes within their assignment; operators remain within settled procedures.
+- Recommend triage when investigation no longer narrows or dedicated diagnosis has a clear advantage. Explain established facts, eliminated hypotheses, remaining uncertainty, impact, and why escalation helps. Use the root authority policy for an existing delivery request or new consultation.
+- Routine decisions about local changes or state ownership return to the decision owner or authorized operator. Preserve unrecognized changes instead of treating a normal refusal to overwrite them as a diagnostic incident.
+- Split evidence units when local static, external authoritative, and live or session sources need materially different access or methods. Session evaluation may request focused factual evidence when a real gap appears.
 
-## Evidence and diagnostic judgment
+## External research
 
-Prefer a factual evidence assignment over diagnostic escalation when facts can answer the question. Workers can investigate bounded causes within their assignment; a failed check or unexplained symptom does not automatically select `triage`. Gather specific missing evidence when it can change the next decision. Continue or assign bounded worker investigation when there is a useful hypothesis or evidence path, making investigation and repair authority explicit. Operators handle settled procedural corrections, not open-ended diagnosis.
+- Supply known canonical sources and exact version needs. Follow workspace reference guidance and use suitable existing clones or permitted remote retrieval. A disposable clone is useful for tree search, history, cross-file relationships, or exact-source reuse; GitHub hosting alone is insufficient.
+- Pin version-sensitive findings to the inspected revision. Use the environment's approved temporary research location.
+- Research authority does not grant private access, authoritative-source edits, credential inspection, broad cleanup, publication, or external mutation.
 
-Recommend `triage` when investigation stops narrowing or specialist diagnosis has a clear advantage over further evidence gathering or worker investigation. Explain the failure and impact, established facts and eliminated hypotheses, remaining uncertainty, and why escalation is worthwhile. Dispatch only with explicit selection for that diagnostic scope, including selection already supplied for the situation. Return the recommendation through the topology layer unless that authority was delegated. No fixed number of attempts or mandatory evidence/worker sequence precedes escalation; recommend it immediately when its advantage is already clear. Apply this gate to initial requests and mutation blockers without hardcoding model identity.
+## OpenSpec
 
-Routine state-management choices, including an expected refusal to overwrite local changes, return to the decision recipient or an authorized operator. Preserve unrecognized changes. A separate unexpected symptom must meet the diagnostic gate.
-
-Split source-gathering units only when local-static, external-authoritative, and current/live/session evidence materially differ. Session analysis may use existing factual packets and retrieve focused raw evidence when evaluation exposes a gap.
-
-## Upstream research
-
-Give research known canonical source locations and exact version needs. It follows workspace reference guidance, reuses a suitable canonical clone, or chooses remote retrieval or its own disposable clone under `/tmp/opencode/research/`. Tree search, cross-file relationships, history, or exact-source reuse can justify a clone; GitHub hosting alone does not. Pin version-sensitive findings to the inspected ref.
-
-This evidence route grants no private/authenticated access, authoritative-source edits, persistent placement/publication, destructive broad cleanup, credential inspection, external-system mutation, or upstream Git publication.
-
-## OpenSpec units
-
-For an explicitly requested, settled planning-only proposal, the current coordinator may route a worker through the topology layer to run `openspec-propose`. The coordinator checks the worker packet and the decision recipient reviews the resulting artifacts before presentation and stops that unit. Apply or implementation is a fresh delegated unit. A concrete proposal-then-implementation sequence can authorize both, provided the proposal preserves the sequence's basis and leaves no consequential unresolved choice. Proposal-only requests stop; direct invocation outside orchestration retains its owning workflow's boundary.
-
-OpenSpec skills are generated assets; put local orchestration guidance here rather than editing those skills or creating authoring records for them. Load their bodies only for work or decisions you own. When routing apply through the topology layer, establish scope, authority, readiness, dependencies, and acceptance from current accepted artifacts and checked evidence. The coordinator does not execute the apply workflow merely to prepare the worker's implementation context. Give the owner the selected change and store, assigned scope, authoritative paths, shared constraints, and task-state write ownership; require it to load and follow `openspec-apply-change`, including current CLI state and all mandatory context reads. If the workflow cannot express a bounded assignment without conflicting requirements, resolve that scope before dispatch. The decision recipient reads deeper for material choices and refreshes uncertain or changed evidence; it does not waive the owning workflow's required reads or completion rules.
+- A planning-only proposal stops at the requested artifacts. A concrete proposal-and-implementation sequence can authorize both when consequential choices are resolved and the proposal preserves the request's basis.
+- Route an authorized proposal or apply unit to a worker with the appropriate OpenSpec skill. Supply the selected change and store, bounded scope, authoritative paths, shared constraints, task-state ownership, and verification needs.
+- The owner follows current CLI state and all required workflow reads. The coordinator need not execute the apply workflow merely to prepare a brief. Resolve any conflict between bounded ownership and the owning workflow before dispatch.
+- Keep local orchestration policy here rather than modifying generated OpenSpec skills. Recommend planning artifacts for consequential cross-unit design when useful, and obtain creation authority unless already included in the request.
