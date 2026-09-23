@@ -32,7 +32,8 @@ opencode api post /api/session/<sessionID>/compact --data '{}'
 
 ## Git and CI
 
-- **Tool:** In OpenCode, delegate explicitly requested routine Git commit or push operations to the built-in `general` subagent using `openai/gpt-6-luna#high`. When an active workflow defines delegation routing, follow that routing instead.
+- **Tool:** In OpenCode, delegate explicitly requested routine Git commit or push operations to the built-in `general` subagent using `openai/gpt-6-luna#high` only when they are a step within a broader task. When an active workflow defines delegation routing, follow that routing instead.
+- **Behavior:** When committing or pushing is the whole task assigned to the current session or subagent, perform it directly without further delegation.
 - **Behavior:** For delegated Git operations, provide the repository, intended changes, authorized operations, and relevant validation results. Preserve the user's exact scope and require the resulting commit identity, push status, and remaining changes as applicable.
 - **Style:** Use Conventional Commits.
 - **Behavior:** For GitHub Actions, prefer mature current releases pinned to commit SHAs.
