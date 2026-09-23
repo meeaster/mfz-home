@@ -5,7 +5,7 @@ Use one of four OpenCode evidence paths:
 - Read-only SQLite for question-driven archaeology when the database path is known.
 - The authenticated service API when the path or backend is unknown, or when service-owned semantics matter.
 - The deterministic snapshot and delta adapter for refreshable consumers.
-- The body-free cost calculator for current-catalog estimates.
+- The cost calculator for current-catalog estimates and persisted context-delivery lengths.
 
 The storage and API facts below are pinned to OpenCode source revision `7c5a4d01aa2a8144a81b6261aad220cf5a84c107` (`v2.0.2`). Internal table names and API operation IDs still contain `v2`; treat those as implementation identifiers, not the product name.
 
@@ -146,10 +146,19 @@ The bundled calculator handles current-catalog cost for a parent and all recursi
 ```bash
 python3 <skill-dir>/scripts/opencode-session-cost.py \
   --db /absolute/path/opencode.db \
+  --summary \
   ses_parent
 ```
 
-The calculator reads complete assistant usage from `session_message` without selecting content. It attributes each turn to the stored provider, model, and variant, guards recursive cycles, and excludes forks that are not descendants. Partial usage fails validation instead of undercounting.
+The calculator reads complete assistant and completed-compaction usage from `session_message`. It attributes each priced step to its stored provider, model, and variant, guards recursive cycles, and excludes forks that are not descendants. Partial usage fails validation instead of undercounting.
+
+The JSON result includes `session_tree` with ownership, nesting, own totals, and subtree totals. The flat `sessions` list provides detailed request cycles and compaction windows. An `idle` record followed by a user message starts a new request cycle; a synthetic notification after idle starts a continuation cycle. Additional messages during active work stay in the current cycle. Matched subagent calls assign child request and continuation costs to a parent cycle; `attribution.unmatched_child_cycles` lists gaps. Each window includes its own usage, per-cycle portions, and checkpoints at 25,000-token context thresholds. A completed compaction's recorded usage belongs to the closing window. Checkpoints report the first observed context size that crosses each threshold; they do not interpolate a price at the exact threshold.
+
+Each measured total, session, request cycle, compaction window, and model breakdown includes `cost_components_usd` for uncached input, output, cache reads, cache writes, and reasoning. A cycle also reports its first assistant request's usage and cache-read percentage, the ending and maximum observed assistant context, and the idle gap before its trigger when both timestamps exist. The percentage is cache-read tokens divided by input plus cache-read plus cache-write tokens. Compaction usage belongs to the closing window but is excluded from assistant context extrema.
+
+`--summary` keeps assignment costs, first-request boundaries, aggregate token and cost components, condensed checkpoints, and session-level delivery totals. The default format retains full per-cycle and per-window partitions. Individual named delivery entries are omitted in both formats unless `--delivery-details` is passed. `--request-ledger` adds one entry per priced model step in session and sequence order, with timestamp in epoch milliseconds, cycle and window indexes, model and variant, selected catalog model and tier, applied rates per million tokens, usage, and dollar components. Its compaction entry belongs to the closing window. Use `--models-file` to keep comparisons tied to the same pricing snapshot.
+
+`context_deliveries` reports character lengths and a rough token estimate using `ceil(characters / 4)` for persisted user messages, notifications, recorded system messages, `skill` results, explicit `read` results, subagent prompts, and subagent results. An explicit read of a loaded skill's `SKILL.md` counts as a skill-document delivery; other reads under its directory count as supporting files. The `skill` tool's full returned text also counts as a skill-document delivery, including its wrapper. Explicit reads of `AGENTS.md` have separate global and project categories. Each scope has category totals, per-skill document and supporting-file totals, and delivery details. The calculator reads only selected message and tool text to count characters; reasoning text is excluded and no content bodies appear in its output. Opaque tool calls and startup-injected instructions are not reconstructed. Context-delivery estimates are not additive to recorded token usage and do not assign cache or dollar cost to particular sources.
 
 The calculator fetches `https://models.dev/api.json` by default. Use `--models-file /path/to/api.json` when a reproducible pricing snapshot matters. For several calculations in one task, consider reusing a retained catalog and narrowing the roots first; repeated catalog fetches or one fresh process per root can dominate a bulk comparison. Choose batching or separate calls according to the requested scope and failure isolation. Exact catalog model IDs win; an explicit `<base-model>-<mode>` ID may use `experimental.modes[mode].cost`. Context tiers apply per turn. Missing optional cache rates are zero, and reasoning uses its explicit rate or the selected output rate. The result is a current-catalog estimate, not historical billing or a provider invoice.
 

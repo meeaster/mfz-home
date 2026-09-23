@@ -21,7 +21,7 @@ Choose the least expensive mode that can answer the request:
 - **Reconstruct** follows the smallest relevant timeline needed to explain what happened.
 - **Audit** establishes complete coverage for the declared scope and evaluates behavior.
 - **Delta** reads accepted append-only evidence after a reusable checkpoint. Unsupported historical change requires a rebuild.
-- **Cost** recalculates current-catalog API cost for one session and its recursive descendants without reading content bodies.
+- **Cost** recalculates current-catalog API cost for one session and its recursive descendants. It measures persisted tool-result and message lengths without returning their text.
 
 Treat `complete`, `fully`, `all`, `audit`, and `refreshable` as exhaustive for the declared scope. Never present sampled evidence as complete.
 
@@ -64,7 +64,7 @@ For question-driven OpenCode work, compose bounded read-only SQL or authenticate
 
 Use `scripts/opencode-session-evidence.py snapshot` and `delta` only when a refreshable consumer needs a deterministic parent-and-direct-child checkpoint. A delta is valid only for a structurally verified pure append. Existing-message changes, deletions, replacements, child-set changes, topology changes, source replacement, and active-context movement return `rebuild_required`. Never merge evidence from a rejected delta.
 
-For OpenCode cost, prefer `scripts/opencode-session-cost.py` when its current-schema contract fits the request. It uses only current usage records and recursive `parent_id` topology, so transcript evidence is unnecessary. Use another body-free approach when the source or requested scope falls outside that contract.
+For OpenCode cost, prefer `scripts/opencode-session-cost.py` when its current-schema contract fits the request. Start with `--summary`; use `--request-ledger` for model-step accounting and `--delivery-details` for named source entries. It reads usage, message boundaries, and selected delivered text lengths for request cycles, compaction windows, and context-source estimates. It never returns text bodies. Treat source lengths as rough context estimates, not billed input or cache attribution.
 
 Read full content only when it can change the answer. Count and locate reasoning records without surfacing their bodies. Enumerate children before reading them, and treat fork provenance separately from ancestry.
 

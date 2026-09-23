@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Estimate OpenCode session costs without reading transcript bodies."""
+"""Estimate OpenCode session costs and summarize recorded context deliveries."""
 
 from __future__ import annotations
 
@@ -69,6 +69,9 @@ def parser() -> argparse.ArgumentParser:
         default=DEFAULT_MAX_CATALOG_BYTES,
     )
     result.add_argument("--pretty", action="store_true")
+    result.add_argument("--summary", action="store_true", help="Omit repeated per-cycle and per-window delivery summaries")
+    result.add_argument("--delivery-details", action="store_true", help="Include named delivery entries at every reported level")
+    result.add_argument("--request-ledger", action="store_true", help="Include priced model-step records with applied rates")
     result.add_argument("session_id", metavar="SESSION_ID")
     return result
 
@@ -166,7 +169,7 @@ def database_number(row: sqlite3.Row, value_key: str, type_key: str, label: str)
 
 def read_v2_database(
     connection: sqlite3.Connection, root_id: str
-) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     session_rows = connection.execute(
         scope_sql(
             """
@@ -233,7 +236,7 @@ def read_v2_database(
         scope_sql(
             """
             SELECT m.id AS message_id,
-                   m.session_id,
+                    m.session_id, m.seq, m.type AS record_type,
                    json_extract(m.data, '$.cost') AS message_cost,
                    json_type(m.data, '$.cost') AS message_cost_type,
                    json_extract(m.data, '$.tokens.input') AS input_tokens,
@@ -255,7 +258,8 @@ def read_v2_database(
             FROM scope
             CROSS JOIN session_message AS m
             WHERE m.session_id = scope.id
-              AND m.type = 'assistant'
+               AND (m.type = 'assistant' OR
+                    (m.type = 'compaction' AND json_extract(m.data, '$.status') = 'completed'))
               AND (json_type(m.data, '$.cost') IS NOT NULL
                    OR json_type(m.data, '$.tokens') IS NOT NULL)
             ORDER BY scope.order_key, m.seq, m.id
@@ -295,20 +299,92 @@ def read_v2_database(
         turns.append(
             {
                 "session_id": row["session_id"],
+                "message_id": message_id,
+                "seq": row["seq"],
+                "record_type": row["record_type"],
                 "provider_id": row["provider_id"],
                 "model_id": row["model_id"],
                 "variant": row["variant"],
                 "tokens": tokens,
             }
         )
-    return sessions, turns
+    # Project only user-visible text and selected tool results. In particular,
+    # json_each excludes reasoning items before their content is selected.
+    event_rows = connection.execute(
+        scope_sql(
+            """
+            SELECT m.session_id, m.seq, m.id, m.type,
+                   json_extract(m.data, '$.time.created') AS created,
+                   CASE WHEN m.type IN ('user', 'synthetic', 'system', 'skill')
+                        THEN json_extract(m.data, '$.text') END AS text,
+                   CASE WHEN m.type = 'synthetic'
+                        THEN json_extract(m.data, '$.metadata.childID') END AS child_id,
+                   json_extract(m.data, '$.status') AS status
+            FROM scope
+            JOIN session_message AS m ON m.session_id = scope.id
+            ORDER BY scope.order_key, m.seq
+            """,
+        ),
+        (root_id,),
+    ).fetchall()
+    tool_rows = connection.execute(
+        scope_sql(
+            """
+            SELECT m.session_id, m.seq, m.id AS message_id,
+                   json_extract(item.value, '$.id') AS tool_id,
+                   json_extract(item.value, '$.name') AS name,
+                   json_extract(item.value, '$.state.status') AS status,
+                   json_extract(item.value, '$.state.input.path') AS path,
+                   json_extract(item.value, '$.state.input.id') AS skill_id,
+                   json_extract(item.value, '$.state.input.prompt') AS prompt,
+                   json_extract(item.value, '$.state.input.sessionID') AS input_child_id,
+                   json_extract(item.value, '$.state.metadata.sessionID') AS result_child_id,
+                   json_extract(item.value, '$.state.metadata.directory') AS skill_directory,
+                   json_extract(item.value, '$.state.metadata.truncated') AS truncated,
+                   json_extract(item.value, '$.state.content') AS content
+            FROM scope
+            JOIN session_message AS m ON m.session_id = scope.id AND m.type = 'assistant'
+            JOIN json_each(m.data, '$.content') AS item
+            WHERE json_extract(item.value, '$.type') = 'tool'
+              AND json_extract(item.value, '$.name') IN ('read', 'skill', 'subagent')
+            ORDER BY scope.order_key, m.seq, CAST(item.key AS INTEGER)
+            """,
+        ),
+        (root_id,),
+    ).fetchall()
+    tools_by_message: dict[str, list[dict[str, Any]]] = {}
+    for row in tool_rows:
+        # Parse only projected tool output; never retain it in the report.
+        content = json.loads(row["content"]) if row["content"] is not None else []
+        text = "".join(
+            item.get("text", "") for item in content
+            if isinstance(item, dict) and item.get("type") == "text"
+            and isinstance(item.get("text"), str)
+        ) if isinstance(content, list) else ""
+        tools_by_message.setdefault(row["message_id"], []).append({
+            "name": row["name"], "status": row["status"],
+            "path": row["path"], "skill_id": row["skill_id"],
+            "prompt": row["prompt"],
+            "child_id": row["input_child_id"] or row["result_child_id"],
+            "skill_directory": row["skill_directory"],
+            "truncated": bool(row["truncated"]), "characters": len(text),
+        })
+    events = [
+        {"session_id": row["session_id"], "seq": row["seq"], "id": row["id"],
+         "type": row["type"], "created": row["created"],
+         "characters": len(row["text"]) if isinstance(row["text"], str) else 0,
+         "child_id": row["child_id"], "status": row["status"],
+         "tools": tools_by_message.get(row["id"], [])}
+        for row in event_rows
+    ]
+    return sessions, turns, events
 
 
-def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]]]:
+def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
     connection = connect_read_only(path)
     try:
         validate_schema(connection, root_id)
-        sessions, turns = read_v2_database(connection, root_id)
+        sessions, turns, events = read_v2_database(connection, root_id)
         connection.commit()
         source = {
             "harness": "opencode",
@@ -317,7 +393,7 @@ def read_database(path: Path, root_id: str) -> tuple[dict[str, Any], list[dict[s
             "mode": "read-only",
             "identity": f"{path.stat().st_dev}:{path.stat().st_ino}",
         }
-        return source, sessions, turns
+        return source, sessions, turns, events
     except CalculatorError:
         connection.rollback()
         raise
@@ -513,17 +589,20 @@ def merge_definitions(base: dict[str, Any], override: dict[str, Any]) -> dict[st
     }
 
 
-def select_cost_rates(definition: dict[str, Any], label: str, context_tokens: Decimal) -> dict[str, Decimal]:
+def select_cost_rates(definition: dict[str, Any], context_tokens: Decimal) -> tuple[dict[str, Decimal], dict[str, Any]]:
     selected = definition["base"]
+    tier = {"kind": "base", "threshold_tokens": None}
     selected_size: Decimal | None = None
     for size in sorted(definition["tiers"]):
         if context_tokens > size and (selected_size is None or size > selected_size):
             selected = definition["tiers"][size]
             selected_size = size
+            tier = {"kind": "context_tier", "threshold_tokens": present_number(size)}
     if selected_size is None and context_tokens > CONTEXT_OVER_200K:
         if definition["has_context_over"]:
             selected = definition["context_over"]
-    return selected
+            tier = {"kind": "context_over_200k", "threshold_tokens": 200000}
+    return selected, tier
 
 
 def mode_cost(model: dict[str, Any], mode: str, label: str) -> dict[str, Any] | None:
@@ -553,7 +632,7 @@ def pricing_for(
     provider_id: str,
     model_id: str,
     context_tokens: Decimal,
-) -> dict[str, Decimal]:
+) -> tuple[dict[str, Decimal], dict[str, Any]]:
     if provider_id not in catalog:
         raise CalculatorError(f"pricing provider missing from catalog: {provider_id}")
     provider = catalog[provider_id]
@@ -605,7 +684,8 @@ def pricing_for(
         override = mode_cost(model, mode, label)
         if override is not None:
             base = merge_definitions(base, normalized_definition(override, f"{label} mode {mode}"))
-    return select_cost_rates(base, label, context_tokens)
+    rates, tier = select_cost_rates(base, context_tokens)
+    return rates, {"catalog_model_id": resolved_model_id, "mode": mode, "tier": tier}
 
 
 def empty_tokens() -> dict[str, Decimal]:
@@ -621,20 +701,44 @@ def context_tokens(values: dict[str, Decimal]) -> Decimal:
     return values["input"] + values["cache_read"] + values["cache_write"]
 
 
-def turn_cost(tokens: dict[str, Decimal], rates: dict[str, Decimal], label: str) -> Decimal:
-    total = Decimal(0)
-    for category in ("input", "output", "cache_read", "cache_write"):
-        if tokens[category] == 0:
-            continue
-        if category not in rates:
+def applied_rates(rates: dict[str, Decimal]) -> dict[str, Decimal]:
+    return {**rates, "reasoning": rates.get("reasoning", rates["output"])}
+
+
+def turn_cost_components(tokens: dict[str, Decimal], rates: dict[str, Decimal], label: str) -> dict[str, Decimal]:
+    applied = applied_rates(rates)
+    components = {}
+    for category in CATEGORIES:
+        if tokens[category] and category not in applied:
             raise CalculatorError(f"pricing rate missing for nonzero {category} tokens: {label}")
-        total += tokens[category] * rates[category]
-    if tokens["reasoning"] != 0:
-        reasoning_rate = rates.get("reasoning", rates.get("output"))
-        if reasoning_rate is None:
-            raise CalculatorError(f"pricing rate missing for nonzero reasoning tokens: {label}")
-        total += tokens["reasoning"] * reasoning_rate
-    return total / MILLION
+        components[category] = tokens[category] * applied.get(category, Decimal(0)) / MILLION
+    return components
+
+
+def present_components(values: dict[str, Decimal]) -> dict[str, int | float]:
+    return {category: present_number(values[category], cost=True) for category in CATEGORIES}
+
+
+def cache_read_percent(tokens: dict[str, Decimal]) -> int | float | None:
+    context = context_tokens(tokens)
+    return (present_number((tokens["cache_read"] * 100 / context).quantize(
+        Decimal("0.01"), rounding=ROUND_HALF_UP)) if context else None)
+
+
+def step_record(turn: dict[str, Any], event: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "message_id": event["id"], "seq": event["seq"],
+        "timestamp_ms": event["created"], "record_type": turn["record_type"],
+        "providerID": turn["provider_id"], "modelID": turn["model_id"],
+        "variant": turn["variant"], "pricing": turn["pricing_selection"],
+        "tokens": present_tokens(turn["tokens"]),
+        "cache_read_percent": cache_read_percent(turn["tokens"]),
+        "applied_rates_usd_per_million": {key: present_number(value) for key, value in
+                                          applied_rates(turn["rates"]).items()},
+        "reasoning_rate_source": ("explicit" if "reasoning" in turn["rates"] else "output_fallback"),
+        "cost_components_usd": present_components(turn["components"]),
+        "estimated_cost_usd": present_number(turn["estimated_cost"], cost=True),
+    }
 
 
 def present_number(value: Decimal, cost: bool = False) -> int | float:
@@ -651,57 +755,426 @@ def present_tokens(values: dict[str, Decimal]) -> dict[str, int | float]:
     return result
 
 
+def measured(usage: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "turn_count": usage["turns"],
+        "tokens": present_tokens(usage["tokens"]),
+        "estimated_cost_usd": present_number(usage["cost"], cost=True),
+        "cost_components_usd": present_components(usage["components"]),
+    }
+
+
+def empty_usage() -> dict[str, Any]:
+    return {"turns": 0, "tokens": empty_tokens(), "cost": Decimal(0),
+            "components": empty_tokens()}
+
+
+def add_usage(target: dict[str, Any], source: dict[str, Any]) -> None:
+    target["turns"] += source["turns"]
+    add_tokens(target["tokens"], source["tokens"])
+    target["cost"] += source["cost"]
+    add_tokens(target["components"], source["components"])
+
+
+def delivery(target: dict[str, Any], category: str, name: str, characters: int,
+             truncated: bool = False) -> None:
+    key = (category, name)
+    item = target.setdefault(key, {"deliveries": 0, "characters": 0, "truncated": 0})
+    item["deliveries"] += 1
+    item["characters"] += characters
+    item["truncated"] += int(truncated)
+
+
+def present_deliveries(sources: dict[str, Any]) -> list[dict[str, Any]]:
+    return [
+        {"category": category, "name": name, **item,
+         "rough_tokens": (item["characters"] + 3) // 4}
+        for (category, name), item in sorted(sources.items())
+    ]
+
+
+def source_summary(sources: dict[str, Any], details: bool = False) -> dict[str, Any]:
+    categories: dict[str, dict[str, int]] = {}
+    skills: dict[str, dict[str, int]] = {}
+    for (category, name), values in sources.items():
+        target = categories.setdefault(category, {"deliveries": 0, "characters": 0})
+        target["deliveries"] += values["deliveries"]
+        target["characters"] += values["characters"]
+        if category in ("skill_document", "skill_supporting_file"):
+            skill = name if category == "skill_document" else name.split(":", 1)[0]
+            target = skills.setdefault(skill, {"document_characters": 0, "supporting_file_characters": 0})
+            target["document_characters" if category == "skill_document"
+                   else "supporting_file_characters"] += values["characters"]
+    for values in categories.values():
+        values["rough_tokens"] = (values["characters"] + 3) // 4
+    for values in skills.values():
+        values["rough_tokens"] = (values["document_characters"]
+                                  + values["supporting_file_characters"] + 3) // 4
+    result = {"category_totals": categories, "skills": skills}
+    if details:
+        result["details"] = present_deliveries(sources)
+    return result
+
+
+def merge_sources(target: dict[str, Any], sources: dict[str, Any]) -> None:
+    for key, item in sources.items():
+        value = target.setdefault(key, {"deliveries": 0, "characters": 0, "truncated": 0})
+        for field in value:
+            value[field] += item[field]
+
+
+def report_history(sessions: list[dict[str, Any]], events: list[dict[str, Any]],
+                   priced_turns: list[dict[str, Any]], summary: bool,
+                   delivery_details: bool, request_ledger: bool
+                   ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], list[dict[str, Any]]]:
+    """Partition measured turns by cycle and window; describe text deliveries separately."""
+    by_session: dict[str, list[dict[str, Any]]] = {session["id"]: [] for session in sessions}
+    for event in events:
+        by_session[event["session_id"]].append(event)
+    turns_by_message = {turn["message_id"]: turn for turn in priced_turns}
+    skill_directories = [
+        (tool["skill_directory"].rstrip("/"), tool["skill_id"] or "unknown")
+        for event in events for tool in event["tools"]
+        if tool["name"] == "skill" and isinstance(tool["skill_directory"], str)
+    ]
+    reports: dict[str, Any] = {}
+    links: dict[str, list[tuple[str, str]]] = {}
+    ledger: list[dict[str, Any]] = []
+    for session in sessions:
+        sid = session["id"]
+        cycles: list[dict[str, Any]] = []
+        windows: list[dict[str, Any]] = []
+        calls: list[dict[str, Any]] = []
+        current_cycle: dict[str, Any] | None = None
+        current_window: dict[str, Any] | None = None
+        idle = True
+        last_idle_time: int | None = None
+        cumulative = Decimal(0)
+
+        def new_window(start: int) -> dict[str, Any]:
+            window = {"index": len(windows) + 1, "start_seq": start, "end_seq": None,
+                      "compaction_message_id": None, "usage": empty_usage(),
+                      "sources": {}, "checkpoints": [], "last_context": None,
+                      "next_threshold": 25000, "cumulative_at_start": cumulative,
+                      "checkpoint_cost": Decimal(0), "cycles": {}, "cycle_sources": {}}
+            windows.append(window)
+            return window
+
+        if by_session[sid]:
+            current_window = new_window(by_session[sid][0]["seq"])
+        for event in by_session[sid]:
+            seq, typ = event["seq"], event["type"]
+            if typ == "idle":
+                idle = True
+                last_idle_time = event["created"]
+            if typ in ("user", "synthetic") and (idle or current_cycle is None):
+                current_cycle = {
+                    "index": len(cycles) + 1, "kind": "request" if typ == "user" else "continuation",
+                    "first_message_id": event["id"], "start_seq": seq, "end_seq": None,
+                    "trigger_characters": event["characters"], "messages_while_active": 0,
+                    "usage": empty_usage(), "sources": {}, "starting_context_tokens": None,
+                    "compaction_windows": set(), "descendants": empty_usage(),
+                    "ending_context_tokens": None, "maximum_context_tokens": None,
+                    "first_model_request": None,
+                    "idle_gap_ms": (event["created"] - last_idle_time
+                                    if isinstance(event["created"], int)
+                                    and isinstance(last_idle_time, int) else None),
+                }
+                cycles.append(current_cycle)
+                idle = False
+            elif typ in ("user", "synthetic") and current_cycle is not None:
+                current_cycle["messages_while_active"] += 1
+            if (current_cycle is None or idle) and event["id"] in turns_by_message:
+                current_cycle = {
+                    "index": len(cycles) + 1, "kind": "unprompted", "first_message_id": event["id"],
+                    "start_seq": seq, "end_seq": None, "trigger_characters": 0,
+                    "messages_while_active": 0, "usage": empty_usage(), "sources": {},
+                    "starting_context_tokens": None, "compaction_windows": set(),
+                    "descendants": empty_usage(),
+                    "ending_context_tokens": None, "maximum_context_tokens": None,
+                    "first_model_request": None, "idle_gap_ms": None,
+                }
+                cycles.append(current_cycle)
+                idle = False
+            if current_cycle is not None and (not idle or typ == "idle"):
+                current_cycle["end_seq"] = seq
+            if current_window is None:
+                continue
+            current_window["end_seq"] = seq
+            if typ in ("user", "synthetic", "system", "skill"):
+                category = {"user": "request_message", "synthetic": "session_notification",
+                            "system": "recorded_system_message", "skill": "recorded_skill_message"}[typ]
+                name = event["child_id"] if typ == "synthetic" and event["child_id"] else typ
+                delivery(current_window["sources"], category, name, event["characters"])
+                if current_cycle is not None:
+                    delivery(current_cycle["sources"], category, name, event["characters"])
+                    delivery(current_window["cycle_sources"].setdefault(
+                        current_cycle["index"], {}), category, name, event["characters"])
+            for tool in event["tools"]:
+                name = tool["name"]
+                if name == "subagent":
+                    child_id = tool["child_id"]
+                    if child_id and current_cycle is not None and tool["status"] == "completed":
+                        calls.append({"child_id": child_id, "cycle_index": current_cycle["index"],
+                                      "seq": seq})
+                    prompt = tool["prompt"]
+                    # A subagent call can have both a prompt and a result.
+                    if isinstance(prompt, str):
+                        for target in (current_window, current_cycle):
+                            if target is not None:
+                                delivery(target["sources"], "delegation_prompt",
+                                         child_id or "unresolved", len(prompt))
+                        if current_cycle is not None:
+                            delivery(current_window["cycle_sources"].setdefault(
+                                current_cycle["index"], {}), "delegation_prompt",
+                                child_id or "unresolved", len(prompt))
+                    category, label, size = "subagent_result", child_id or "unresolved", tool["characters"]
+                elif name == "skill":
+                    category, label, size = "skill_document", tool["skill_id"] or "unknown", tool["characters"]
+                elif name == "read":
+                    path = tool["path"] or "unknown"
+                    skill_owner = next((skill_name for directory, skill_name in skill_directories
+                                        if path.startswith(directory + "/")), None)
+                    if skill_owner:
+                        category, label = (("skill_document", skill_owner)
+                                           if Path(path).name == "SKILL.md" else
+                                           ("skill_supporting_file", skill_owner + ":" + path))
+                    elif Path(path).name == "AGENTS.md":
+                        category, label = ("global_instruction_read" if path.startswith(
+                            str(Path.home() / ".mindframe-z") + "/") else "project_instruction_read"), path
+                    else:
+                        category, label = "file_read", path
+                    size = tool["characters"]
+                else:
+                    continue
+                if tool["status"] == "completed":
+                    for target in (current_window, current_cycle):
+                        if target is not None:
+                            delivery(target["sources"], category, label, size, tool["truncated"])
+                    if current_cycle is not None:
+                        delivery(current_window["cycle_sources"].setdefault(
+                            current_cycle["index"], {}), category, label, size, tool["truncated"])
+            turn = turns_by_message.get(event["id"])
+            if turn is not None:
+                amount = {"turns": 1, "tokens": turn["tokens"],
+                          "cost": turn["estimated_cost"], "components": turn["components"]}
+                add_usage(current_window["usage"], amount)
+                if request_ledger:
+                    ledger.append({"session_id": sid,
+                                   "cycle_index": current_cycle["index"] if current_cycle else None,
+                                   "compaction_window_index": current_window["index"],
+                                   **step_record(turn, event)})
+                if current_cycle is not None:
+                    add_usage(current_cycle["usage"], amount)
+                    current_cycle["compaction_windows"].add(current_window["index"])
+                    if current_cycle["starting_context_tokens"] is None:
+                        current_cycle["starting_context_tokens"] = present_number(context_tokens(turn["tokens"]))
+                    portion = current_window["cycles"].setdefault(current_cycle["index"], empty_usage())
+                    add_usage(portion, amount)
+                cumulative += turn["estimated_cost"]
+                if typ == "assistant":
+                    context = context_tokens(turn["tokens"])
+                    current_window["last_context"] = present_number(context)
+                    if current_cycle is not None:
+                        current_cycle["ending_context_tokens"] = present_number(context)
+                        current_cycle["maximum_context_tokens"] = present_number(max(
+                            context, Decimal(current_cycle["maximum_context_tokens"] or 0)))
+                        if current_cycle["first_model_request"] is None:
+                            current_cycle["first_model_request"] = step_record(turn, event)
+                    while context >= current_window["next_threshold"]:
+                        current_window["checkpoints"].append({
+                            "threshold": current_window["next_threshold"],
+                            "observed_context_tokens": present_number(context),
+                            "message_id": event["id"], "seq": seq,
+                            "window_cost_usd": present_number(current_window["usage"]["cost"], cost=True),
+                            "session_cost_usd": present_number(cumulative, cost=True),
+                            "since_previous_checkpoint_usd": present_number(
+                                current_window["usage"]["cost"] - current_window["checkpoint_cost"],
+                                cost=True),
+                        })
+                        current_window["checkpoint_cost"] = current_window["usage"]["cost"]
+                        current_window["next_threshold"] += 25000
+            if typ == "compaction" and event["status"] == "completed":
+                current_window["compaction_message_id"] = event["id"]
+                current_window = new_window(seq + 1)
+
+        if windows and windows[-1]["end_seq"] is None:
+            windows.pop()
+        reports[sid] = {"cycles": cycles, "windows": windows, "calls": calls}
+
+    # Match child assignments to the parent's persisted subagent calls, in
+    # call order. Only matched cycles receive a descendant cost subtotal.
+    for session in sessions:
+        parent_id = session["parent_id"]
+        if parent_id not in reports:
+            continue
+        calls = [call for call in reports[parent_id]["calls"] if call["child_id"] == session["id"]]
+        matched = iter(calls)
+        assignment = None
+        for child in reports[session["id"]]["cycles"]:
+            if child["kind"] == "request":
+                assignment = next(matched, None)
+            if assignment is not None:
+                links.setdefault(parent_id, []).append((session["id"], str(child["index"])))
+                child["parent_call_seq"] = assignment["seq"]
+                child["parent_cycle_index"] = assignment["cycle_index"]
+                child["parent_attribution"] = ("call" if child["kind"] == "request"
+                                               else "inherited_continuation")
+
+    subtree: dict[str, dict[str, Any]] = {}
+    for session in sorted(sessions, key=lambda item: item["depth"], reverse=True):
+        sid = session["id"]
+        subtotal = empty_usage()
+        for cycle in reports[sid]["cycles"]:
+            add_usage(subtotal, cycle["usage"])
+        for child in (item for item in sessions if item["parent_id"] == sid):
+            add_usage(subtotal, subtree[child["id"]])
+        subtree[sid] = subtotal
+        for child_id, child_index in links.get(sid, []):
+            child_cycle = reports[child_id]["cycles"][int(child_index) - 1]
+            parent_cycle = reports[sid]["cycles"][child_cycle["parent_cycle_index"] - 1]
+            add_usage(parent_cycle["descendants"], child_cycle["usage"])
+            add_usage(parent_cycle["descendants"], child_cycle["descendants"])
+
+    output: dict[str, Any] = {}
+    all_sources: dict[str, Any] = {}
+    for session in sessions:
+        sid = session["id"]
+        history = reports[sid]
+        session_sources: dict[str, Any] = {}
+        for window in history["windows"]:
+            merge_sources(session_sources, window["sources"])
+        merge_sources(all_sources, session_sources)
+        output[sid] = {
+            "subtree": measured(subtree[sid]),
+            "children_ids": [child["id"] for child in sessions if child["parent_id"] == sid],
+            "context_deliveries": source_summary(session_sources, delivery_details),
+            "request_cycles": [{
+                "index": cycle["index"], "kind": cycle["kind"],
+                "first_message_id": cycle["first_message_id"],
+                "start_seq": cycle["start_seq"], "end_seq": cycle["end_seq"],
+                "trigger_characters": cycle["trigger_characters"],
+                "messages_while_active": cycle["messages_while_active"],
+                "starting_context_tokens": cycle["starting_context_tokens"],
+                "ending_context_tokens": cycle["ending_context_tokens"],
+                "maximum_context_tokens": cycle["maximum_context_tokens"],
+                "idle_gap_ms": cycle["idle_gap_ms"],
+                "first_model_request": cycle["first_model_request"],
+                "compaction_windows": sorted(cycle["compaction_windows"]),
+                "own": measured(cycle["usage"]),
+                "descendants": measured(cycle["descendants"]),
+                "combined": measured({
+                    "turns": cycle["usage"]["turns"] + cycle["descendants"]["turns"],
+                    "tokens": {key: cycle["usage"]["tokens"][key] + cycle["descendants"]["tokens"][key]
+                               for key in CATEGORIES},
+                    "cost": cycle["usage"]["cost"] + cycle["descendants"]["cost"],
+                    "components": {key: cycle["usage"]["components"][key]
+                                   + cycle["descendants"]["components"][key] for key in CATEGORIES},
+                }),
+                **({} if summary else {"context_deliveries": source_summary(
+                    cycle["sources"], delivery_details)}),
+                **({"parent_call_seq": cycle["parent_call_seq"],
+                    "parent_cycle_index": cycle["parent_cycle_index"],
+                    "parent_attribution": cycle["parent_attribution"]}
+                   if "parent_call_seq" in cycle else {}),
+            } for cycle in history["cycles"]],
+            "compaction_windows": [{
+                "index": window["index"], "start_seq": window["start_seq"],
+                "end_seq": window["end_seq"],
+                "compaction_message_id": window["compaction_message_id"],
+                "own": measured(window["usage"]),
+                "request_cycles": [{"index": index, **measured(value),
+                                    **({} if summary else {"context_deliveries": source_summary(
+                                        window["cycle_sources"].get(index, {}), delivery_details)})}
+                                   for index, value in sorted(window["cycles"].items())],
+                **({} if summary else {"context_deliveries": source_summary(
+                    window["sources"], delivery_details)}),
+                "checkpoints": window["checkpoints"],
+                "final_observed_context_tokens": window["last_context"],
+                "since_last_checkpoint_usd": present_number(
+                    window["usage"]["cost"] - window["checkpoint_cost"], cost=True),
+                "ending_session_cost_usd": present_number(
+                    window["cumulative_at_start"] + window["usage"]["cost"], cost=True),
+            } for window in history["windows"]],
+        }
+    return output, {"matched_child_requests": sum(
+                        1 for session in sessions if session["parent_id"] in reports
+                        for cycle in reports[session["id"]]["cycles"]
+                        if cycle.get("parent_attribution") == "call"),
+                    "unmatched_child_cycles": [
+                        {"session_id": session["id"], "cycle_index": cycle["index"]}
+                        for session in sessions if session["parent_id"] in reports
+                        for cycle in reports[session["id"]]["cycles"]
+                        if "parent_call_seq" not in cycle]}, source_summary(all_sources, delivery_details), ledger
+
+
 def calculate(
     source: dict[str, Any],
     root_id: str,
     sessions: list[dict[str, Any]],
     turns: list[dict[str, Any]],
+    events: list[dict[str, Any]],
     catalog: dict[str, Any],
     pricing_metadata: dict[str, Any],
+    summary: bool = False,
+    delivery_details: bool = False,
+    request_ledger: bool = False,
 ) -> dict[str, Any]:
     aggregates: dict[str, dict[str, Any]] = {
         session["id"]: {
             "turns": 0,
             "tokens": empty_tokens(),
             "cost": Decimal(0),
+            "components": empty_tokens(),
             "breakdowns": {},
         }
         for session in sessions
     }
     total_tokens = empty_tokens()
     total_cost = Decimal(0)
+    total_components = empty_tokens()
 
     for turn in turns:
         tokens = turn["tokens"]
         context = context_tokens(tokens)
-        rates = pricing_for(
+        rates, selection = pricing_for(
             catalog,
             turn["provider_id"],
             turn["model_id"],
             context,
         )
-        cost = turn_cost(
+        components = turn_cost_components(
             tokens,
             rates,
             f"{turn['provider_id']}/{turn['model_id']} in session {turn['session_id']}",
         )
+        cost = sum(components.values(), Decimal(0))
+        turn["estimated_cost"] = cost
+        turn["components"] = components
+        turn["rates"] = rates
+        turn["pricing_selection"] = selection
         aggregate = aggregates.get(turn["session_id"])
         if aggregate is None:
             raise CalculatorError(f"usage record belongs to unknown session: {turn['session_id']}")
         aggregate["turns"] += 1
         add_tokens(aggregate["tokens"], tokens)
         aggregate["cost"] += cost
+        add_tokens(aggregate["components"], components)
         add_tokens(total_tokens, tokens)
         total_cost += cost
+        add_tokens(total_components, components)
         key = (turn["provider_id"], turn["model_id"], turn["variant"])
         breakdowns = aggregate["breakdowns"]
         if key not in breakdowns:
-            breakdowns[key] = {"turns": 0, "tokens": empty_tokens(), "cost": Decimal(0)}
+            breakdowns[key] = empty_usage()
         breakdowns[key]["turns"] += 1
         add_tokens(breakdowns[key]["tokens"], tokens)
         breakdowns[key]["cost"] += cost
+        add_tokens(breakdowns[key]["components"], components)
 
     total_stored_cost = sum((session["stored_cost"] for session in sessions), Decimal(0))
+    histories, attribution, total_sources, ledger = report_history(
+        sessions, events, turns, summary, delivery_details, request_ledger)
     output_sessions: list[dict[str, Any]] = []
     for session in sessions:
         aggregate = aggregates[session["id"]]
@@ -719,6 +1192,7 @@ def calculate(
                     "turns": values["turns"],
                     "tokens": present_tokens(values["tokens"]),
                     "estimated_cost_usd": present_number(values["cost"], cost=True),
+                    "cost_components_usd": present_components(values["components"]),
                 }
             )
         output_sessions.append(
@@ -732,20 +1206,46 @@ def calculate(
                 "turn_count": aggregate["turns"],
                 "tokens": present_tokens(aggregate["tokens"]),
                 "estimated_cost_usd": present_number(aggregate["cost"], cost=True),
+                "cost_components_usd": present_components(aggregate["components"]),
                 "stored_cost_usd": present_number(session["stored_cost"], cost=True),
                 "breakdown": breakdown,
+                **histories[session["id"]],
             }
         )
+
+    by_id = {session["id"]: session for session in output_sessions}
+
+    def tree_node(session_id: str) -> dict[str, Any]:
+        session = by_id[session_id]
+        parent = by_id.get(session["parent_id"])
+        return {
+            "id": session_id, "title": session["title"], "agent": session["agent"],
+            "parent_id": session["parent_id"],
+            "owner_agent": parent["agent"] if parent is not None else None,
+            "depth": session["depth"],
+            "own": {"turn_count": session["turn_count"], "tokens": session["tokens"],
+                    "estimated_cost_usd": session["estimated_cost_usd"],
+                    "cost_components_usd": session["cost_components_usd"]},
+            "subtree": session["subtree"],
+            "children": [tree_node(child_id) for child_id in session["children_ids"]],
+        }
 
     return {
         "source": source,
         "root_session_id": root_id,
         "scope": "root session and all recursive descendants (cycle-guarded)",
         "pricing": pricing_metadata,
+        "attribution": {
+            "usage": "Recorded per-message token counts, including completed compactions; prices use the selected current catalog.",
+            "context_deliveries": "Character lengths of persisted delivered text; rough_tokens is ceil(characters / 4), not provider tokenization. Deliveries are not extra charges and are not assigned input/cache costs. Opaque tool calls and startup-injected global instructions cannot be measured from these records.",
+            "request_cycles": "An idle followed by a user message starts a request; an idle followed by a synthetic notification starts a continuation. Messages during an active cycle remain in that cycle. Child requests match persisted subagent calls in call order; unmatched child costs remain in session and tree totals.",
+            "compaction_windows": "A completed compaction's recorded usage is charged to the closing window. Each 25k checkpoint uses the first actual assistant context observation at or above the threshold; crossed thresholds can share one observation.",
+            **attribution,
+        },
         "calculation": {
             "currency": "USD",
             "rate_unit": "USD per 1M tokens",
-            "method": "Models.dev-first current-catalog estimate: each persisted model step uses its assistant message providerID/modelID, while variant is retained for attribution; OpenCode reads assistant messages with complete usage; an exact catalog model wins, otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost, which replaces mode base rates, replaces same-size tiers, adds new tiers, and replaces context_over_200k when supplied; the highest merged explicit tier with context > tier.size wins, then merged context_over_200k only when context > 200000, otherwise merged mode base rates.",
+            "method": "Current-catalog estimate from complete assistant and completed-compaction usage; stored providerID/modelID determine pricing, variant is attribution only. Exact model IDs win; otherwise an explicit <base-model>-<mode> ID resolves experimental.modes[mode].cost. The highest merged explicit tier with context > tier.size wins, then context_over_200k when applicable.",
             "cache_method": "Missing optional cache_read and cache_write rates are normalized to zero in the selected cost object.",
             "reasoning_method": "Use selected cost.reasoning when present; fall back to selected output pricing only when reasoning is absent.",
             "rounding": "Decimal arithmetic is aggregated before cost values are rounded to 12 decimal places for JSON presentation.",
@@ -756,26 +1256,78 @@ def calculate(
             "turn_count": len(turns),
             "tokens": present_tokens(total_tokens),
             "estimated_cost_usd": present_number(total_cost, cost=True),
+            "cost_components_usd": present_components(total_components),
             "stored_cost_usd": present_number(total_stored_cost, cost=True),
+            "context_deliveries": total_sources,
         },
+        "session_tree": tree_node(root_id),
         "sessions": output_sessions,
+        **({"request_ledger": ledger} if request_ledger else {}),
     }
+
+
+def compact_report(report: dict[str, Any]) -> dict[str, Any]:
+    """Keep assignment economics and boundaries; leave exhaustive partitions to full mode."""
+    def compact_tree(node: dict[str, Any]) -> dict[str, Any]:
+        return {"id": node["id"], "title": node["title"], "agent": node["agent"],
+                "parent_id": node["parent_id"], "owner_agent": node["owner_agent"],
+                "own_cost_usd": node["own"]["estimated_cost_usd"],
+                "subtree_cost_usd": node["subtree"]["estimated_cost_usd"],
+                "children": [compact_tree(child) for child in node["children"]]}
+
+    report["session_tree"] = compact_tree(report["session_tree"])
+    for session in report["sessions"]:
+        session["subtree"] = {
+            "turn_count": session["subtree"]["turn_count"],
+            "estimated_cost_usd": session["subtree"]["estimated_cost_usd"],
+        }
+        for cycle in session["request_cycles"]:
+            first = cycle["first_model_request"]
+            if first is not None:
+                cycle["first_model_request"] = {
+                    key: first[key] for key in
+                    ("message_id", "seq", "timestamp_ms", "tokens", "cache_read_percent",
+                     "estimated_cost_usd")
+                }
+            cycle["descendants"] = {
+                "turn_count": cycle["descendants"]["turn_count"],
+                "estimated_cost_usd": cycle["descendants"]["estimated_cost_usd"],
+            }
+            cycle["combined"] = {
+                "turn_count": cycle["combined"]["turn_count"],
+                "estimated_cost_usd": cycle["combined"]["estimated_cost_usd"],
+            }
+        for window in session["compaction_windows"]:
+            window.pop("request_cycles")
+            window["checkpoints"] = [
+                {key: checkpoint[key] for key in
+                 ("threshold", "observed_context_tokens", "window_cost_usd")}
+                for checkpoint in window["checkpoints"]
+            ]
+    report["format"] = "summary"
+    return report
 
 
 def main(argv: list[str] | None = None) -> int:
     arguments = parser().parse_args(argv)
     try:
         path = database_path(arguments.db)
-        source, sessions, turns = read_database(path, arguments.session_id)
+        source, sessions, turns, events = read_database(path, arguments.session_id)
         catalog, pricing_metadata = load_catalog(arguments)
         result = calculate(
             source,
             arguments.session_id,
             sessions,
             turns,
+            events,
             catalog,
             pricing_metadata,
+            summary=arguments.summary,
+            delivery_details=arguments.delivery_details,
+            request_ledger=arguments.request_ledger,
         )
+        if arguments.summary:
+            result = compact_report(result)
         if arguments.pretty:
             rendered = json.dumps(result, ensure_ascii=True, indent=2, allow_nan=False)
         else:
