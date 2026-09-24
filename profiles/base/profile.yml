@@ -47,9 +47,9 @@ thread:
       - opencode
 skills:
   open-pencil-design:
-    agents: { opencode: true, claude-code: false, codex: false }
+    agents: { opencode: false, claude-code: false, codex: false }
   open-pencil:
-    agents: { opencode: true, claude-code: false, codex: false }
+    agents: { opencode: false, claude-code: false, codex: false }
   orchestrator-mode:
     agents: { opencode: true, claude-code: false, codex: false }
   orchestrator-task-evidence:
@@ -184,8 +184,6 @@ mcp:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
     agents: [opencode, claude-code, codex]
-  openpencil:
-    agents: [opencode]
   terminal-control:
     agents: [opencode, claude-code, codex]
 opencode:
@@ -350,6 +348,7 @@ claude:
     attribution:
       commit: ""
       pr: ""
+    syncClaudeAiSkills: true
     hooks:
       SessionStart:
         - hooks:

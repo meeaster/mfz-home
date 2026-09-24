@@ -68,8 +68,6 @@ mcp:
     agents: [opencode, claude-code, codex]
   x-docs:
     agents: [opencode, claude-code, codex]
-  paper:
-    agents: [opencode, claude-code, codex]
   homeassistant:
     agents: [opencode]
   unifi-network:
