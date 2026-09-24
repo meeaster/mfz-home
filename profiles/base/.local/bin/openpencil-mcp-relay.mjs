@@ -3,7 +3,9 @@ import net from "node:net";
 
 const LISTEN_HOST = "127.0.0.1";
 
-const RELAY_PORT = 7600;
+// Keep the WSL-facing relay endpoint separate from OpenPencil's Windows MCP
+// listener. The Windows portproxy forwards this port to 127.0.0.1:7600.
+const RELAY_PORT = 7601;
 
 const CONNECT_TIMEOUT_MS = 5_000;
 

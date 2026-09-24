@@ -146,4 +146,4 @@ servers:
     description: OpenPencil design editor MCP trial endpoint.
     type: remote
     transport: http
-    url: http://127.0.0.1:7600/mcp
+    url: http://127.0.0.1:7601/mcp
