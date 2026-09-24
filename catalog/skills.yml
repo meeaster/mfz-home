@@ -448,14 +448,6 @@ skills:
     repo: https://github.com/humanlayer/skills
     ref: main
     subtree: plugins/visual-pr/skills/visual-pr
-  - name: diagram-quality
-    source: local
-    skill: active/diagram-quality
-    description: >
-      Use when creating, revising, or visually reviewing a diagram with containers,
-      labels, and connectors. Apply layout rules before drawing and inspect
-      rendered geometry afterward, including text containment, spacing, label
-      ownership, connector attachment, and balance between equivalent relationships.
   - name: diagram-design
     description: Create branded architecture, flowchart, sequence, state, data,
       timeline, process, and other diagrams as standalone HTML/SVG/PNG, or

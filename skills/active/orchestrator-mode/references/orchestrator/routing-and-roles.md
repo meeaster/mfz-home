@@ -55,7 +55,7 @@ Apply the shared [review policy](../common/acceptance-and-review.md#independent-
 Use `artifact-author` for authorized creation or revision of reader-facing diagrams and HTML explanations. Application UI and throwaway experiments retain worker and prototype ownership. Keep human dialogue, accepted meaning, and final acceptance with the decision owner.
 
 - Supply audience, accepted content, relevant context, current artifact, requested changes, must-preserve behavior, destination, authority, and valid prior verification.
-- Require `diagram-design` unless the human selects another creation workflow, and retain `diagram-quality`. Other HTML explanations use applicable craft guidance. Visual Explainer remains explicit-selection only.
+- Require `diagram-design` unless the human selects another creation workflow. Other HTML explanations use applicable craft guidance. Visual Explainer remains explicit-selection only.
 - The author owns composition, static checks, visual judgment, and repairs. It dispatches only `inspect` for routine rendered validation. If depth or permissions prevent that child, return the bounded inspection brief to the coordinator.
 - The inspector receives the exact revision, intended behavior, affected views and sizes, valid prior checks, and missing coverage. It returns selected screenshots, concrete findings, and scoped DOM measurements when useful.
 - Follow the [screenshot contract](../common/delegation-and-evidence.md#screenshot-evidence). The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.

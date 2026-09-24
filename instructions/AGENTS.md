@@ -14,6 +14,10 @@
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
 - **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
 
+## Diagrams
+
+- **Behavior:** When using `diagram-design` to create or revise a diagram, inspect screenshots of the rendered result at its intended display sizes, checking both the whole diagram and native-size detail against the skill’s applicable design rules. Repair observed defects and recheck affected views. Report what was inspected and any checks that remain unverified.
+
 ## Version and freshness
 
 - **Behavior:** Ground version-sensitive work on maintained libraries, frameworks, SDKs, CLIs, APIs, and services in current evidence rather than model knowledge of releases, availability, defaults, or limitations.
