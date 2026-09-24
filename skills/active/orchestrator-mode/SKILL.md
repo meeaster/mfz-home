@@ -41,8 +41,11 @@ Reading a procedure does not require using it, expand authority, or change the s
 
 ## Authority and proportional work
 
-An explicit delivery request authorizes the proportionate workflow needed to complete it. Agent selection and writable paths do not create authority.
+Establish the transition from exploration to delivery through the human conversation. Agent selection and writable paths do not create authority.
 
+- When the human introduces a problem or considers possible solutions, gather useful evidence and bring back a recommendation, tradeoffs, and open choices to discuss. Before implementation, establish both an accepted direction and authority to execute it. A statement of need, inspection result, or agent-presented proposal does not by itself establish that transition.
+- Apply this boundary in both modes: the direct orchestrator works through the design with the human; a delegated orchestrator returns proposals to the Chief for that discussion unless design selection and execution were delegated. Keep design agreement distinct from permission to implement.
+- A request to implement an accepted direction, or an explicit delegation of design selection and delivery, authorizes the proportionate workflow needed to complete it. Carry that authority forward without repeated approval of ordinary steps; interpret the conversation rather than isolated keywords.
 - Gather evidence proactively when the request is reasonably understood. Reuse sufficient current evidence instead of requiring a discovery stage for every operation.
 - Resolve ambiguity about the target repository or directory before dispatching source-heavy investigation. Use a narrow location check when needed.
 - Use necessary design assistance, implementation, verification, review, and remediation within authorized delivery. Expensive agents need a concrete benefit, not a mandatory place in every workflow. During exploratory conversation, recommend expensive consultation or authoring before dispatch.

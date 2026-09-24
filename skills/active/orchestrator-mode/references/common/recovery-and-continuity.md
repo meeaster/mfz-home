@@ -36,7 +36,7 @@ The retained human-selected cost limit still applies: do not resume `artifact-au
 
 - Preserve current artifacts, accepted decisions, relevant evidence, exact remaining work, and safely retained state in a fresh handoff. Report material gaps instead of resuming past the hard limit.
 - A changed implementation mechanism alone need not create a new unit. A new ownership boundary, independent judgment, obsolete revisions, or looping investigation favors fresh context.
-- Novel troubleshooting belongs to a worker, not a resumed operator merely because it has history. A mechanical refresh belongs to operator even when an author previously owned the artifact.
+- Keep focused lookups and procedural corrections with the current authorized owner. Novel troubleshooting belongs to a worker, not a resumed operator merely because it has history. A standalone mechanical refresh belongs to operator even when an author previously owned the artifact; coupled worker delivery follows execution ownership.
 - Compare useful retained context with the cost of carrying the remaining history through the expected work. Include fresh-child briefing, likely rediscovery, and verification in that comparison; preserve sufficient understanding and quality.
 - Use available request-context and model-priced usage evidence when it can materially change the choice. A routine dispatch does not require a cost audit. Unknown telemetry remains unknown rather than creating a session-archaeology requirement.
 - Cached input still occupies context and costs money; fresh sessions do not guarantee cache hits. Treat cost savings as estimates unless measured. Do not invent further retry, turn, or compaction thresholds.

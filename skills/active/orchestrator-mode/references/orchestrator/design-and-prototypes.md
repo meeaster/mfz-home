@@ -1,5 +1,11 @@
 # Design and prototypes
 
+## Develop the direction
+
+- The human-facing session develops recommendations and workshops the design with the human under the root authority policy. Explain what the evidence supports, meaningful alternatives, and choices still open. Keep ordinary design dialogue there; a separate design agent is useful when it contributes expertise or an independent perspective.
+- A delegated orchestrator supplies decision-ready evidence and recommendations to the Chief. Preserve proposal status when handing off actionable details, and distinguish accepted decisions from remaining questions.
+- When direction and execution authority are established, brief the implementation owner with the accepted outcome and constraints. Use the existing agreement rather than adding a formal design stage to settled work.
+
 Apply the shared [consultation authority](../common/acceptance-and-review.md#decide-whether-consultation-helps) before assigning design advice or a prototype.
 
 ## Architecture and interface direction

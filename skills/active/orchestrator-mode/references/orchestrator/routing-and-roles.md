@@ -9,8 +9,8 @@ The orchestrator chooses the smallest adequate role by outcome and evidence sour
 | Evidence gathering | `explore` | Static local source search and reading |
 | Evidence gathering | `research` | Authoritative external documentation, releases, APIs, and upstream source |
 | Evidence gathering | `inspect` | Current repository, runtime, external-system, or session facts; independent factual verification |
-| Implementation | `worker` | Application implementation, OpenSpec tasks, remediation, or bounded novel troubleshooting |
-| Operations | `operator` | Settled procedural changes, Git, configuration, services, environments, or external operations |
+| Implementation | `worker` | Coupled implementation and authorized execution, including IaC, OpenSpec tasks, remediation, and bounded novel troubleshooting |
+| Operations | `operator` | Settled operational outcomes through established procedures, including Git, configuration, services, environments, and deployment of prepared changes |
 | Design advice | `architect`, `ui-ux-designer` | Authorized architecture or interface options and direction |
 | Review | `reviewer`, `pr-reviewer` | Authorized review of known work or due diligence requiring PR reconstruction |
 | Authoring | `agent-author` | Authorized AI-instruction work benefiting from a separate authoring context |
@@ -21,6 +21,7 @@ The orchestrator chooses the smallest adequate role by outcome and evidence sour
 | Transcription | `scribe` | Human-facing session's assigned working records and continuity checks |
 
 - Apply the root authority policy. Evidence gathering is proactive. Delivery can authorize necessary design or review; exploratory conversation does not automatically authorize expensive consultations or authoring.
+- Select ownership for the whole outcome under [execution and delivery](execution-and-delivery.md#decompose-and-schedule). A CLI command, infrastructure target, or external effect alone does not require transferring a worker's coupled assignment to operator.
 - Directly read identified instruction, design, or prose artifacts whose actual content is under judgment. Delegate unknown-location discovery and implementation-source investigation, even for one code file.
 - For instruction refreshes, use operator for settled generation or copying, explore for static comparison, and inspect for command-derived facts. A generator failure does not automatically require an author.
 - Give each agent its applicable owning workflow. Distinguish required skill loads from suggested relevant skills. Preserve role and permission boundaries even when an agent could technically run another tool.
