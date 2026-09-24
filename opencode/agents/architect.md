@@ -6,6 +6,12 @@ permissions:
     resource: "*"
     effect: deny
   - action: edit
+    resource: scratch/orchestrator-workspaces/*
+    effect: allow
+  - action: edit
+    resource: orchestrator-workspaces/*
+    effect: allow
+  - action: edit
     resource: /tmp/opencode/*
     effect: allow
   - action: edit
