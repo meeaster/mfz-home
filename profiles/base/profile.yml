@@ -258,6 +258,7 @@ opencode:
   plugins:
     - session-usage
     - session-context
+    - skill-continuity
   tui_plugins:
     - handoff-tui
     - session-cost-tui

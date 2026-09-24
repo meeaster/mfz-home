@@ -13,6 +13,7 @@ packages:
   - opencode/plugins/session-cost-tui
   - opencode/plugins/session-usage
   - opencode/plugins/session-context
+  - opencode/plugins/skill-continuity
   - opencode/plugins/work-ledger
 minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
