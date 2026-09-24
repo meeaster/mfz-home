@@ -9,6 +9,15 @@ installed OpenCode release or its matching source when loader behavior changes.
   ancestor directories. Declare runtime imports in the owning plugin package;
   install them package-locally or expose them through a deliberate rendered
   ancestor. A dependency elsewhere on disk does not satisfy this boundary.
+- Find the rendered entrypoint before choosing where a dependency goes: the
+  configured plugin URL, or `source.path` from `/api/plugin`. Resolve each
+  runtime specifier from that directory, for example with
+  `node --input-type=module -e 'console.log(import.meta.resolve("zod"))'`.
+  A shared manifest in the OpenCode config directory, such as one a
+  configuration manager renders into `~/.config/opencode/package.json`, reaches
+  only plugins placed beneath that directory. A plugin loaded by path from its
+  source checkout resolves through the checkout's install and never sees that
+  manifest; adding its imports there is dead configuration.
 - A native TUI plugin using runtime `Plugin.define` from
   `@opencode/plugin/tui` must declare the SDK in `dependencies`, pin
   `@opencode/plugin` to the exact published release matching the installed stable

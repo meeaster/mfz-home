@@ -266,7 +266,7 @@ pnpm --dir opencode/plugins/pstack exec node -p "require('./node_modules/@openco
 
 The OpenCode reference checkout can describe a different release from the installed CLI. Use the reference to understand internals, then verify version-sensitive claims against the installed SDK and runtime.
 
-Do not add the built-in `@opencode/plugin` SDK to `opencode.dependencies`. Declare any new non-host runtime import with an exact version under the profile's `opencode.dependencies`, as required by `../../../AGENTS.md`.
+Declare any new non-host runtime import with an exact version in the plugin's own `package.json` and keep `opencode.dependencies` empty, as required by `../../../AGENTS.md`.
 
 ## Change map
 

@@ -188,8 +188,6 @@ mcp:
     agents: [opencode, claude-code, codex]
 opencode:
   global_instructions: true
-  dependencies:
-    "@opencode/client": "2.0.9"
   config:
     experimental:
       subagent_depth: 3
