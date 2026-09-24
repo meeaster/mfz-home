@@ -20,14 +20,23 @@ Use only when explicitly loaded. The human selects the mode; neither switch mode
 | Chief, `chief/split` | Keep high-level thinking and human decisions in this session. | Ask orchestrators for outcomes and evidence; keep a direct Scribe. | Keep human-facing and cross-workstream state at the root. |
 | Delegated orchestrator | Resolve operational choices; return consequential choices outside assigned authority. | Coordinate agents within the assigned scope. | Use the assigned `workstreams/<scope>/` workspace. Maintain its state directly. |
 
-- Read [Chief collaboration](references/chief-collaboration.md) when acting as Chief. The Chief does not need producer-routing and execution references unless deciding a concrete question about those contracts.
-- Read [Workspace and coordination](references/workspace-and-coordination.md) when substantive work begins or working records need maintenance.
-- Read [Recovery and continuity](references/recovery-and-continuity.md) after compaction or interruption, when resuming an effort, or before deciding whether to reuse a child for another assignment.
+## Load the role bundle
+
+After selecting the role, read every common reference and every reference listed for that role before coordinating work or dispatching a child. Finish all required reads; do not defer them until a later task triggers a topic. Independent reads may run together.
+
+| Bundle | Required references |
+| --- | --- |
+| Common: all roles | [Delegation and evidence](references/common/delegation-and-evidence.md), [Acceptance and review](references/common/acceptance-and-review.md), [Workspace and coordination](references/common/workspace-and-coordination.md), [Recovery and continuity](references/common/recovery-and-continuity.md), [Human-facing continuity](references/common/human-facing-continuity.md) |
+| Chief | [Collaboration and workstreams](references/chief/collaboration-and-workstreams.md) |
+| Direct or delegated orchestrator | [Routing and roles](references/orchestrator/routing-and-roles.md), [Design and prototypes](references/orchestrator/design-and-prototypes.md), [Execution and delivery](references/orchestrator/execution-and-delivery.md) |
+
+Reading a procedure does not require using it, expand authority, or change the selected role. Human-facing continuity applies to the Chief and direct orchestrator; delegated orchestrators maintain their own records without Scribe. The Chief needs orchestrator-specific references only when their exact contracts are the subject of a concrete question.
 
 ## Think with the human
 
-- Retain reasoning, advice, and consequential judgment in the human-facing session. Delegate source investigation: through orchestrators for the Chief, through evidence-gathering agents for a direct orchestrator. The Chief may make bounded documentation lookups under [Chief collaboration](references/chief-collaboration.md#quick-documentation-lookups).
+- Retain reasoning, advice, and consequential judgment in the human-facing session. Delegate source investigation: through orchestrators for the Chief, through evidence-gathering agents for a direct orchestrator. The Chief may make bounded documentation lookups under [Chief collaboration](references/chief/collaboration-and-workstreams.md#quick-documentation-lookups).
 - Directly read identified instruction, design, or prose artifacts whose wording or structure is under evaluation. Delegate discovery when their location is unknown. Implementation source code remains delegated, even for a single file.
+- Keep interactive instruction discussion and evaluation with the human-facing session under applicable authoring guidance. Small settled instruction edits may stay there. Use an authoring agent when the authorized outcome benefits from it or the human selects it; the Chief routes that request through its orchestrator.
 - Use the workspace and selected results rather than loading the entire source corpus. Explain material findings, tradeoffs, blockers, and uncertainty. Routine Scribe completion and record updates need no separate user-facing announcement.
 
 ## Authority and proportional work
@@ -47,13 +56,6 @@ An orchestrator selects the smallest coherent unit by outcome, dependencies, and
 
 - Human-facing sessions default to background dispatch when independent work or human dialogue can continue.
 - Delegated orchestrators use foreground subagent calls, never background subagent calls. Run independent calls concurrently when useful, and await their completion before evaluating results. Return the integrated outcome or a concrete blocker to the parent, rather than a status-only return that leaves required child work running.
-
-| Guidance | Read when |
-| --- | --- |
-| [Routing and roles](references/routing-and-roles.md) | Selecting evidence, implementation, operations, authoring, or diagnostic agents |
-| [Child contracts](references/child-contracts.md) | Dispatching or resuming producers, accepting results, or handling missing evidence and stops |
-| [Design, prototype, and review](references/design-prototype-and-review.md) | Assigning design advice, a prototype, or review |
-| [Mutation and delivery](references/mutation-and-delivery.md) | Preparing, implementing, verifying, integrating, or publishing changes |
 
 - Give each assignment enough purpose to understand how it fits. Supply a short explanation or selected `context.md` pointer, not both copies of the same background.
 - Require `orchestrator-task-evidence` for assigned evidence production, operational learnings, or selective reuse. Internal helpers do not inherit shared-file obligations without an explicit assignment.

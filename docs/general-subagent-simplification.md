@@ -117,7 +117,7 @@ Useful observations include unauthorized changes, omitted checks, scope adherenc
 - [Orchestrator architecture](orchestrator/architecture.md)
 - [Earlier author and operator workflow investigation](orchestrator-author-operator-workflow.md)
 - [Current agent definitions](../opencode/agents/)
-- [Orchestration routing and roles](../skills/active/orchestrator-mode/references/routing-and-roles.md)
-- [Orchestration mutation and delivery](../skills/active/orchestrator-mode/references/mutation-and-delivery.md)
+- [Orchestration routing and roles](../skills/active/orchestrator-mode/references/orchestrator/routing-and-roles.md)
+- [Orchestration mutation and delivery](../skills/active/orchestrator-mode/references/orchestrator/execution-and-delivery.md)
 
 Discussion provenance: OpenCode session `ses_f3489c3b8ffdVRl7UYqUB6VaHd`.

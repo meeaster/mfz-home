@@ -14,6 +14,14 @@
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
 - **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
 
+## Version and freshness
+
+- **Behavior:** Ground version-sensitive work on maintained libraries, frameworks, SDKs, CLIs, APIs, and services in current evidence rather than model knowledge of releases, availability, defaults, or limitations.
+- **Behavior:** For existing projects, establish the applicable dependency version, API version, release channel, or service compatibility settings from project evidence and use matching documentation.
+- **Behavior:** For new adoption, upgrades, or current-state questions, verify the latest stable release or current service behavior through official release notes, registry metadata, or authoritative documentation. Distinguish stable releases from previews; the newest release is not automatically the appropriate installation target.
+- **Behavior:** Check consequential version-sensitive claims against the applicable primary source. A search snippet, Context7 result, or unversioned page alone does not establish freshness.
+- **Behavior:** Reuse sufficiently current evidence within the assignment; recheck when the target changes, sources conflict, or freshness could materially change the decision.
+
 ## OpenCode background work
 
 - **Fact:** OpenCode background subagents notify the parent session when they finish. Ending the parent response does not cancel their work.
@@ -38,6 +46,12 @@ opencode api post /api/session/<sessionID>/compact --data '{}'
 - **Behavior:** For GitHub Actions, prefer mature current releases pinned to commit SHAs.
 - **Behavior:** Validate GitHub Actions with `actionlint` and `zizmor --min-severity high`.
 - **Tool:** Declare local or reusable action outputs in metadata and write step outputs to `$GITHUB_OUTPUT`.
+
+## Testing
+
+- **Behavior:** Tautological tests considered harmful.
+- **Behavior:** Change-detector tests considered harmful.
+- **Behavior:** Do not create regression tests for bug fixes without a genuine gap in behavior testing.
 
 ## JavaScript and TypeScript
 

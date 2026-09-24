@@ -1,8 +1,8 @@
-# Child contracts
+# Delegation and evidence
 
 ## Brief the assignment
 
-Give a fresh child what its own context does not supply. Describe outcomes and consequential constraints; prescribe mechanics when needed for correctness, repeatability, or an accepted choice. Point to owning procedures rather than repeating them, and use the [role capabilities](routing-and-roles.md#capability-aware-assignments) to keep the assignment executable. Detail should follow the task, not a word limit or mandatory template.
+Give a fresh child what its own context does not supply. Describe outcomes and consequential constraints; prescribe mechanics when needed for correctness, repeatability, or an accepted choice. Point to owning procedures rather than repeating them. Orchestrators use their role-capability guidance to keep producer assignments executable; the Chief briefs outcomes to orchestrators. Detail should follow the task, not a word limit or mandatory template.
 
 | Brief element | Include when applicable |
 | --- | --- |
@@ -16,7 +16,7 @@ Give a fresh child what its own context does not supply. Describe outcomes and c
 
 - Before reusing a child, apply [child continuity](recovery-and-continuity.md#choose-child-continuity). Another task in the same repository can be a distinct unit. For a resumed assignment, send the next objective, material delta, relevant readings, and changed authority or stops. Avoid replaying the original conversation.
 - Attribute choices to their actual owner. Distinguish explicit user approval, coordinator decisions within delegated authority, agent recommendations, and unresolved choices; a coordinator choice is not explicit user acceptance.
-- Follow [Scribe briefing](workspace-and-coordination.md#brief-scribe) for pointer briefs and explicit first-use versus incremental reads.
+- Follow [Scribe briefing](human-facing-continuity.md#brief-scribe) for pointer briefs and explicit first-use versus incremental reads.
 - Distinguish required skills from hints based on their descriptions. Require Task Evidence for assigned evidence, operational learnings, or reuse. If an evidence role cannot load required guidance, supply the necessary instructions in its brief.
 - Internal helpers return to their parent without inherited shared-file obligations. Session IDs do not substitute for useful accessible evidence.
 - Routine dispatch requires no additional prompting skill. Use `writing-for-agents` for actual instruction authoring and `artifact-context` for a durable artifact when reader or destination context materially changes its explanation.
@@ -49,25 +49,3 @@ When design, research, review, or planning output contains actionable detail for
 - Check materiality, scope, access, duplication, and overlap with active agents. Reuse existing evidence; parallelize independent requests and wait on dependencies.
 - Check results and normally resume the same valid engagement with the combined delta. Source facts do not settle design choices or expand authority.
 - At the depth limit, the dispatching coordinator owns additional gathering. The child returns the request instead of substituting unauthorized roles.
-
-## Mutation stop contract
-
-Include the applicable boundary in mutation briefs.
-
-| Owner | Continue | Stop and return |
-| --- | --- | --- |
-| Operator | Bounded corrections within a settled procedure while evidence narrows | The procedure no longer fits, attempts repeat, uncertainty stops shrinking, or novel troubleshooting or software behavior becomes the task |
-| Worker | Immediate in-unit investigation, distinct useful hypotheses, and bounded repairs | Open-ended or non-narrowing discovery, contradicted accepted assumptions, incompatible acceptance, multiple independent outcomes, or broader authority and evidence needs |
-
-- A focused lookup alone is not a stop. Compaction alone does not invalidate a coherent active assignment.
-- Repeated broad discovery or little validated progress can justify a proposed handoff. Compare remaining work with retained useful context; do not invent retry, turn, or compaction quotas. Apply [child continuity](recovery-and-continuity.md#choose-child-continuity) on the next dispatch.
-- On stop, preserve partial changes and return the accepted contract, exact state, symptom or decision, distinct attempts and results, hypotheses, verification, and smallest missing evidence or authority.
-- The child does not dispatch its own replacement, architect, or triage. Difficulty alone does not invalidate the design.
-
-## Diagnosis and remediation
-
-- Use [routing guidance](routing-and-roles.md#investigation-and-diagnosis) to choose the next owner. A new agent needs a better evidence basis or approach, not another copy of the failed assignment.
-- A settled procedural correction belongs to operator. Bounded diagnosis or novel troubleshooting belongs to worker within authority. Use authorized triage when its diagnostic value warrants it.
-- Require reproduction or falsification, impact, likely cause and confidence, contribution of existing changes, contradicted assumptions, remaining uncertainty, and whether repair fits the accepted contract.
-- Triage diagnoses without repairing or deciding architecture. A fresh worker can remediate within existing implementation authority; a cleanly stopped worker may resume when retained context helps.
-- Supply partial state, checked diagnosis, approaches not to repeat, required correction, and verification history. Return consequential design or requirement conflicts to the decision owner; ordinary implementation failures need no architect by default.

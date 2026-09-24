@@ -1,12 +1,12 @@
 # Acceptance and verification
 
-The [2026-09-22 redesign](redesign-2026-09-22.md#agent-vocabulary-authority-and-verification) supersedes earlier mandatory post-worker inspection and gateway assumptions below. This page preserves their rationale and evolution. The [current delivery contract](../../skills/active/orchestrator-mode/references/mutation-and-delivery.md#verify-the-outcome) uses proportionate verification and distinguishes it from review.
+The [2026-09-22 redesign](redesign-2026-09-22.md#agent-vocabulary-authority-and-verification) supersedes earlier mandatory post-worker inspection and gateway assumptions below. This page preserves their rationale and evolution. The [current delivery contract](../../skills/active/orchestrator-mode/references/common/acceptance-and-review.md#verify-the-outcome) uses proportionate verification and distinguishes it from review.
 
 Acceptance is the coordinator's judgment that the evidence supports the agreed outcome. Validation is the work that establishes that evidence. Independent inspection can improve confidence, but its value depends on what it adds beyond the producer's result.
 
 ## Current contract and historical baseline
 
-At baseline `fec8a524`, Orchestrator Mode required a fresh read-only inspector after every worker mutation unit. Operators owned immediate verification, with independent inspection added when useful. The current [acceptance contract](../../skills/active/orchestrator-mode/SKILL.md#accept-and-return) and [mutation reference](../../skills/active/orchestrator-mode/references/mutation-and-delivery.md) supersede that baseline.
+At baseline `fec8a524`, Orchestrator Mode required a fresh read-only inspector after every worker mutation unit. Operators owned immediate verification, with independent inspection added when useful. The current [acceptance contract](../../skills/active/orchestrator-mode/SKILL.md#accept-and-return) and [mutation reference](../../skills/active/orchestrator-mode/references/orchestrator/execution-and-delivery.md) supersede that baseline.
 
 The revised source contract replaces that unconditional worker gate with coordinator-owned, proportionate acceptance. Historical sessions must still be evaluated against their own loaded rules. Activation and behavioral observation are recorded separately from source implementation.
 
@@ -76,7 +76,7 @@ The same principle applies to test commands. Project guidance that names unit, i
 
 For example, a cross-cutting brief can require the aggregate for final coverage and focused checks during development. A narrow repair can reuse prior results for unaffected behavior while checking its regression and applicable final gate. Select by behavior, dependencies, and environment, not changed filenames alone. Existing preparation may already identify the test boundaries; another explorer is useful only for a material gap.
 
-Assess cumulative obligations across the brief, loaded skills, and acceptance stages. Explicit command lists can require redundant work even when each child follows instructions. When a controlling instruction genuinely requires separate stages, follow it or obtain an authorized, scoped exception before substitution. A child brief cannot silently waive it. Development Principles supplies engineering judgment; owning workflows and project policy supply execution requirements. The [mutation reference](../../skills/active/orchestrator-mode/references/mutation-and-delivery.md#verify-the-outcome) owns the portable selection rule.
+Assess cumulative obligations across the brief, loaded skills, and acceptance stages. Explicit command lists can require redundant work even when each child follows instructions. When a controlling instruction genuinely requires separate stages, follow it or obtain an authorized, scoped exception before substitution. A child brief cannot silently waive it. Development Principles supplies engineering judgment; owning workflows and project policy supply execution requirements. The [mutation reference](../../skills/active/orchestrator-mode/references/common/acceptance-and-review.md#verify-the-outcome) owns the portable selection rule.
 
 ## Side effects are part of the result
 

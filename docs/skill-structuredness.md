@@ -4,14 +4,14 @@ This note captures a working direction for skill authoring. Skills should use en
 
 ## Use a hybrid section pattern
 
-Each major section should explain its purpose before it states the rules. The opening prose gives the model and the human the section's context. The bullets make the behavior visible and reviewable.
+Add a short introduction when it explains purpose, scope, or a tradeoff that the heading and rules do not already make clear. The bullets make the behavior visible and reviewable.
 
-- Start the section with a short paragraph that names the behavior, scope, or decision the section controls.
-- Follow the paragraph with bullets that each express one action, rule, exception, boundary, or completion check.
+- Use introductory prose where it adds context rather than restating the heading or rules.
+- Use bullets that each express one action, rule, exception, boundary, or completion check.
 - Keep related bullets under the section that gives them meaning.
 - State the positive behavior first. Use a prohibition only when a positive rule cannot express the guardrail.
 - Put branch-specific detail behind a clear reference pointer instead of expanding every section.
-- End each ordered step with a condition that makes completion observable.
+- Make completion conditions explicit where they determine whether the agent should proceed, stop, or return.
 
 This pattern is different from both long undifferentiated prose and a list of context-free commands. The prose explains why the rules belong together. The bullets expose the individual behavior changes.
 
@@ -44,7 +44,7 @@ Human readability remains a separate claim. A structured skill may be easier to 
 
 The next orchestrator-mode revision should preserve its current topology, authority, work-cycle, branch-reference, acceptance, and boundary contracts while changing their presentation.
 
-- Give each major section a brief explanation of its purpose and the tradeoff it controls.
+- Explain a section's purpose or tradeoff when the heading and rules do not already make it clear.
 - Express dispatch rules, authority boundaries, acceptance rules, and completion conditions as behavior-bearing bullets.
 - Keep the topology table when the table is the clearest representation of the mode distinction.
 - Keep branch references behind their trigger conditions.

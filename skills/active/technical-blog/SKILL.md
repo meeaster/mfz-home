@@ -42,6 +42,8 @@ Each section should answer a question raised by the preceding explanation. Reuse
 
 ## Check and deliver
 
+For HTML articles or interactive artifacts, read [HTML presentation](references/html-presentation.md) before implementing the page. It covers explanatory animation, library-based syntax highlighting, and GitHub-style PR cards. Markdown uses language-tagged code fences and ordinary source links.
+
 - Check technical claims against the source, especially claims implied by silence, success, or an empty result. Describe test assertions separately from tests actually run.
 - Read for causal continuity: does each change answer an established need, and does each section advance the reader's understanding? Cut repeated conclusions and generic benefits.
 - Preserve intentional voice while removing filler and unsupported claims. Do not flatten the draft into reference documentation or force jokes into every section.

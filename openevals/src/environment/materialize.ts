@@ -66,7 +66,7 @@ function allowedOverride(path: string): boolean {
     path === "catalog/skills.yml" ||
     path === "opencode/commands/orchestrate.md" ||
     path === "skills/active/orchestrator-task-evidence/SKILL.md" ||
-    /^skills\/active\/orchestrator-mode\/(?:SKILL\.md|references\/[a-z-]+\.md)$/u.test(path);
+    /^skills\/active\/orchestrator-mode\/(?:SKILL\.md|references\/(?:(?:common|chief|orchestrator)\/)?[a-z-]+\.md)$/u.test(path);
 }
 
 async function applySourceOverrides(

@@ -21,7 +21,6 @@ The orchestrator chooses the smallest adequate role by outcome and evidence sour
 | Transcription | `scribe` | Human-facing session's assigned working records and continuity checks |
 
 - Apply the root authority policy. Evidence gathering is proactive. Delivery can authorize necessary design or review; exploratory conversation does not automatically authorize expensive consultations or authoring.
-- Keep interactive instruction discussion and evaluation with the human-facing session under applicable authoring guidance. Small settled instruction edits may stay there. Use an authoring agent when the authorized outcome benefits from it or the human selects it.
 - Directly read identified instruction, design, or prose artifacts whose actual content is under judgment. Delegate unknown-location discovery and implementation-source investigation, even for one code file.
 - For instruction refreshes, use operator for settled generation or copying, explore for static comparison, and inspect for command-derived facts. A generator failure does not automatically require an author.
 - Give each agent its applicable owning workflow. Distinguish required skill loads from suggested relevant skills. Preserve role and permission boundaries even when an agent could technically run another tool.
@@ -35,10 +34,21 @@ Use these role capabilities when briefing agents; routine dispatch does not requ
 | `explore` | File search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Evidence and edit explicitly assigned evidence under the external orchestration workspace, but cannot edit project source. |
 | `research` | Remote documentation and upstream-source retrieval, including shell-based source inspection within its research authority; assigned evidence writes. |
 | `inspect` | Shell, tools, and source reads for command-derived, runtime, external-system, and session facts; assigned evidence writes. Application changes remain with a mutation owner. |
-| `scribe` | `session_context`, file reads, and edits to assigned working records; no child delegation. Synchronization supplies its understanding rather than independent research. |
 
 - Give `explore` static questions without command prerequisites. Route Git status, executable checks, and other necessary command-derived facts to `inspect`; a static read-only lookup needs no Git-status gate.
 - If a tool rejects an assigned action, use the existing blocked-result contract. A briefing cannot expand permissions or authorize a workaround.
+
+## Assign review
+
+Apply the shared [review policy](../common/acceptance-and-review.md#independent-review).
+
+| Agent | Use when | Required guidance |
+| --- | --- | --- |
+| `reviewer` | Intent, design, changes, and validation history are known | `thermo-nuclear-code-quality-review` for code |
+| `pr-reviewer` | PR intent, approach, validation, or holistic merge readiness needs reconstruction | `pr-review` |
+
+- Supply accepted constraints, review scope, evidence, known gaps, and stop conditions.
+- Route missing facts through evidence gatherers, then resume the unconcluded review with the relevant results. The reviewer checks conclusions against the actual diff and constraints.
 
 ## Diagrams and HTML explanation pages
 
@@ -48,7 +58,7 @@ Use `artifact-author` for authorized creation or revision of reader-facing diagr
 - Require `diagram-design` unless the human selects another creation workflow, and retain `diagram-quality`. Other HTML explanations use applicable craft guidance. Visual Explainer remains explicit-selection only.
 - The author owns composition, static checks, visual judgment, and repairs. It dispatches only `inspect` for routine rendered validation. If depth or permissions prevent that child, return the bounded inspection brief to the coordinator.
 - The inspector receives the exact revision, intended behavior, affected views and sizes, valid prior checks, and missing coverage. It returns selected screenshots, concrete findings, and scoped DOM measurements when useful.
-- Follow the [screenshot contract](child-contracts.md#screenshot-evidence). The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.
+- Follow the [screenshot contract](../common/delegation-and-evidence.md#screenshot-evidence). The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.
 - Reuse unaffected checks and report unsatisfied mandatory craft checks. Static edits do not establish rendered acceptance; a passing inspection proves only the exercised conditions.
 
 ## Investigation and diagnosis
@@ -60,6 +70,7 @@ Use `artifact-author` for authorized creation or revision of reader-facing diagr
 
 ## External research
 
+- Brief the question, decision context, applicable versions or compatibility settings, and needed coverage. Let the research agent apply its complementary-source procedure rather than limiting substantive research to one documentation tool.
 - Supply known canonical sources and exact version needs. Follow workspace reference guidance and use suitable existing clones or permitted remote retrieval. A disposable clone is useful for tree search, history, cross-file relationships, or exact-source reuse; GitHub hosting alone is insufficient.
 - Pin version-sensitive findings to the inspected revision. Use the environment's approved temporary research location.
 - Research authority does not grant private access, authoritative-source edits, credential inspection, broad cleanup, publication, or external mutation.

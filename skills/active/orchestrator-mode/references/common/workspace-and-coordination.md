@@ -34,22 +34,7 @@ Create files when needed. Keep a useful working record rather than duplicate log
 - Give substantial producers unique evidence paths and optional learnings paths per assignment. A trivial lookup or bounded continuity check can return directly without a file.
 - Require Task Evidence for assigned production or reuse. Internal helpers return to their parent unless separately assigned shared outputs; the parent preserves useful attributed results.
 - Producers own their outputs. If a write is blocked, obtain attributed file-ready content and assign a permitted fallback owner. Never bypass a permission denial.
-- Only the human-facing session uses Scribe. It owns decisions and assigns Scribe transcription of its working files. Delegated orchestrators maintain their own state directly.
-- Use one Scribe writer at a time. Keep its session ID and last usable cursor as recovery information in coordination state. Do not make every dispatch wait for a Scribe round trip.
-- Batch related Scribe updates when no dependent action needs the records sooner.
-
-## Brief Scribe
-
-Name the human-facing session ID, owned workspace or files, authority, and any particular focus or correction. Scribe synchronizes through `session_context` on every dispatch before updating records. Keep the brief short rather than preparing a parallel summary of the parent's conversation.
-
-| Dispatch | Explicit instruction |
-| --- | --- |
-| New Scribe | Read the named session without `sinceMarker`, following all chunks. |
-| Reused Scribe | Continue from your last successfully read marker; retain the last usable marker on an empty delta. |
-| A narrow record update | Synchronize first, then apply the requested focus using the parent's established meaning. |
-| Parent compaction | Follow [Recovery and continuity](recovery-and-continuity.md#after-parent-compaction) before rotating Scribe. |
-
-Scribe records established meaning and its decision owner. It does not resolve design choices or create synthesis without authorization. Read destination files as needed for accurate edits. Read an identified evidence file only when exact content needed for the update is absent from the filtered session context; routine synchronization is not another research pass. If context retrieval is unavailable, report the gap rather than reconstructing the conversation from neighboring efforts.
+- Apply [human-facing continuity](human-facing-continuity.md) for Scribe ownership and synchronization. Delegated orchestrators maintain their own state directly.
 
 ## Route reusable knowledge
 
@@ -62,7 +47,7 @@ Scribe records established meaning and its decision owner. It does not resolve d
 
 - Assign an exact owner and path when retaining extracted material. Preserve supplied content and format where practical; keep interpretation outside the capture.
 - Record origin, extraction time, and material omissions or transformations in the existing evidence note or index. Label partial captures and preserve earlier versions when needed.
-- Apply the [screenshot contract](child-contracts.md#screenshot-evidence) to selected images. Storage alone proves neither accuracy nor acceptance.
+- Apply the [screenshot contract](delegation-and-evidence.md#screenshot-evidence) to selected images. Storage alone proves neither accuracy nor acceptance.
 
 ## Requested synthesis
 

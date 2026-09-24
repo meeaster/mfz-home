@@ -55,9 +55,25 @@ export async function checkEnvironmentContract(root: string): Promise<Environmen
   const config = configSchema.parse(JSON.parse(await readFile(resolve(root, "opencode.json"), "utf8")));
 
   includesEvery(manifest.components.instructions, ["AGENTS.md"], "instruction", errors);
+
+  const roleBundles = manifest.components.skills.includes(
+    "skills/orchestrator-mode/references/common/delegation-and-evidence.md",
+  );
+
   includesEvery(
     manifest.components.skills,
-    [
+    roleBundles ? [
+      "skills/orchestrator-mode/SKILL.md",
+      "skills/orchestrator-mode/references/common/delegation-and-evidence.md",
+      "skills/orchestrator-mode/references/common/acceptance-and-review.md",
+      "skills/orchestrator-mode/references/common/recovery-and-continuity.md",
+      "skills/orchestrator-mode/references/common/workspace-and-coordination.md",
+      "skills/orchestrator-mode/references/common/human-facing-continuity.md",
+      "skills/orchestrator-mode/references/chief/collaboration-and-workstreams.md",
+      "skills/orchestrator-mode/references/orchestrator/routing-and-roles.md",
+      "skills/orchestrator-mode/references/orchestrator/design-and-prototypes.md",
+      "skills/orchestrator-mode/references/orchestrator/execution-and-delivery.md",
+    ] : [
       "skills/orchestrator-mode/SKILL.md",
       "skills/orchestrator-mode/references/child-contracts.md",
       "skills/orchestrator-mode/references/routing-and-roles.md",

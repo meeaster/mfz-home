@@ -8,25 +8,12 @@
 - An interrupted response is not compaction. Reconcile pending work and known effects before retrying a side effect; a missing return does not establish that nothing happened.
 - Retain accepted requests and waivers while their basis remains stable. Return an exact blocker when current context or state cannot support continuation.
 
-## After parent compaction
-
-Initiate a bounded background continuity check after each recognized completed compaction, even when no omission is apparent. This skill-level instruction is not a guaranteed event callback. Never initiate compaction without an explicit human request.
-
-1. Identify the old Scribe and its last successfully read marker. Ask it to finish its assigned continuity work before transferring write ownership.
-2. Require `session_context` on the human-facing session with `previousCompaction: true`, starting from its retained marker and following chunks. If it has lost the cursor or prior context, read the selected previous window in full. Then read current active context and compare it with the workspace.
-3. Request only material additions or corrections: user requirements, decision status, consequential rationale, unfinished commitments, active work, unresolved questions, and useful locators. No material additions is a valid result. Update working records within the assignment; do not create synthesis or a separate recovery report without a request.
-4. Incorporate the result before a new consequential dispatch, implementation decision, or final completion claim. Conversation and independent evidence gathering can continue; already-authorized work in flight can continue.
-5. After outstanding writes finish, retire the old Scribe's write ownership and start a new Scribe. Supply current workspace paths and a markerless read of the parent's active context. Preserve the former session ID for reference.
-
-- If the old Scribe is unavailable or cannot complete the check, assign a fresh `inspect` agent the named-session continuity check and a direct return. Arrange any record updates with a single permitted writer.
-- The tool's marker-mismatch notice already accompanies a full selected-window response. Do not reread it again. No previous window is an explicit limitation, not a reason to substitute current context or claim full recovery.
-- A second compaction during recovery may change which window the boolean selects. Report the changed boundary and obtain bounded historical retrieval through `agent-sessions` if needed; do not claim the original segment was recovered.
-- Parent compaction preserves the parent session ID, but a genuinely new parent cannot ordinarily resume a former parent's child. Use available records and a fresh owner in that case.
+Never initiate compaction without an explicit human request. Human-facing sessions apply the [post-compaction continuity procedure](human-facing-continuity.md#after-parent-compaction).
 
 ## Other historical recovery
 
 - Use bounded `inspect` retrieval when explicitly requested or when a consequential historical gap requires authorized recovery. Name the needed fact, relevant sessions or segment, and the decision it informs.
-- The automatic post-compaction check above is its own bounded authorization. It does not authorize unrelated session archaeology or a general historical recap.
+- The automatic human-facing post-compaction check is its own bounded authorization. It does not authorize unrelated session archaeology or a general historical recap.
 - A delegated orchestrator uses its assigned workstream and context. It does not pull the human-facing session unless explicitly assigned a named-session read.
 - Use `session-analyst` for authorized evaluative analysis, rather than factual reconstruction. Durable knowledge and synthesis retain their separate request boundaries.
 
@@ -38,13 +25,13 @@ The retained human-selected cost limit still applies: do not resume `artifact-au
 
 | Role | Continuity preference |
 | --- | --- |
-| `orchestrator` | Reuse within a coherent workstream, with one active execution. Follow [Chief workstream guidance](chief-collaboration.md#own-workstreams) for related follow-ups and approval of additional orchestrators. Replace stale or looping context with a workspace-backed handoff. |
+| `orchestrator` | Reuse within a coherent workstream, with one active execution. The Chief applies its workstream guidance for related follow-ups and approval of additional orchestrators. Replace stale or looping context with a workspace-backed handoff. |
 | `scribe` | Reuse with incremental pulls until parent compaction, then complete the continuity check and rotate. |
 | `explore`, `research`, `inspect` | Fresh for a new bounded unit. Resume an unresolved investigation when retained state helps and independence is not needed. Shared repository or topic alone is insufficient. |
 | `architect`, `ui-ux-designer` | Resume the same decision and system boundary for corrections or new evidence. Start fresh for a distinct decision or authorized independent opinion. |
 | `worker`, `operator`, `agent-author`, `prototype` | Fresh for a distinct unit, including a separate feature after acceptance. Immediate repairs or continuation after a clean stop may reuse useful context within the same objective, authority, and safe state. |
 | `artifact-author` | Continue a useful unresolved revision below the hard limit. After a validated revision, prefer fresh context around 100,000 request-input tokens when the artifact and handoff preserve understanding. This is a soft role-specific preference. |
-| `reviewer`, `pr-reviewer` | Fresh initial independent judgment. Resume missing evidence or adjudication within an unconcluded review, or a warranted focused repair check under the [review guidance](design-prototype-and-review.md#independent-review). Use a fresh reviewer for a fresh independent judgment. Repairs have another owner. |
+| `reviewer`, `pr-reviewer` | Fresh initial independent judgment. Resume missing evidence or adjudication within an unconcluded review, or a warranted focused repair check under the [review guidance](acceptance-and-review.md#independent-review). Use a fresh reviewer for a fresh independent judgment. Repairs have another owner. |
 | `triage` | Fresh for a looping mutation blocker; resume within the same authorized incident as evidence develops. |
 
 - Preserve current artifacts, accepted decisions, relevant evidence, exact remaining work, and safely retained state in a fresh handoff. Report material gaps instead of resuming past the hard limit.

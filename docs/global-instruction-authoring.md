@@ -43,6 +43,7 @@ For writing rules, make the output explicit. A preference for replies to the use
 - Remove repetition before shortening individual sentences.
 - Keep each rule understandable without requiring the reader to reconstruct omitted context.
 - Give every bullet a concrete purpose: supply a needed fact, change a decision, select a tool, define a constraint, or shape an output.
+- Evaluate an instruction by the work it causes or prevents across a completed task. Consider additional reads, skill loads, delegation, verification, and repair alongside its length.
 
 Concise bullets are an authoring preference for human inspection. They are not established proof of better model performance. A short rule with several hidden obligations can be harder to evaluate than separate explicit bullets.
 
@@ -53,6 +54,7 @@ Concise bullets are an authoring preference for human inspection. They are not e
 - Question generic advice that may already be supplied by the model's harness, tool instructions, or a relevant skill.
 - Reconsider work methods, delegation rules, and writing prescriptions when model behavior changes.
 - Judge placement by useful context and readability, not by whether every instruction applies to every task.
+- When moving guidance behind a pointer, make the loading condition recognizable before the agent needs the omitted information. Check for missed and unnecessary loads.
 
 A short specialized rule can belong inline. The GitHub Actions guidance was retained because a pointer and separate document would add little benefit. Progressive disclosure is useful when it removes substantial branch-specific detail; it is not a requirement to move every specialized instruction out of the global file.
 
@@ -84,9 +86,11 @@ During this reset, `session-brief` and `session-derived-knowledge` were disabled
 ## Observe and evaluate
 
 - Distinguish source inspection, user preference, hypotheses, and observed results.
+- In supporting records, distinguish deliberate preferences, workflow requirements, and corrections for observed failures. For failure-specific rules, record the supporting evidence and changes that would justify reconsideration.
 - Use normal work to identify behaviors worth correcting.
 - Restore or add the smallest instruction that addresses an observed problem.
 - For future OpenEvals comparisons, hold the model, harness, task, tools, and permissions consistent where practical.
+- For efficiency comparisons, measure billing-weighted cost across the completed task, including child agents and corrective work. Evaluate completion quality and human intervention alongside cost.
 - Judge artifacts and observable actions, including whether differences materially affect the outcome.
 - Include human judgment for preferred writing and interaction style.
 - Record the instruction revision and relevant environment for each comparison.
