@@ -178,8 +178,6 @@ mcp:
     agents: [opencode]
   context7:
     agents: [opencode, claude-code, codex]
-  deepwiki:
-    agents: [opencode, claude-code, codex]
   openai-docs:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
