@@ -17,6 +17,7 @@
 ## Diagrams
 
 - **Behavior:** When using `diagram-design` to create or revise a diagram, inspect screenshots of the rendered result at its intended display sizes, checking both the whole diagram and native-size detail against the skill’s applicable design rules. Repair observed defects and recheck affected views. Report what was inspected and any checks that remain unverified.
+- **Behavior:** When inspecting `diagram-design` output, trace each connector from source to destination. Confirm its endpoints align with the intended element boundaries, arrowheads visibly join the line and meet the intended target, and the route has no unintended overlaps with elements, labels, or other connectors.
 
 ## Version and freshness
 
