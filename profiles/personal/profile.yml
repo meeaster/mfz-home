@@ -85,11 +85,15 @@ mcp:
     agents: [opencode]
   pencil:
     agents: [opencode, claude-code, codex]
+  cairn:
+    agents: [opencode]
 claude:
   settings:
     permissions:
       defaultMode: auto
 opencode:
+  plugins:
+    - cairn
   config:
     agents:
       compaction:
