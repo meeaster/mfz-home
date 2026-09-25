@@ -1,0 +1,13 @@
+# Skills and agents every rendered environment must contain; the contract check
+# and `--no-extra-skills` both derive from this list.
+skills:
+  - orchestration
+  - task-output
+  - effort-context
+  - evidence-gathering
+  - design-partner
+  - orchestrate
+  - orchestrate-chief
+agents:
+  - orchestrator
+  - scribe

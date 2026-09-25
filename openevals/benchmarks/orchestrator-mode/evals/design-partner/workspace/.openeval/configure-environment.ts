@@ -19,7 +19,12 @@ type JsonValue =
 /** Model overrides keyed by agent name; each value is a `provider/model#variant` ref. */
 type AgentModels = { [agent: string]: string };
 
-const configRoot = join(homedir(), ".config", "opencode");
+const home = homedir();
+
+const configRoot = join(home, ".config", "opencode");
+
+/** The rendered profile, installed where the live setup keeps it. */
+const profile = join(home, ".mindframe-z", "configs", "openeval");
 
 const workspace = process.cwd();
 
@@ -44,15 +49,15 @@ const overridesPath = join(workspace, ".openeval", "agent-models.json");
 const builtinAgents: ReadonlySet<string> = new Set(["explore"]);
 
 if (!existsSync(join(environment, "manifest.json")))
-  throw new Error("No rendered environment: run `bun src/environment-cli.ts stage <profile>` on the host first");
+  throw new Error("No rendered environment: run `bun src/environment-cli.ts stage` on the host first");
 
 /**
- * OpenCode writes `opencode.json` before preparation; the materializer writes the
- * rendered environment. Both are JSON objects.
+ * OpenEval writes `opencode.json` before preparation; mfz renders `opencode.jsonc`.
+ * Both are JSON objects, and the rendered one may carry comments.
  */
 async function readObject(path: string): Promise<Record<string, JsonValue>> {
-  // SAFETY: Both documents are JSON objects produced by the evaluator or materializer.
-  return JSON.parse(await readFile(path, "utf8")) as Record<string, JsonValue>;
+  // SAFETY: Both documents are JSON objects produced by the evaluator or the renderer.
+  return Bun.JSONC.parse(await readFile(path, "utf8")) as Record<string, JsonValue>;
 }
 
 /**
@@ -73,7 +78,7 @@ async function writeAgentOverrides(): Promise<void> {
   const agents: Record<string, { model: string }> = {};
 
   for (const [name, model] of Object.entries(overrides)) {
-    const defined = existsSync(join(environment, "agents", `${name}.md`));
+    const defined = existsSync(join(profile, "opencode", "agents", `${name}.md`));
 
     if (defined || builtinAgents.has(name)) agents[name] = { model };
   }
@@ -98,39 +103,32 @@ async function writeAgentOverrides(): Promise<void> {
   await writeFile(projectConfig, contents, "utf8");
 }
 
+await cp(join(environment, "mindframe-z"), join(home, ".mindframe-z"), { recursive: true });
+
 await mkdir(configRoot, { recursive: true });
 
-for (const file of ["AGENTS.md", "references.md"])
-  await cp(join(environment, file), join(configRoot, file));
+// The live setup links these from `~/.config/opencode` into the rendered profile.
+if (existsSync(join(profile, "AGENTS.md"))) await cp(join(profile, "AGENTS.md"), join(configRoot, "AGENTS.md"));
 
-for (const directory of ["skills", "commands", "agents"]) {
-  const rendered = join(environment, directory);
+for (const directory of ["agents", "commands"]) {
+  const source = join(profile, "opencode", directory);
 
-  if (existsSync(rendered)) await cp(rendered, join(configRoot, directory), { recursive: true });
+  if (existsSync(source)) await cp(source, join(configRoot, directory), { recursive: true });
 }
 
 const generated = await readObject(join(configRoot, "opencode.json"));
 
-const rendered = await readObject(join(environment, "opencode.json"));
+const rendered = await readObject(join(profile, "opencode", "opencode.jsonc"));
 
-// SAFETY: The materializer renders `instructions` and `skills` as string arrays.
-const instructions = rendered.instructions as string[];
-
-// SAFETY: The materializer renders `skills` as a string array of skill directories.
-const skills = rendered.skills as string[];
-
-const merged = {
-  ...generated,
-  instructions,
-  skills,
-  mcp: rendered.mcp,
-};
+// The rendered permissions replace OpenEval's allow-all rule; OpenEval keeps its plugins and websearch setting.
+const merged = { ...generated, ...rendered, plugins: generated.plugins, websearch: generated.websearch };
 
 const contents = `${JSON.stringify(merged, null, 2)}\n`;
 
-await writeFile(join(configRoot, "opencode.json"), contents, "utf8");
-
+// OpenCode loads `opencode.json` and `opencode.jsonc` as separate layers; the live setup has only the rendered `opencode.jsonc`.
 await writeFile(join(configRoot, "opencode.jsonc"), contents, "utf8");
+
+await rm(join(configRoot, "opencode.json"));
 
 await writeAgentOverrides();
 

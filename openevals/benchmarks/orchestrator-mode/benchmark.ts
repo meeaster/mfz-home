@@ -17,5 +17,5 @@ export default {
   repetitions: 1,
   concurrency: 5,
   candidate: { websearch: false },
-  container: { engine: "docker", cpus: 2, memoryMiB: 4096 },
+  container: { engine: "docker", cpus: 2, memoryMiB: 4096, dockerfile: "container/Dockerfile" },
 } satisfies Benchmark;

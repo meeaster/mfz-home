@@ -22,7 +22,7 @@ test("standalone selection passes the archive facts", () => {
 });
 
 test("any orchestration or evidence-production skill load fails even when design also loaded", () => {
-  for (const id of ["orchestrate", "orchestrate-chief", "orchestration", "task-evidence"]) {
+  for (const id of ["orchestrate", "orchestrate-chief", "orchestration", "task-output"]) {
     const orchestration = { ...design, id: `call_${id}`, input: { id } };
 
     const result = gradeDesignFacts({ tools: [design, orchestration], sessions: [{ id: "ses_root" }], initial: [], final: [] });

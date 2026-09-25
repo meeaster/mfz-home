@@ -1,23 +1,25 @@
 # mfz-home OpenEvals
 
-OpenEval benchmarks for the modular orchestration skills in this home. Each eval runs in one of two environments rendered from `mfz-home` source by the real `mfz` renderer:
+OpenEval benchmarks for the modular orchestration skills in this home. Each eval runs in one environment rendered from `mfz-home` source by the real `mfz` renderer, installed at the candidate's `~/.mindframe-z` the way the live setup uses it:
 
-- **`minimal`**: the shared instructions, the seven orchestration skills, and the `orchestrator`, `scribe`, and `explore` agents.
-- **`personal`**: the live base and Personal profiles with private instructions, private skills, references, extra folders, MCP servers, and plugins removed. It carries the full skill set and agent roster.
+- every OpenCode agent from the base and Personal profiles, with its live permissions and `subagent_depth`;
+- every skill the live profiles enable for OpenCode, including private ones;
+- the global instructions, their on-demand instruction references, capability groups, extra folders, and four small reference checkouts (openevals, openspec, opencode-plugins, mattpocock-skills) at their catalog revisions;
+- the documentation MCP servers that need no credential (openai-docs, aws-knowledge, cloudflare-docs, x-docs).
 
-Neither environment reads live host state. The rendered permissions deny every action except reading, and no MCP server is configured.
+Two flags remove parts of it: `--no-instructions` drops the global instructions with their pointers and references, and `--no-extra-skills` keeps only the required orchestration skills listed in `overlays/required.yml`. Plugins, other MCP servers, and model pins are never rendered; the presets set models. The candidate container is the isolation boundary: it holds no credentials or host mounts, and pointers to host paths resolve to nothing there.
 
 ## Run a benchmark
 
 ```sh
 pnpm install
 bun src/select-preset.ts gpt6                      # or glm; see benchmarks/orchestrator-mode/presets.json
-bun src/environment-cli.ts stage minimal --working-tree
+bun src/environment-cli.ts stage --working-tree       # add --no-instructions or --no-extra-skills
 bunx --bun @hona/openeval plan --benchmark ./benchmarks/orchestrator-mode
 bunx --bun @hona/openeval run  --benchmark ./benchmarks/orchestrator-mode
 ```
 
-`--working-tree` renders uncommitted orchestration changes over `HEAD`. Drop it once those changes are committed. Stage `personal` and run again for the second environment. Compare scores within one environment and one preset only: the environment and the judge model both change what is measured.
+`--working-tree` renders uncommitted instruction, catalog, profile, agent, and skill changes over `HEAD`. Drop it once those changes are committed. Each flag combination is a separate condition: stage it and run again, and compare scores within one combination and one preset only, since the environment and the judge model both change what is measured.
 
 ## Evals
 
@@ -34,7 +36,7 @@ Each eval pairs a code judge (archive facts: workflow entry, skill loads outside
 
 ```text
 benchmarks/orchestrator-mode/   benchmark.ts, presets.json, evals/, calibration/
-overlays/minimal/profile.yml    required skills and agents for every environment
+overlays/required.yml           required skills and agents for every environment
 src/environment/                render, contract check, and staging
 src/candidate/                  preparation script copied into every eval fixture
 src/judging/facts.ts            archive facts shared by the code judges

@@ -8,11 +8,12 @@ Discover current commands, environments, presets, and evals from the package scr
 
 The configuration an eval runs under is an input to control, not background.
 
-- **Rendered, not copied.** Environments are built from home source by the real renderer, then checked and digested into a manifest. Change the source or the environment definition and render again; never edit rendered configuration.
-- **Two fidelity levels.** A minimal environment holds only what the behavior under test needs, so a failure points at that guidance. A live-derived environment mirrors the real setup minus everything that reaches private or live state, so a result reflects real conditions. Declare the required components once; the other environment and the checks derive from that declaration.
-- **Sanitized by construction.** The candidate must never reach credentials, private knowledge, host paths, MCP servers, or live services. A private-marker or host-path failure in the contract check is a finding about the rendering: fix the rendering or the exclusion, never the check.
+- **Rendered, not copied.** The environment is built from home source by the real renderer, then checked and digested into a manifest. Change the source or the environment definition and render again; never edit rendered configuration.
+- **Mirror the live setup.** Agents keep their live permissions, and every rendered path resolves where the live setup has it. Flags remove the global instructions or the skills beyond the required set; the required skills and agents are declared once, and the contract check and the flags derive from that declaration.
+- **The container is the isolation boundary.** The candidate must never reach credentials, host mounts, or MCP servers other than credential-free documentation servers. A contract failure is a finding about the rendering: fix the rendering or the exclusion, never the check.
 - **Uncommitted guidance is an input.** When evaluating guidance that is not yet committed, capture it explicitly over the commit; the manifest's commit plus captured changes is the reproducible setup.
-- **Separate conditions.** Environments differ in what the candidate is told. Run and report each separately, alongside the preset, and never pool their scores.
+- **Tools the rendered skills invoke match live.** The benchmark's `container/` image installs, through mise at the versions live resolves, only the tools the OpenEval runtime lacks or has too old for the rendered skills; rebuild with `image` after changing it.
+- **Separate conditions.** Flag combinations differ in what the candidate is told. Run and report each separately, alongside the preset, and never pool their scores.
 
 ## Staging and preparation
 
@@ -25,6 +26,8 @@ OpenEval copies only an eval's own fixture into the container, so everything can
 - **Render and stage before planning.** A plan against a stale staged environment reports the wrong inputs.
 
 ## Validating a change
+
+Fix an observed behavior problem test-first. Before changing guidance, write or extend an eval that captures the problem and confirm it fails on the current guidance; rejudging an existing recording counts when it shows the behavior. Then change the guidance and rerun, revising until the eval passes.
 
 When validating a change to guidance, prompts, or judges, run one repetition of the affected eval first. If it fails, diagnose from its recording before running again. If it passes, run three more to confirm it holds. Keep the benchmark's default at one repetition and raise it only for that confirmation run.
 

@@ -325,7 +325,7 @@ packages:
       graphql: ^0.8.0 || ^0.9.0 || ^0.10.0 || ^0.11.0 || ^0.12.0 || ^0.13.0 || ^14.0.0 || ^15.0.0 || ^16.0.0 || ^17.0.0
 
   '@hona/openeval@file:artifacts/hona-openeval-0.4.0.tgz':
-    resolution: {integrity: sha512-z06zC8mJZ02iUoCNpOfW4fYX2hVHEf/Us6H9L4kdeIGinWqJH+9Gc4N3xc/DlThn9qT1IJtgJSTAZQhuMC0UWA==, tarball: file:artifacts/hona-openeval-0.4.0.tgz}
+    resolution: {integrity: sha512-SACRgnZqtDJJgzWsBZeIUTolhXEO68XwCggqdSLHXzwO4Ex0wJKPE72fa8+zOggoDzqfgS4usxRArccEkaJNzA==, tarball: file:artifacts/hona-openeval-0.4.0.tgz}
     version: 0.4.0
     engines: {bun: '>=1.4.2'}
     hasBin: true

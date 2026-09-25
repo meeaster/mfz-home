@@ -4,8 +4,10 @@ import {
   attemptedTools,
   changedPaths,
   dispatchTools,
+  dispatchesWithoutFile,
   loadedRoleProcedures,
   loadedSkills,
+  returnedFilesUnread,
   sessionSkills,
   skillsOutsideRole,
   subagentTargets,
@@ -43,20 +45,20 @@ test("sessionSkills attributes loads in child sessions to children and all other
   const skills = sessionSkills({
     tools: [
       { ...tool("skill", { id: "orchestrate" }), sessionID: "ses_root" },
-      { ...tool("skill", { id: "task-evidence" }), sessionID: "ses_child" },
+      { ...tool("skill", { id: "task-output" }), sessionID: "ses_child" },
       tool("skill", { id: "orchestration" }),
     ],
     sessions: [{ id: "ses_root" }, { id: "ses_child", parentID: "ses_root" }],
   });
 
-  expect(skills).toEqual({ root: ["orchestrate", "orchestration"], children: ["task-evidence"] });
+  expect(skills).toEqual({ root: ["orchestrate", "orchestration"], children: ["task-output"] });
 });
 
 test("skillsOutsideRole lists each out-of-role skill once in first-load order", () => {
   const role = new Set(["orchestrate", "orchestration"]);
 
-  expect(skillsOutsideRole(["orchestrate", "task-evidence", "design-partner", "task-evidence"], role)).toEqual([
-    "task-evidence",
+  expect(skillsOutsideRole(["orchestrate", "task-output", "design-partner", "task-output"], role)).toEqual([
+    "task-output",
     "design-partner",
   ]);
 });
@@ -94,4 +96,116 @@ test("changedPaths ignores VCS metadata and dependency directories", () => {
   );
 
   expect(changed).toEqual([]);
+});
+
+test("dispatchesWithoutFile requires a file from each directly dispatched session, not from nested helpers", () => {
+  const sessions = [
+    { id: "ses_root" },
+    { id: "ses_worker", parentID: "ses_root" },
+    { id: "ses_explore", parentID: "ses_root" },
+    { id: "ses_helper", parentID: "ses_worker" },
+  ];
+
+  const workspace = "/orchestrator-workspaces/";
+
+  const patch = (sessionID: string, header: string): ToolCall => ({
+    ...tool("patch", { patchText: `*** Begin Patch\n${header}\n+x\n*** End Patch` }),
+    sessionID,
+  });
+
+  const written = [
+    patch("ses_worker", "*** Update File: /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md"),
+    { ...tool("write", { filePath: "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/x.md" }, "failed"), sessionID: "ses_explore" },
+    { ...tool("edit", { filePath: "/workspace/src/a.ts" }), sessionID: "ses_explore" },
+  ];
+
+  expect(dispatchesWithoutFile({ tools: written, sessions }, workspace)).toEqual(["ses_explore"]);
+
+  const both = [...written, patch("ses_explore", "*** Add File: /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/q.md")];
+
+  expect(dispatchesWithoutFile({ tools: both, sessions }, workspace)).toEqual([]);
+});
+
+test("returnedFilesUnread requires the root to read each returned file whole after its last write", () => {
+  const sessions = [
+    { id: "ses_root" },
+    { id: "ses_worker", parentID: "ses_root" },
+    { id: "ses_explore", parentID: "ses_root" },
+    { id: "ses_helper", parentID: "ses_worker" },
+  ];
+
+  const result = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md";
+
+  const learnings = "/home/dev/workspace/scratch/orchestrator-workspaces/e/learnings/fix.md";
+
+  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+
+  const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
+
+  const tools = [
+    at("ses_worker", tool("write", { filePath: result })),
+    at("ses_worker", tool("write", { filePath: learnings })),
+    at("ses_explore", tool("write", { filePath: evidence })),
+    at("ses_helper", tool("write", { filePath: "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/helper.md" })),
+    at("ses_worker", tool("write", { filePath: "/workspace/src/accept-release.ts" })),
+    at("ses_root", tool("read", { path: result })),
+    at("ses_root", tool("bash", { command: `cat ${learnings}` })),
+    at("ses_root", tool("read", { path: evidence, offset: 40, limit: 20 })),
+  ];
+
+  expect(returnedFilesUnread({ tools, sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+});
+
+test("returnedFilesUnread accepts a windowed read of a follow-up after an earlier whole read", () => {
+  const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
+
+  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+
+  const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
+
+  const firstWrite = at("ses_explore", tool("write", { filePath: evidence }));
+
+  const followUp = at("ses_explore", tool("edit", { filePath: evidence }));
+
+  const addition = at("ses_root", tool("read", { path: evidence, offset: 350 }));
+
+  const whole = at("ses_root", tool("read", { path: evidence }));
+
+  expect(returnedFilesUnread({ tools: [firstWrite, whole, followUp, addition], sessions }, "/orchestrator-workspaces/")).toEqual([]);
+  expect(returnedFilesUnread({ tools: [firstWrite, followUp, addition], sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+});
+
+test("returnedFilesUnread counts only reads by the root after the file's last write", () => {
+  const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
+
+  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+
+  const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
+
+  const tools = [
+    at("ses_explore", tool("write", { filePath: evidence })),
+    at("ses_root", tool("read", { path: evidence })),
+    at("ses_explore", tool("edit", { filePath: evidence })),
+    at("ses_explore", tool("read", { path: evidence })),
+  ];
+
+  expect(returnedFilesUnread({ tools, sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+});
+
+test("shell redirects count as writes, and a redirect into a file is not a read of it", () => {
+  const sessions = [{ id: "ses_root" }, { id: "ses_worker", parentID: "ses_root" }];
+
+  const result = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md";
+
+  const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
+
+  const heredoc = at("ses_worker", tool("bash", { command: `mkdir -p /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence && cat > ${result} <<'MD'\n# Fix\nMD` }));
+
+  expect(dispatchesWithoutFile({ tools: [heredoc], sessions }, "/orchestrator-workspaces/")).toEqual([]);
+
+  const overwrite = at("ses_root", tool("bash", { command: `cat > ${result} <<'MD'\nMD` }));
+
+  expect(returnedFilesUnread({ tools: [heredoc, overwrite], sessions }, "/orchestrator-workspaces/")).toEqual([result]);
+
+  expect(returnedFilesUnread({ tools: [heredoc, at("ses_root", tool("bash", { command: `cat ${result}` }))], sessions }, "/orchestrator-workspaces/")).toEqual([]);
 });

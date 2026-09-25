@@ -1,19 +1,26 @@
-import { cp, mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { z } from "zod";
-import { digestEnvironmentFiles, manifestJson, sha256, type EnvironmentManifest } from "./manifest.js";
-import { writeProfile, type EnvironmentName } from "./profiles.js";
+import {
+  digestEnvironmentFiles,
+  manifestJson,
+  mindframeDirectory,
+  profileDirectory,
+  referencesDirectory,
+  sha256,
+  type EnvironmentManifest,
+} from "./manifest.js";
+import { profileName, writeProfile, type EnvironmentOptions } from "./profiles.js";
 import { applySourceOverrides, archiveSource, resolveCommit, run, workingTreeChanges } from "./sources.js";
 
-/** Candidate container home, and the path that receives the global OpenCode configuration. */
-const candidateHome = "/home/dev";
-
-export const candidateConfigRoot = `${candidateHome}/.config/opencode`;
+/** Candidate container home; rendered paths under the staging and host homes are rewritten to it. */
+export const candidateHome = "/home/dev";
 
 export type EnvironmentSpec = {
   /** `mfz-home` checkout to read source from. */
   sourceHome: string;
-  profile: EnvironmentName;
+  options: EnvironmentOptions;
   /** Commit or revision to archive. Defaults to `HEAD`. */
   revision?: string;
   /** Capture in-scope working-tree changes over the commit. */
@@ -29,13 +36,8 @@ export type MaterializedEnvironment = {
 
 const packageSchema = z.object({ version: z.string() });
 
-const configSchema = z
-  .object({
-    instructions: z.array(z.string()).optional(),
-    skills: z.array(z.string()).optional(),
-    permissions: z.array(z.object({ resource: z.string().optional() }).passthrough()).optional(),
-  })
-  .passthrough();
+/** Renderer bookkeeping that records host staging state; the candidate needs none of it. */
+const bookkeeping = [".mfz-owned.json", "overrides.json", "references-state.json", "configs/.active-profile"];
 
 async function openEvalVersion(): Promise<string> {
   const path = resolve(import.meta.dirname, "../../node_modules/@hona/openeval/package.json");
@@ -43,58 +45,76 @@ async function openEvalVersion(): Promise<string> {
   return packageSchema.parse(JSON.parse(await readFile(path, "utf8"))).version;
 }
 
-/** Point rendered host paths at the candidate container and deny every write outside the workspace defaults. */
-async function writeCandidateConfig(runtimeHome: string, renderedConfig: string, destination: string): Promise<void> {
-  const config = configSchema.parse(JSON.parse(await readFile(renderedConfig, "utf8")));
+/** Text files under `root`, skipping the reference checkouts. */
+async function textFiles(root: string): Promise<string[]> {
+  const entries = await readdir(root, { recursive: true, withFileTypes: true });
 
-  const permissions = (config.permissions ?? []).map((permission) => {
-    if (permission.resource?.includes("references")) return { ...permission, resource: `${candidateConfigRoot}/references/*` };
+  const references = resolve(root, "references");
 
-    if (permission.resource?.startsWith(`${runtimeHome}/`))
-      return { ...permission, resource: `${candidateHome}${permission.resource.slice(runtimeHome.length)}` };
+  const files: string[] = [];
 
-    return permission;
-  });
+  for (const entry of entries) {
+    const path = resolve(entry.parentPath, entry.name);
 
-  permissions.push(
-    { action: "*", resource: "*", effect: "deny" },
-    { action: "read", resource: "*", effect: "allow" },
-  );
+    if (entry.isFile() && !path.startsWith(`${references}/`)) files.push(path);
+  }
 
-  const rewritten = {
-    ...config,
-    instructions: (config.instructions ?? []).map((path) =>
-      path.endsWith("AGENTS.md") ? `${candidateConfigRoot}/AGENTS.md` : `${candidateConfigRoot}/references.md`,
-    ),
-    skills: (config.skills ?? []).map(() => `${candidateConfigRoot}/skills`),
-    permissions,
-  };
-
-  await writeFile(resolve(destination, "opencode.json"), `${JSON.stringify(rewritten, null, 2)}\n`, "utf8");
+  return files;
 }
 
-async function copyRenderedEnvironment(runtimeHome: string, profile: EnvironmentName, destination: string): Promise<void> {
-  const rendered = resolve(runtimeHome, ".mindframe-z", "configs", profile);
+/** Record each reference checkout's revision, then drop its Git metadata. */
+async function pinReferences(references: string): Promise<EnvironmentManifest["references"]> {
+  const entries = await readdir(references, { withFileTypes: true }).catch(() => []);
 
-  await mkdir(destination, { recursive: true });
-  await cp(resolve(rendered, "AGENTS.md"), resolve(destination, "AGENTS.md"));
-  await cp(resolve(runtimeHome, ".mindframe-z", "references.md"), resolve(destination, "references.md"));
+  const pinned: EnvironmentManifest["references"] = [];
 
-  for (const directory of ["agents", "skills"])
-    await cp(resolve(rendered, "opencode", directory), resolve(destination, directory), { recursive: true });
+  for (const entry of entries) {
+    if (!entry.isDirectory()) continue;
 
-  // Renderer bookkeeping records host staging paths; the candidate needs only the skills.
-  await rm(resolve(destination, "skills", ".mfz-manifest.yml"), { force: true });
+    const checkout = resolve(references, entry.name);
 
-  await writeCandidateConfig(runtimeHome, resolve(rendered, "opencode", "opencode.jsonc"), destination);
+    pinned.push({ name: entry.name, revision: (await run(["git", "-C", checkout, "rev-parse", "HEAD"])).stdout });
+
+    await rm(resolve(checkout, ".git"), { recursive: true, force: true });
+  }
+
+  return pinned.sort((left, right) => left.name.localeCompare(right.name));
 }
 
 /**
- * Render one environment from `mfz-home` source into `<destination>/environment`.
+ * Copy the rendered `.mindframe-z` tree and rewrite the staging home and the
+ * host home to the candidate's, so every rendered path resolves where the
+ * candidate installs it, including absolute host paths written in the source.
+ * The staging home lives under the host home, so it is rewritten first.
+ */
+async function copyRenderedEnvironment(runtimeHome: string, destination: string): Promise<EnvironmentManifest["references"]> {
+  const mindframe = resolve(destination, mindframeDirectory);
+
+  await mkdir(destination, { recursive: true });
+  await cp(resolve(runtimeHome, ".mindframe-z"), mindframe, { recursive: true });
+
+  for (const path of bookkeeping) await rm(resolve(mindframe, path), { force: true });
+
+  await rm(resolve(destination, profileDirectory, "opencode", "skills", ".mfz-manifest.yml"), { force: true });
+
+  for (const file of await textFiles(mindframe)) {
+    const text = await readFile(file, "utf8");
+
+    const rewritten = text.replaceAll(runtimeHome, candidateHome).replaceAll(homedir(), candidateHome);
+
+    if (rewritten !== text) await writeFile(file, rewritten, "utf8");
+  }
+
+  return pinReferences(resolve(destination, referencesDirectory));
+}
+
+/**
+ * Render the environment from `mfz-home` source into `<destination>/environment`.
  *
  * Archives the commit, optionally captures in-scope working-tree changes under
- * `<destination>/source-overrides/`, writes the selected profile, renders it with
- * the canonical `mfz` renderer, and records file digests in `manifest.json`.
+ * `<destination>/source-overrides/`, writes the environment profile, renders it
+ * with the canonical `mfz` renderer, and records file digests and reference
+ * revisions in `manifest.json`.
  */
 export async function materializeEnvironment(spec: EnvironmentSpec, destination: string): Promise<MaterializedEnvironment> {
   const sourceCommit = await resolveCommit(spec.sourceHome, spec.revision ?? "HEAD");
@@ -123,27 +143,28 @@ export async function materializeEnvironment(spec: EnvironmentSpec, destination:
       overridePaths,
     );
 
-    await writeProfile(source, spec.profile);
+    await writeProfile(source, spec.options);
 
-    const profileBytes = await readFile(resolve(source, "profiles", spec.profile, "profile.yml"));
+    const profileBytes = await readFile(resolve(source, "profiles", profileName, "profile.yml"));
 
     await writeFile(resolve(destination, "profile.yml"), profileBytes);
 
     await run([
-      "mfz", "--root", source, "--home", runtimeHome, "--profile", spec.profile,
+      "mfz", "--root", source, "--home", runtimeHome, "--profile", profileName,
       "apply", "--agent", "opencode", "--target", "all", "--no-link",
     ]);
 
-    await copyRenderedEnvironment(runtimeHome, spec.profile, environment);
+    const references = await copyRenderedEnvironment(runtimeHome, environment);
 
     const manifest: EnvironmentManifest = {
-      version: 2,
-      profile: spec.profile,
+      version: 3,
+      options: spec.options,
       profileSha256: sha256(profileBytes),
       sourceCommit,
       sourceOverrides,
       mfzVersion: (await run(["mfz", "--version"])).stdout,
       openEvalVersion: await openEvalVersion(),
+      references,
       files: await digestEnvironmentFiles(environment),
     };
 

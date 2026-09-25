@@ -44,13 +44,13 @@ export async function archiveSource(sourceHome: string, sourceCommit: string, de
 }
 
 /**
- * Working-tree files that may replace committed source: the shared instructions,
- * the skill catalog and profiles, agent definitions, and skills. Private
- * instructions and everything outside these paths stay at the commit.
+ * Working-tree files that may replace committed source: the global instructions,
+ * the skill, reference, and MCP catalogs, the profiles, agent definitions, and
+ * skills. Everything outside these paths stays at the commit.
  */
 export function overridable(path: string): boolean {
-  return path === "instructions/AGENTS.md" ||
-    path === "catalog/skills.yml" ||
+  return /^instructions\/[A-Z_]+\.md$/u.test(path) ||
+    /^catalog\/(?:skills|references|mcp)\.yml$/u.test(path) ||
     /^profiles\/(?:base|personal)\/profile\.yml$/u.test(path) ||
     /^opencode\/agents\/[a-z-]+\.md$/u.test(path) ||
     /^skills\/active\/[a-z0-9-]+\/[\w./-]+$/u.test(path);

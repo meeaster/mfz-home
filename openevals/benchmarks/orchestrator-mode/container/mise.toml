@@ -1,0 +1,11 @@
+# Tools the rendered skills invoke that the OpenEval runtime lacks or has too old
+# (its Node 20 cannot load TypeScript plugins), at the versions the live setup
+# resolves from `profiles/base/mise.toml`. Live installs npm tools through pnpm.
+[tools]
+node = "26.10.0"
+pnpm = "12.4.1"
+"npm:oxlint" = "1.85.0"
+"npm:@oxlint/plugins" = "1.85.0"
+
+[settings.npm]
+package_manager = "pnpm"

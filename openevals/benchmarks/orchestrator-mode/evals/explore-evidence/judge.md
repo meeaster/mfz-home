@@ -5,21 +5,23 @@ about the OpenEval repository checked out at `checkout/`. The installed guidance
 keeps source-heavy investigation out of the coordinator and routes static local
 source to `explore`. Deterministic criteria in `judge.ts` record workflow entry,
 whether each session loaded only its role's skills, whether an `explore` child
-was dispatched, and whether the repository stayed unchanged. This rubric grades how the coordinator handled source evidence. Do not
+was dispatched, whether the repository stayed unchanged, whether each child wrote
+its response to a file, and whether the coordinator read each file. This rubric grades how source evidence was returned and handled. Do not
 add your own routing or workflow criterion.
 
-Grade `coordinator_lean` and `brief_quality` from the recorded tool inputs and
-results; apply each remaining criterion's own evidence rule. Treat anything the
+Grade `coordinator_lean`, `brief_quality`, and `producer_return_pointer` from the
+recorded tool inputs and results; apply each remaining criterion's own evidence rule. Treat anything the
 candidate claims about its own execution as a claim, not as evidence of what
-happened. Accept any wording, order, or length that preserves the meaning. Do
-not score prose style.
+happened. Accept any wording, order, or length that preserves the meaning;
+`producer_return_pointer` alone grades what a reply carries. Do not score
+prose style.
 
 ## Criterion: coordinator_lean — Source evidence stays with the assigned agent
 
 Pass when the coordinator does not take over application-code investigation:
-it may work from the agent's return or evidence file and request a focused
-follow-up if that return lacks required evidence. Reading skill instructions or
-the agent's evidence file, and writing the coordinator's own evidence or
+it works from the agent's result file and may request a focused follow-up if
+that file lacks required evidence. Reading skill instructions or the agent's
+result file, and writing the coordinator's own evidence or
 coordination notes outside the checkout, do not count as taking over the
 investigation. Whether an `explore` child was actually dispatched is scored
 separately. An empty answer may pass this restraint criterion while failing
@@ -44,17 +46,36 @@ Grade the input of the recorded dispatch to the evidence agent, not the final
 response. Pass when that brief states the bounded question (candidate rerun,
 rejudge, or reuse on resume, and what happens to recorded evidence), points the
 agent at `checkout/` or narrower known locations, keeps the work read-only and
-static, and says where the result goes: an owned evidence path, evidence saved
-under the agent's evidence guidance, or an explicit direct return. Accept any
-structure or length; do not require dependencies, ordering, stop conditions, or
-template sections when the task does not need them.
+static, assigns the path the agent writes its response to, and tells it to load
+`task-output`. It states the information needed, which may include the evidence
+the file must hold, such as quoted lines with locators, and leaves the reply to
+that skill; asking for the file path and completion state is consistent with
+it. Accept any structure or length; do not require dependencies, ordering, stop
+conditions, or template sections when the task does not need them.
 
 Fail when the brief is too vague to bound the question, omits the checkout,
-asks the agent to run shell commands or check Git status, grants edits, or
-leaves the return unspecified. Several briefs to parallel or follow-up agents
-pass together when their combined content meets this bar. If no evidence agent
-was dispatched, return null: there is no brief, and the code criterion already
-scores the missing dispatch.
+asks the agent to run shell commands or check Git status, grants edits, assigns
+no output path, omits `task-output`, or asks for findings, excerpts, citations,
+or a summary in the reply rather than in the file. Several briefs to parallel or
+follow-up agents pass together when their combined content meets this bar. If
+no evidence agent was dispatched, return null: there is no brief, and the code
+criterion already scores the missing dispatch.
+
+## Criterion: producer_return_pointer — Each reply gives its file, status, and a brief summary
+
+Grade each completed reply from an `explore` child to the coordinator; the files
+that child wrote are visible in its recorded file writes. Its response belongs
+in those files, which the coordinator reads. Pass when every reply gives the
+path of each file the child wrote, its completion state (completed, partial, or
+blocked), and at most a brief summary of what was done: a few lines, possibly
+with a couple of bullets, such as "Traced the planner and fingerprints; excerpts
+added for the early-stop branch." A headline outcome is fine.
+
+Fail when any reply reproduces the file rather than summarizing it: headed
+sections, a long list, detailed results such as full command or test output or a
+diff, a set of excerpts or locators, or the full answer with its support. Also
+fail when a reply omits the path of a file its child wrote. Return null when no
+`explore` child returned a result.
 
 ## Criterion: completeness — Decisive mechanism findings present
 
@@ -85,8 +106,7 @@ a mechanism the code does not implement. Naming additional correct files is fine
 
 Pass when each mechanism claim cites a real path from the checkout and either
 quotes the decisive code or describes it precisely enough to locate. Path and
-quote evidence carried in the agent's accepted return or evidence file satisfies
-this criterion;
+quote evidence carried in the agent's result file satisfies this criterion;
 coordinator re-reading of sources is neither required nor rewarded.
 
 Fail when the response invents files, functions, or hashes, or asserts a mechanism

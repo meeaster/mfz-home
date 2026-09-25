@@ -1,0 +1,18 @@
+{
+  "orchestrator": "openai/gpt-6-sol#medium",
+  "scribe": "openai/gpt-6-luna#high",
+  "explore": "openai/gpt-6-luna#high",
+  "research": "openai/gpt-6-luna#high",
+  "inspect": "openai/gpt-6-luna#high",
+  "triage": "openai/gpt-6-luna#max",
+  "architect": "openai/gpt-6-luna#high",
+  "ui-ux-designer": "openai/gpt-6-luna#medium",
+  "agent-author": "openai/gpt-6-luna#medium",
+  "artifact-author": "openai/gpt-6-luna#medium",
+  "prototype": "openai/gpt-6-luna#max",
+  "operator": "openai/gpt-6-luna#high",
+  "worker": "openai/gpt-6-luna#max",
+  "reviewer": "openai/gpt-6-luna#high",
+  "pr-reviewer": "openai/gpt-6-luna#high",
+  "session-analyst": "openai/gpt-6-luna#high"
+}

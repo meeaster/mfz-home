@@ -1,17 +1,28 @@
 import { expect, test } from "bun:test";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
+import { z } from "zod";
 import {
   assertEnvironmentContract,
+  defaultOptions,
   driftedConfigureScripts,
   materializeEnvironment,
   overridable,
+  profileDirectory,
+  referencesDirectory,
+  renderedConfig,
   requiredComponents,
   stageEnvironment,
 } from "./index.js";
 import { applySourceOverrides } from "./sources.js";
 
 const sourceHome = resolve(import.meta.dir, "../../../");
+
+const renderedConfigSchema = z.object({
+  experimental: z.record(z.string(), z.number()),
+  agents: z.object({ explore: z.object({ permissions: z.array(z.object({ action: z.string() })) }) }),
+});
 
 async function withTemp(prefix: string, body: (root: string) => Promise<void>): Promise<void> {
   const root = await mkdtemp(`/tmp/opencode/${prefix}-`);
@@ -23,41 +34,63 @@ async function withTemp(prefix: string, body: (root: string) => Promise<void>): 
   }
 }
 
-test("minimal renders the orchestration skills and agents with every linked reference", async () => {
-  await withTemp("mfz-openeval-minimal", async (root) => {
-    const result = await materializeEnvironment({ sourceHome, profile: "minimal", workingTree: true }, root);
-
-    const report = await assertEnvironmentContract(result.environment);
-
-    const required = await requiredComponents();
-
-    const agents = report.manifest.files.filter((file) => file.component === "agents").map((file) => file.path);
-
-    expect(agents.sort()).toEqual(required.agents.map((agent) => `agents/${agent}.md`).sort());
-    expect(await readFile(resolve(result.environment, "skills/orchestrate/SKILL.md"), "utf8")).toContain("opencode/autoinvoke: false");
-  });
-});
-
-test("personal adds the live roster without private skills or instructions", async () => {
-  await withTemp("mfz-openeval-personal", async (root) => {
-    const result = await materializeEnvironment({ sourceHome, profile: "personal", workingTree: true }, root);
+test("the default environment renders the live roster, instructions, references, and documentation servers", async () => {
+  await withTemp("mfz-openeval-live", async (root) => {
+    const result = await materializeEnvironment({ sourceHome, options: defaultOptions, workingTree: true }, root);
 
     const report = await assertEnvironmentContract(result.environment);
 
     const paths = report.manifest.files.map((file) => file.path);
 
-    expect(paths).toContain("agents/research.md");
-    expect(paths).toContain("skills/development-principles/SKILL.md");
-    expect(paths.some((path) => path.startsWith("skills/threads/") || path.startsWith("skills/tradingview/"))).toBe(false);
-    expect(await readFile(resolve(root, "profile.yml"), "utf8")).not.toContain("PERSONAL");
-  });
-});
+    expect(paths).toContain(`${profileDirectory}/AGENTS.md`);
+    expect(paths).toContain(`${profileDirectory}/opencode/agents/worker.md`);
+    expect(paths).toContain(`${profileDirectory}/opencode/skills/development-principles/SKILL.md`);
+    expect(report.manifest.references.map((reference) => reference.name)).toContain("openevals");
+    expect(await Bun.file(resolve(result.environment, referencesDirectory, "openevals/README.md")).exists()).toBe(true);
 
-test("source overrides accept orchestration inputs and reject private instructions", () => {
+    const config = renderedConfigSchema.parse(Bun.JSONC.parse(await readFile(resolve(result.environment, renderedConfig), "utf8")));
+
+    expect(config.experimental).toEqual({ subagent_depth: 3 });
+    expect(config.agents.explore.permissions.length).toBeGreaterThan(0);
+
+    for (const file of report.manifest.files) {
+      const text = await readFile(resolve(result.environment, file.path), "utf8");
+
+      expect(text).not.toContain(".staging-");
+      expect(text).not.toContain(homedir());
+    }
+  });
+}, 300_000);
+
+test("options omit the global instructions and the skills beyond the required set", async () => {
+  await withTemp("mfz-openeval-bare", async (root) => {
+    const result = await materializeEnvironment(
+      { sourceHome, options: { instructions: false, extraSkills: false }, workingTree: true },
+      root,
+    );
+
+    const report = await assertEnvironmentContract(result.environment);
+
+    const required = await requiredComponents();
+
+    const skills = new Set(
+      report.manifest.files.filter((file) => file.component === "skills").map((file) => file.path.split("/")[5]),
+    );
+
+    // The renderer always installs its own `mindframe-z` skill.
+    expect([...skills].filter((skill) => !required.skills.includes(skill))).toEqual(["mindframe-z"]);
+    expect(required.skills.every((skill) => skills.has(skill))).toBe(true);
+    expect(report.manifest.files.some((file) => file.path.endsWith("/AGENTS.md"))).toBe(false);
+    expect(report.manifest.files.map((file) => file.path)).toContain(`${profileDirectory}/opencode/agents/worker.md`);
+  });
+}, 300_000);
+
+test("source overrides accept rendered inputs and reject everything else", () => {
   expect(overridable("skills/active/orchestration/references/harnesses/opencode.md")).toBe(true);
   expect(overridable("opencode/agents/explore.md")).toBe(true);
   expect(overridable("profiles/base/profile.yml")).toBe(true);
-  expect(overridable("instructions/PERSONAL.md")).toBe(false);
+  expect(overridable("instructions/PERSONAL.md")).toBe(true);
+  expect(overridable("catalog/references.yml")).toBe(true);
   expect(overridable("mcp/server/index.ts")).toBe(false);
 });
 

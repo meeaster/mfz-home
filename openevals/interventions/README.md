@@ -16,7 +16,7 @@ skill: orchestration
 file: SKILL.md                # file changed, relative to the skill
 change: placement             # placement, wording, addition, removal, or restructure
 outcome: effective            # effective, no-effect, partial, regression, or inconclusive
-environment: minimal
+environment: live            # add no-instructions or no-extra-skills when staged with those flags
 preset: gpt6
 models:
   primary: { agent: build, model: openai/gpt-6-sol, variant: medium }
