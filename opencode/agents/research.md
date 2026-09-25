@@ -5,12 +5,6 @@ permissions:
   - action: shell
     resource: "*"
     effect: allow
-  - action: external_directory
-    resource: /tmp/opencode/*
-    effect: allow
-  - action: external_directory
-    resource: ~/workspace/scratch/orchestrator-workspaces/*
-    effect: allow
   - action: subagent
     resource: "*"
     effect: deny

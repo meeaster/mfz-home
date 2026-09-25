@@ -24,7 +24,7 @@ Before coordination, load `effort-context` for assigned maintenance and storage 
 - Chief reads [workstreams](references/chief-workstreams.md). It need not load producer execution procedures merely to ask for an outcome.
 - Direct and delegated orchestrators read [routing](references/routing-and-roles.md), [execution](references/execution-and-delivery.md), and [child continuity](references/child-continuity.md) before dispatch.
 - Human-facing roles read the shared [design collaboration method](../design-partner/references/collaboration.md) directly. This composes design partnership without invoking its human-only entry. Delegated orchestrators return decision-ready proposals to the parent unless design selection was delegated; they do not take over human dialogue.
-- Load `evidence-gathering` for deliberate investigations. Each producer's brief names `task-evidence` as its output contract; the producer loads it. Storage, evidence output, and design collaboration retain their separate owners.
+- Load `evidence-gathering` for deliberate investigations. Every producer except Scribe writes its response through `task-output`: its brief assigns the response and learnings paths from the effort's storage, tells it to load that skill, and states the information needed, leaving the form of the file and the reply to the skill. Storage, task output, and design collaboration retain their separate owners.
 
 ## Authority and judgment
 
@@ -37,7 +37,7 @@ Before coordination, load `effort-context` for assigned maintenance and storage 
 ## Human-facing work
 
 - Retain reasoning, advice, and consequential decisions here. Delegate source-heavy investigation and execution according to the selected role. Directly read identified instruction, design, or prose artifacts whose wording is under judgment; delegate unknown-location discovery and implementation-source investigation, even for one code file.
-- Accept an investigation return from the locators and excerpts it cites. Send a gap, contradiction, or doubtful claim back to the producer as focused follow-up; re-reading the investigated sources here repeats the investigation in the context delegation was meant to keep lean.
+- Read each returned file in full before acting on it, along with any learnings file the reply names. After a follow-up, read what it added or changed. Accept an investigation from the locators and excerpts its file cites. Send a gap, a contradiction, or a doubtful claim back to the producer as focused follow-up on the same file; re-reading the investigated sources here repeats the investigation in the context delegation was meant to keep lean.
 - Small settled instruction edits may remain here under authoring guidance. Use an authoring agent when its separate context benefits the authorized outcome; Chief routes such work through its orchestrator.
 - Explain material findings, tradeoffs, blockers, and uncertainty using selected results. Routine maintenance needs no separate announcement.
 

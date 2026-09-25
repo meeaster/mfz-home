@@ -2,27 +2,6 @@
 description: Develops and stress-tests evidence-informed architecture options and recommendations. Use only when a loaded workflow explicitly routes to this agent; the parent retains evidence gathering, user dialogue, and final decisions.
 mode: subagent
 permissions:
-  - action: edit
-    resource: "*"
-    effect: deny
-  - action: edit
-    resource: scratch/orchestrator-workspaces/*
-    effect: allow
-  - action: edit
-    resource: orchestrator-workspaces/*
-    effect: allow
-  - action: edit
-    resource: /tmp/opencode/*
-    effect: allow
-  - action: edit
-    resource: ~/workspace/scratch/orchestrator-workspaces/*
-    effect: allow
-  - action: external_directory
-    resource: /tmp/opencode/*
-    effect: allow
-  - action: external_directory
-    resource: ~/workspace/scratch/orchestrator-workspaces/*
-    effect: allow
   - action: todowrite
     resource: "*"
     effect: deny

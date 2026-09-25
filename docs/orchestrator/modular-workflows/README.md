@@ -7,7 +7,7 @@
 - Use `/orchestrate-chief` to retain high-level decisions while orchestrators coordinate bounded workstreams.
 - To leave a workflow, say so explicitly, for example, "Exit orchestration and continue normally." The session reconciles active assignments and pending writes before returning to ordinary routing.
 
-Ordinary sessions keep their native behavior. Deliberate investigations save their findings through `task-evidence`; incidental code reads and routine checks do not each create an artifact.
+Ordinary sessions keep their native behavior. Deliberate investigations save their findings through `task-output`; incidental code reads and routine checks do not each create an artifact.
 
 ## Capture or resume work
 
@@ -23,7 +23,7 @@ Before capture, evidence lives in a session directory under the existing scratch
 | --- | --- |
 | Design collaboration | [Design Partner](../../../skills/active/design-partner/SKILL.md) |
 | Deliberate investigation | [Evidence Gathering](../../../skills/active/evidence-gathering/SKILL.md) |
-| Evidence output and reuse | [Task Evidence](../../../skills/active/task-evidence/SKILL.md) |
+| Evidence output and reuse | [Task Output](../../../skills/active/task-output/SKILL.md) |
 | Storage, capture, resume, maintenance | [Effort Context](../../../skills/active/effort-context/SKILL.md) |
 | Coordination procedures | [Orchestration](../../../skills/active/orchestration/SKILL.md) |
 | Direct entry | [Orchestrate](../../../skills/active/orchestrate/SKILL.md) |

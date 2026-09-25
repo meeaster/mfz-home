@@ -14,8 +14,8 @@ description: Use for a deliberate investigation of a factual question, cause, al
 
 ## Preserve the result
 
-- When you carry out the investigation, load `task-evidence` and save one coherent investigation result with support, applicability, contradictions, and limits. Return the substantive answer and its file pointer.
-- When you delegate it, require `task-evidence` in the producer's brief. The producer saves the result and returns the answer with its pointer; the output contract stays in the producer's context, and this session keeps only the bounded question and the return.
+- When you carry out the investigation, load `task-output` and save one coherent investigation result with support, applicability, contradictions, and limits. Reply as it directs.
+- When you delegate it, assign the producer's output path, tell it to load `task-output`, and state the bounded question. The producer's file holds the result, and you read it in full; the output contract stays in the producer's context.
 - An incidental file read, a routine preflight, or a bounded continuity check does not need a separate investigation artifact. A helper within one investigation can return to its producer, who preserves the combined attributed findings.
 - If findings contradict an accepted assumption, surface the consequence. Facts do not authorize a changed design, project mutation, or publication.
 

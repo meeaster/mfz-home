@@ -1,7 +1,7 @@
 skills:
-  - name: task-evidence
+  - name: task-output
     source: local
-    skill: active/task-evidence
+    skill: active/task-output
     description: Producer-owned investigation evidence and operational learnings.
   - name: design-partner
     source: local

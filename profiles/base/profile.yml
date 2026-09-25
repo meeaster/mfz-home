@@ -54,7 +54,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: false }
   evidence-gathering:
     agents: { opencode: true, claude-code: true, codex: false }
-  task-evidence:
+  task-output:
     agents: { opencode: true, claude-code: true, codex: false }
   effort-context:
     agents: { opencode: true, claude-code: true, codex: false }
@@ -206,13 +206,66 @@ opencode:
         model: openai/gpt-6-sol#medium
       architect:
         model: openai/gpt-6-astra#high
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       inspect:
         model: openai/gpt-6-luna#high
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       omp-advisor:
         model: openai/gpt-6-luna#high
       explore:
         model: openai/gpt-6-luna#high
         permissions:
+          - action: skill
+            resource: task-output
+            effect: allow
+          - action: skill
+            resource: effort-context
+            effect: allow
+          - action: skill
+            resource: evidence-gathering
+            effect: allow
           - action: edit
             resource: "*"
             effect: deny
@@ -240,20 +293,137 @@ opencode:
         model: openai/gpt-6-luna#max
       triage:
         model: openai/gpt-6-luna#max
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       prototype:
         model: openai/gpt-6-luna#max
       reviewer:
         model: openai/gpt-6-sol#high
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       pr-reviewer:
         model: openai/gpt-6-sol#high
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       ui-ux-designer:
         model: openai/gpt-6-sol#medium
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       orchestrator:
         model: openai/gpt-6-sol#medium
       research:
         model: openai/gpt-6-luna#high
+        permissions:
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       session-analyst:
         model: openai/gpt-6-sol#medium
+        permissions:
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: orchestrator-workspaces/*
+            effect: allow
+          - action: edit
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: /tmp/opencode/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
       scribe:
         model: openai/gpt-6-luna#high
   websearch:
@@ -276,7 +446,6 @@ opencode:
   agents:
     - agent-author
     - artifact-author
-    - explore
     - orchestrator
     - architect
     - inspect

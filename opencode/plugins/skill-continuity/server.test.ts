@@ -96,12 +96,13 @@ describe("skill continuity", () => {
     await first.start();
     await first.load("s1", "orchestrator-mode");
     await first.load("s1", "orchestrator-task-evidence");
+    await first.load("s1", "task-evidence");
     first.compact("s1", "one");
     const reminder = await first.request("s1");
 
-    expect(reminder).toContain("orchestration, task-evidence");
+    expect(reminder).toContain("orchestration, task-output");
     expect(reminder).not.toContain("orchestrator-mode");
-    expect(reminder).not.toContain("orchestrator-task-evidence");
+    expect(reminder).not.toContain("task-evidence");
     expect(reminder).toContain("including any exit");
     expect(reminder).toContain("do not replay human-only entry skills");
     await first.load("s1", "orchestrator-mode", "error");
@@ -113,7 +114,7 @@ describe("skill continuity", () => {
     expect(await second.request("s1")).toBe("");
     await second.load("s1", "orchestration");
     second.compact("s1", "two");
-    expect(await second.request("s1")).toContain("orchestration, task-evidence. Reload");
+    expect(await second.request("s1")).toContain("orchestration, task-output. Reload");
   });
 
   it("suggests optional skills once per checkpoint and only within their session", async () => {

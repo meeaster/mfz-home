@@ -33,7 +33,7 @@ function latestCheckpoint(messages: Awaited<ReturnType<Plugin.Context["session"]
 function currentSkillID(id: string) {
   if (id === "orchestrator-mode") return "orchestration";
 
-  if (id === "orchestrator-task-evidence") return "task-evidence";
+  if (id === "orchestrator-task-evidence" || id === "task-evidence") return "task-output";
 
   return id;
 }
