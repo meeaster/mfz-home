@@ -1,9 +1,12 @@
 #!/usr/bin/env node
-import { execFileSync } from "node:child_process";
-import { resolve } from "node:path";
+import { execFileSync, spawn } from "node:child_process";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve } from "node:path";
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { z } from "zod";
-import { indexConversation, type IndexResult } from "./conversation/export.ts";
+import { readClaudeCodeTranscript } from "./conversation/claude-code.ts";
+import { indexConversation, type ConversationSnapshot, type ConversationSource, type IndexResult } from "./conversation/export.ts";
 import { readOpenCodeSession } from "./conversation/opencode.ts";
 import { capture, describe, move, read } from "./core/artifacts.ts";
 import { backupNow, restore } from "./core/backup.ts";
@@ -13,10 +16,11 @@ import { effortCommand, type EffortResult } from "./core/efforts.ts";
 import { find, type ArtifactEntry, type EffortSummary, type FindResult, type SessionSummary } from "./core/find.ts";
 import { link } from "./core/links.ts";
 import { isUrl } from "./core/lookup.ts";
-import { failureMessage, withCairn, type Mode } from "./core/operation.ts";
+import { failureMessage, logFailure, withCairn, type Mode } from "./core/operation.ts";
 import { resolveRoot } from "./core/root.ts";
 import { describeSession, location, sessionContext, startSession } from "./core/sessions.ts";
 import { effortView, regenerateDirty, renderIndex } from "./core/views.ts";
+import { claudeCodeHook, type IndexLauncher } from "./harness/claude-code.ts";
 import * as schemas from "./schemas.ts";
 
 type Output = {
@@ -30,7 +34,9 @@ type Command = {
   readonly usage: string;
   readonly options: ParseArgsOptionsConfig;
   readonly mode: Mode;
-  readonly run: (cairn: Cairn, values: Values, positionals: readonly string[]) => Output;
+  // A harness hook must never fail the harness action, so its failures are logged and it exits 0.
+  readonly hook?: true;
+  readonly run: (cairn: Cairn, values: Values, positionals: readonly string[], io: CliIo) => Output;
 };
 
 const common: ParseArgsOptionsConfig = {
@@ -175,6 +181,68 @@ function openCodeDatabase(source: string | undefined): string {
   return source === undefined ? execFileSync("opencode", ["debug", "paths", "db"], { encoding: "utf8" }).trim() : resolve(source);
 }
 
+// Claude Code keeps each session's transcript at projects/<cwd-slug>/<session-id>.jsonl under its config folder.
+function claudeCodeTranscript(source: string | undefined, sessionId: string): string {
+  if (source !== undefined) {
+    return resolve(source);
+  }
+
+  const projects = join(process.env.CLAUDE_CONFIG_DIR ?? join(homedir(), ".claude"), "projects");
+  const candidates = existsSync(projects) ? readdirSync(projects).map((folder) => join(projects, folder, `${sessionId}.jsonl`)) : [];
+  const found = candidates.find((candidate) => existsSync(candidate));
+
+  if (found === undefined) {
+    throw new CairnError("not_found", `No Claude Code transcript for ${sessionId} under ${projects}`);
+  }
+
+  return found;
+}
+
+function conversationSource(session: schemas.SessionKey, values: Values, io: CliIo): ConversationSource {
+  const source = one(values, "source");
+
+  switch (session.harness) {
+    case "opencode": {
+      const database = openCodeDatabase(source);
+
+      return (fromSeq) => readOpenCodeSession(database, session.nativeId, fromSeq);
+    }
+
+    case "claude-code": {
+      const transcript = claudeCodeTranscript(source, session.nativeId);
+      const lastMessageFile = one(values, "last-message");
+      const lastMessage = lastMessageFile === undefined ? null : lastMessageFile === "-" ? io.stdin() : readFileSync(lastMessageFile, "utf8");
+      let snapshot: ConversationSnapshot | undefined;
+
+      // One read of the transcript serves every call in this run.
+      return (fromSeq) => {
+        snapshot ??= readClaudeCodeTranscript(transcript, lastMessage);
+
+        return { ...snapshot, records: snapshot.records.filter((record) => record.seq >= fromSeq) };
+      };
+    }
+
+    default:
+      throw new CairnError("invalid", `Conversation indexing supports opencode and claude-code sessions, not ${session.harness}`);
+  }
+}
+
+// The detached index outlives the hook, including a claude -p run that ends right after its last turn.
+function detachedIndex(env: NodeJS.ProcessEnv): IndexLauncher {
+  return (session, transcript, lastMessage) => {
+    const args = [import.meta.filename, "session", "index", session, "--source", transcript];
+
+    if (lastMessage !== null) {
+      args.push("--last-message", "-");
+    }
+
+    const child = spawn(process.execPath, args, { detached: true, stdio: [lastMessage === null ? "ignore" : "pipe", "ignore", "ignore"], env });
+
+    child.stdin?.end(lastMessage);
+    child.unref();
+  };
+}
+
 const commandTable = {
   "session start": {
     usage: "cairn session start <harness>:<id> [--parent <harness>:<id>] [--cwd <dir>] [--agent <name>] [--title <text>]",
@@ -263,20 +331,25 @@ const commandTable = {
     }
   },
   "session index": {
-    usage: "cairn session index <harness>:<id> [--full] [--source <opencode.db>]",
-    options: { full: { type: "boolean" }, source: { type: "string" } },
+    usage: "cairn session index <harness>:<id> [--full] [--source <opencode.db|transcript.jsonl>] [--last-message <file|->]",
+    options: { full: { type: "boolean" }, source: { type: "string" }, "last-message": { type: "string" } },
     mode: "write",
-    run: (cairn, values, positionals) => {
+    run: (cairn, values, positionals, io) => {
       const { session } = schemas.sessionContextInput.parse({ session: positional(positionals, 0, "session") });
-
-      if (session.harness !== "opencode") {
-        throw new CairnError("invalid", `Conversation indexing supports opencode sessions, not ${session.harness}`);
-      }
-
-      const database = openCodeDatabase(one(values, "source"));
-      const result = indexConversation(cairn, session, (fromSeq) => readOpenCodeSession(database, session.nativeId, fromSeq), flag(values, "full"));
+      const result = indexConversation(cairn, session, conversationSource(session, values, io), flag(values, "full"));
 
       return { json: result, text: indexText(result) };
+    }
+  },
+  "hook claude-code": {
+    usage: "cairn hook claude-code   (reads a Claude Code hook event on stdin)",
+    options: {},
+    mode: "hot",
+    hook: true,
+    run: (cairn, _values, _positionals, io) => {
+      const output = claudeCodeHook(cairn, io.stdin(), io.launchIndex);
+
+      return { json: output, text: output === null ? "" : JSON.stringify(output) };
     }
   },
   capture: {
@@ -620,13 +693,17 @@ function selectCommand(args: readonly string[]): SelectedCommand | null {
 export type CliIo = {
   readonly stdout: (text: string) => void;
   readonly stderr: (text: string) => void;
+  readonly stdin: () => string;
   readonly now: () => Date;
+  readonly launchIndex: IndexLauncher;
 };
 
 const processIo: CliIo = {
   stdout: (text) => process.stdout.write(text),
   stderr: (text) => process.stderr.write(text),
-  now: () => new Date()
+  stdin: () => readFileSync(0, "utf8"),
+  now: () => new Date(),
+  launchIndex: detachedIndex(process.env)
 };
 
 function restoreCommand(root: string, rest: readonly string[], json: boolean, io: CliIo): void {
@@ -644,6 +721,7 @@ function restoreCommand(root: string, rest: readonly string[], json: boolean, io
 export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo = processIo): number {
   const root = resolveRoot(env.CAIRN_ROOT);
   const json = args.includes("--json");
+  let selected: SelectedCommand | null = null;
 
   try {
     if (args.length === 0 || args[0] === "--help" || args[0] === "-h" || args[0] === "help") {
@@ -658,7 +736,7 @@ export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo 
       return 0;
     }
 
-    const selected = selectCommand(args);
+    selected = selectCommand(args);
 
     if (selected === null) {
       throw new CairnError("invalid", `Unknown command: ${args.join(" ")}\n${helpText()}`);
@@ -679,13 +757,24 @@ export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo 
       return 0;
     }
 
-    const output = withCairn(root, io.now, command.mode, (cairn) => command.run(cairn, parsed.values, parsed.positionals));
+    const output = withCairn(root, io.now, command.mode, (cairn) => command.run(cairn, parsed.values, parsed.positionals, io));
 
-    io.stdout(json ? `${JSON.stringify(output.json, null, 2)}\n` : `${output.text}\n`);
+    if (json) {
+      io.stdout(`${JSON.stringify(output.json, null, 2)}\n`);
+    } else if (output.text !== "") {
+      io.stdout(`${output.text}\n`);
+    }
 
     return 0;
   } catch (error) {
     const failure = error instanceof Error ? error : new Error(String(error));
+
+    if (selected?.command.hook === true) {
+      logFailure(root, args.join(" "), failure, io.now());
+
+      return 0;
+    }
+
     const message = failureMessage(root, args.join(" "), failure, io.now());
 
     io.stderr(json ? `${JSON.stringify({ error: message })}\n` : `cairn: ${message}\n`);

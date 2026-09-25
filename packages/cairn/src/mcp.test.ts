@@ -84,7 +84,7 @@ async function catalog() {
 
   // The harness plugin records sessions and file writes through the CLI.
   const cli = (...args: string[]) => {
-    const code = main(args, { CAIRN_ROOT: root }, { stdout: () => {}, stderr: () => {}, now });
+    const code = main(args, { CAIRN_ROOT: root }, { stdout: () => {}, stderr: () => {}, stdin: () => "", now, launchIndex: () => {} });
 
     expect(code).toBe(0);
   };

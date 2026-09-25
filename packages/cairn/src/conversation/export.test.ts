@@ -24,6 +24,9 @@ type MessageData = {
   readonly text?: string;
   readonly files?: readonly Record<string, never>[];
   readonly content?: readonly StoredPart[];
+  readonly tokens?: { readonly input: number; readonly output: number; readonly reasoning: number; readonly cache: { readonly read: number; readonly write: number } };
+  readonly status?: string;
+  readonly reason?: string;
 };
 
 const roots: string[] = [];
@@ -70,7 +73,9 @@ function workspace() {
       stderr: (text) => {
         stderr += text;
       },
-      now: () => new Date("2026-09-25T10:00:00")
+      stdin: () => "",
+      now: () => new Date("2026-09-25T10:00:00"),
+      launchIndex: () => {}
     });
 
     if (code !== 0) {
@@ -87,10 +92,13 @@ function workspace() {
       opencode.prepare("INSERT INTO session_v2 VALUES (?, ?, ?)").run(id, title, parent);
     },
     user: (session: string, text: string, files = 0) => message(session, "user", { text, files: Array.from({ length: files }, () => ({})) }),
-    assistant: (session: string, content: readonly AssistantPart[]) =>
+    // One model call that reads prompt tokens, most of them cached, and writes 50.
+    assistant: (session: string, content: readonly AssistantPart[], prompt = 1000) =>
       message(session, "assistant", {
-        content: content.map((part) => ({ type: part.type, text: part.text, state: part.phase === undefined ? {} : { phase: part.phase } }))
+        content: content.map((part) => ({ type: part.type, text: part.text, state: part.phase === undefined ? {} : { phase: part.phase } })),
+        tokens: { input: 10, output: 50, reasoning: 0, cache: { read: prompt - 10, write: 0 } }
       }),
+    compaction: (session: string, reason: string, status = "completed") => message(session, "compaction", { status, reason }),
     other: (session: string, type: string, text: string) => message(session, type, { text }),
     // What a committed revert does: delete the boundary message and everything after it.
     revertTo: (session: string, boundary: number) => {
@@ -121,10 +129,12 @@ describe("conversation export", () => {
     const path = first.indexed ? first.path : "";
     const afterFirst = readFileSync(path, "utf8");
 
+    cairn.compaction("ses_root", "auto", "failed");
+    cairn.compaction("ses_root", "auto");
     cairn.user("ses_root", "Here are the bucket policies.", 2);
-    cairn.assistant("ses_root", [{ type: "text", text: "Both buckets need object lock.", phase: "final_answer" }]);
+    cairn.assistant("ses_root", [{ type: "text", text: "Both buckets need object lock.", phase: "final_answer" }], 20000);
 
-    expect(cairn.index("opencode:ses_root")).toMatchObject({ indexed: true, mode: "append", records_written: 2 });
+    expect(cairn.index("opencode:ses_root")).toMatchObject({ indexed: true, mode: "append", records_written: 3 });
     expect(cairn.index("opencode:ses_root")).toMatchObject({ indexed: true, mode: "unchanged", records_written: 0 });
 
     const exported = readFileSync(path, "utf8");
@@ -132,11 +142,21 @@ describe("conversation export", () => {
     expect(exported.startsWith(afterFirst)).toBe(true);
 
     for (const text of ["Where should the logs go?", "Checking the retention options.", "Archive them to S3.", "Both buckets need object lock."]) {
-      expect(exported).toContain(`\n${text}\n<!-- body-end -->`);
+      expect(exported).toContain(`\n\n${text}\n`);
     }
 
-    expect(exported).toContain("## Assistant · seq 2 · final_answer");
-    expect(exported).toContain("Attachments not included: 2.");
+    // Headings locate each message. A user message's context is the prompt of the next model call, and a failed
+    // compaction, which left the context as it was, gets none.
+    const headings = exported.split("\n").filter((line) => line.startsWith("## ")).map((line) => line.replace(/ · \d{4}-\d\d-\d\d \d\d:\d\d:\d\d UTC/, ""));
+
+    expect(headings).toEqual([
+      "## User · seq 1 · msg_1 · context 1,000",
+      "## Assistant · seq 2 · msg_2 · part 1 · commentary · context 1,050",
+      "## Assistant · seq 2 · msg_2 · part 3 · final_answer · context 1,050",
+      "## Compaction · seq 5 · msg_5 · auto · context 1,050 before",
+      "## User · seq 6 · msg_6 · context 20,000 · 2 attachments not included",
+      "## Assistant · seq 7 · msg_7 · final_answer · context 20,050"
+    ]);
     expect(exported).not.toMatch(/PRIVATE REASONING|TOOL OUTPUT|SYNTHETIC NOTICE/);
   });
 

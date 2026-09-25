@@ -68,7 +68,9 @@ function workspace() {
       stderr: (text) => {
         stderr += text;
       },
-      now: () => now
+      stdin: () => "",
+      now: () => now,
+      launchIndex: () => {}
     });
 
     return { code, stdout, stderr };

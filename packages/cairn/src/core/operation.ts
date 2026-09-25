@@ -31,7 +31,7 @@ export function withCairn<T>(root: string, now: () => Date, mode: Mode, work: (c
   }
 }
 
-function logFailure(root: string, label: string, error: Error, now: Date): void {
+export function logFailure(root: string, label: string, error: Error, now: Date): void {
   try {
     const logs = rootPaths(root).logs;
 
