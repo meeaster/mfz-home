@@ -1,0 +1,10 @@
+# Claude Code orchestration
+
+- Use the native Agent tool and the types actually available in the session. OpenCode role names are responsibility contracts, not assumed installed Claude Code agent IDs.
+- Where a named specialist is unavailable, give a capable `general-purpose` child the same bounded role, authority, required skills, output ownership, and stop conditions. Do not substitute it to bypass a denied tool or agent.
+- Chief assigns a capable child role `delegated` and requires it to load `orchestration`, this reference, and `effort-context`. Supply the permitted producer responsibilities in its brief. A child must have Agent access and available nesting depth before it can coordinate descendants; otherwise return the capability blocker to the human without silently changing modes.
+- Claude Code's built-in Explore is read-only and may omit global guidance. Use it for a bounded helper return that a producer incorporates, or choose a write-capable evidence producer for an independent investigation. Explicitly supply the evidence-output contract in producer briefs.
+- Use background work when human dialogue or independent work can continue, following the active tool's completion semantics. Delegated orchestrators request foreground children and await their results. If the harness returns a background handle despite that request, retain the assignment and wait using its supported completion mechanism before returning the integrated result.
+- Discover supported messaging for active-child steering; keep one active execution per child. At an actual nesting or permission limit, return the smallest missing assignment to the caller rather than claim delegation completed.
+- The two entry skills are human-only and must not be preloaded into children. Reusable capabilities remain caller-loadable. Explicitly require them because parent skill content is not automatically inherited.
+- For human-facing records and compaction recovery, use `effort-context`'s Claude Code continuity reference. This home does not assume OpenCode's synchronized Scribe or session cursor API exists in Claude Code.

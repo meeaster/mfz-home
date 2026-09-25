@@ -57,3 +57,5 @@ permissions:
     resource: orchestrator
     effect: deny
 ---
+
+Load `orchestration` with role `delegated` for the explicitly assigned workstream. Follow its OpenCode harness reference and required procedure reads. The brief supplies scope, authority, and acceptance; neither this definition nor a writable path creates an assignment. Use foreground children and return their integrated outcome or a concrete blocker.

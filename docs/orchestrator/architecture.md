@@ -1,6 +1,6 @@
 # Orchestrator architecture
 
-The [2026-09-22 accepted redesign](redesign-2026-09-22.md) supersedes this page's earlier topology, universal-note, Scribe, and recovery contracts. The material below is retained as historical design context. Use the current [runtime skill](../../skills/active/orchestrator-mode/SKILL.md) for execution and the redesign document for the accepted rationale.
+The [modular workflows](modular-workflows/README.md) now own runtime behavior. The [2026-09-22 redesign](redesign-2026-09-22.md) and the material below preserve earlier rationale. Use [Orchestration](../../skills/active/orchestration/SKILL.md) and its capability pointers for execution.
 
 The subsequent session review refined that design. Scribe now synchronizes with the parent through `session_context` on every dispatch, replacing the mechanical-update exception. Briefs use the routing reference's declared role capabilities instead of inspecting permission configuration during dispatch. Handoffs preserve actual decision ownership, and efficiency judgments account for model-priced parent and child work rather than treating token volume alone as waste. Working records retain separate purposes, producer returns state substantive results, and routine bookkeeping stays out of the human conversation. These refinements preserve the existing topology and authority boundaries.
 
@@ -50,7 +50,7 @@ The human-facing coordinator interprets the request, develops understanding with
 
 The caller selects the mode. In `baked-in`, the current session dispatches specialists directly; in `chief/split`, a standing orchestrator gateway owns assignments and returns envelopes while the Chief retains human dialogue and consequential decisions. The scribe is the coordinator's direct subordinate in both modes.
 
-The [Orchestrator Mode skill](../../skills/active/orchestrator-mode/SKILL.md) owns coordination, routing, authority, and acceptance. Its branch references contain the applicable execution contracts. [Task Evidence](../../skills/active/orchestrator-task-evidence/SKILL.md) owns how producers write and reuse their assigned notes. A child brief supplies the current assignment and authority; background files do not grant more work.
+[Orchestration](../../skills/active/orchestration/SKILL.md) owns coordination, routing, authority, and acceptance. Its branch references contain the applicable execution contracts. [Task Evidence](../../skills/active/task-evidence/SKILL.md) owns how producers write and reuse their notes. A child brief supplies the current assignment and authority; background files do not grant more work.
 
 The effort workspace preserves shared understanding and selected findings outside the conversation. It lets the human compact at a meaningful boundary, such as an accepted design, and continue implementation without manually reconstructing the whole investigation. Durable plans such as an explicitly requested OpenSpec proposal can support that boundary; they are not mandatory for every effort.
 

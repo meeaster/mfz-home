@@ -83,33 +83,37 @@ describe("skill continuity", () => {
     expect(await app.request("s1")).toBe("");
 
     app.compact("s1", "done");
-    expect(await app.request("s1")).toContain("Immediately reload these previously loaded skills with the skill tool: orchestrator-mode");
-    expect(await app.request("s1")).toContain("orchestrator-mode");
-    expect(await app.request("s1")).not.toContain("failed");
+    const reminder = await app.request("s1");
+
+    expect(reminder).toContain("orchestration");
+    expect(reminder).not.toContain("failed");
+    expect(await app.request("s1")).toBe("");
   });
 
-  it("retains mandatory pending across retries and restart until each successful reload", async () => {
+  it("migrates retired IDs without forcing mode entry or repeating after restart", async () => {
     const storage = new Map<string, Stored>();
     const first = harness(storage);
     await first.start();
     await first.load("s1", "orchestrator-mode");
     await first.load("s1", "orchestrator-task-evidence");
     first.compact("s1", "one");
-    expect(await first.request("s1")).toContain("orchestrator-task-evidence");
+    const reminder = await first.request("s1");
+
+    expect(reminder).toContain("orchestration, task-evidence");
+    expect(reminder).not.toContain("orchestrator-mode");
+    expect(reminder).not.toContain("orchestrator-task-evidence");
+    expect(reminder).toContain("including any exit");
+    expect(reminder).toContain("do not replay human-only entry skills");
     await first.load("s1", "orchestrator-mode", "error");
-    expect(await first.request("s1")).toContain("orchestrator-mode");
+    expect(await first.request("s1")).toBe("");
 
     const second = harness(storage);
     await second.start();
     second.compact("s1", "one");
-    expect(await second.request("s1")).toContain("orchestrator-mode");
-    await second.load("s1", "orchestrator-mode");
-    expect(await second.request("s1")).not.toContain("orchestrator-mode");
-    expect(await second.request("s1")).toContain("orchestrator-task-evidence");
-    await second.load("s1", "orchestrator-task-evidence");
     expect(await second.request("s1")).toBe("");
+    await second.load("s1", "orchestration");
     second.compact("s1", "two");
-    expect(await second.request("s1")).toContain("orchestrator-mode");
+    expect(await second.request("s1")).toContain("orchestration, task-evidence. Reload");
   });
 
   it("suggests optional skills once per checkpoint and only within their session", async () => {
@@ -163,6 +167,6 @@ describe("skill continuity", () => {
     app.compact("s1", "one");
     const results = await Promise.all([app.request("s1"), app.request("s1")]);
     expect(results.filter((text) => text.includes("anti-slop"))).toHaveLength(1);
-    expect(results.filter((text) => text.includes("orchestrator-mode"))).toHaveLength(2);
+    expect(results.filter((text) => text.includes("orchestration"))).toHaveLength(1);
   });
 });

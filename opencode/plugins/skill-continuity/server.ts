@@ -14,8 +14,6 @@ const stateSchema = z.object({
 
 type SessionState = z.infer<typeof stateSchema>;
 
-const mandatory = new Set(["orchestrator-mode", "orchestrator-task-evidence"]);
-
 function readState(value: Awaited<ReturnType<Plugin.Context["storage"]["get"]>>): SessionState {
   if (value === undefined) return { version: 1, skills: [] };
 
@@ -32,19 +30,20 @@ function latestCheckpoint(messages: Awaited<ReturnType<Plugin.Context["session"]
   return null;
 }
 
-function reminder(mandatoryIDs: string[], optionalIDs: string[]) {
-  const lines = ["Skill continuity after completed compaction:"];
+function currentSkillID(id: string) {
+  if (id === "orchestrator-mode") return "orchestration";
 
-  if (mandatoryIDs.length > 0) {
-    lines.push(`Immediately reload these previously loaded skills with the skill tool: ${mandatoryIDs.join(", ")}. Repeat on subsequent model turns until each skill has successfully reloaded.`);
-    lines.push("Preserve the human-selected orchestrator role/mode. Recover it from retained context or effort records; do not infer or recommend a mode from free text. Ask the human only if the selection is genuinely missing.");
-  }
+  if (id === "orchestrator-task-evidence") return "task-evidence";
 
-  if (optionalIDs.length > 0) {
-    lines.push(`Previously loaded skills to reassess for this assignment: ${optionalIDs.join(", ")}. Reload only those still relevant.`);
-  }
+  return id;
+}
 
-  return lines.join("\n");
+function reminder(ids: string[]) {
+  return [
+    "Skill continuity after completed compaction:",
+    `Previously loaded skills to reassess for this assignment: ${ids.join(", ")}. Reload only those still relevant.`,
+    "Recover the latest explicit human workflow selection, including any exit, from retained context or current effort records. Skill history is not mode selection. Reload reusable procedures for a continuing role; do not replay human-only entry skills or restart completed capture and storage operations. Ask only if a required selection is genuinely missing.",
+  ].join("\n");
 }
 
 export async function setupSkillContinuity(ctx: Plugin.Context) {
@@ -103,26 +102,23 @@ export async function setupSkillContinuity(ctx: Plugin.Context) {
 
       const key = `session/${encodeURIComponent(event.sessionID)}`;
       const state = readState(await ctx.storage.get(key));
-      const mandatoryIDs: string[] = [];
-      const optionalIDs: string[] = [];
+      const pendingIDs = new Set<string>();
 
       for (const skill of state.skills) {
         if (skill.loadedAt === at) continue;
 
-        if (mandatory.has(skill.id)) {
-          mandatoryIDs.push(skill.id);
-        } else if (skill.suggestedAt !== at) {
-          optionalIDs.push(skill.id);
+        if (skill.suggestedAt !== at) {
+          pendingIDs.add(currentSkillID(skill.id));
           skill.suggestedAt = at;
         }
       }
 
-      if (mandatoryIDs.length === 0 && optionalIDs.length === 0) return;
+      if (pendingIDs.size === 0) return;
 
-      // Optional notices are at-most-once per request preparation, not acknowledged model deliveries.
-      if (optionalIDs.length > 0) await ctx.storage.set(key, state);
+      // Notices are at-most-once per request preparation, not acknowledged model deliveries.
+      await ctx.storage.set(key, state);
 
-      event.system.push({ type: "text", text: reminder(mandatoryIDs, optionalIDs) });
+      event.system.push({ type: "text", text: reminder([...pendingIDs]) });
     }));
 
     return async () => {

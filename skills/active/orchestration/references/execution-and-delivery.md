@@ -23,11 +23,11 @@ Apply the root exploration-to-delivery boundary before dispatching implementatio
 
 ## Arrange verification
 
-Apply [acceptance and review](../common/acceptance-and-review.md) when choosing coverage and accepting results. Workers own immediate validation. A fresh inspector can handle substantial browser or environment checks when focused context or independence helps; return defects to the mutation owner.
+Apply [acceptance and review](acceptance-and-review.md) when choosing coverage and accepting results. Workers own immediate validation. A fresh inspector can handle substantial browser or environment checks when focused context or independence helps; return defects to the mutation owner.
 
 ## Scope changes and publication
 
-Apply the shared [scope and publication boundaries](../common/acceptance-and-review.md#scope-changes-and-publication).
+Apply the shared [scope and publication boundaries](acceptance-and-review.md#scope-changes-and-publication).
 - Use operator for settled Git publication and standalone operational publication under the active workflow. Authorized deployment coupled to implementation follows the ownership rule above. Follow each repository's instructions, history, validation, and authority. Report commit identity, branch/upstream relation, push state, and remaining changes when applicable.
 - One sequential operator can perform an authorized multi-repository operation. Preserve separate commits and histories. If publication partly succeeds, report it and a recovery action rather than attempting destructive rollback.
 - Pass prepared state, branch/base, local changes, external IDs, performed mutations, validation, blockers, and assumptions to the next owner. Avoid copying setup history that adds no useful constraint.
@@ -55,7 +55,7 @@ Include the applicable boundary in mutation briefs.
 | Worker | Immediate in-unit investigation, distinct useful hypotheses, and bounded repairs | Open-ended or non-narrowing discovery, contradicted accepted assumptions, incompatible acceptance, multiple independent outcomes, or broader authority and evidence needs |
 
 - A focused lookup alone is not a stop. Compaction alone does not invalidate a coherent active assignment.
-- Repeated broad discovery or little validated progress can justify a proposed handoff. Compare remaining work with retained useful context; do not invent retry, turn, or compaction quotas. Apply [child continuity](../common/recovery-and-continuity.md#choose-child-continuity) on the next dispatch.
+- Repeated broad discovery or little validated progress can justify a proposed handoff. Compare remaining work with retained useful context; do not invent retry, turn, or compaction quotas. Apply [child continuity](child-continuity.md#choose-child-continuity) on the next dispatch.
 - On stop, preserve partial changes and return the accepted contract, exact state, symptom or decision, distinct attempts and results, hypotheses, verification, and smallest missing evidence or authority.
 - The child does not dispatch its own replacement, architect, or triage. Difficulty alone does not invalidate the design.
 

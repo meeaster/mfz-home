@@ -22,7 +22,7 @@ The user accepted a smaller artifact-focused skill and asked to preserve the ret
 | Context, reader assumptions, and proportional references in durable artifacts | `artifact-context` |
 | Prose and document craft | Applicable writing or artifact workflow |
 | Routine delegation | Model defaults plus the active workflow's own contract |
-| Complete actionable artifacts and explicit correction overlays | [Orchestrator Mode child contracts](../../skills/active/orchestrator-mode/references/common/delegation-and-evidence.md#complete-artifact-handoffs) |
+| Complete actionable artifacts and explicit correction overlays | [Orchestration handoffs](../../skills/active/orchestration/references/assignments-and-dependencies.md#complete-artifact-handoffs) |
 | Format, storage, validation, and publication authority | Owning workflow and destination instructions |
 | Runtime skill writing preferences | `skill-authoring` |
 

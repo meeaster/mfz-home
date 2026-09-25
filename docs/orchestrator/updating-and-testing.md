@@ -8,7 +8,7 @@ This is maintainer guidance, not additional runtime material for every orchestra
 
 ## 1. Establish the intended change
 
-Read the current [skill](../../skills/active/orchestrator-mode/SKILL.md), affected references, and the target's authoring records. In the Personal knowledge repository, the record is `authoring-records/mfz-home/skills/orchestrator-mode/`:
+Read the current [Orchestration skill](../../skills/active/orchestration/SKILL.md), affected capability references, and each target's authoring record. In the Personal knowledge repository, records are under `authoring-records/mfz-home/skills/<skill-name>/`:
 
 - `VISION.md` preserves purpose, intended outcomes, and scope.
 - `PRINCIPLES.md` guides authoring choices, including context economy, continuity, provider caching, and model-aware cost.
@@ -34,7 +34,7 @@ Fix the model, variant, scenario prompt, capability facts, response format, and 
 
 For a quick interpretation test, use fresh general subagents and allow only installed-skill and applicable-reference reads. Explicitly waive workspace-file creation and actual dispatch for this tabletop scope. This tests choices and briefs after loading the skill, not automatic invocation, application behavior, or successful delegation.
 
-Scenario coverage must include both modes and mode selection: `/orchestrate` loads `baked-in`, `/orchestrate-chief` loads `chief/split`, and complexity alone selects neither mode.
+Scenario coverage includes both manual skill entries: `/orchestrate` selects `direct`, `/orchestrate-chief` selects `chief`, and complexity alone selects neither. Include ordinary investigation output, capture without mode entry, and explicit exit.
 
 ## 3. Edit and activate the candidate
 
@@ -52,7 +52,7 @@ A reusable tabletop prompt structure is:
 
 ```text
 Read-only tabletop decision task. Explicitly select `baked-in` or `chief/split` and
-load installed orchestrator-mode in the selected mode for human-facing coordination and read references whose triggers apply.
+load the installed entry skill for the human-selected role and follow its reusable capability pointers.
 Only read-only skill and reference loads are permitted. Do not write files,
 run commands, inspect real artifacts, or dispatch children in this test.
 

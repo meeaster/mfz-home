@@ -1,6 +1,6 @@
 # Acceptance and review
 
-Both roles apply these decision and acceptance rules. The Chief requests outcomes and focused follow-up through its orchestrators; orchestrators select and dispatch producers.
+All coordination roles apply these decision and acceptance rules. The Chief requests outcomes and focused follow-up through its orchestrators; orchestrators select and dispatch producers.
 
 ## Decide whether consultation helps
 

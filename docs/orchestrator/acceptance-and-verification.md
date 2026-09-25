@@ -1,16 +1,16 @@
 # Acceptance and verification
 
-The [2026-09-22 redesign](redesign-2026-09-22.md#agent-vocabulary-authority-and-verification) supersedes earlier mandatory post-worker inspection and gateway assumptions below. This page preserves their rationale and evolution. The [current delivery contract](../../skills/active/orchestrator-mode/references/common/acceptance-and-review.md#verify-the-outcome) uses proportionate verification and distinguishes it from review.
+The [2026-09-22 redesign](redesign-2026-09-22.md#agent-vocabulary-authority-and-verification) supersedes earlier mandatory post-worker inspection and gateway assumptions below. This page preserves their rationale and evolution. The [current delivery contract](../../skills/active/orchestration/references/acceptance-and-review.md#verify-the-outcome) uses proportionate verification and distinguishes it from review.
 
 Acceptance is the coordinator's judgment that the evidence supports the agreed outcome. Validation is the work that establishes that evidence. Independent inspection can improve confidence, but its value depends on what it adds beyond the producer's result.
 
 ## Current contract and historical baseline
 
-At baseline `fec8a524`, Orchestrator Mode required a fresh read-only inspector after every worker mutation unit. Operators owned immediate verification, with independent inspection added when useful. The current [acceptance contract](../../skills/active/orchestrator-mode/SKILL.md#accept-and-return) and [mutation reference](../../skills/active/orchestrator-mode/references/orchestrator/execution-and-delivery.md) supersede that baseline.
+At baseline `fec8a524`, Orchestrator Mode required a fresh read-only inspector after every worker mutation unit. Operators owned immediate verification, with independent inspection added when useful. The current [acceptance contract](../../skills/active/orchestration/references/acceptance-and-review.md) and [mutation reference](../../skills/active/orchestration/references/execution-and-delivery.md) supersede that baseline.
 
 The revised source contract replaces that unconditional worker gate with coordinator-owned, proportionate acceptance. Historical sessions must still be evaluated against their own loaded rules. Activation and behavioral observation are recorded separately from source implementation.
 
-The earlier `chief/split` model had two acceptance layers: the gateway accepted producer packets and returned a checked envelope; the Chief accepted it by default. See the current [acceptance section](../../skills/active/orchestrator-mode/SKILL.md#accept-and-return) for the revised result and evidence contract.
+The earlier `chief/split` model had two acceptance layers: the gateway accepted producer packets and returned a checked envelope; the Chief accepted it by default. See the current [acceptance section](../../skills/active/orchestration/references/acceptance-and-review.md) for the revised result and evidence contract.
 
 ## Completion evidence and validation ownership
 
@@ -58,7 +58,7 @@ A change's size informs this choice but does not decide it. Cross-component effe
 
 A missing explanation calls for clarification. A missing check calls for the relevant validation. A concrete defect calls for repair within authority. Unreliable evidence can call for independent confirmation. A design or authority question returns to its decision owner. These distinctions avoid turning every imperfect return into a full repair-and-inspection chain.
 
-The human benefits from a brief explanation when that choice is consequential. For example: "The worker's checks cover normal results; independent inspection will address branch changes under blocked output." This explains why additional work is useful without narrating routine tools or exposing private reasoning. The [root skill](../../skills/active/orchestrator-mode/SKILL.md#think-with-the-human) owns this communication rule across orchestration decisions.
+The human benefits from a brief explanation when that choice is consequential. For example: "The worker's checks cover normal results; independent inspection will address branch changes under blocked output." This explains why additional work is useful without narrating routine tools or exposing private reasoning. The [root skill](../../skills/active/orchestration/SKILL.md#human-facing-work) owns this communication rule across orchestration decisions.
 
 Report who established each conclusion. If an independent reviewer found an issue and the coordinator accepted a worker's repair, say so. Calling that outcome a passed rereview misstates the evidence and creates pressure for an unnecessary additional review.
 
@@ -76,7 +76,7 @@ The same principle applies to test commands. Project guidance that names unit, i
 
 For example, a cross-cutting brief can require the aggregate for final coverage and focused checks during development. A narrow repair can reuse prior results for unaffected behavior while checking its regression and applicable final gate. Select by behavior, dependencies, and environment, not changed filenames alone. Existing preparation may already identify the test boundaries; another explorer is useful only for a material gap.
 
-Assess cumulative obligations across the brief, loaded skills, and acceptance stages. Explicit command lists can require redundant work even when each child follows instructions. When a controlling instruction genuinely requires separate stages, follow it or obtain an authorized, scoped exception before substitution. A child brief cannot silently waive it. Development Principles supplies engineering judgment; owning workflows and project policy supply execution requirements. The [mutation reference](../../skills/active/orchestrator-mode/references/common/acceptance-and-review.md#verify-the-outcome) owns the portable selection rule.
+Assess cumulative obligations across the brief, loaded skills, and acceptance stages. Explicit command lists can require redundant work even when each child follows instructions. When a controlling instruction genuinely requires separate stages, follow it or obtain an authorized, scoped exception before substitution. A child brief cannot silently waive it. Development Principles supplies engineering judgment; owning workflows and project policy supply execution requirements. The [mutation reference](../../skills/active/orchestration/references/acceptance-and-review.md#verify-the-outcome) owns the portable selection rule.
 
 ## Side effects are part of the result
 

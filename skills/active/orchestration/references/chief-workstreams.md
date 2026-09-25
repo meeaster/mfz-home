@@ -22,8 +22,8 @@ Keep the human-facing conversation focused on goals, options, advice, and conseq
 - When an orchestrator already exists, ask the human before creating another or fanning out to additional orchestrators, unless the human has explicitly authorized that split. Recommend a separate workstream only for a separately useful outcome with its own acceptance criteria. If the intended boundary is unclear, ask rather than creating another orchestrator. Opportunities for parallel research or an existing orchestrator being busy do not establish separate workstreams.
 - Reuse an orchestrator for its coherent scope under `workstreams/<scope>/`; each uses the same workspace structure as a direct orchestrator.
 - Keep one active execution per orchestrator. Steer the existing orchestrator by sending related updates to its active session as they arrive. Discover the session messaging tool when needed rather than waiting for the current assignment to finish. Approved independent workstreams can run concurrently. Resolve overlapping write ownership before mutations and serialize shared state when needed.
-- Brief each orchestrator with its role, workspace, scope, authority, selected context, and return needs. Require `orchestrator-mode` in delegated-orchestrator role. Do not require it to create synthesis documents unless authorized.
-- Keep a direct Scribe for the human-facing records. Delegated orchestrators maintain their own records and do not receive Scribes.
+- Brief each orchestrator with role `delegated`, workspace, scope, authority, selected context, and return needs. Require `orchestration` and the active harness reference. Do not require synthesis documents unless authorized.
+- Keep a direct Scribe where the harness supports its required synchronization; otherwise follow `effort-context`'s harness fallback. Delegated orchestrators maintain their own records and do not receive Scribes.
 - Never change or recommend changing modes. Only the human selects the mode.
 
 ## Use returned evidence

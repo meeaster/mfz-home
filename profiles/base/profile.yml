@@ -50,10 +50,20 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   open-pencil:
     agents: { opencode: false, claude-code: false, codex: false }
-  orchestrator-mode:
-    agents: { opencode: true, claude-code: false, codex: false }
-  orchestrator-task-evidence:
-    agents: { opencode: true, claude-code: false, codex: false }
+  design-partner:
+    agents: { opencode: true, claude-code: true, codex: false }
+  evidence-gathering:
+    agents: { opencode: true, claude-code: true, codex: false }
+  task-evidence:
+    agents: { opencode: true, claude-code: true, codex: false }
+  effort-context:
+    agents: { opencode: true, claude-code: true, codex: false }
+  orchestration:
+    agents: { opencode: true, claude-code: true, codex: false }
+  orchestrate:
+    agents: { opencode: true, claude-code: true, codex: false }
+  orchestrate-chief:
+    agents: { opencode: true, claude-code: true, codex: false }
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
@@ -261,8 +271,6 @@ opencode:
   commands:
     - apply-spec
     - implement-design
-    - orchestrate
-    - orchestrate-chief
     - openspec-rolling-apply
     - rmslop
   agents:

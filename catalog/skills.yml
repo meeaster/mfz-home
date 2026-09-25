@@ -1,12 +1,32 @@
 skills:
-  - name: orchestrator-task-evidence
+  - name: task-evidence
     source: local
-    skill: active/orchestrator-task-evidence
-    description: Explicitly assigned task evidence, operational learnings, and selective reuse.
-  - name: orchestrator-mode
+    skill: active/task-evidence
+    description: Producer-owned investigation evidence and operational learnings.
+  - name: design-partner
     source: local
-    skill: active/orchestrator-mode
-    description: Explicit orchestration for direct human collaboration or Chief-led workstreams.
+    skill: active/design-partner
+    description: Explicit human-facing design partnership.
+  - name: evidence-gathering
+    source: local
+    skill: active/evidence-gathering
+    description: Bounded deliberate investigation and reusable findings.
+  - name: effort-context
+    source: local
+    skill: active/effort-context
+    description: Bounded storage, capture, resume, and assigned maintenance.
+  - name: orchestration
+    source: local
+    skill: active/orchestration
+    description: Reusable explicitly selected coordination procedures.
+  - name: orchestrate
+    source: local
+    skill: active/orchestrate
+    description: Human-only direct orchestration entry.
+  - name: orchestrate-chief
+    source: local
+    skill: active/orchestrate-chief
+    description: Human-only Chief collaboration entry.
   - name: anti-slop
     source: local
     skill: active/anti-slop

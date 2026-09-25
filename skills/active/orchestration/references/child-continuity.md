@@ -1,21 +1,6 @@
-# Recovery and continuity
+# Child continuity
 
-## Resume the effort
-
-- Locate the supplied effort or its session marker under `~/workspace/scratch/orchestrator-workspaces/`. Reuse surviving files and preserve prior markers. A missing directory is missing working state, not proof that session history must be reconstructed.
-- Read `context.md`, coordination state, and the index. Select relevant evidence and accepted design for the next action. Reconcile current authority with material mutable state through the appropriate evidence agent.
-- Rebuild missing working records from available context and evidence, marking uncertainty. Label partial index coverage rather than presenting a newest-note-only index as complete.
-- An interrupted response is not compaction. Reconcile pending work and known effects before retrying a side effect; a missing return does not establish that nothing happened.
-- Retain accepted requests and waivers while their basis remains stable. Return an exact blocker when current context or state cannot support continuation.
-
-Never initiate compaction without an explicit human request. Human-facing sessions apply the [post-compaction continuity procedure](human-facing-continuity.md#after-parent-compaction).
-
-## Other historical recovery
-
-- Use bounded `inspect` retrieval when explicitly requested or when a consequential historical gap requires authorized recovery. Name the needed fact, relevant sessions or segment, and the decision it informs.
-- The automatic human-facing post-compaction check is its own bounded authorization. It does not authorize unrelated session archaeology or a general historical recap.
-- A delegated orchestrator uses its assigned workstream and context. It does not pull the human-facing session unless explicitly assigned a named-session read.
-- Use `session-analyst` for authorized evaluative analysis, rather than factual reconstruction. Durable knowledge and synthesis retain their separate request boundaries.
+Use `effort-context` for effort resume and harness-specific history recovery. A delegated orchestrator uses assigned workstream records and does not pull its parent's session unless explicitly assigned a named-session read.
 
 ## Choose child continuity
 

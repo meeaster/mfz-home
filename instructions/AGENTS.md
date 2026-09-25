@@ -14,6 +14,11 @@
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
 - **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
 
+## Investigation evidence
+
+- **Behavior:** Save the substantive findings of a deliberate investigation as one producer-owned evidence file and return the useful answer with its pointer. When available, use `task-evidence` for output and `effort-context` only when a storage location is needed; otherwise follow the assigned output convention. Nearby code reads during an edit, routine preflight, and bounded continuity checks do not each need a file; helpers within one investigation return to its producer for preservation.
+- **Behavior:** Evidence saving changes the investigation's output, not its execution routing. Capture and resume use `effort-context` when requested; neither selects orchestration nor starts ongoing maintenance. Only explicit human selection activates `orchestrate`, `orchestrate-chief`, or standalone design partnership.
+
 ## Explanatory artifacts
 
 - **Behavior:** In pages or visual artifacts created to explain something, omit authoring-process commentary, research provenance, snapshot dates, and artifact approval or lifecycle statuses unless explicitly requested.

@@ -1,10 +1,10 @@
 # Ownership and delegation
 
-The [2026-09-22 redesign](redesign-2026-09-22.md#human-facing-roles-and-delegation) supersedes the standing-gateway, dual-use Scribe, and consultation gates described below. This earlier rationale is historical; use the [current routing rules](../../skills/active/orchestrator-mode/references/orchestrator/routing-and-roles.md) for execution.
+The [2026-09-22 redesign](redesign-2026-09-22.md#human-facing-roles-and-delegation) supersedes the standing-gateway, dual-use Scribe, and consultation gates described below. This earlier rationale is historical; use the [current routing rules](../../skills/active/orchestration/references/routing-and-roles.md) for execution.
 
 Delegation earns its cost when it improves capability, context isolation, independent judgment, parallel progress, or execution economics. Existing coordinator context matters: handing off a task cannot remove context already loaded, but it can keep subsequent investigation and execution details out of the conversation.
 
-This page explains the design under the [architecture status](architecture.md#design-status). It does not replace the runtime [routing rules](../../skills/active/orchestrator-mode/references/orchestrator/routing-and-roles.md).
+This page explains the design under the [architecture status](architecture.md#design-status). It does not replace the runtime [routing rules](../../skills/active/orchestration/references/routing-and-roles.md).
 
 ## The coordinator remains a collaborator
 
@@ -60,7 +60,7 @@ Otherwise, retained understanding and the next assignment decide continuity. A s
 
 For diagrams and HTML explanation pages, the author owns composition, light static checks, interpretation, and repairs. It may dispatch only inspect and manages routine rendered validation and repair rechecks within its assignment. If permissions or available depth block nested dispatch, the coordinator handles the supplied inspection brief. The author can use targeted browser work for a named uncertainty, disputed finding, or repair need without repeating the inspector's full pass. Prefer a fresh inspector for a new revision and continuation for a focused recheck when useful state remains; subsequent author dispatches remain subject to the same non-resumption limit. The author returns inspector session IDs and version-specific evidence; the coordinator retains final acceptance.
 
-The current [continuity defaults](../../skills/active/orchestrator-mode/references/common/recovery-and-continuity.md#choose-child-continuity) vary by role and distinguish an unresolved unit from a new one. The architecture treats those defaults as revisable through evidence, not as a mandate to minimize session count.
+The current [continuity defaults](../../skills/active/orchestration/references/child-continuity.md#choose-child-continuity) vary by role and distinguish an unresolved unit from a new one. The architecture treats those defaults as revisable through evidence, not as a mandate to minimize session count.
 
 An interrupted child may already have caused side effects even without a completed note. Continuation depends on reconciling known effects and pending operations, including ignored files and external state. Starting fresh does not reset the underlying environment.
 

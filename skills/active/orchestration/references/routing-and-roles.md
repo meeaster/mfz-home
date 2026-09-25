@@ -32,7 +32,7 @@ Use these role capabilities when briefing agents; routine dispatch does not requ
 
 | Agent | Available methods and assignment limits |
 | --- | --- |
-| `explore` | File search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Evidence and edit explicitly assigned evidence under the external orchestration workspace, but cannot edit project source. |
+| `explore` | OpenCode file search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Evidence and edit owned evidence under the external scratch root, but cannot edit project source. Use the harness reference for Claude Code's read-only Explore distinction. |
 | `research` | Remote documentation and upstream-source retrieval, including shell-based source inspection within its research authority; assigned evidence writes. |
 | `inspect` | Shell, tools, and source reads for command-derived, runtime, external-system, and session facts; assigned evidence writes. Application changes remain with a mutation owner. |
 
@@ -41,7 +41,7 @@ Use these role capabilities when briefing agents; routine dispatch does not requ
 
 ## Assign review
 
-Apply the shared [review policy](../common/acceptance-and-review.md#independent-review).
+Apply the shared [review policy](acceptance-and-review.md#independent-review).
 
 | Agent | Use when | Required guidance |
 | --- | --- | --- |
@@ -59,7 +59,7 @@ Use `artifact-author` for authorized creation or revision of reader-facing diagr
 - Require `diagram-design` unless the human selects another creation workflow. Other HTML explanations use applicable craft guidance. Visual Explainer remains explicit-selection only.
 - The author owns composition, static checks, visual judgment, and repairs. It dispatches only `inspect` for routine rendered validation. If depth or permissions prevent that child, return the bounded inspection brief to the coordinator.
 - The inspector receives the exact revision, intended behavior, affected views and sizes, valid prior checks, and missing coverage. It returns selected screenshots, concrete findings, and scoped DOM measurements when useful.
-- Follow the [screenshot contract](../common/delegation-and-evidence.md#screenshot-evidence). The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.
+- Require `task-evidence`'s screenshot contract. The author views enough final captures to judge the artifact without automatically repeating the browser pass. Further browser work addresses a specific uncertainty or repair need.
 - Reuse unaffected checks and report unsatisfied mandatory craft checks. Static edits do not establish rendered acceptance; a passing inspection proves only the exercised conditions.
 
 ## Investigation and diagnosis
