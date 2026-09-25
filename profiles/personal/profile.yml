@@ -83,6 +83,8 @@ mcp:
     agents: [opencode, claude-code, codex]
   discord:
     agents: [opencode]
+  pencil:
+    agents: [opencode, claude-code, codex]
 claude:
   settings:
     permissions:
@@ -93,7 +95,7 @@ opencode:
       compaction:
         model: openai/gpt-6-luna#max
       worker:
-        model: openai/gpt-6-sol#high
+        model: openai/gpt-6-sol#medium
       operator:
         model: openai/gpt-6-sol#medium
       agent-author:

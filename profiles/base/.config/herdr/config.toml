@@ -1,5 +1,12 @@
 [ui]
 agent_panel_sort = "priority"
+tab_bar_right = [{ type = "command", command = "/home/mark/.config/herdr/plugins/github/herdr-projects-b1278ffb803c/target/release/herdr-projects --root /home/mark/.herdr-projects needs-you --line", interval_seconds = 15, timeout_seconds = 5 }]
+
+[ui.sidebar.agents]
+rows = [["state_icon", "machine", "workspace", "tab"], ["agent"], [{ token = "$hp_state", rules = [{ starts_with = "needs you", fg = "#f38ba8", bold = true }, { starts_with = "review", fg = "#f9e2af" }] }], [{ token = "$hp_activity", dim = true }]]
+
+[ui.sidebar.spaces]
+rows = [["state_icon", "workspace"], ["branch", "git_status"], [{ token = "$hp" }]]
 
 [[keys.command]]              # open in a split beside your work
 key = "prefix+f"
@@ -15,3 +22,9 @@ command = "herdr plugin action invoke open-file-viewer-tab --plugin herdr-file-v
 key = "prefix+r"
 type = "plugin_action"
 command = "persiyanov.reviewr.toggle"   # <plugin_id>.<action_id> — note the id, not the name
+
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "herdr-projects.open-popup"
+description = "Projects"
