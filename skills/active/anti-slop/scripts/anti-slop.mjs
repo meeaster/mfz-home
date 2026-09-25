@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
@@ -106,15 +106,33 @@ const effectRules = [
   "prefer-effect-match",
 ];
 
-const misePackageRoot = spawnSync("mise", ["where", "npm:@oxlint/plugins"], { encoding: "utf8" }).stdout.trim();
+// Mise's npm backend installs either into <root>/node_modules or into
+// <root>/v11/<store>/node_modules with executable shims in <root>/bin.
+const miseRoot = (tool) => spawnSync("mise", ["where", tool], { encoding: "utf8" }).stdout.trim();
 
-const npmOxlintRoot = spawnSync("mise", ["where", "npm:oxlint"], { encoding: "utf8" }).stdout.trim();
+const nodeModules = (root) => {
+  const store = join(root, "v11");
+
+  const stores = existsSync(store) ? readdirSync(store).sort().map((entry) => join(store, entry, "node_modules")) : [];
+
+  return [join(root, "node_modules"), ...stores];
+};
+
+const misePackageRoot = miseRoot("npm:@oxlint/plugins");
+
+const npmOxlintRoot = miseRoot("npm:oxlint");
+
+const pluginsPackage = misePackageRoot
+  ? nodeModules(misePackageRoot)
+      .map((modules) => join(modules, "@oxlint", "plugins"))
+      .find((directory) => existsSync(join(directory, "package.json")))
+  : undefined;
 
 const oxlint = npmOxlintRoot
-  ? join(npmOxlintRoot, "node_modules", ".bin", "oxlint")
+  ? [join(npmOxlintRoot, "bin", "oxlint"), join(npmOxlintRoot, "node_modules", ".bin", "oxlint")].find((path) => existsSync(path))
   : spawnSync("mise", ["which", "oxlint"], { encoding: "utf8" }).stdout.trim();
 
-if (!misePackageRoot || !oxlint) {
+if (!pluginsPackage || !oxlint) {
   console.error("anti-slop: install the pinned mise tools with `mise install` first");
   rmSync(tempDir, { recursive: true, force: true });
   process.exit(2);
@@ -128,7 +146,7 @@ if (effect) {
 
 mkdirSync(join(runtimeDir, "node_modules", "@oxlint"), { recursive: true });
 
-symlinkSync(join(misePackageRoot, "node_modules", "@oxlint", "plugins"), join(runtimeDir, "node_modules", "@oxlint", "plugins"));
+symlinkSync(pluginsPackage, join(runtimeDir, "node_modules", "@oxlint", "plugins"));
 
 const enabledRules = Object.fromEntries(rules.map((rule) => [`anti-slop/${rule}`, "error"]));
 
