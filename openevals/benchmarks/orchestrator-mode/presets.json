@@ -21,7 +21,7 @@
   "presets": {
     "gpt6": {
       "candidate": "openai/gpt-6-sol#medium",
-      "judge": "openai/gpt-6-astra#medium",
+      "judge": "openai/gpt-6-sol#high",
       "agents": {
         "orchestrator": "openai/gpt-6-sol#medium",
         "scribe": "openai/gpt-6-luna#high",

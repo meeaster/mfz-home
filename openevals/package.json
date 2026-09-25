@@ -4,7 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "materialize": "bun src/materialize-cli.ts",
+    "env": "bun src/environment-cli.ts",
+    "select-preset": "bun src/select-preset.ts",
     "calibrate": "bun src/calibrate-judge.ts",
     "test": "bun test --path-ignore-patterns \"**/results/**\"",
     "typecheck": "tsc --noEmit"

@@ -1,5 +1,10 @@
+/**
+ * Candidate-side preparation step. This is the canonical copy: `bun src/environment-cli.ts stage`
+ * or `sync` copies it into every eval fixture's `.openeval/`, because OpenEval runs
+ * preparation inside the candidate workspace and cannot reach files outside it.
+ */
 import { existsSync } from "node:fs";
-import { cp, mkdir, readFile, writeFile } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 
@@ -37,6 +42,9 @@ const overridesPath = join(workspace, ".openeval", "agent-models.json");
  * cannot create a promptless placeholder.
  */
 const builtinAgents: ReadonlySet<string> = new Set(["explore"]);
+
+if (!existsSync(join(environment, "manifest.json")))
+  throw new Error("No rendered environment: run `bun src/environment-cli.ts stage <profile>` on the host first");
 
 /**
  * OpenCode writes `opencode.json` before preparation; the materializer writes the
@@ -95,10 +103,11 @@ await mkdir(configRoot, { recursive: true });
 for (const file of ["AGENTS.md", "references.md"])
   await cp(join(environment, file), join(configRoot, file));
 
-for (const directory of ["skills", "commands", "agents"])
-  await cp(join(environment, directory), join(configRoot, directory), {
-    recursive: true,
-  });
+for (const directory of ["skills", "commands", "agents"]) {
+  const rendered = join(environment, directory);
+
+  if (existsSync(rendered)) await cp(rendered, join(configRoot, directory), { recursive: true });
+}
 
 const generated = await readObject(join(configRoot, "opencode.json"));
 
@@ -124,3 +133,6 @@ await writeFile(join(configRoot, "opencode.json"), contents, "utf8");
 await writeFile(join(configRoot, "opencode.jsonc"), contents, "utf8");
 
 await writeAgentOverrides();
+
+// OpenEval snapshots the initial workspace after preparation; the candidate sees only task files.
+await rm(join(workspace, ".openeval"), { recursive: true, force: true });

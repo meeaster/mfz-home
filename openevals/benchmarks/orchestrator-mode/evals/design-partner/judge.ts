@@ -4,7 +4,6 @@ import {
   changedPaths,
   childSessionCount,
   dispatchTools,
-  loadedRoleProcedures,
   roleSkills,
   runFacts,
   sessionSkills,
@@ -12,10 +11,10 @@ import {
   type RunFacts,
 } from "../../../../src/judging/facts.js";
 
-export function gradeInstructionFacts(facts: RunFacts) {
+export function gradeDesignFacts(facts: RunFacts) {
   const skills = sessionSkills(facts);
 
-  const outOfRole = skillsOutsideRole([...skills.root, ...skills.children], roleSkills.directCoordinator);
+  const outOfRole = skillsOutsideRole([...skills.root, ...skills.children], roleSkills.designPartner);
 
   const dispatches = attemptedTools(facts.tools, dispatchTools);
 
@@ -25,8 +24,8 @@ export function gradeInstructionFacts(facts: RunFacts) {
 
   return {
     scores: {
-      workflow_entered: loadedRoleProcedures(skills.root, "orchestrate"),
-      coordinator_skills_in_role: outOfRole.length === 0,
+      design_skill_loaded: skills.root.includes("design-partner"),
+      skills_in_role: outOfRole.length === 0,
       no_child_dispatch: dispatches.length === 0 && children === 0,
       workspace_unchanged: changed.length === 0,
     },
@@ -34,4 +33,4 @@ export function gradeInstructionFacts(facts: RunFacts) {
   };
 }
 
-export default async (context: JudgeContext) => gradeInstructionFacts(await runFacts(context));
+export default async (context: JudgeContext) => gradeDesignFacts(await runFacts(context));

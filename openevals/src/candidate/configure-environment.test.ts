@@ -4,10 +4,7 @@ import { join, resolve } from "node:path";
 
 type ProjectConfig = { agents?: Record<string, { model?: string }> };
 
-const script = resolve(
-  import.meta.dir,
-  "../../benchmarks/orchestrator-mode/evals/baked-in-dispatch/workspace/.openeval/configure-environment.ts",
-);
+const script = resolve(import.meta.dir, "configure-environment.ts");
 
 async function write(path: string, contents: string): Promise<void> {
   await mkdir(resolve(path, ".."), { recursive: true });
@@ -31,10 +28,10 @@ async function fixture(root: string, overrides?: string): Promise<void> {
 
   await write(join(environment, "AGENTS.md"), "# Instructions\n");
   await write(join(environment, "references.md"), "# References\n");
-   await write(join(environment, "agents", "orchestrator.md"), "---\nmodel: openai/gpt-6-luna\n---\nOrchestrate.\n");
-   await write(join(environment, "agents", "worker.md"), "---\nmodel: openai/gpt-6-luna\n---\nWork.\n");
-  await write(join(environment, "commands", "orchestrate.md"), "Command\n");
-  await write(join(environment, "skills", "orchestrator-mode", "SKILL.md"), "# Skill\n");
+  await write(join(environment, "agents", "orchestrator.md"), "---\nmodel: openai/gpt-6-luna\n---\nOrchestrate.\n");
+  await write(join(environment, "agents", "worker.md"), "---\nmodel: openai/gpt-6-luna\n---\nWork.\n");
+  await write(join(environment, "skills", "orchestrate", "SKILL.md"), "# Skill\n");
+  await write(join(environment, "manifest.json"), "{}\n");
   await write(
     join(environment, "opencode.json"),
     `${JSON.stringify({ instructions: ["/home/dev/.config/opencode/AGENTS.md"], skills: ["/home/dev/.config/opencode/skills"], mcp: { servers: {} } }, null, 2)}\n`,
@@ -85,6 +82,9 @@ test("overrides defined agents and core built-ins, skipping unknown agents", asy
     expect(await readFile(join(root, "home", ".config", "opencode", "agents", "orchestrator.md"), "utf8")).toContain(
       "Orchestrate.",
     );
+
+    // Harness files leave the workspace before OpenEval takes the initial snapshot.
+    expect(await Bun.file(join(root, "workspace", ".openeval", "agent-models.json")).exists()).toBe(false);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

@@ -15,6 +15,7 @@ export default {
   models: [preset.candidate],
   judge: { model: preset.judge, websearch: false },
   repetitions: 1,
+  concurrency: 5,
   candidate: { websearch: false },
   container: { engine: "docker", cpus: 2, memoryMiB: 4096 },
 } satisfies Benchmark;

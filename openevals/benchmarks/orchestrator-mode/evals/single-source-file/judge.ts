@@ -1,45 +1,40 @@
-import { z } from "zod";
-import type { JudgeContext, RecordedFile, ToolCall } from "@hona/openeval";
+import type { JudgeContext } from "@hona/openeval";
+import {
+  changedPaths,
+  childSessionCount,
+  loadedRoleProcedures,
+  roleSkills,
+  runFacts,
+  sessionSkills,
+  skillsOutsideRole,
+  subagentTargets,
+  type RunFacts,
+} from "../../../../src/judging/facts.js";
 
-const subagentInput = z.object({ agent: z.string() });
+export function gradeSourceFacts(facts: RunFacts) {
+  const skills = sessionSkills(facts);
 
-function fileDigests(files: readonly RecordedFile[]): Map<string, string> {
-  const digests = new Map<string, string>();
+  const outOfRole = {
+    root: skillsOutsideRole(skills.root, roleSkills.directCoordinator),
+    children: skillsOutsideRole(skills.children, roleSkills.evidenceProducer),
+  };
 
-  for (const file of files) digests.set(file.path, file.sha256 ?? file.symlink ?? "");
+  const targets = subagentTargets(facts.tools);
 
-  return digests;
-}
+  const children = childSessionCount(facts.sessions);
 
-export function gradeSourceFacts(
-  tools: readonly ToolCall[],
-  sessions: readonly { parentID?: string }[],
-  initial: readonly RecordedFile[],
-  final: readonly RecordedFile[],
-) {
-  const explore = tools.some((tool) =>
-    tool.name === "subagent" &&
-    tool.status === "succeeded" &&
-    subagentInput.safeParse(tool.input).data?.agent === "explore"
-  );
-
-  const before = fileDigests(initial);
-
-  const after = fileDigests(final);
-
-  const unchanged = [...new Set([...before.keys(), ...after.keys()])].every((path) => before.get(path) === after.get(path));
+  const changed = changedPaths(facts.initial, facts.final);
 
   return {
     scores: {
-      explore_dispatched: explore && sessions.some((session) => session.parentID !== undefined),
-      workspace_unchanged: unchanged,
+      workflow_entered: loadedRoleProcedures(skills.root, "orchestrate"),
+      coordinator_skills_in_role: outOfRole.root.length === 0,
+      producer_skills_in_role: outOfRole.children.length === 0,
+      explore_dispatched: targets.includes("explore") && children > 0,
+      workspace_unchanged: changed.length === 0,
     },
+    observations: { skills, outOfRole, subagentTargets: targets, childSessions: children, changedPaths: changed },
   };
 }
 
-export default async ({ recording, workspace }: JudgeContext) => gradeSourceFacts(
-  recording.tools(),
-  await recording.sessions(),
-  workspace.files("initial"),
-  workspace.files("final"),
-);
+export default async (context: JudgeContext) => gradeSourceFacts(await runFacts(context));

@@ -1,16 +1,11 @@
-export { assertEnvironmentContract, checkEnvironmentContract } from "./contract.js";
+export { assertEnvironmentContract, checkEnvironmentContract, type EnvironmentContractReport } from "./contract.js";
 
-export { digestEnvironmentFiles, manifestJson, verifyManifestFiles } from "./manifest.js";
+export { digestEnvironmentFiles, manifestJson, verifyManifestFiles, type EnvironmentFile, type EnvironmentManifest } from "./manifest.js";
 
-export { materializeEnvironment, materializePreset } from "./materialize.js";
+export { candidateConfigRoot, materializeEnvironment, type EnvironmentSpec, type MaterializedEnvironment } from "./materialize.js";
 
-export { environmentNames, environmentSpec, isEnvironmentName } from "./presets.js";
+export { environmentNames, isEnvironmentName, requiredComponents, type EnvironmentName } from "./profiles.js";
 
-export type {
-  EnvironmentContractReport,
-  EnvironmentFile,
-  EnvironmentManifest,
-  EnvironmentName,
-  EnvironmentSpec,
-  MaterializedEnvironment,
-} from "./types.js";
+export { overridable, workingTreeChanges } from "./sources.js";
+
+export { configureScript, defaultBenchmark, driftedConfigureScripts, evalFixtures, stageEnvironment, syncConfigureScripts } from "./stage.js";

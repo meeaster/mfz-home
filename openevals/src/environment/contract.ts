@@ -1,119 +1,89 @@
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { dirname, join, normalize, resolve } from "node:path";
 import { z } from "zod";
-import { verifyManifestFiles } from "./manifest.js";
-import type { EnvironmentContractReport, EnvironmentManifest } from "./types.js";
+import { manifestSchema, verifyManifestFiles, type EnvironmentManifest } from "./manifest.js";
+import { requiredComponents } from "./profiles.js";
 
-const privateMaterial = /(?:personal-knowledge|personal-sources|\/home\/[^\s/]+\/workspace\/knowledge|~\/(?:\.claude|\.codex)|\.claude|\.codex|EXA_API_KEY|UNIFI_NETWORK_PASSWORD|TRUENAS_API_KEY)/iu;
+/** Private stores, host home paths other than the candidate's, and secret variable names. */
+const privateMaterial =
+  /(?:personal-knowledge|personal-sources|\/home\/(?!dev\/)[a-z_][\w-]*\/|EXA_API_KEY|UNIFI_NETWORK_PASSWORD|TRUENAS_API_KEY)/iu;
 
-const manifestSchema = z.object({
-  version: z.literal(1),
-  profile: z.enum(["minimal", "personal"]),
-  sourceCommit: z.string(),
-  mfzVersion: z.string(),
-  openEvalVersion: z.string(),
-  overlays: z.array(z.string()),
-  sourceOverrides: z.array(z.object({ path: z.string(), sha256: z.string() })).optional(),
-  components: z.object({
-    instructions: z.array(z.string()),
-    skills: z.array(z.string()),
-    commands: z.array(z.string()),
-    agents: z.array(z.string()),
-    mcp: z.array(z.string()),
-  }),
-  files: z.array(z.object({
-    path: z.string(),
-    sha256: z.string(),
-    component: z.enum(["instructions", "skills", "commands", "agents", "mcp", "config", "manifest"]),
-  })),
-});
+/** Relative Markdown links, without their fragment. */
+const markdownLink = /\]\((?!https?:|#)([^)\s#]+\.md)(?:#[^)\s]*)?\)/gu;
 
-const configSchema = z.object({
-  mcp: z.object({ servers: z.record(z.string(), z.object({}).passthrough()).optional() }).optional(),
-  permissions: z.array(
-    z.object({
-      action: z.string(),
-      resource: z.string(),
-      effect: z.enum(["allow", "ask", "deny"]),
-    }),
-  ).optional(),
-}).passthrough();
+const configSchema = z
+  .object({
+    mcp: z.object({ servers: z.record(z.string(), z.object({}).passthrough()).optional() }).optional(),
+    permissions: z
+      .array(z.object({ action: z.string(), resource: z.string(), effect: z.enum(["allow", "ask", "deny"]) }))
+      .optional(),
+  })
+  .passthrough();
 
-function includesEvery(value: string[], expected: string[], label: string, errors: string[]): void {
-  for (const item of expected) {
-    if (!value.includes(item)) errors.push(`Missing ${label}: ${item}`);
+export type EnvironmentContractReport = {
+  ok: boolean;
+  errors: string[];
+  manifest: EnvironmentManifest;
+};
+
+/** Links from required skill files whose targets were not rendered. */
+function brokenSkillLinks(files: ReadonlyMap<string, string>, skills: readonly string[]): string[] {
+  const broken: string[] = [];
+
+  for (const [path, text] of files) {
+    if (!skills.some((skill) => path.startsWith(`skills/${skill}/`))) continue;
+
+    for (const [, target] of text.matchAll(markdownLink)) {
+      const linked = normalize(join(dirname(path), target ?? ""));
+
+      if (!files.has(linked)) broken.push(`${path} -> ${linked}`);
+    }
   }
+
+  return broken;
 }
 
+/**
+ * Check a rendered environment: digests match, the orchestration skills and
+ * agents declared by the minimal overlay rendered with every linked reference,
+ * writes are denied, no MCP server is configured, and no private marker appears.
+ */
 export async function checkEnvironmentContract(root: string): Promise<EnvironmentContractReport> {
-  const manifest = manifestSchema.parse(
-    JSON.parse(await readFile(resolve(root, "manifest.json"), "utf8")),
-  ) satisfies EnvironmentManifest;
+  const manifest = manifestSchema.parse(JSON.parse(await readFile(resolve(root, "manifest.json"), "utf8")));
 
   const errors = await verifyManifestFiles(root, manifest);
 
   const config = configSchema.parse(JSON.parse(await readFile(resolve(root, "opencode.json"), "utf8")));
 
-  includesEvery(manifest.components.instructions, ["AGENTS.md"], "instruction", errors);
+  const files = new Map<string, string>();
 
-  const roleBundles = manifest.components.skills.includes(
-    "skills/orchestrator-mode/references/common/delegation-and-evidence.md",
+  for (const file of manifest.files) files.set(file.path, await readFile(resolve(root, file.path), "utf8"));
+
+  const required = await requiredComponents();
+
+  const expected = [
+    "AGENTS.md",
+    ...required.skills.map((skill) => `skills/${skill}/SKILL.md`),
+    ...required.agents.map((agent) => `agents/${agent}.md`),
+  ];
+
+  for (const path of expected) if (!files.has(path)) errors.push(`Missing required file: ${path}`);
+
+  for (const link of brokenSkillLinks(files, required.skills)) errors.push(`Broken skill reference: ${link}`);
+
+  const deniesWrites = config.permissions?.some(
+    (permission) => permission.action === "*" && permission.resource === "*" && permission.effect === "deny",
   );
 
-  includesEvery(
-    manifest.components.skills,
-    roleBundles ? [
-      "skills/orchestrator-mode/SKILL.md",
-      "skills/orchestrator-mode/references/common/delegation-and-evidence.md",
-      "skills/orchestrator-mode/references/common/acceptance-and-review.md",
-      "skills/orchestrator-mode/references/common/recovery-and-continuity.md",
-      "skills/orchestrator-mode/references/common/workspace-and-coordination.md",
-      "skills/orchestrator-mode/references/common/human-facing-continuity.md",
-      "skills/orchestrator-mode/references/chief/collaboration-and-workstreams.md",
-      "skills/orchestrator-mode/references/orchestrator/routing-and-roles.md",
-      "skills/orchestrator-mode/references/orchestrator/design-and-prototypes.md",
-      "skills/orchestrator-mode/references/orchestrator/execution-and-delivery.md",
-    ] : [
-      "skills/orchestrator-mode/SKILL.md",
-      "skills/orchestrator-mode/references/child-contracts.md",
-      "skills/orchestrator-mode/references/routing-and-roles.md",
-      "skills/orchestrator-mode/references/recovery-and-continuity.md",
-      "skills/orchestrator-mode/references/workspace-and-coordination.md",
-    ],
-    "skill file",
-    errors,
-  );
-  includesEvery(manifest.components.commands, ["commands/orchestrate.md"], "command", errors);
-  includesEvery(manifest.components.agents, ["agents/orchestrator.md"], "agent", errors);
+  if (deniesWrites !== true) errors.push("External writes are not denied by the environment permission overlay");
 
-  if (!config.permissions?.some(
-    (permission) =>
-      permission.action === "*" && permission.resource === "*" && permission.effect === "deny",
-  ))
-    errors.push("External writes are not denied by the environment permission overlay");
+  if (Object.keys(config.mcp?.servers ?? {}).length > 0) errors.push("MCP servers are enabled in the sanitized environment");
 
-  if (Object.keys(config.mcp?.servers ?? {}).length > 0)
-    errors.push("MCP servers are enabled in the sanitized environment");
+  for (const [path, text] of files) {
+    if (privateMaterial.test(`${path}\n${text}`)) errors.push(`Private material marker found: ${path}`);
+  }
 
-  const contents = await Promise.all(
-    manifest.files.map(async (file) => `${file.path}\n${await readFile(resolve(root, file.path), "utf8")}`),
-  );
-
-  const privateMatches = contents.filter((content) => privateMaterial.test(content));
-
-  if (privateMatches.length > 0) errors.push("Private material marker found in environment files");
-
-  return {
-    ok: errors.length === 0,
-    errors,
-    manifest,
-    files: manifest.files,
-    observations: {
-      fileCount: manifest.files.length,
-      mcpServerCount: Object.keys(config.mcp?.servers ?? {}).length,
-      privateMaterialExcluded: privateMatches.length === 0,
-    },
-  };
+  return { ok: errors.length === 0, errors, manifest };
 }
 
 export async function assertEnvironmentContract(root: string): Promise<EnvironmentContractReport> {

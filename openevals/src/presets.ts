@@ -29,9 +29,11 @@ export type PresetFile = {
   presets: Record<string, Preset>;
 };
 
+const modelRefPattern = /^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*(#[A-Za-z0-9._-]+)?$/;
+
 const modelRef = z
-  .string()
-  .regex(/^[A-Za-z0-9][A-Za-z0-9._-]*\/[A-Za-z0-9][A-Za-z0-9._-]*(#[A-Za-z0-9._-]+)?$/, "not a provider/model ref");
+  .templateLiteral([z.string(), "/", z.string()], { error: "not a provider/model ref" })
+  .refine((value) => modelRefPattern.test(value), "not a provider/model ref");
 
 const presetSchema = z.object({
   candidate: modelRef,
@@ -55,11 +57,6 @@ function parseJson<T>(schema: z.ZodType<T>, source: string): T {
   return result.data;
 }
 
-function refOf(ref: string, label: string): `${string}/${string}` {
-  // SAFETY: The schema checked the provider/model shape at the boundary.
-  return ref as `${string}/${string}`;
-}
-
 /** Parse and validate a `presets.json` document. */
 export function parsePresets(source: string): PresetFile {
   const file = parseJson(presetsFileSchema, source);
@@ -72,11 +69,7 @@ export function parsePresets(source: string): PresetFile {
         throw new Error(`presets.${name}.agents has unknown role ${role}; add it to roles`);
     }
 
-    presets[name] = {
-      candidate: refOf(preset.candidate, `presets.${name}.candidate`),
-      judge: refOf(preset.judge, `presets.${name}.judge`),
-      agents: preset.agents,
-    };
+    presets[name] = preset;
   }
 
   if (!(file.default in presets)) throw new Error(`default preset ${file.default} is not defined in presets`);

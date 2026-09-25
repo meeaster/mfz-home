@@ -1,14 +1,24 @@
 name: minimal
-description: OpenEval minimal Orchestrator Mode environment.
+description: OpenEval minimal environment for the modular orchestration skills.
 agents: [opencode]
 instructions:
   - instructions/AGENTS.md
 skills:
-  orchestrator-mode:
+  orchestration:
     agents: { opencode: true }
-  orchestrator-task-evidence:
+  task-evidence:
+    agents: { opencode: true }
+  effort-context:
+    agents: { opencode: true }
+  evidence-gathering:
+    agents: { opencode: true }
+  design-partner:
+    agents: { opencode: true }
+  orchestrate:
+    agents: { opencode: true }
+  orchestrate-chief:
     agents: { opencode: true }
 opencode:
-  commands: [orchestrate]
-  agents: [orchestrator, scribe]
+  commands: []
+  agents: [orchestrator, scribe, explore]
 mcp: {}

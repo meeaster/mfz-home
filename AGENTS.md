@@ -3,6 +3,7 @@
 The Personal profile extends the shared `base` profile. Keep shared behavior in `base` and Personal-only configuration in `personal`.
 
 - For OpenCode plugins, commands, agents, or TUI assets, read `opencode/AGENTS.md` before changing them.
+- For OpenEval benchmarks, eval environments, or judges, read `openevals/AGENTS.md` before changing them.
 - For Executor routing changes or unverified live behavior, load `/home/mark/workspace/knowledge/personal-knowledge/threads/executor-mcp-routing-evidence/digest.md` before changing configuration or renderer behavior.
 
 <!-- mfz:home-guidance:begin -->

@@ -1,92 +1,117 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import { assertEnvironmentContract, environmentNames, materializePreset } from "./index.js";
+import {
+  assertEnvironmentContract,
+  driftedConfigureScripts,
+  materializeEnvironment,
+  overridable,
+  requiredComponents,
+  stageEnvironment,
+} from "./index.js";
+import { applySourceOverrides } from "./sources.js";
 
-async function sourceCommit(): Promise<{ home: string; commit: string }> {
-  const home = resolve(import.meta.dir, "../../../");
-  const child = Bun.spawn(["git", "-C", home, "rev-parse", "HEAD"], { stdout: "pipe", stderr: "pipe" });
+const sourceHome = resolve(import.meta.dir, "../../../");
 
-  const [code, stdout, stderr] = await Promise.all([
-    child.exited,
-    new Response(child.stdout).text(),
-    new Response(child.stderr).text(),
-  ]);
+async function withTemp(prefix: string, body: (root: string) => Promise<void>): Promise<void> {
+  const root = await mkdtemp(`/tmp/opencode/${prefix}-`);
 
-  if (code !== 0) throw new Error(stderr);
-
-  return { home, commit: stdout.trim() };
+  try {
+    await body(root);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
 }
 
-test("exposes exactly the two controlled environment presets", () => {
-  expect(environmentNames).toEqual(["minimal", "personal"]);
+test("minimal renders the orchestration skills and agents with every linked reference", async () => {
+  await withTemp("mfz-openeval-minimal", async (root) => {
+    const result = await materializeEnvironment({ sourceHome, profile: "minimal", workingTree: true }, root);
+
+    const report = await assertEnvironmentContract(result.environment);
+
+    const required = await requiredComponents();
+
+    const agents = report.manifest.files.filter((file) => file.component === "agents").map((file) => file.path);
+
+    expect(agents.sort()).toEqual(required.agents.map((agent) => `agents/${agent}.md`).sort());
+    expect(await readFile(resolve(result.environment, "skills/orchestrate/SKILL.md"), "utf8")).toContain("opencode/autoinvoke: false");
+  });
 });
 
-test("materializes minimal from canonical source and records digests", async () => {
-  const root = await mkdtemp("/tmp/opencode/mfz-openeval-minimal-");
+test("personal adds the live roster without private skills or instructions", async () => {
+  await withTemp("mfz-openeval-personal", async (root) => {
+    const result = await materializeEnvironment({ sourceHome, profile: "personal", workingTree: true }, root);
 
-  try {
-    const source = await sourceCommit();
-    const result = await materializePreset(source.home, source.commit, "minimal", root);
-    const report = await assertEnvironmentContract(`${result.workspace}/.openeval/environment`);
+    const report = await assertEnvironmentContract(result.environment);
 
-    expect(report.ok).toBe(true);
-    expect(report.manifest.sourceCommit).toBe(source.commit);
-    expect(report.manifest.components.commands).toContain("commands/orchestrate.md");
-    expect(report.manifest.components.agents).toContain("agents/orchestrator.md");
-    expect(await readFile(resolve(result.workspace, ".openeval/environment/opencode.json"), "utf8")).toContain('"action": "*"');
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+    const paths = report.manifest.files.map((file) => file.path);
+
+    expect(paths).toContain("agents/research.md");
+    expect(paths).toContain("skills/development-principles/SKILL.md");
+    expect(paths.some((path) => path.startsWith("skills/threads/") || path.startsWith("skills/tradingview/"))).toBe(false);
+    expect(await readFile(resolve(root, "profile.yml"), "utf8")).not.toContain("PERSONAL");
+  });
 });
 
-test("materializes sanitized personal without private runtime material", async () => {
-  const root = await mkdtemp("/tmp/opencode/mfz-openeval-personal-");
-
-  try {
-    const source = await sourceCommit();
-    const result = await materializePreset(source.home, source.commit, "personal", root);
-    const report = await assertEnvironmentContract(`${result.workspace}/.openeval/environment`);
-    const files = report.files.map((file) => file.path).join("\n");
-
-    expect(report.ok).toBe(true);
-    expect(files).not.toMatch(/PERSONAL_KNOWLEDGE|personal-knowledge|personal-sources/iu);
-    expect(files).not.toMatch(/\.claude|\.codex/iu);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+test("source overrides accept orchestration inputs and reject private instructions", () => {
+  expect(overridable("skills/active/orchestration/references/harnesses/opencode.md")).toBe(true);
+  expect(overridable("opencode/agents/explore.md")).toBe(true);
+  expect(overridable("profiles/base/profile.yml")).toBe(true);
+  expect(overridable("instructions/PERSONAL.md")).toBe(false);
+  expect(overridable("mcp/server/index.ts")).toBe(false);
 });
 
-test("archives explicit local source overrides and records their digests", async () => {
-  const root = await mkdtemp("/tmp/opencode/mfz-openeval-override-");
+test("source overrides copy present files, delete missing ones, and record both", async () => {
+  await withTemp("mfz-openeval-override", async (root) => {
+    const home = resolve(root, "home");
 
-  try {
-    const source = await sourceCommit();
-    const path = "skills/active/orchestrator-mode/SKILL.md";
-    const result = await materializePreset(source.home, source.commit, "minimal", root, [path]);
-    const captured = await readFile(resolve(root, "source-overrides", path), "utf8");
-    const rendered = await readFile(resolve(result.workspace, ".openeval/environment/skills/orchestrator-mode/SKILL.md"), "utf8");
+    const source = resolve(root, "source");
 
-    expect(captured).toBe(await readFile(resolve(source.home, path), "utf8"));
-    expect(rendered).toBe(captured);
-    expect(result.manifest.sourceOverrides).toEqual([
-      { path, sha256: new Bun.CryptoHasher("sha256").update(captured).digest("hex") },
+    await mkdir(resolve(home, "skills/active/orchestrate"), { recursive: true });
+    await writeFile(resolve(home, "skills/active/orchestrate/SKILL.md"), "current\n");
+    await mkdir(resolve(source, "skills/active/orchestrator-mode"), { recursive: true });
+    await writeFile(resolve(source, "skills/active/orchestrator-mode/SKILL.md"), "retired\n");
+
+    const overrides = await applySourceOverrides(home, source, resolve(root, "capture"), [
+      "skills/active/orchestrate/SKILL.md",
+      "skills/active/orchestrator-mode/SKILL.md",
     ]);
-    expect((await assertEnvironmentContract(`${result.workspace}/.openeval/environment`)).ok).toBe(true);
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+
+    expect(overrides.map((override) => [override.path, override.sha256 === null])).toEqual([
+      ["skills/active/orchestrate/SKILL.md", false],
+      ["skills/active/orchestrator-mode/SKILL.md", true],
+    ]);
+    expect(await readFile(resolve(source, "skills/active/orchestrate/SKILL.md"), "utf8")).toBe("current\n");
+    expect(await readFile(resolve(root, "capture/skills/active/orchestrate/SKILL.md"), "utf8")).toBe("current\n");
+    expect(await Bun.file(resolve(source, "skills/active/orchestrator-mode/SKILL.md")).exists()).toBe(false);
+  });
 });
 
-test("rejects source overrides outside the scoped orchestration assets", async () => {
-  const root = await mkdtemp("/tmp/opencode/mfz-openeval-override-");
+test("staging installs the environment and configure script into every eval fixture", async () => {
+  await withTemp("mfz-openeval-stage", async (root) => {
+    const environment = resolve(root, "environment");
 
-  try {
-    const source = await sourceCommit();
+    await mkdir(environment, { recursive: true });
+    await writeFile(resolve(environment, "AGENTS.md"), "# Instructions\n");
 
-    await expect(materializePreset(source.home, source.commit, "minimal", root, ["instructions/PERSONAL.md"]))
-      .rejects.toThrow("outside orchestration scope");
-  } finally {
-    await rm(root, { recursive: true, force: true });
-  }
+    await mkdir(resolve(root, "benchmark/evals/local/workspace/.openeval/environment"), { recursive: true });
+    await writeFile(resolve(root, "benchmark/evals/local/workspace/.openeval/environment/stale.md"), "stale\n");
+    await writeFile(resolve(root, "benchmark/evals/local/eval.ts"), "export default {};\n");
+    await mkdir(resolve(root, "benchmark/evals/remote"), { recursive: true });
+    await writeFile(resolve(root, "benchmark/evals/remote/eval.ts"), `export default { workspace: { ref: "main", overlay: "overlay" } };\n`);
+
+    const benchmark = resolve(root, "benchmark");
+
+    await stageEnvironment(environment, benchmark);
+
+    for (const fixture of ["evals/local/workspace/.openeval", "evals/remote/overlay/.openeval"])
+      expect(await readFile(resolve(benchmark, fixture, "environment/AGENTS.md"), "utf8")).toBe("# Instructions\n");
+
+    expect(await Bun.file(resolve(benchmark, "evals/local/workspace/.openeval/environment/stale.md")).exists()).toBe(false);
+    expect(await driftedConfigureScripts(benchmark)).toEqual([]);
+  });
+});
+
+test("committed eval fixtures carry the canonical configure script", async () => {
+  expect(await driftedConfigureScripts()).toEqual([]);
 });
