@@ -128,6 +128,15 @@ const migrations: readonly string[] = [
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'include'
   EXCEPT
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'exclude';
+  `,
+  `
+  -- The session each path from location was handed to. A file written there without a capture, for example
+  -- by a shell command, takes that session as its producer when it is first recorded.
+  CREATE TABLE location_grant (
+    path TEXT PRIMARY KEY,
+    session_id INTEGER NOT NULL REFERENCES session (id),
+    granted_at TEXT NOT NULL
+  ) STRICT;
   `
 ];
 

@@ -45,21 +45,30 @@ export type RecordedFile = {
   readonly created: boolean;
 };
 
+function grantedSession(cairn: Cairn, inside: string): number | null {
+  const grant = cairn.sql.get`SELECT session_id FROM location_grant WHERE path = ${inside}`;
+
+  return grant === undefined ? null : integer(grant, "session_id");
+}
+
+// Without a known producer, a file at a path from location is credited to the session it was handed to.
 export function recordManagedFile(cairn: Cairn, inside: string, facts: FileFacts, producerId: number | null): RecordedFile {
   const now = timestamp(cairn);
   const existing = cairn.sql.get`SELECT id, producer_session_id FROM artifact WHERE path_or_url = ${inside}`;
 
   if (existing === undefined) {
+    const producer = producerId ?? grantedSession(cairn, inside);
+
     const id = insertedId(cairn.sql.run`
       INSERT INTO artifact (location, path_or_url, sha256, size, status, producer_session_id, captured_at, updated_at)
-      VALUES ('managed', ${inside}, ${facts.sha256}, ${facts.size}, 'undescribed', ${producerId}, ${now}, ${now})
+      VALUES ('managed', ${inside}, ${facts.sha256}, ${facts.size}, 'undescribed', ${producer}, ${now}, ${now})
     `);
 
     return { id, created: true };
   }
 
   const id = integer(existing, "id");
-  const producer = optionalInteger(existing, "producer_session_id") ?? producerId;
+  const producer = optionalInteger(existing, "producer_session_id") ?? producerId ?? grantedSession(cairn, inside);
 
   cairn.sql.run`
     UPDATE artifact SET sha256 = ${facts.sha256}, size = ${facts.size}, updated_at = ${now},

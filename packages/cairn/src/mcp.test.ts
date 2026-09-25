@@ -169,6 +169,30 @@ describe("MCP tools", () => {
     expect(cairn.index("logs-archived-to-s3")).toContain("S3 retention costs");
   });
 
+  test("a file written by a shell command at a path from catalog_location is credited to the session it was handed to, and no path is handed out twice", async () => {
+    const cairn = await catalog();
+
+    cairn.cli("session", "start", "opencode:lead");
+    cairn.cli("session", "start", "opencode:explore", "--parent", "opencode:lead", "--agent", "explore");
+
+    const { path } = await cairn.json(writePath, "catalog_location", { session: "opencode:explore", topic: "AWS account structure" });
+
+    // No capture: the plugin only sees the write, edit, and patch tools.
+    writeFileSync(path, "# AWS account structure\n");
+    cairn.cli("read", path, "--session", "opencode:lead");
+
+    await cairn.json(describedSession, "catalog_session", { session: "opencode:lead", attach: [{ create: { title: "Logs archived to S3" } }] });
+
+    const described = await cairn.json(artifactEntry, "catalog_describe", { path, category: "evidence", title: "AWS account structure" });
+
+    expect(described.efforts).toEqual(["logs-archived-to-s3"]);
+
+    const unwritten = await cairn.json(writePath, "catalog_location", { session: "opencode:lead", topic: "S3 retention costs" });
+    const again = await cairn.json(writePath, "catalog_location", { session: "opencode:lead", topic: "S3 retention costs" });
+
+    expect(again.path).toBe(unwritten.path.replace("s3-retention-costs.md", "s3-retention-costs-2.md"));
+  });
+
   test("a fresh session finds an effort phrased differently and resumes from its view", async () => {
     const cairn = await catalog();
 

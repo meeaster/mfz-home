@@ -281,32 +281,42 @@ function topicFileName(topic: string): TopicFile {
   return { base: base === "" ? "output" : base, extension };
 }
 
-// A path nobody has written or recorded yet, in the effort's folder or the session tree's folder.
+// A path nobody has written, recorded, or been handed yet, in the effort's folder or the session tree's folder.
+// The grant credits the session with a file written there that no capture records.
 export function location(cairn: Cairn, input: LocationInput): WritePath {
-  const sessionId = ensureSession(cairn, input.session, {});
-  const session = loadSession(cairn, sessionId);
-  let folder: string;
+  return transaction(cairn, () => {
+    const sessionId = ensureSession(cairn, input.session, {});
+    const session = loadSession(cairn, sessionId);
+    let folder: string;
 
-  if (input.effort === undefined) {
-    const workstream = nearestWorkstream(cairn, sessionId);
+    if (input.effort === undefined) {
+      const workstream = nearestWorkstream(cairn, sessionId);
 
-    folder = workstream === null ? session.folder : join(session.folder, workstream);
-  } else {
-    requireEffortId(cairn, input.effort);
-    folder = effortFolder(cairn.root, input.effort);
-  }
-
-  mkdirSync(folder, { recursive: true });
-
-  const { base, extension } = topicFileName(input.topic);
-
-  for (let suffix = 1; ; suffix += 1) {
-    const path = join(folder, suffix === 1 ? `${base}${extension}` : `${base}-${suffix}${extension}`);
-    const recorded = cairn.sql.get`SELECT 1 AS found FROM artifact WHERE path_or_url = ${storedPath(cairn.root, path).stored}`;
-
-    if (!existsSync(path) && recorded === undefined) {
-      return { path };
+      folder = workstream === null ? session.folder : join(session.folder, workstream);
+    } else {
+      requireEffortId(cairn, input.effort);
+      folder = effortFolder(cairn.root, input.effort);
     }
-  }
+
+    mkdirSync(folder, { recursive: true });
+
+    const { base, extension } = topicFileName(input.topic);
+
+    for (let suffix = 1; ; suffix += 1) {
+      const path = join(folder, suffix === 1 ? `${base}${extension}` : `${base}-${suffix}${extension}`);
+      const stored = storedPath(cairn.root, path).stored;
+
+      const taken = cairn.sql.get`
+        SELECT 1 AS found FROM artifact WHERE path_or_url = ${stored}
+        UNION ALL SELECT 1 FROM location_grant WHERE path = ${stored}
+      `;
+
+      if (!existsSync(path) && taken === undefined) {
+        cairn.sql.run`INSERT INTO location_grant (path, session_id, granted_at) VALUES (${stored}, ${sessionId}, ${timestamp(cairn)})`;
+
+        return { path };
+      }
+    }
+  });
 }
 
