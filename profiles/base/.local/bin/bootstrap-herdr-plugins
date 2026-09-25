@@ -21,3 +21,8 @@ ensure_plugin \
   "persiyanov/herdr-reviewr" \
   "persiyanov.reviewr" \
   "86763235815b5f22e89211903677568a550fb273"
+
+ensure_plugin \
+  "eliasstravik/herdr-projects" \
+  "herdr-projects" \
+  "5b7a0e61733cd9950fe451e30e7a76d155ea335c"
