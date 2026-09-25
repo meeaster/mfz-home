@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createCairn, type CompletedTool, type SessionFacts } from "./server.js";
+import { createCairn, type CompletedTool, type SessionFacts } from "./server.ts";
 
 const root = "/home/user/workspace/artifacts/cairn";
 

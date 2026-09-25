@@ -86,11 +86,50 @@ mcp:
   pencil:
     agents: [opencode, claude-code, codex]
   cairn:
-    agents: [opencode]
+    agents: [opencode, claude-code]
 claude:
   settings:
     permissions:
       defaultMode: auto
+    # Hook arrays replace base's, so SessionStart repeats base's herdr hook.
+    hooks:
+      SessionStart:
+        - hooks:
+            - command: bash '/home/mark/.claude/hooks/herdr-agent-state.sh' session
+              timeout: 10
+              type: command
+          matcher: "*"
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStart:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      PostToolUse:
+        - matcher: Write|Edit|MultiEdit|NotebookEdit
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+        - matcher: Read
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+              async: true
+      Stop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
 opencode:
   plugins:
     - cairn

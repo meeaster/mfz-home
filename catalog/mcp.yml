@@ -156,4 +156,5 @@ servers:
     description: Cairn artifact catalog of efforts, sessions, and the files they produce.
     type: local
     transport: stdio
-    command: [node, /home/mark/workspace/repos/mfz-home/packages/cairn/src/mcp.ts]
+    # Installed by mise run cairn:install in this repository.
+    command: [cairn-mcp]

@@ -8,7 +8,6 @@ allowBuilds:
 packages:
   - mcp/*
   - packages/*
-  - opencode/plugins/cairn
   - opencode/plugins/omp-advisor
   - opencode/plugins/handoff-tui
   - opencode/plugins/pstack

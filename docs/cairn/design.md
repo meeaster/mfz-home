@@ -351,9 +351,9 @@ cairn backup | restore <file>
 
 | Event | OpenCode plugin | Claude Code hook | CLI call |
 | --- | --- | --- | --- |
-| Session created | First sight in the `context` hook, which runs before a session's first model request: `session.get` supplies `parentID`, `agent`, `title`, and `location` | `SessionStart` for the main session; `SubagentStart` (`agent_id`, `agent_type`) for subagents | `session start` |
+| Session created | First sight in the `context` hook, which runs before a session's first model request: `session.get` supplies `parentID`, `agent`, `title`, and `location` | `SessionStart` for the main session; `SubagentStart` (`agent_id`, `agent_type`) for subagents, with the title and nested parent from the subagent's `.meta.json` on every later subagent event, including `SubagentStop` | `session start` |
 | Session ID into context | `context` hook pushes `This session's catalog ID is opencode:<id>.` into `system` | `additionalContext` from `SessionStart`, and from `SubagentStart` for the subagent's ID | none |
-| File written | `tool` `execute.after` for `write`, `edit`, and `patch`; the hook appends the capture note to `result.content` | `PostToolUse` on `Write\|Edit\|MultiEdit`, with the note as `additionalContext`; `agent_id` selects the subagent's session | `capture` |
+| File written | `tool` `execute.after` for `write`, `edit`, and `patch`; the hook appends the capture note to `result.content` | `PostToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit`, with the note as `additionalContext`; `agent_id` selects the subagent's session | `capture` |
 | File read | `execute.after` for `read`, for in-root paths | `PostToolUse` on `Read` | `read` |
 | Main turn completed | `session.execution.succeeded`, when `session.get` shows no `parentID` | `Stop`, with `last_assistant_message` | `session index` |
 | Compaction completed | The `session.compaction.ended` event marks the session; the next `context` hook reads the note and pushes it into `system` on that and every later request | `SessionStart` with `source: compact`, with the note as `additionalContext` | `session context` |
@@ -384,7 +384,10 @@ The only item not observed live was OpenCode's `session.created` for a root sess
 
 - **Scope.** Root sessions only. Child sessions keep their rows for provenance but get no export.
 - **Adapters.** OpenCode ports the `export-session.py` projection to TypeScript: `session_message` ordered by `seq`, user text plus assistant `text` parts, with tool calls, reasoning, synthetic content, and child sessions excluded. Claude Code reads the JSONL at `transcript_path` and keeps user text and assistant text blocks. It skips non-message entries (`queue-operation`, `attachment`, `system`, `last-prompt`, `cost-state`) and synthetic user entries such as subagent completion notifications.
-- **Incremental update.** The watermark is `{ last_seq, tail_hash }`, or `{ last_uuid, line_count }` for Claude Code. Append when the stored tail still matches, and do a full rewrite when the source has shrunk or changed. Write to a temp file and rename it into place.
+- **Format.** Each message is a `##` heading followed by its text. The heading gives the role, the time in UTC, the seq, and the message ID. When they apply, it adds the part index (only when the message has more than one text part), OpenCode's phase, the context, and the number of attachments left out.
+- **Context.** The tokens in the context window once the message was in it. For an assistant message, that is its model call's prompt (fresh input plus cache reads and writes) plus the call's output. A human message is first read by the next model call, so its figure is that call's prompt. Claude Code records usage on each assistant entry, and each OpenCode assistant message is one model call with its `tokens`. The context window's size isn't recorded, so there is no percentage.
+- **Compactions.** A heading with no body marks each compaction, with its trigger (`manual` or `auto`). Claude Code's `compact_boundary` records the context before and after (`context 236,390 → 16,951`). For OpenCode, whose `compaction` message has no counts, the heading gives the last assistant message's context as the figure before. Failed OpenCode compactions are left out, since they left the context as it was. The summary stays out. The first version copied the reference exporter's HTML comment markers around each body, with the body's SHA-256. Nothing read them, so they were dropped (human decision, 2026-09-25). A message whose own text has a `##` heading therefore reads at the same level as the message headings. Claude Code wraps pasted text in `<pasted_content id="…">` tags, whose ID only pairs the opening and closing tags; the export keeps the pasted text and drops the tags.
+- **Incremental update.** The watermark is `{ last_seq, tail_hash, length, format }` for both harnesses. For Claude Code, `seq` is the transcript line number. Append when the stored tail still matches, and do a full rewrite when the source has shrunk or changed, or when the file was written in an older format. Write to a temp file and rename it into place.
 - **Claude Code transcript lag.** At `Stop` the transcript may not yet hold the final assistant message. The export covers what the transcript holds, then adds `last_assistant_message` as a provisional tail outside the watermark, which the next run replaces with the transcript's version. The next `Stop`, a `SessionStart` with `source: resume`, or a sweep reconciles it.
 - **Concurrency.** A lock file per session makes duplicate triggers no-ops. SQLite uses WAL and `busy_timeout`, with one connection per process.
 - **Failures.** They are logged and recorded as `last_error`. `--full` or a periodic sweep reconciles missed events.
@@ -506,7 +509,7 @@ These proposals were made and then replaced. Don't re-propose them without new e
 | Path | Contents |
 | --- | --- |
 | `packages/cairn/` | `src/core/` (schema, operations, adapters, views), `src/cli.ts` with a `bin` entry, and `src/mcp.ts`. Add `packages/*` to `pnpm-workspace.yaml`. |
-| `opencode/plugins/cairn/` | Session start and context injection, write and read capture, capture notes, and turn-complete indexing, all through the CLI. Follows `opencode/AGENTS.md`. |
+| `packages/cairn/src/opencode/` | The OpenCode plugin: session start and context injection, write and read capture, capture notes, and turn-complete indexing, all through the CLI. It ships in the same package as the CLI (see [packaging](#packaging)). |
 | Profile configuration | The mfz-rendered MCP entry (server name `cairn`), `CAIRN_ROOT`, and the Claude Code `SessionStart`, `SubagentStart`, `PostToolUse`, and `Stop` hooks. Mindframe-Z renders configuration only. |
 
 Proposed source layout. Tests sit next to their modules as `*.test.ts`, as elsewhere in the home. Each file is annotated with the phase that creates it.
@@ -514,7 +517,8 @@ Proposed source layout. Tests sit next to their modules as `*.test.ts`, as elsew
 ```text
 packages/cairn/
   TERMINOLOGY.md          vocabulary (moved here from docs/cairn/)
-  package.json            @mfz/cairn; bin "cairn" → src/cli.ts (#!/usr/bin/env node); exact versions
+  package.json            @mfz/cairn; bins "cairn" → dist/cli.js, "cairn-mcp" → dist/mcp.js; exact versions
+  build.ts                esbuild bundle of the three entries into dist/; --watch rebuilds in place
   tsconfig.json           erasableSyntaxOnly, verbatimModuleSyntax, allowImportingTsExtensions, noEmit
   vitest.config.ts
   README.md
@@ -545,11 +549,11 @@ packages/cairn/
       export.ts           Markdown rendering, watermark, provisional tail, lock, atomic write (4)
       opencode.ts         OpenCode session_message adapter                                  (4)
       claude-code.ts      Claude Code transcript adapter                                    (5)
-
-opencode/plugins/cairn/   package.json, index.ts, server.ts, server.test.ts, README.md     (3)
+    opencode/
+      server.ts           the OpenCode plugin; built to dist/opencode/server.js             (3)
 ```
 
-`pnpm-workspace.yaml` gains `packages/*` and `opencode/plugins/cairn`. Where the profile entries go, `base` or `personal`, and how hooks and environment variables are rendered, follows `mfz guide` when phase 3 wires them.
+`pnpm-workspace.yaml` gains `packages/*`. Where the profile entries go, `base` or `personal`, and how hooks and environment variables are rendered, follows `mfz guide` when phase 3 wires them.
 
 ### Stack
 
@@ -558,7 +562,7 @@ The human accepted these on 2026-09-25, after phase 1.
 | Area | Decision | Why |
 | --- | --- | --- |
 | Language | TypeScript on Node 26. The Python exporter is only a reference. | One stack with the plugins, the MCP SDK, and the rest of the home. |
-| Running TypeScript | No build step. Node 26 strips types natively, so hooks and the MCP entry run `node <abs>/packages/cairn/src/cli.ts` and `src/mcp.ts`. `tsconfig` sets `erasableSyntaxOnly`, `verbatimModuleSyntax`, `allowImportingTsExtensions`, and `noEmit`, and imports use `.ts` extensions. | No `dist/` to go stale, matching how plugins load in place. Checked: a plain `.ts` file runs, and `enum` fails, so only erasable syntax is allowed (no enums, namespaces, or parameter properties). This differs from `mcp/discord`, which builds. |
+| Running TypeScript | In the repository, Node 26 runs the source directly (`node src/cli.ts`). The installed package runs a bundle built by esbuild (see [packaging](#packaging)). `tsconfig` sets `erasableSyntaxOnly`, `verbatimModuleSyntax`, `allowImportingTsExtensions`, and `noEmit`, and imports use `.ts` extensions. | Tests and quick runs need no build. Node refuses to strip types under `node_modules` (`ERR_UNSUPPORTED_NODE_MODULES_TYPE_STRIPPING`, checked), so an installed package must ship JavaScript. Only erasable syntax is allowed (no enums, namespaces, or parameter properties). |
 | Database | `node:sqlite` with hand-written SQL and prepared statements. No ORM or query builder. `STRICT` tables, WAL, `busy_timeout`, one connection per process. Migrations are an ordered list of SQL tracked by `PRAGMA user_version`. | About seven tables and simple queries. No native dependency. `require('node:sqlite')` costs about 20 ms. |
 | Search | `LIKE` on titles and descriptions in v1. | FTS5 and JSON functions are available in `node:sqlite` (checked), so message-level search can use FTS5 later. |
 | Identity | Natural keys at every interface: sessions as `<harness>:<native-id>`, efforts by slug, artifacts by path or URL. Integer row IDs stay internal. `cairn effort rename` updates a slug and its references. | Backups, and any future text snapshot, restore to the same identities, and agents never handle opaque IDs. |
@@ -671,6 +675,40 @@ Built 2026-09-25: `src/conversation/export.ts` and `src/conversation/opencode.ts
 
 Live acceptance, against a temporary root (`opencode run --standalone --auto`, `openai/gpt-6-luna#medium`): a first turn that dispatched a `general` subagent produced a root export and none for the subagent. A second turn, run with `--session`, appended two bodies and left the first turn's bytes unchanged. The revert path was checked against OpenCode's source and by the fixture tests, not live.
 
+### Phase 5 results
+
+Built 2026-09-25: `src/harness/claude-code.ts` (`cairn hook claude-code`) and `src/conversation/claude-code.ts` in the package, and Claude Code support in `cairn session index`. The package has 44 behavior tests (4 for the hooks and 3 for Claude Code exports). Typecheck and the anti-slop check are clean.
+
+Hooks:
+- **One entry point.** Every event runs the same command, which reads the event on stdin and prints `hookSpecificOutput` when there is context to add. It takes about 85 ms with `NODE_COMPILE_CACHE` set. It always exits 0 and logs failures to `logs/cairn.log`, so it never fails the harness action.
+- **Subagents.** A subagent is `claude-code:<agent_id>`. Claude Code writes its `.meta.json` just after `SubagentStart`, so the live run's subagents had no title at first. Every subagent event (`SubagentStart`, `PostToolUse`, `SubagentStop`) reads the file. Registration fills in the Agent tool's description as the title, and moves a nested subagent under the subagent named by `parentAgentId`. `SubagentStop` is handled for that alone, so a subagent that touches no files still gets its title and parent.
+- **Capture note.** Without a plugin's memory between calls, the note goes with the capture that creates the file's catalog entry. Later edits of the same file get none. Reads run as an async hook, because they add no context.
+- **Stop.** The hook starts `cairn session index` as a detached process and passes `last_assistant_message` on its stdin. An async hook wouldn't do: `claude -p` kills async hooks still running at teardown. `SessionStart` with `source: resume` starts the same export without a last message.
+
+Transcript adapter:
+- **Live chain.** Claude Code appends every entry to the transcript and links each to its parent by `parentUuid`. The conversation is the chain back from the last entry. A rewind leaves the abandoned branch in the file, off the chain. A compaction boundary has no parent but a `logicalParentUuid`, which the walk follows to the messages before the compaction. On this session's own transcript (4,200 lines, six compactions) the walk found every human message in about 100 ms.
+- **Human messages.** A user entry counts when its `turnOrigin` is `human` (typed in the terminal) or `sdk` (a `claude -p` prompt). Task notifications carry `task_notification`, and tool results, compaction summaries, and command output carry none. The first live run found `claude -p` prompts missing, because the adapter then required `origin.kind: human`, which only terminal prompts carry.
+- **Assistant text.** The `text` blocks of the main agent's entries, except the harness's `<synthetic>` messages. Thinking and tool calls are left out, and subagents have their own transcripts.
+- **Provisional tail.** When `last_assistant_message` doesn't match the text of the transcript's last assistant message, it is written after the watermarked records under "Assistant · provisional". The watermark's `length` marks where the tail starts, so the next export cuts it off before appending. Neither live run needed one: the transcript already held the final message when the export ran.
+- **Title.** The latest `custom-title` entry (from `/rename`), otherwise the latest `ai-title`.
+
+Live acceptance, in an isolated run (`claude -p --model haiku --settings <test settings> --setting-sources "" --strict-mcp-config --mcp-config <cairn only>`, Claude Code 2.1.282, temporary root):
+- A subagent wrote a file under the root, quoted its own catalog ID and the capture note back, and described the file. The file's producer is the subagent's session, whose parent is the main session.
+- A second run exported turn 1, then turn 2 through `--resume`, appended with turn 1's bytes unchanged. The subagent's title came from its metadata.
+- The auto-mode classifier blocked adding the hooks to the personal profile and running `mfz apply` from this session, because it changes the settings of the harness the session runs in. With auto mode off, the human approved both; see [packaging](#packaging).
+
+### Packaging
+
+Built 2026-09-25, at the human's request, so that configuration names commands instead of repository paths and nothing is published remotely.
+
+- **One package.** `@mfz/cairn` holds the CLI, the MCP server, and the OpenCode plugin, which moved from `opencode/plugins/cairn/` to `src/opencode/`. `build.ts` bundles `dist/cli.js`, `dist/mcp.js`, and `dist/opencode/server.js`, each with its dependencies, so the installed package has none. The runtime libraries are dev dependencies. The plugin takes only types from `@opencode/plugin`, whose entry would otherwise pull its schema modules into the bundle. It runs the CLI beside it in `dist/`, so the plugin and the CLI are always the same version.
+- **Local install.** `mise run cairn:install` (in the repository's `mise.toml`) packs the package and installs the tarball into `~/.local/share/mfz-packages/`, a pnpm project outside the repository. pnpm copies it into `node_modules` as it would a registry package. A same-version tarball needs `pnpm update` after `pnpm add` to replace the installed copy. The task links `cairn` and `cairn-mcp` into `~/.local/bin`, so the MCP entry is `command: [cairn-mcp]` and the hooks run `cairn hook claude-code`. A PATH entry in the profile's `mise.toml` didn't reach the OpenCode service: its unit sets PATH to `~/.local/bin` and mise's shims, and shims cover only mise-managed tools. pnpm's command wrappers resolve symlinks, so the links work.
+- **Plugin path.** mfz renders only plugins in the home's `opencode/plugins/`, as `file://` directories, and a plugin in `opencode.config.plugins` is overwritten by the rendered list. The install task therefore makes `opencode/plugins/cairn` a symlink (ignored by Git) to the installed `dist/opencode/`, and the profile keeps enabling `cairn` by name. The whole folder has to be the link: OpenCode loads a plugin folder only when its entry file, symlinks resolved, is inside the folder, and skips it silently otherwise, so a real folder holding a symlinked `server.js` doesn't load. The cost is one logged error at startup (`failed to subscribe … Not a directory`): OpenCode's watch on the configured folder, which rescans the plugin list, can't watch a symlink. Reloading on a rebuild uses the separate watch on the entry file.
+- **Iteration.** `mise run cairn:link` replaces the installed package with a `link:` to `packages/cairn`, and `cairn:dev` also runs the build in watch mode. OpenCode resolves the plugin's entry file to `packages/cairn/dist/opencode/server.js` and watches that file, and esbuild's watch mode rewrites it in place. Checked in a standalone `opencode run`: a source edit was rebuilt at 22:15:45.196 and the plugin reloaded at 22:15:45.349. `pnpm update` replaces the installed folder, and a switch between modes changes the symlink target, so both need a plugin reload or an OpenCode restart. `cairn-mcp` runs until its client restarts it.
+- **Startup.** The bundled CLI answers a hook in about 66 ms, and about 79 ms through pnpm's `.bin` shim. The source with `NODE_COMPILE_CACHE` took about 84 ms.
+- **Checked.** The installed `cairn hook claude-code` answers `SessionStart`, its `Stop` export runs detached from `dist/cli.js` and writes `conversation.md`, and `cairn-mcp` lists the six tools over stdio, also with the OpenCode service's PATH. `cairn:link` and `cairn:install` switch the installed package both ways. After `mfz apply`, `opencode mcp list` shows `cairn` connected, and Claude Code's settings carry the five hook events. 52 package tests pass, including the plugin's 8.
+- **Live check.** After `mfz apply` and a restart of `opencode-serve`, the service runs `dist/mcp.js` from the installed package. A `claude -p --model haiku` run with the user's rendered settings and a temporary `CAIRN_ROOT` registered the session and its subagent as a child, titled from the Agent tool's description. The subagent received its catalog ID and the capture note, wrote a file from `catalog_location`, and described it; the file's producer is the subagent. `Stop` exported `conversation.md`, and nothing was logged as a failure. A test folder under `~/.claude/` first blocked the write, since Claude Code refuses edits there even with `acceptEdits`. A `claude -p` call that exits before its prompt still fires `SessionStart`, which leaves an empty session row.
+
 ### Phases
 
 1. **Verify harness facts.** Done 2026-09-25; see the verification results under [harness integration](#harness-integration).
@@ -683,7 +721,7 @@ Live acceptance, against a temporary root (`opencode run --standalone --auto`, `
    - A fresh session resumes from the effort view.
    - A Chief loop finds an existing workstream by subject.
 4. **Conversation indexing** through OpenCode. Built 2026-09-25; see [phase 4 results](#phase-4-results). Acceptance: two turns produce an appended export, a revert triggers a full rewrite, and child sessions produce no export.
-5. **Claude Code hooks and adapter.** The `SessionStart`, `SubagentStart`, `PostToolUse`, and `Stop` hooks, `agent_id`-based child sessions, and the transcript adapter with its provisional tail.
+5. **Claude Code hooks and adapter.** Built 2026-09-25; see [phase 5 results](#phase-5-results). Packaged with the CLI and plugin and wired into the personal profile; see [packaging](#packaging).
 6. **Skills.** The [skill changes](#skill-changes), last, once both harnesses have Cairn (human decision, 2026-09-25). Re-run the orchestration evals in `openevals/` afterwards.
 7. **Trial import.** Deferred. Once Cairn works, bring one existing effort over by hand to see how it looks. Nothing is moved automatically.
 8. **Later.** Read-based suggestions, plugin-drafted descriptions, effort hierarchy if tags stop being enough, message-level search, and a UI.
@@ -694,11 +732,11 @@ None open. Code mode and the profile wiring were settled on 2026-09-25; see [pha
 
 ## Continuation
 
-State after phase 4, 2026-09-25:
+State after phase 5 and packaging, 2026-09-25:
 
 - **Implementation intent.** The human asked for phase 2, then phase 3, then to continue with the next changes, with the skill changes last.
 - **Documents.** This file, [the observability pipeline scenario](scenario-observability-pipeline.md), and [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design lives in `docs/cairn/`, the terminology at the package root, as OpenEval does it.
-- **Commits.** The package, plugin, and docs were committed in `0cf5925`. The profile wiring, the location grant, phase 4, and this update are uncommitted.
+- **Commits.** The package, plugin, and docs were committed in `0cf5925`, and the profile wiring, the location grant, and phase 4 in `f713293`, `004452d`, and `a5bc5c7`. Phase 5, packaging, and this update are uncommitted.
 - **Parallel work.** The orchestrator eval work and the `task-evidence` to `task-output` rename landed in `2df1a2d` and `807cccc`.
 - **Storage root.** `~/workspace/artifacts/cairn/` exists and holds the live-run test effort `cairn-live-check`. The catalog is at schema version 2.
 - **Existing storage.** `~/workspace/scratch/orchestrator-workspaces/` holds about 16 effort folders and `_sessions/opencode/`, in `effort-context`'s current layout. It stays where it is and isn't moved (human decision).
@@ -714,5 +752,6 @@ State after phase 4, 2026-09-25:
   - Local plugins under `opencode/plugins/`, especially `skill-continuity` (tool and context hooks) and `omp-advisor` (event stream), and `opencode/AGENTS.md`.
   - Claude Code hooks reference: `https://code.claude.com/docs/en/hooks.md`.
 - **Conversation exporter reference.** `docs/orchestrator/modular-workflows/export-session.py` and [exporter.md](../orchestrator/modular-workflows/exporter.md).
-- **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["node", "<repo>/packages/cairn/src/mcp.ts"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root. Since the profile wiring, the global configuration already loads Cairn, so a test needs only `CAIRN_ROOT` set in the environment; without it, the run writes to the real root.
-- **Next step.** Phase 5, the Claude Code hooks and transcript adapter, then the skill changes.
+- **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["cairn-mcp"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root. Since the profile wiring, the global configuration already loads Cairn, so a test needs only `CAIRN_ROOT` set in the environment; without it, the run writes to the real root.
+- **Installed state.** `~/.local/share/mfz-packages/` holds the installed tarball, `~/.local/bin` links its commands, and `opencode/plugins/cairn` points at it. The personal profile has the Claude Code hooks and the `claude-code` MCP entry, and `mfz apply` rendered them. The `opencode-serve` service was restarted and runs the installed `dist/mcp.js`.
+- **Next step.** The skill changes.

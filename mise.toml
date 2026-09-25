@@ -1,0 +1,49 @@
+# Local packages built from this repository and installed into one pnpm project outside it.
+# Their commands are linked into ~/.local/bin, which is on PATH for shells and for the OpenCode service.
+# Nothing is published.
+
+[vars]
+packages = "{{env.HOME}}/.local/share/mfz-packages"
+
+[tasks."cairn:install"]
+description = "Build Cairn, pack it, and install the tarball into the local packages folder"
+run = '''
+set -eu
+prefix="{{vars.packages}}"
+mkdir -p "$prefix/tarballs"
+[ -f "$prefix/package.json" ] || echo '{ "private": true }' > "$prefix/package.json"
+rm -f "$prefix"/tarballs/mfz-cairn-*.tgz
+pnpm --filter @mfz/cairn pack --pack-destination "$prefix/tarballs"
+set -- "$prefix"/tarballs/mfz-cairn-*.tgz
+pnpm --dir "$prefix" add "file:$1"
+# add keeps an installed tarball of the same version; update unpacks the new one.
+pnpm --dir "$prefix" update @mfz/cairn
+# OpenCode loads a plugin only when its entry file resolves inside the plugin folder, so the whole folder is linked.
+[ -L opencode/plugins/cairn ] || rm -rf opencode/plugins/cairn
+ln -sfn "$prefix/node_modules/@mfz/cairn/dist/opencode" opencode/plugins/cairn
+# pnpm's command wrappers resolve symlinks back to the package, so links to them work from anywhere.
+mkdir -p "$HOME/.local/bin"
+for command in cairn cairn-mcp; do ln -sfn "$prefix/node_modules/.bin/$command" "$HOME/.local/bin/$command"; done
+'''
+
+[tasks."cairn:link"]
+description = "Point the local packages folder at this repository's Cairn build, for iterating without reinstalling"
+run = '''
+set -eu
+prefix="{{vars.packages}}"
+mkdir -p "$prefix"
+[ -f "$prefix/package.json" ] || echo '{ "private": true }' > "$prefix/package.json"
+pnpm --filter @mfz/cairn build
+pnpm --dir "$prefix" add "link:{{config_root}}/packages/cairn"
+# OpenCode loads a plugin only when its entry file resolves inside the plugin folder, so the whole folder is linked.
+[ -L opencode/plugins/cairn ] || rm -rf opencode/plugins/cairn
+ln -sfn "$prefix/node_modules/@mfz/cairn/dist/opencode" opencode/plugins/cairn
+# pnpm's command wrappers resolve symlinks back to the package, so links to them work from anywhere.
+mkdir -p "$HOME/.local/bin"
+for command in cairn cairn-mcp; do ln -sfn "$prefix/node_modules/.bin/$command" "$HOME/.local/bin/$command"; done
+'''
+
+[tasks."cairn:dev"]
+description = "Link Cairn, then rebuild it on every change"
+depends = ["cairn:link"]
+run = "pnpm --filter @mfz/cairn dev"

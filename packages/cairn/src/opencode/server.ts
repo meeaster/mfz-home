@@ -2,10 +2,10 @@ import { execFile, spawn } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCairnOwned, isEffortRecord, relativeInsideRoot, resolveRoot } from "@mfz/cairn/root";
-import { Plugin } from "@opencode/plugin";
+import type { Plugin } from "@opencode/plugin";
 import type { Result } from "@opencode/plugin/promise/tool";
 import { z } from "zod";
+import { isCairnOwned, isEffortRecord, relativeInsideRoot, resolveRoot } from "../core/root.ts";
 
 type Content = Exclude<NonNullable<Result["content"]>, string>[number];
 
@@ -281,7 +281,8 @@ function nodeCli(cliPath: string): CairnCli {
 export async function setupCairnPlugin(ctx: Plugin.Context) {
   const cairn = createCairn({
     root: resolveRoot(process.env.CAIRN_ROOT),
-    cli: nodeCli(fileURLToPath(import.meta.resolve("@mfz/cairn/cli"))),
+    // The build puts the plugin in dist/opencode/ and the CLI beside it in dist/.
+    cli: nodeCli(fileURLToPath(new URL("../cli.js", import.meta.url))),
     session: async (sessionID) => {
       const session = await ctx.session.get({ sessionID });
 
@@ -340,7 +341,9 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
   };
 }
 
-export default Plugin.define({
+// Plugin.define only returns its argument. Checking the type instead keeps @opencode/plugin, and the schema
+// modules its entry imports, out of the bundle.
+export default {
   id: "cairn",
   setup: setupCairnPlugin
-});
+} satisfies Plugin.Plugin;
