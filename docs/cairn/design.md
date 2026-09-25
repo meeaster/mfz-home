@@ -281,6 +281,8 @@ An artifact's efforts are the attached efforts of the nearest attached session i
 
 `catalog_location` returns a path in the root session's folder by default. With `effort` set, it returns a path in that effort's folder, for material meant to outlive the session. Chief's delegated orchestrators get a subfolder named by workstream key inside the root session folder, so parallel workstreams don't collide. Files never move automatically, and `cairn mv` moves a file while keeping its identity.
 
+`catalog_location` records which session each path was handed to, and never hands the same path out twice. A file written there that no capture records, for example by a shell command, is credited to that session when it is first recorded, by a read or by `catalog_describe` without `session`. Provenance then still doesn't depend on the model knowing its own session ID.
+
 ### Records and multi-effort sessions
 
 Records are split by what they describe, not by who writes them. `context.md` holds only validated state: decisions the human made or accepted, and the human's next actions and waiting-on items. External input reaches it only through [intake](#external-input-and-intake). The work's state outlives any session, so it belongs to the effort. The run's state belongs to the session running it.
@@ -614,7 +616,7 @@ Built in `packages/cairn/`, 2026-09-25. `src/cli.test.ts` holds 24 behavior test
 Choices made while building, beyond what the sections above state:
 - **Stored paths.** Managed files are stored relative to the root, external files as absolute paths, and URLs as given. Interfaces always show absolute paths. This makes effort renames and the effort-folder membership rule simple queries.
 - **Undescribed until meaningful.** An artifact becomes `active` when it has a category and a title or description. A category alone leaves it `undescribed`.
-- **A read of an unrecorded file** records it with no producer, so the reader isn't credited and the file joins no effort through the reader's session.
+- **A read of an unrecorded file** records it with no producer, so the reader isn't credited and the file joins no effort through the reader's session. Since phase 3, a file at a path from `catalog_location` is credited to the session that path was handed to instead.
 - **Split** copies the original's tags onto the new effort, adds any given tags, attaches the chosen sessions, and includes the chosen files.
 - **Merge** moves attachments, memberships, tags, and links to the target, includes the files in the merged effort's folder, and deletes the merged effort. Its records aren't merged. The command lists them so an agent can fold their content into the target's records.
 - **Duplicate check.** A new effort is refused, with the matches returned, when an active or paused effort's title shares at least half of the shorter title's significant words, or has the same slug. `confirm_new` overrides.
@@ -626,7 +628,7 @@ Not in phase 2: `session index` (phase 4), `hook claude-code` (phase 5), and `sr
 
 ### Phase 3 results
 
-Built 2026-09-25: `src/mcp.ts` in the package and the plugin in `opencode/plugins/cairn/`. The package has 31 behavior tests (7 through an MCP client) and the plugin 7. Typecheck and the anti-slop check are clean. The profile isn't wired yet, and the skill changes wait for the eval work (see [continuation](#continuation)).
+Built 2026-09-25: `src/mcp.ts` in the package and the plugin in `opencode/plugins/cairn/`. The package has 32 behavior tests (8 through an MCP client) and the plugin 7. Typecheck and the anti-slop check are clean. The personal profile is wired for OpenCode. The skill changes come last, after phases 4 and 5 (human decision).
 
 MCP server:
 - **Tools.** The six `catalog_*` tools take the CLI's zod schemas directly, except `catalog_effort` and `catalog_link`, whose discriminated inputs become one flat object, because MCP clients expect an object schema. Results are compact JSON text. Errors come back as tool errors that name the field. Each call opens the catalog, runs, regenerates dirty indexes, and takes the daily backup through the same `withCairn` wrapper the CLI uses. Opening per call means a `restore` never leaves the server holding a replaced file.
@@ -651,35 +653,54 @@ Live acceptance, in an isolated project with a temporary root (`opencode run --s
 - Restricting a file to one effort and finding a Chief workstream by subject are covered by the MCP tests.
 - Several runs stalled in OpenCode's startup. The one run with logs stopped at "cli starting", before any plugin or MCP server loaded, and identical setups completed on other attempts. Another session was running OpenCode evals at the same time. The final plugin revision was confirmed live for registration and the injected catalog ID. Its capture-note path, which changed only in how the base content is parsed, is covered by unit tests; the previous revision passed it live.
 
+Profile wiring and the real root, 2026-09-25:
+- **Wiring.** `catalog/mcp.yml` has a `cairn` entry (`type: local`, `transport: stdio`, `command: [node, <repo>/packages/cairn/src/mcp.ts]`). The `personal` profile enables it for OpenCode only and adds the `cairn` plugin, which OpenCode loads by `file://` URL from the repository. `mfz apply` rendered both and `mfz doctor` is clean. The root is the default, `~/workspace/artifacts/cairn/`, created by the first live run.
+- **Code mode.** This machine sets `OPENCODE_EXPERIMENTAL=1`, which puts every MCP server behind code mode. Cairn goes through it like the others (human decision). In the live run the agent found the tools with one `search` in the `cairn` namespace and called them as `tools.cairn.catalog_*`.
+- **Live run against the real root** (`opencode run --standalone --auto`, `openai/gpt-6-luna#medium`, in `~/workspace/scratch/cairn-live`). The agent took a path from `catalog_location`, wrote a note, described it, created and attached the effort `cairn-live-check`, and showed its view. It wrote the note with a `shell` heredoc, so the plugin never captured it, and described it without `session`, so the note had no producer and the effort listed no files until the agent described it again with `session`. The location grant (see [folder layout](#folder-layout)) closes that gap. The effort and its note are test data.
+
+### Phase 4 results
+
+Built 2026-09-25: `src/conversation/export.ts` and `src/conversation/opencode.ts` in the package, `cairn session index`, and the plugin's turn trigger. The package has 37 behavior tests (5 for conversations, driven through the CLI against a fixture OpenCode database) and the plugin 8. Typecheck and the anti-slop check are clean.
+
+- **Trigger.** The plugin handles `session.execution.succeeded` from the event stream. For a root session it fires `cairn session index` detached; a subagent's turn fires nothing.
+- **Source.** The adapter opens OpenCode's database read-only in one read transaction and selects only user text (with the attachment count) and assistant `text` parts, as `export-session.py` does. `--source` names the database; otherwise the CLI asks `opencode debug paths db`, which takes about 0.2 seconds, off the hot path.
+- **Export.** `conversation.md` in the root session's folder. Its header is fixed, so appends never touch earlier bytes: it says what's included and left out, but carries no counts or title. Each body has its time, a native locator (`seq`, message ID, and content index), a SHA-256, and for user messages the number of attachments left out. The artifact is category `conversation`, titled from the session's catalog title or else OpenCode's, and described with the session's description. Its producer is the root session, so it joins that session's efforts. The effort index links it from the session's line as well as listing it under "Conversations".
+- **Watermark.** `{ last_seq, tail_hash }`, where the hash covers the bodies at `last_seq`. OpenCode's `seq` comes from a per-session event sequence and isn't reused, and a committed revert deletes the boundary message and everything after it (`session/revert.ts`, `session/projector.ts` in OpenCode 2.0.16). So a revert that reaches exported messages removes the tail, the hash no longer matches, and the file is rewritten. A message still streaming at the last export changes the tail the same way. A file whose hash differs from the catalog's, because someone edited it, is rewritten too. A staged revert that isn't committed yet stays in the export until the commit.
+- **Lock.** `locks/<session>.lock` under the root, created exclusively. A second export while one runs returns without writing. A lock older than ten minutes is taken over. `locks/` is Cairn's own and never captured.
+- **Failures.** Recorded in the session's `last_error`, logged, and cleared by the next successful export. `--full` rewrites from the start.
+
+Live acceptance, against a temporary root (`opencode run --standalone --auto`, `openai/gpt-6-luna#medium`): a first turn that dispatched a `general` subagent produced a root export and none for the subagent. A second turn, run with `--session`, appended two bodies and left the first turn's bytes unchanged. The revert path was checked against OpenCode's source and by the fixture tests, not live.
+
 ### Phases
 
 1. **Verify harness facts.** Done 2026-09-25; see the verification results under [harness integration](#harness-integration).
 2. **Core and CLI.** Done 2026-09-25; see [phase 2 results](#phase-2-results). Schema, sessions and trees, capture, describe, attach, derived membership, tags, effort links, split and merge, pointer types, find with grouping, generated indexes, backup and restore, check, and the compaction note (`session context`).
-3. **OpenCode plugin, MCP, and skills.** Plugin and MCP built 2026-09-25; see [phase 3 results](#phase-3-results). The profile wiring and the skill changes are pending. Acceptance:
+3. **OpenCode plugin and MCP.** Built and wired into the personal profile 2026-09-25; see [phase 3 results](#phase-3-results). The skill changes moved to the end (step 6). Acceptance:
    - An explore subagent writes evidence in an unattached session and describes it after the capture note.
    - The lead agent then attaches two efforts, and the evidence appears in both effort views.
    - One file is restricted to a single effort.
    - A PR URL is registered and shows up under the effort's pull requests.
    - A fresh session resumes from the effort view.
    - A Chief loop finds an existing workstream by subject.
-4. **Conversation indexing** through OpenCode. Acceptance: two turns produce an appended export, a revert triggers a full rewrite, and child sessions produce no export.
+4. **Conversation indexing** through OpenCode. Built 2026-09-25; see [phase 4 results](#phase-4-results). Acceptance: two turns produce an appended export, a revert triggers a full rewrite, and child sessions produce no export.
 5. **Claude Code hooks and adapter.** The `SessionStart`, `SubagentStart`, `PostToolUse`, and `Stop` hooks, `agent_id`-based child sessions, and the transcript adapter with its provisional tail.
-6. **Trial import.** Deferred. Once Cairn works, bring one existing effort over by hand to see how it looks. Nothing is moved automatically.
-7. **Later.** Read-based suggestions, plugin-drafted descriptions, effort hierarchy if tags stop being enough, message-level search, and a UI.
+6. **Skills.** The [skill changes](#skill-changes), last, once both harnesses have Cairn (human decision, 2026-09-25). Re-run the orchestration evals in `openevals/` afterwards.
+7. **Trial import.** Deferred. Once Cairn works, bring one existing effort over by hand to see how it looks. Nothing is moved automatically.
+8. **Later.** Read-based suggestions, plugin-drafted descriptions, effort hierarchy if tags stop being enough, message-level search, and a UI.
 
 ## Open questions
 
-- **Profile wiring.** Approval to edit the catalog and profile while the parallel session's changes are uncommitted, and to create the real root. See the next step under [continuation](#continuation).
-- **Code mode.** Whether to add a `codemode` setting to mindframe-z's MCP catalog, or let OpenCode expose the tools through code mode.
+None open. Code mode and the profile wiring were settled on 2026-09-25; see [phase 3 results](#phase-3-results).
 
 ## Continuation
 
-State after phase 3's plugin and MCP server, 2026-09-25:
+State after phase 4, 2026-09-25:
 
-- **Implementation intent.** The human asked for phase 2, then phase 3. Later phases start when the human asks.
-- **Documents.** This file, [the observability pipeline scenario](scenario-observability-pipeline.md), and [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md) are new and uncommitted. The design lives in `docs/cairn/`, renamed from `docs/work-catalog/`. The terminology lives at the package root, `packages/cairn/TERMINOLOGY.md`, as OpenEval does it. Committing them hasn't been requested yet.
-- **Parallel work in the same repository.** Another session is implementing orchestrator evals and adjusting the modular workflow skills. It has many uncommitted changes, including renaming `task-evidence` to `task-output` and edits to `orchestration`, agents, `openevals/`, `skill-continuity`, `catalog/mcp.yml`, and both `profile.yml` files. Don't stage, revert, or edit those changes from this effort.
-- **Storage root.** `~/workspace/artifacts/` doesn't exist yet. Workspace guidance lists `artifacts/` for mutable outputs, but creating it, and the Cairn root inside it, is the first write to that location. Everything so far ran against temporary roots. The human confirms before the first real use.
+- **Implementation intent.** The human asked for phase 2, then phase 3, then to continue with the next changes, with the skill changes last.
+- **Documents.** This file, [the observability pipeline scenario](scenario-observability-pipeline.md), and [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design lives in `docs/cairn/`, the terminology at the package root, as OpenEval does it.
+- **Commits.** The package, plugin, and docs were committed in `0cf5925`. The profile wiring, the location grant, phase 4, and this update are uncommitted.
+- **Parallel work.** The orchestrator eval work and the `task-evidence` to `task-output` rename landed in `2df1a2d` and `807cccc`.
+- **Storage root.** `~/workspace/artifacts/cairn/` exists and holds the live-run test effort `cairn-live-check`. The catalog is at schema version 2.
 - **Existing storage.** `~/workspace/scratch/orchestrator-workspaces/` holds about 16 effort folders and `_sessions/opencode/`, in `effort-context`'s current layout. It stays where it is and isn't moved (human decision).
 - **Facts checked on this machine:**
   - Node is v26.10.0, and `node:sqlite` loads without warnings (SQLite 3.53.4).
@@ -693,12 +714,5 @@ State after phase 3's plugin and MCP server, 2026-09-25:
   - Local plugins under `opencode/plugins/`, especially `skill-continuity` (tool and context hooks) and `omp-advisor` (event stream), and `opencode/AGENTS.md`.
   - Claude Code hooks reference: `https://code.claude.com/docs/en/hooks.md`.
 - **Conversation exporter reference.** `docs/orchestrator/modular-workflows/export-session.py` and [exporter.md](../orchestrator/modular-workflows/exporter.md).
-- **Workspace change.** `pnpm-workspace.yaml` gained `packages/*` and `opencode/plugins/cairn`, and `pnpm-lock.yaml` gained both packages' dependencies. All uncommitted, with the package and the plugin.
-- **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["node", "<repo>/packages/cairn/src/mcp.ts"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root.
-- **Next step.** Finish phase 3:
-  1. **Profile wiring**, once the human approves. It touches `catalog/mcp.yml` and a `profile.yml`, which both carry the parallel session's uncommitted changes, and `mfz apply` would render those changes too. Proposed:
-     - A `cairn` entry in `catalog/mcp.yml`: `type: local`, `transport: stdio`, `command: [node, /home/mark/workspace/repos/mfz-home/packages/cairn/src/mcp.ts]`.
-     - Enable it for OpenCode only, and the `cairn` plugin, in the `personal` profile. The default root is personal. A second profile would need its own `CAIRN_ROOT` for both the plugin and the MCP server, and Claude Code gets Cairn in phase 5 with its hooks.
-     - mfz can't set OpenCode's `codemode` for a server, so the tools would go through code mode. Either accept that or add the setting to mindframe-z.
-     - Then run `mfz apply` and `mfz doctor`, and do a live `opencode run` against the real root.
-  2. **Skill changes** (see [skill changes](#skill-changes)), once the parallel eval work on `orchestration` and `task-output` has landed.
+- **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["node", "<repo>/packages/cairn/src/mcp.ts"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root. Since the profile wiring, the global configuration already loads Cairn, so a test needs only `CAIRN_ROOT` set in the environment; without it, the run writes to the real root.
+- **Next step.** Phase 5, the Claude Code hooks and transcript adapter, then the skill changes.

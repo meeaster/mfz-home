@@ -249,7 +249,10 @@ function sessionLine(folder: string, session: SessionSummary): string {
   const description = session.description === null ? "" : ` — ${session.description}`;
   const folderLink = relative(folder, session.folder).replaceAll("\\", "/");
 
-  return `- ${label} (\`${session.key}\`)${description} · started ${session.started_at.slice(0, 10)} · [folder](${folderLink}/)`;
+  const conversation =
+    session.conversation === null ? "" : ` · [conversation](${relative(folder, session.conversation).replaceAll("\\", "/")})`;
+
+  return `- ${label} (\`${session.key}\`)${description} · started ${session.started_at.slice(0, 10)} · [folder](${folderLink}/)${conversation}`;
 }
 
 export function renderIndex(view: EffortView): string {

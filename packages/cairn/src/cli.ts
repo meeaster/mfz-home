@@ -1,7 +1,10 @@
 #!/usr/bin/env node
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { z } from "zod";
+import { indexConversation, type IndexResult } from "./conversation/export.ts";
+import { readOpenCodeSession } from "./conversation/opencode.ts";
 import { capture, describe, move, read } from "./core/artifacts.ts";
 import { backupNow, restore } from "./core/backup.ts";
 import { check } from "./core/check.ts";
@@ -152,6 +155,26 @@ function fileEventText(result: ReturnType<typeof capture>): string {
   return `${result.created ? "Recorded" : "Updated"} ${result.artifact.path} (${result.artifact.status}; ${efforts})`;
 }
 
+function indexText(result: IndexResult): string {
+  if (!result.indexed) {
+    return `${result.session}: ${result.reason}`;
+  }
+
+  switch (result.mode) {
+    case "append":
+      return `Appended ${result.records_written} bodies to ${result.path}`;
+    case "full":
+      return `Wrote ${result.path} (${result.records_written} bodies)`;
+    case "unchanged":
+      return `${result.path} is current`;
+  }
+}
+
+// OpenCode's own resolver knows where its database is, including any configured override.
+function openCodeDatabase(source: string | undefined): string {
+  return source === undefined ? execFileSync("opencode", ["debug", "paths", "db"], { encoding: "utf8" }).trim() : resolve(source);
+}
+
 const commandTable = {
   "session start": {
     usage: "cairn session start <harness>:<id> [--parent <harness>:<id>] [--cwd <dir>] [--agent <name>] [--title <text>]",
@@ -237,6 +260,23 @@ const commandTable = {
       const result = sessionContext(cairn, schemas.sessionContextInput.parse({ session: positional(positionals, 0, "session") }));
 
       return { json: result, text: result.note };
+    }
+  },
+  "session index": {
+    usage: "cairn session index <harness>:<id> [--full] [--source <opencode.db>]",
+    options: { full: { type: "boolean" }, source: { type: "string" } },
+    mode: "write",
+    run: (cairn, values, positionals) => {
+      const { session } = schemas.sessionContextInput.parse({ session: positional(positionals, 0, "session") });
+
+      if (session.harness !== "opencode") {
+        throw new CairnError("invalid", `Conversation indexing supports opencode sessions, not ${session.harness}`);
+      }
+
+      const database = openCodeDatabase(one(values, "source"));
+      const result = indexConversation(cairn, session, (fromSeq) => readOpenCodeSession(database, session.nativeId, fromSeq), flag(values, "full"));
+
+      return { json: result, text: indexText(result) };
     }
   },
   capture: {

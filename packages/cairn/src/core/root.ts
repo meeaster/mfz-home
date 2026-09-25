@@ -82,6 +82,7 @@ export function isCairnOwned(inside: string): boolean {
     inside.startsWith("catalog.db-") ||
     inside.startsWith("backups/") ||
     inside.startsWith("logs/") ||
+    inside.startsWith("locks/") ||
     /^efforts\/[^/]+\/index\.md$/.test(inside)
   );
 }

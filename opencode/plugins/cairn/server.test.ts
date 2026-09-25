@@ -146,6 +146,19 @@ describe("cairn plugin", () => {
     expect(await app.cairn.context("ses_explore")).toBe("This session's catalog ID is opencode:ses_explore.");
   });
 
+  it("updates the conversation export after each turn of a root session, and never for a subagent", async () => {
+    const app = harness(sessions);
+
+    await app.cairn.turnCompleted("ses_lead");
+    await app.cairn.turnCompleted("ses_explore");
+    await app.cairn.turnCompleted("ses_lead");
+
+    expect(app.fired.filter((args) => args[1] === "index")).toEqual([
+      ["session", "index", "opencode:ses_lead"],
+      ["session", "index", "opencode:ses_lead"]
+    ]);
+  });
+
   it("keeps the harness working when the session or the CLI fails", async () => {
     const app = harness(sessions);
 

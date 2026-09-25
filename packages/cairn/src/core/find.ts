@@ -45,6 +45,7 @@ export type SessionSummary = {
   readonly root: string;
   readonly folder: string;
   readonly efforts: readonly string[];
+  readonly conversation: string | null;
   readonly started_at: string;
   readonly last_activity_at: string;
 };
@@ -220,10 +221,12 @@ export function loadArtifact(cairn: Cairn, id: number): ArtifactEntry {
 export function loadSession(cairn: Cairn, id: number): SessionSummary {
   const row = cairn.sql.get`
     SELECT session.*, parent.harness AS parent_harness, parent.native_id AS parent_native_id,
-      root.harness AS root_harness, root.native_id AS root_native_id, root.started_at AS root_started_at
+      root.harness AS root_harness, root.native_id AS root_native_id, root.started_at AS root_started_at,
+      conversation.path_or_url AS conversation_path
     FROM session
     LEFT JOIN session AS parent ON parent.id = session.parent_session_id
     JOIN session AS root ON root.id = session.root_session_id
+    LEFT JOIN artifact AS conversation ON conversation.id = session.export_artifact_id
     WHERE session.id = ${id}
   `;
 
@@ -244,6 +247,7 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
   const parentNativeId = optionalText(row, "parent_native_id");
   const rootHarness = text(row, "root_harness");
   const rootNativeId = text(row, "root_native_id");
+  const conversation = optionalText(row, "conversation_path");
 
   return {
     key: formatSessionKey({ harness: text(row, "harness"), nativeId: text(row, "native_id") }),
@@ -260,6 +264,7 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
     root: formatSessionKey({ harness: rootHarness, nativeId: rootNativeId }),
     folder: sessionFolder(cairn.root, rootHarness, text(row, "root_started_at").slice(0, 7), rootNativeId),
     efforts,
+    conversation: conversation === null ? null : absolutePath(cairn.root, "managed", conversation),
     started_at: text(row, "started_at"),
     last_activity_at: text(row, "last_activity_at")
   };

@@ -28,6 +28,8 @@ cairn ls logs-archived-to-s3
 
 The last command prints the effort view. The same view is written to `efforts/logs-archived-to-s3/index.md`.
 
+After each turn of a root OpenCode session, the plugin runs `cairn session index opencode:<id>`. It exports the human's messages and the assistant's text to `conversation.md` in the session's folder, appending when nothing earlier changed and rewriting after a revert. `--source` names OpenCode's database; without it, Cairn asks `opencode debug paths db`.
+
 ## MCP server
 
 Agents use the catalog through a stdio MCP server:

@@ -232,9 +232,23 @@ export function createCairn(options: CairnPluginOptions) {
     return fresh.length === 0 ? null : [...baseContent(tool), { type: "text", text: captureNote(key, fresh) }];
   }
 
+  // Updates a root session's conversation export after each completed turn. Child sessions get none.
+  async function turnCompleted(sessionID: string): Promise<void> {
+    try {
+      const facts = await register(sessionID);
+
+      if (facts.parentID === undefined) {
+        options.cli.fire(["session", "index", sessionKey(sessionID)]);
+      }
+    } catch (error) {
+      options.log("unable to register the session", error instanceof Error ? error : new Error(String(error)));
+    }
+  }
+
   return {
     context,
     afterTool,
+    turnCompleted,
     compactionEnded: (sessionID: string) => {
       compacted.add(sessionID);
     }
@@ -288,6 +302,10 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
 
       if (next.value.type === "session.compaction.ended") {
         cairn.compactionEnded(next.value.data.sessionID);
+      }
+
+      if (next.value.type === "session.execution.succeeded") {
+        await cairn.turnCompleted(next.value.data.sessionID);
       }
     }
   })().catch((error) => console.error("[cairn] event stream failed", error));
