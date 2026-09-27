@@ -1,6 +1,7 @@
 {
   "default": "gpt6",
   "roles": [
+    "agent-under-test",
     "orchestrator",
     "scribe",
     "explore",
@@ -23,6 +24,7 @@
       "candidate": "openai/gpt-6-sol#medium",
       "judge": "openai/gpt-6-sol#high",
       "agents": {
+        "agent-under-test": "openai/gpt-6-sol#medium",
         "orchestrator": "openai/gpt-6-sol#medium",
         "scribe": "openai/gpt-6-luna#high",
         "explore": "openai/gpt-6-luna#high",
@@ -45,6 +47,7 @@
       "candidate": "zai-coding-plan/glm-5.3#high",
       "judge": "zai-coding-plan/glm-5.3#high",
       "agents": {
+        "agent-under-test": "zai-coding-plan/glm-5.3#high",
         "orchestrator": "zai-coding-plan/glm-5.3#high",
         "explore": "zai-coding-plan/glm-5.3-flash#low",
         "*": "zai-coding-plan/glm-5.3-flash#high"

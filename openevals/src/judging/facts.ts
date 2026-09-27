@@ -7,7 +7,7 @@ import type { JudgeContext, RecordedFile, ToolCall } from "@hona/openeval";
  */
 export type RunFacts = {
   tools: readonly ToolCall[];
-  sessions: readonly { id: string; parentID?: string }[];
+  sessions: readonly { id: string; parentID?: string; agent?: string }[];
   initial: readonly RecordedFile[];
   final: readonly RecordedFile[];
 };
@@ -23,12 +23,16 @@ export const dispatchTools: ReadonlySet<string> = new Set(["subagent", "task"]);
  * Direct coordination loads `effort-context` for storage and `evidence-gathering` to bound investigations,
  * requires `task-output` of producers rather than loading it, and reads design collaboration directly
  * rather than invoking the human-only `design-partner` entry. Standalone design partnership may load
- * `evidence-gathering` when an investigation could change the decision.
+ * `evidence-gathering` when an investigation could change the decision. Every role may also load the
+ * skills the global instructions attach to a kind of work, such as `anti-slop` before a JavaScript or
+ * TypeScript edit, including one it delegates.
  */
+const globalSkills = ["anti-slop"];
+
 export const roleSkills = {
-  directCoordinator: new Set(["orchestrate", "orchestration", "effort-context", "evidence-gathering"]),
-  evidenceProducer: new Set(["evidence-gathering", "task-output", "effort-context"]),
-  designPartner: new Set(["design-partner", "evidence-gathering"]),
+  directCoordinator: new Set([...globalSkills, "orchestrate", "orchestration", "effort-context", "evidence-gathering"]),
+  evidenceProducer: new Set([...globalSkills, "evidence-gathering", "task-output", "effort-context"]),
+  designPartner: new Set([...globalSkills, "design-partner", "evidence-gathering"]),
 } satisfies Record<string, ReadonlySet<string>>;
 
 /** VCS metadata and dependency directories are not task content. */

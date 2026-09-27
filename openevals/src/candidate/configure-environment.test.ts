@@ -62,8 +62,8 @@ async function fixture(root: string, overrides?: string): Promise<void> {
   if (overrides !== undefined) await write(join(root, "workspace", ".openeval", "agent-models.json"), overrides);
 }
 
-async function configure(root: string): Promise<void> {
-  const child = Bun.spawn(["bun", script], {
+async function configure(root: string, ...args: string[]): Promise<void> {
+  const child = Bun.spawn(["bun", script, ...args], {
     cwd: join(root, "workspace"),
     env: { ...process.env, HOME: join(root, "home") },
     stdout: "pipe",
@@ -130,5 +130,45 @@ test("writes no project config when the benchmark declares no overrides", async 
     expect(await Bun.file(join(root, "workspace", "opencode.json")).exists()).toBe(false);
   } finally {
     await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("installs the agent under test one level deeper only when a scenario eval asks for it", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-agent-models-");
+
+  const overrides = `${JSON.stringify({ "agent-under-test": "openai/gpt-6-sol#medium" }, null, 2)}\n`;
+
+  const definition = join(root, "home", ".config", "opencode", "agents", "agent-under-test.md");
+
+  try {
+    await fixture(root, overrides);
+
+    await configure(root, "--agent-under-test");
+
+    const global = await readJson<GlobalConfig>(join(root, "home", ".config", "opencode", "opencode.jsonc"));
+
+    expect(global.experimental).toEqual({ subagent_depth: 4 });
+
+    // An empty body keeps OpenCode's default system prompt, as the built-in `build` has.
+    expect((await readFile(definition, "utf8")).endsWith("---\n")).toBe(true);
+
+    const project = await readJson<ProjectConfig>(join(root, "workspace", "opencode.json"));
+
+    expect(project.agents?.["agent-under-test"]?.model).toBe("openai/gpt-6-sol#medium");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+
+  const plain = await mkdtemp("/tmp/opencode/mfz-agent-models-");
+
+  try {
+    await fixture(plain, overrides);
+
+    await configure(plain);
+
+    expect(await Bun.file(join(plain, "home", ".config", "opencode", "agents", "agent-under-test.md")).exists()).toBe(false);
+    expect(await Bun.file(join(plain, "workspace", "opencode.json")).exists()).toBe(false);
+  } finally {
+    await rm(plain, { recursive: true, force: true });
   }
 });

@@ -7,6 +7,7 @@ import { existsSync } from "node:fs";
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { parseArgs } from "node:util";
 
 type JsonValue =
   | string
@@ -28,12 +29,18 @@ const profile = join(home, ".mindframe-z", "configs", "openeval");
 
 const workspace = process.cwd();
 
+const { values: options, positionals } = parseArgs({
+  args: process.argv.slice(2),
+  options: { "agent-under-test": { type: "boolean", default: false } },
+  allowPositionals: true,
+});
+
 /**
  * Directory that receives the project `opencode.json`. Preparation runs inside a
  * nested checkout for repository workspaces, so the caller may pass the workspace
  * root instead. Defaults to the current directory.
  */
-const projectRoot = resolve(workspace, process.argv[2] ?? ".");
+const projectRoot = resolve(workspace, positionals[0] ?? ".");
 
 const environment = join(workspace, ".openeval", "environment");
 
@@ -48,6 +55,23 @@ const overridesPath = join(workspace, ".openeval", "agent-models.json");
  */
 const builtinAgents: ReadonlySet<string> = new Set(["explore"]);
 
+/**
+ * Scenario evals, selected with `--agent-under-test`, have the root session act as the human and
+ * converse with this agent in its place. It mirrors OpenCode's built-in `build`: an empty body keeps
+ * the default system prompt, `question` is the one permission `build` adds, and `hidden` keeps it out
+ * of every session's list of dispatchable agents.
+ */
+const agentUnderTest = `---
+description: Stands in for the primary session in scenario evals.
+mode: subagent
+hidden: true
+permissions:
+  - action: question
+    resource: "*"
+    effect: allow
+---
+`;
+
 if (!existsSync(join(environment, "manifest.json")))
   throw new Error("No rendered environment: run `bun src/environment-cli.ts stage` on the host first");
 
@@ -60,12 +84,20 @@ async function readObject(path: string): Promise<Record<string, JsonValue>> {
   return Bun.JSONC.parse(await readFile(path, "utf8")) as Record<string, JsonValue>;
 }
 
+/** Allow one more level of nested subagents than the rendered config does. */
+function deeperSubagents(experimental: JsonValue | undefined): JsonValue {
+  // SAFETY: The rendered config stores `experimental` as an object whose `subagent_depth` is a number when present.
+  const current = (experimental ?? {}) as { subagent_depth?: number };
+
+  return { ...current, subagent_depth: (current.subagent_depth ?? 1) + 1 };
+}
+
 /**
  * Apply per-benchmark agent model overrides.
  *
  * OpenCode applies a project `opencode.json` after global agent markdown, so this
  * is the only config surface that overrides a model declared in agent
- * frontmatter. Agents without a definition in the environment are skipped, which
+ * frontmatter. Agents without an installed definition are skipped, which
  * avoids creating promptless placeholder agents. Core built-ins such as
  * `explore` are exempt: OpenCode supplies their definition itself.
  */
@@ -78,7 +110,7 @@ async function writeAgentOverrides(): Promise<void> {
   const agents: Record<string, { model: string }> = {};
 
   for (const [name, model] of Object.entries(overrides)) {
-    const defined = existsSync(join(profile, "opencode", "agents", `${name}.md`));
+    const defined = existsSync(join(configRoot, "agents", `${name}.md`));
 
     if (defined || builtinAgents.has(name)) agents[name] = { model };
   }
@@ -120,8 +152,17 @@ const generated = await readObject(join(configRoot, "opencode.json"));
 
 const rendered = await readObject(join(profile, "opencode", "opencode.jsonc"));
 
+if (options["agent-under-test"]) {
+  await mkdir(join(configRoot, "agents"), { recursive: true });
+
+  await writeFile(join(configRoot, "agents", "agent-under-test.md"), agentUnderTest, "utf8");
+}
+
+// The agent under test runs one level below the root, so one more level keeps its live depth.
+const experimental = options["agent-under-test"] ? deeperSubagents(rendered.experimental) : rendered.experimental;
+
 // The rendered permissions replace OpenEval's allow-all rule; OpenEval keeps its plugins and websearch setting.
-const merged = { ...generated, ...rendered, plugins: generated.plugins, websearch: generated.websearch };
+const merged = { ...generated, ...rendered, plugins: generated.plugins, websearch: generated.websearch, experimental };
 
 const contents = `${JSON.stringify(merged, null, 2)}\n`;
 

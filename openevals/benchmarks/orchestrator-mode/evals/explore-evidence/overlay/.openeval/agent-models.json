@@ -1,4 +1,5 @@
 {
+  "agent-under-test": "openai/gpt-6-sol#medium",
   "orchestrator": "openai/gpt-6-sol#medium",
   "scribe": "openai/gpt-6-luna#high",
   "explore": "openai/gpt-6-luna#high",
