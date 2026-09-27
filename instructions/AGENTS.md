@@ -12,6 +12,7 @@
 ## Working preferences
 
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
+- **Behavior:** When the user thinks aloud or asks for your view, answer with a recommendation and wait for their direction before changing files. A request to make a change is that direction.
 - **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
 
 ## Task output
