@@ -1,0 +1,143 @@
+<article class="page" id="evidence" data-page-title="Evidence" data-page-group="shared" data-page-icon="i-file-check">
+
+<nav class="page-rail">
+  <div class="rail-group cite-filter">
+    <span class="rail-label">Show findings cited on</span>
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="context-line"><a class="mono" href="#overview">Overview</a><span class="sep">/</span><span class="mono">evidence</span><span>·</span><span>Updated Sep 28, 2026</span></div>
+  <h1>Evidence</h1>
+  <p class="dek">Everything we've found out about log ingestion, and how we know it. Every page of this doc cites these by number.</p>
+</header>
+
+<section class="section" id="evidence-list">
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Finding</th><th>Cited on</th><th>Found</th></tr></thead>
+      <tbody>
+        <tr id="E1" data-ref="evidence">
+          <td class="id">E1</td>
+          <td class="has-details"><details><summary data-ref-text>Firewall logs from all 14 sites reach the syslog server over site VPNs that end on the Transit Gateway. The VPNs only carry routes for 10.40.0.0/16.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">Read the Transit Gateway route tables in the network account and matched them against the VPN module in the network Terraform. Both show the site VPNs advertising only 10.40.0.0/16. The network team confirmed it's current.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">AWS account</span><span class="v">prod-network · Transit Gateway route tables</span></div>
+                <div class="source"><span class="k">Infrastructure as code</span><span class="v">infra-network repo · VPN module</span></div>
+                <div class="source"><span class="k">Confirmed with</span><span class="v">Network team, Sep 24</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 24</td>
+        </tr>
+        <tr id="E2" data-ref="evidence">
+          <td class="id">E2</td>
+          <td class="has-details"><details><summary data-ref-text>Firewall logs average 1.2 TB a month. Transit Gateway charges $0.02 per GB it processes, about $24 a month at this volume.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">Datadog's usage page for the last 90 days, priced with AWS's published Transit Gateway rates.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">Datadog</span><span class="v">Log usage, last 90 days</span></div>
+                <div class="source"><span class="k">AWS pricing</span><span class="v">Transit Gateway, GovCloud (US-West)</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 25</td>
+        </tr>
+        <tr id="E3" data-ref="evidence">
+          <td class="id">E3</td>
+          <td class="has-details"><details><summary data-ref-text>Shared Tooling's private subnets have 212 free addresses across three zones.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">Listed the Shared Tooling subnets in the tooling account and added up their available addresses.</p></div>
+              <div><h4>Gathered from</h4><div class="sources"><div class="source"><span class="k">AWS account</span><span class="v">shared-tooling · VPC subnets</span></div></div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 24</td>
+        </tr>
+        <tr id="E4" data-ref="evidence">
+          <td class="id">E4</td>
+          <td class="has-details"><details><summary data-ref-text>Datadog sizes workers at 2 vCPU per 10,000 events a second. Our peak is 18,000, so three workers still cover it with one zone down.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">Datadog's sizing guidance for Observability Pipelines Workers, applied to our busiest hour over the last 30 days.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">Vendor documentation</span><span class="v">Datadog OPW sizing guide</span></div>
+                <div class="source"><span class="k">Datadog</span><span class="v">Log volume, peak hour, last 30 days</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 23</td>
+        </tr>
+        <tr id="E5" data-ref="evidence">
+          <td class="id">E5</td>
+          <td class="has-details"><details><summary data-ref-text>The syslog server is one instance in one zone. It dropped messages during restarts twice this year.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">The instance's placement in the tooling account, and two incident reviews that traced missing firewall logs to syslog restarts.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">AWS account</span><span class="v">shared-tooling · syslog instance</span></div>
+                <div class="source"><span class="k">Incident reviews</span><span class="v">INC-2291, INC-2340</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 26</td>
+        </tr>
+        <tr id="E6" data-ref="evidence">
+          <td class="id">E6</td>
+          <td class="has-details"><details><summary data-ref-text>A PrivateLink endpoint service can sit in any VPC; customers connect to it without routes into our network.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">AWS's PrivateLink documentation for endpoint services.</p></div>
+              <div><h4>Gathered from</h4><div class="sources"><div class="source"><span class="k">Vendor documentation</span><span class="v">AWS PrivateLink, endpoint services</span></div></div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 23</td>
+        </tr>
+        <tr id="E7" data-ref="evidence">
+          <td class="id">E7</td>
+          <td class="has-details"><details><summary data-ref-text>At us-gov-west-1 list prices, a Transit Gateway attachment is about $36 a month, a Network Load Balancer about $16 plus usage, a c7g.large about $53, and S3 Standard storage about $0.027 per GB.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">AWS's published on-demand prices for GovCloud (US-West).</p></div>
+              <div><h4>Gathered from</h4><div class="sources"><div class="source"><span class="k">AWS pricing</span><span class="v">GovCloud: EC2, Elastic Load Balancing, Transit Gateway, S3</span></div></div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 27</td>
+        </tr>
+        <tr id="E8" data-ref="evidence">
+          <td class="id">E8</td>
+          <td class="has-details"><details><summary data-ref-text>An S3 bucket policy can be at most 20 KB. In the format our other buckets use, that fits about 60 per-customer statements.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">The bucket policy size limit in AWS's S3 documentation, and the size of one per-customer statement in the policy used by the existing export bucket.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">Vendor documentation</span><span class="v">Amazon S3 bucket policies, limits</span></div>
+                <div class="source"><span class="k">AWS account</span><span class="v">shared-tooling · export bucket policy</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 27</td>
+        </tr>
+        <tr id="E9" data-ref="evidence">
+          <td class="id">E9</td>
+          <td class="has-details"><details><summary data-ref-text>S3 has FIPS endpoints in GovCloud (US-West), and AWS KMS keys there are held in FIPS 140-validated hardware security modules.</summary>
+            <div class="how">
+              <div><h4>How we know</h4><p data-ref-detail="How we know">AWS's FIPS endpoint list for GovCloud and the AWS KMS documentation on its hardware security modules.</p></div>
+              <div><h4>Gathered from</h4><div class="sources">
+                <div class="source"><span class="k">Vendor documentation</span><span class="v">AWS GovCloud (US) FIPS endpoints</span></div>
+                <div class="source"><span class="k">Vendor documentation</span><span class="v">AWS KMS, cryptographic details</span></div>
+              </div></div>
+            </div>
+          </details></td>
+          <td data-cited-on></td>
+          <td class="soft date" data-ref-status="Found">Sep 27</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</article>

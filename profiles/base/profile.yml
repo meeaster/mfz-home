@@ -46,6 +46,10 @@ thread:
       - claude-code
       - opencode
 skills:
+  agents-md-authoring:
+    agents: { opencode: true, claude-code: true, codex: true }
+  design-docs:
+    agents: { opencode: true, claude-code: true, codex: true }
   open-pencil-design:
     agents: { opencode: false, claude-code: false, codex: false }
   open-pencil:

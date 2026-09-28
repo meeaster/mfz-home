@@ -1,0 +1,138 @@
+<article class="page" id="s3-archive" data-page-title="S3 archive" data-page-group="area" data-page-icon="i-database" data-page-meta="D6">
+
+<nav class="page-rail">
+  <div class="rail-group rail-nav">
+    <span class="rail-label">On this page</span>
+    <a href="#s3-short"><span class="n">01</span>In short</a>
+    <a href="#s3-requirements"><span class="n">02</span>Requirements</a>
+    <a href="#s3-design"><span class="n">03</span>Design</a>
+    <a href="#s3-measure"><span class="n">04</span>How it measures up</a>
+  </div>
+
+  <div class="rail-group">
+    <span class="rail-label">Decisions on this page</span>
+    <a class="rail-item" href="#D6"><span class="top"><span class="id">D6</span><span class="status open">Open</span></span><span class="q">How customer data is kept apart</span></a>
+    <a class="rail-item" href="#D5"><span class="top"><span class="id">D5</span><span class="status decided">Decided</span></span><span class="q">How long the archive keeps logs</span></a>
+  </div>
+
+  <div class="rail-note">
+    <strong>2 open questions here</strong>
+    Q8 blocks D6. Q10 is with Datadog support.
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="context-line"><a class="mono" href="#overview">Overview</a><span class="sep">/</span><span class="mono">s3-archive</span><span>·</span><span>Updated Sep 28, 2026</span></div>
+  <h1>S3 archive</h1>
+  <p class="dek">Where archived logs live, how each customer's logs are kept apart from ours and from each other's, and who can read them.</p>
+</header>
+
+<section class="section" id="s3-short">
+  <div class="section-head">
+    <div class="section-title"><span class="num">01</span><h2>In short</h2></div>
+  </div>
+  <div class="short-row">
+    <div class="prose">
+      <p>Every log the workers receive is also written to S3 and kept for a year (<a class="mention" href="#D5">D5</a>). The archive is the record we'd search during an investigation, and the copy we'd hand a customer who asks for their own logs.</p>
+      <p>Our own logs and customer logs go to separate buckets. Inside the customer bucket, each customer gets their own prefix and their own KMS key, so a role or key for one customer can't read another customer's logs.</p>
+      <p>Whether one customer bucket is enough, or each customer needs a bucket of their own, is still open (<a class="mention" href="#D6">D6</a>). It depends on how many customers we expect in the first year (<a class="mention" href="#Q8">Q8</a>).</p>
+    </div>
+    <div class="terms">
+      <h3>Terms used on this page</h3>
+      <dl>
+        <div><dt>Prefix</dt><dd>The start of an object's name in S3, such as customer=acme/. Access rules can be written per prefix.</dd></div>
+        <div><dt>KMS key</dt><dd>An encryption key held in AWS KMS. Reading an object needs permission on its key as well as on the bucket.</dd></div>
+        <div><dt>Bucket policy</dt><dd>The access rules attached to a bucket. Its size limit caps how many per-customer rules fit.</dd></div>
+        <div><dt>Lifecycle rule</dt><dd>An S3 rule that deletes objects once they reach a set age.</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="s3-requirements">
+  <div class="section-head">
+    <div class="section-title"><span class="num">02</span><h2>Requirements</h2></div>
+    <p class="intro">What the archive has to satisfy. <a class="mention" href="#R6">R6</a> and <a class="mention" href="#R7">R7</a> cover the whole system; the rest are specific to the archive.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Requirement</th><th>Why it matters</th><th>Source</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr id="R8" data-ref="requirement"><td class="id">R8</td><td data-ref-text>A customer's logs can be read only with that customer's role and key.</td><td class="soft" data-ref-detail="Why">Contracts promise each customer that nobody else can see their logs.</td><td class="soft" data-ref-detail="Source">Customer contracts</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R9" data-ref="requirement"><td class="id">R9</td><td data-ref-text>Keep every log for one year, then delete it.</td><td class="soft" data-ref-detail="Why">Security's retention rule; keeping logs longer adds risk without a use.</td><td class="soft" data-ref-detail="Source">Security team</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R10" data-ref="requirement"><td class="id">R10</td><td data-ref-text>Give a customer all their logs for a date range within one working day.</td><td class="soft" data-ref-detail="Why">Customers ask for their logs during their own investigations.</td><td class="soft" data-ref-detail="Source">Customer onboarding effort</td><td><span class="badge outline" data-ref-status>Should</span></td></tr>
+        <tr><td class="id"><a class="ref ref-r" href="#R6">R6</a></td><td>Keep log data inside the GovCloud partition.</td><td class="soft">Applies to the whole system.</td><td class="soft"><a href="#overview-requirements">Overview</a></td><td><span class="badge">Must</span></td></tr>
+        <tr><td class="id"><a class="ref ref-r" href="#R7">R7</a></td><td>Use FIPS-validated encryption in transit and at rest.</td><td class="soft">Applies to the whole system.</td><td class="soft"><a href="#overview-requirements">Overview</a></td><td><span class="badge">Must</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="s3-design">
+  <div class="section-head">
+    <div class="section-title"><span class="num">03</span><h2>Design</h2><span class="status open">D6 open</span></div>
+    <p class="intro">Two buckets: one for our own logs and one for customer logs, each with its own key. Within the customer bucket, every customer has a prefix, a key and a role of their own.</p>
+  </div>
+
+  <article class="option design">
+    <div class="option-head">
+      <div class="text"><h3>Buckets, prefixes and keys</h3><p>Two buckets in the archive account, one prefix and key per customer.</p></div>
+    </div>
+    <div class="diagram-wrap diagram-scroll">
+      <div class="diagram" style="--w:912;--h:330">
+        <div class="zone" style="--x:176;--y:14;--w:540;--h:302"><div class="zone-label"><b>Archive account</b><small>GovCloud · us-gov-west-1</small></div></div>
+        <svg class="edges" viewBox="0 0 912 330">
+          <path class="edge new" d="M150 147 H163 V94 H206"/>
+          <path class="edge new" d="M150 167 H163 V239 H206"/>
+          <path class="edge new" d="M506 94 H746"/>
+          <path class="edge new" d="M506 239 H746"/>
+        </svg>
+        <div class="node" style="--x:0;--y:125;--w:150;--h:64"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>on <a href="#overview-solution">Overview</a></small></span></div>
+        <div class="node new" style="--x:206;--y:58;--w:300;--h:72"><svg><use href="#i-archive"/></svg><span class="t"><b>opw-archive-internal</b><small>firewall/site=*/date=* · internal key</small></span></div>
+        <div class="node new pending" style="--x:206;--y:176;--w:300;--h:126"><svg><use href="#i-archive"/></svg><span class="t"><b>opw-archive-customers</b><small>customer=acme/ · acme key</small><small>customer=globex/ · globex key</small><small>customer=…/ · one key each</small></span></div>
+        <div class="node" style="--x:746;--y:64;--w:166;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>Security team</b><small>read role</small></span></div>
+        <div class="node" style="--x:746;--y:209;--w:166;--h:60"><svg><use href="#i-user-round"/></svg><span class="t"><b>Customer export</b><small>role per customer</small></span></div>
+        <span class="edge-label new" style="--x:626;--y:102">read · TLS</span>
+        <span class="edge-label new" style="--x:626;--y:247">export · TLS</span>
+        <span class="via" style="--x:538;--y:156"><svg><use href="#i-timer"/></svg>Delete after 1 year <a class="ref ref-d" href="#D5">D5</a></span>
+        <a class="ref ref-e" href="#E7" style="--x:470;--y:50">E7</a>
+        <span class="pins" style="--x:382;--y:168"><a class="ref ref-e" href="#E8">E8</a><a class="ref ref-d" href="#D6">D6</a><a class="ref ref-q" href="#Q10">Q10</a></span>
+        <a class="ref ref-e" href="#E9" style="--x:868;--y:56">E9</a>
+      </div>
+    </div>
+    <div class="parts">
+      <h4>The parts</h4>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Part</th><th>What it does</th><th>Decided by</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td class="q">opw-archive-internal</td><td class="soft">Firewall and our own logs, by site and date. Encrypted with the internal key.</td><td><div class="marks"><a class="ref ref-d" href="#D5">D5</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a></div></td></tr>
+          <tr><td class="q">opw-archive-customers</td><td class="soft">Customer logs, one prefix per customer, each prefix written with that customer's key.</td><td><div class="marks"><a class="ref ref-d" href="#D5">D5</a><a class="ref ref-d" href="#D6">D6</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E8">E8</a><a class="ref ref-q" href="#Q10">Q10</a></div></td></tr>
+          <tr><td class="q">KMS keys</td><td class="soft">One for our logs and one per customer. A customer's export role can use only their key.</td><td><div class="marks"><a class="ref ref-d" href="#D6">D6</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E9">E9</a><a class="ref ref-q" href="#Q10">Q10</a></div></td></tr>
+          <tr><td class="q">Security read role</td><td class="soft">Lets the security team read the internal bucket during investigations.</td><td class="soft">Standard access pattern</td><td><div class="marks"><a class="ref ref-e" href="#E9">E9</a></div></td></tr>
+          <tr><td class="q">Customer export roles</td><td class="soft">One per customer. Reads only that customer's prefix, with that customer's key.</td><td><div class="marks"><a class="ref ref-d" href="#D6">D6</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E8">E8</a></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="s3-measure">
+  <div class="section-head">
+    <div class="section-title"><span class="num">04</span><h2>How it measures up</h2></div>
+    <p class="intro">Each archive requirement, whether this design meets it, and what that rests on.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Requirement</th><th>Met</th><th>How</th><th>Rests on</th></tr></thead>
+      <tbody>
+        <tr><td><a class="ref ref-r" href="#R8">R8</a> Only that customer can read their logs</td><td><span class="verdict partly">Partly</span></td><td class="soft">A role and key per customer. Depends on OPW writing each customer's prefix with their own key.</td><td><div class="marks"><a class="ref ref-q" href="#Q10">Q10</a><a class="ref ref-d" href="#D6">D6</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R9">R9</a> Kept one year, then deleted</td><td><span class="verdict yes">Yes</span></td><td class="soft">A lifecycle rule on both buckets deletes objects at 365 days.</td><td><div class="marks"><a class="ref ref-d" href="#D5">D5</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R10">R10</a> A customer's logs within a day</td><td><span class="verdict yes">Yes</span></td><td class="soft">Their prefix is copied out with their export role; no other customer's data is touched.</td><td><div class="marks"><a class="ref ref-e" href="#E8">E8</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R6">R6</a> Stays in the GovCloud partition</td><td><span class="verdict yes">Yes</span></td><td class="soft">Both buckets and all keys are in us-gov-west-1.</td><td><div class="marks"><a class="ref ref-e" href="#E9">E9</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R7">R7</a> FIPS-validated encryption</td><td><span class="verdict yes">Yes</span></td><td class="soft">Writes and reads use the S3 FIPS endpoint; objects are encrypted with KMS.</td><td><div class="marks"><a class="ref ref-e" href="#E9">E9</a></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</article>

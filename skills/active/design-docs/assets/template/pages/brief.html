@@ -1,0 +1,115 @@
+<!-- Brief page: one open question with its options. As written, this is a brief with no overview: it defines its own
+     requirements and decisions. Inside a design doc with an overview, the overview defines both; then drop the
+     requirements section here and turn each decision section into a plain one (see references/pages.md). -->
+<article class="page" id="brief" data-page-title="SHORT TITLE" data-page-group="brief" data-page-meta="D1">
+
+<nav class="page-rail">
+  <div class="rail-group rail-nav">
+    <span class="rail-label">On this page</span>
+    <a href="#brief-short"><span class="n">01</span>In short</a>
+    <a href="#brief-requirements"><span class="n">02</span>Requirements</a>
+    <a href="#brief-map"><span class="n">03</span>Decision map</a>
+    <a href="#D1"><span class="n">04</span>D1 · SHORT QUESTION</a>
+  </div>
+  <div class="rail-group">
+    <span class="rail-label">Decisions</span>
+    <a class="rail-item" href="#D1"><span class="top"><span class="id">D1</span><span class="status open">Open</span></span><span class="q">SHORT QUESTION</span></a>
+  </div>
+  <div class="rail-note">
+    <strong>N open questions</strong>
+    WHICH ONES BLOCK WHICH DECISION.
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="context-line"><span class="mono">initiative</span><span class="sep">/</span><span class="mono">effort-slug</span><span>·</span><span>Updated Mon D, YYYY</span></div>
+  <h1>THE QUESTION, AS A QUESTION?</h1>
+  <p class="dek">ONE SENTENCE ON WHAT IS BEING CHOSEN.</p>
+</header>
+
+<section class="section" id="brief-short">
+  <div class="section-head"><div class="section-title"><span class="num">01</span><h2>In short</h2></div></div>
+  <div class="short-row">
+    <div class="prose">
+      <p>WHAT WE'RE DOING, IN PLAIN WORDS.</p>
+      <p>WHY THIS QUESTION COMES UP AND WHAT IT AFFECTS.</p>
+      <p>WHY IT HAS TO BE SETTLED NOW.</p>
+    </div>
+    <div class="terms">
+      <h3>Terms used on this page</h3>
+      <dl><div><dt>TERM</dt><dd>PLAIN DEFINITION.</dd></div></dl>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="brief-requirements">
+  <div class="section-head">
+    <div class="section-title"><span class="num">02</span><h2>Requirements</h2></div>
+    <p class="intro">What any answer has to satisfy. "Must" rules an option out if it fails; "Should" counts against it.</p>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Why it matters</th><th>Source</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="R1" data-ref="requirement"><td class="id">R1</td><td data-ref-text>REQUIREMENT.</td><td class="soft" data-ref-detail="Why">WHY.</td><td class="soft" data-ref-detail="Source">WHO OR WHAT SAYS SO</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="brief-map">
+  <div class="section-head">
+    <div class="section-title"><span class="num">03</span><h2>Decision map</h2></div>
+    <p class="intro">WHICH DECISIONS DEPEND ON WHICH, AND WHAT THIS BRIEF COVERS.</p>
+  </div>
+  <!-- Build with .node.decision / .node.question boxes and .edge paths; see references/diagrams.md. -->
+</section>
+
+<section class="section" id="D1" data-ref="decision">
+  <div class="section-head">
+    <div class="section-title"><span class="num">04</span><h2>D1 · <span data-ref-text>THE DECISION'S QUESTION?</span></h2><span class="status open" data-ref-status>Open</span></div>
+    <p class="intro">FRAMING: WHAT'S BEING CHOSEN AND WHAT STAYS THE SAME EITHER WAY.</p>
+    <div class="relations">
+      <span data-ref-detail="Waiting on" data-ref-value="Q1">Waiting on <a class="ref ref-q" href="#Q1">Q1</a></span>
+    </div>
+  </div>
+
+  <div class="diagram-key">
+    <strong>Reading the diagrams</strong>
+    <span><i class="swatch"></i>Exists today</span>
+    <span><i class="swatch new"></i>Added by the option, in its colour</span>
+    <span><span class="ref ref-e">E1</span>How we know</span>
+    <span><span class="ref ref-q">Q1</span>Not confirmed yet</span>
+  </div>
+
+  <article class="option opt-a">
+    <div class="option-head">
+      <span class="letter">A</span>
+      <div class="text"><h3>OPTION NAME</h3><p>ONE-LINE SUMMARY.</p></div>
+      <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
+    </div>
+    <div class="view-panel" data-view-panel="architecture">
+      <div class="diagram-wrap diagram-scroll">
+        <!-- Architecture diagram; see references/diagrams.md. -->
+      </div>
+    </div>
+    <!-- Security view: include when the brief touches data handling, network paths, or a compliance boundary; see references/security.md. Otherwise delete this panel and the toggle. -->
+    <div class="view-panel" data-view-panel="security">
+      <div class="diagram-wrap diagram-scroll">
+        <!-- Same boxes, plus the boundary, numbered flows, and protection labels. -->
+      </div>
+      <div class="security-tables">
+        <h4>Data flows</h4>
+        <p>Each flow in the diagram, what it carries, and how it's protected.</p>
+        <!-- Flow table: Flow | From → to | Data | In transit | Auth | Crosses | Assessment -->
+        <h4>Where data rests</h4>
+        <!-- Stored-data table: Store | Holds | Encryption | Kept for | Assessment -->
+      </div>
+    </div>
+    <div class="assess">
+      <div class="good"><h4>Works well</h4><ul><li>BENEFIT.</li></ul></div>
+      <div class="risk"><h4>Costs and risks</h4><ul><li>COST OR RISK.</li></ul></div>
+      <div class="cites"><h4>Evidence</h4><ul><li><a class="ref ref-e" href="#E1">E1</a>WHAT E1 SHOWS FOR THIS OPTION.</li></ul></div>
+    </div>
+  </article>
+</section>
+
+</article>

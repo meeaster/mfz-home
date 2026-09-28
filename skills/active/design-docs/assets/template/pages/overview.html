@@ -1,0 +1,158 @@
+<!-- Overview: the whole design on one page. Section ids are shared by every page, so prefix them with the page id. -->
+<article class="page" id="overview" data-page-title="Overview" data-page-group="overview">
+
+<nav class="page-rail">
+  <div class="rail-group rail-nav">
+    <span class="rail-label">On this page</span>
+    <a href="#overview-short"><span class="n">01</span>In short</a>
+    <a href="#overview-requirements"><span class="n">02</span>Requirements</a>
+    <a href="#overview-solution"><span class="n">03</span>Solution</a>
+    <a href="#overview-decisions"><span class="n">04</span>Decisions</a>
+    <a href="#overview-measure"><span class="n">05</span>How it measures up</a>
+    <a href="#overview-cost"><span class="n">06</span>Cost</a>
+    <a href="#overview-risks"><span class="n">07</span>Risks</a>
+  </div>
+  <div class="rail-group">
+    <span class="rail-label">Decisions</span>
+    <a class="rail-item" href="#D1"><span class="top"><span class="id">D1</span><span class="status open">Open</span></span><span class="q">SHORT QUESTION</span></a>
+  </div>
+  <div class="rail-note">
+    <strong>N open questions</strong>
+    WHICH ONES BLOCK WHICH DECISION.
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="context-line"><span class="mono">initiative</span><span class="sep">/</span><span class="mono">effort-slug</span><span>·</span><span>Updated Mon D, YYYY</span></div>
+  <h1>WHAT WE'RE BUILDING</h1>
+  <p class="dek">ONE SENTENCE ON WHAT THE SYSTEM DOES AND WHAT IT STILL DEPENDS ON.</p>
+</header>
+
+<section class="section" id="overview-short">
+  <div class="section-head"><div class="section-title"><span class="num">01</span><h2>In short</h2></div></div>
+  <div class="short-row">
+    <div class="prose">
+      <p>WHAT WE'RE BUILDING, IN PLAIN WORDS.</p>
+      <p>HOW IT FITS TOGETHER.</p>
+      <p>WHICH DECISIONS ARE STILL OPEN, AND WHERE EACH IS BEING WORKED OUT.</p>
+    </div>
+    <div class="terms">
+      <h3>Terms used on this page</h3>
+      <dl><div><dt>TERM</dt><dd>PLAIN DEFINITION.</dd></div></dl>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="overview-requirements">
+  <div class="section-head">
+    <div class="section-title"><span class="num">02</span><h2>Requirements</h2></div>
+    <p class="intro">What the design has to satisfy. "Must" items can't be traded away; "Should" items can, if we say why.</p>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>ID</th><th>Requirement</th><th>Why it matters</th><th>Source</th><th>Priority</th></tr></thead>
+    <tbody>
+      <tr id="R1" data-ref="requirement"><td class="id">R1</td><td data-ref-text>REQUIREMENT.</td><td class="soft" data-ref-detail="Why">WHY.</td><td class="soft" data-ref-detail="Source">WHO OR WHAT SAYS SO</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="overview-solution">
+  <div class="section-head">
+    <div class="section-title"><span class="num">03</span><h2>Solution</h2><span class="status open">N decisions open</span></div>
+    <p class="intro">HOW THE PARTS CONNECT, IN ONE OR TWO SENTENCES.</p>
+  </div>
+  <div class="diagram-key design">
+    <strong>Reading the diagrams</strong>
+    <span><i class="swatch"></i>Exists today</span>
+    <span><i class="swatch new"></i>Added by this design</span>
+    <span><i class="swatch pending"></i>Waits on a decision</span>
+    <span><span class="ref ref-d" data-state="open">D1</span>Decision, coloured by status</span>
+    <span><span class="ref ref-e">E1</span>Evidence</span>
+    <span><span class="ref ref-q">Q1</span>Not confirmed yet</span>
+  </div>
+  <article class="option design">
+    <div class="option-head">
+      <div class="text"><h3>DIAGRAM TITLE</h3><p>ONE-LINE SUMMARY OF THE CURRENT DESIGN.</p></div>
+      <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
+    </div>
+    <div class="view-panel" data-view-panel="architecture">
+      <div class="diagram-wrap diagram-scroll">
+        <!-- Architecture diagram: .node / .node.new, and .pending on parts that wait on a decision, with a
+             <a class="ref ref-d" href="#D1"> marker on each; see references/diagrams.md. -->
+      </div>
+    </div>
+    <!-- Security view: see references/security.md. Delete this panel and the toggle when there's nothing to show. -->
+    <div class="view-panel" data-view-panel="security">
+      <div class="diagram-wrap diagram-scroll"></div>
+      <div class="security-tables"></div>
+    </div>
+    <div class="parts">
+      <h4>The parts</h4>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Part</th><th>What it does</th><th>Decided by</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td class="q">PART</td><td class="soft">WHAT IT DOES.<!-- When an area page designs it: Designed on <a class="page-link" href="#area-id">AREA</a>. --></td><td><div class="marks"><a class="ref ref-d" href="#D1">D1</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="overview-decisions">
+  <div class="section-head">
+    <div class="section-title"><span class="num">04</span><h2>Decisions</h2></div>
+    <p class="intro">Every choice this design depends on. Some were settled in a meeting, some have a brief of their own, and some are still open.</p>
+  </div>
+  <!-- The only place each decision is defined. Markers everywhere else take their colour from these statuses. -->
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>ID</th><th>Decision</th><th>Status</th><th>Answer, or where it's leaning</th><th>Worked out in</th></tr></thead>
+    <tbody>
+      <tr class="group"><td colspan="5">Still open</td></tr>
+      <tr id="D1" data-ref="decision"><td class="id">D1</td><td><span class="q" data-ref-text>THE DECISION, AS A QUESTION?</span><span class="sub">WHAT IT SHAPES.</span></td><td><span class="status open" data-ref-status>Open</span></td><td class="soft"><span data-ref-detail="Leaning">CURRENT LEANING, OR WHAT'S ASSUMED.</span><div class="marks" data-ref-detail="Waiting on" data-ref-value="Q1"><a class="ref ref-q" href="#Q1">Q1</a></div></td><td><span class="page-link none"><svg><use href="#i-circle-dashed"/></svg>No brief yet</span><!-- With a brief or area page: <a class="page-link" href="#brief-id" data-ref-link="Open the brief"><svg><use href="#i-signpost"/></svg>Brief · SHORT TITLE</a> --></td></tr>
+      <tr class="group"><td colspan="5">Decided</td></tr>
+      <tr id="D2" data-ref="decision"><td class="id">D2</td><td><span class="q" data-ref-text>A SETTLED DECISION?</span></td><td><span class="status decided" data-ref-status>Decided</span></td><td class="soft" data-ref-detail="Answer">WHAT WAS DECIDED.</td><td><a class="page-link" href="#meeting-YYYY-MM-DD"><svg><use href="#i-calendar"/></svg>Mon D · MEETING NAME</a></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="overview-measure">
+  <div class="section-head">
+    <div class="section-title"><span class="num">05</span><h2>How it measures up</h2></div>
+    <p class="intro">Each requirement, whether this design meets it, and what that rests on.</p>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Requirement</th><th>Met</th><th>How</th><th>Rests on</th></tr></thead>
+    <tbody>
+      <tr><td><a class="ref ref-r" href="#R1">R1</a> SHORT LABEL</td><td><span class="verdict yes">Yes</span></td><td class="soft">HOW.</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a></div></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="overview-cost">
+  <div class="section-head">
+    <div class="section-title"><span class="num">06</span><h2>Cost</h2></div>
+    <p class="intro">WHAT IT COSTS EACH MONTH, AND AT WHICH PRICES.</p>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Line item</th><th>What drives it</th><th class="num">Monthly</th><th>Evidence</th></tr></thead>
+    <tbody>
+      <tr><td>LINE ITEM</td><td class="soft">WHAT DRIVES IT.</td><td class="num">$0</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a><a class="ref ref-d" href="#D1">D1</a></div></td></tr>
+      <tr class="total"><td>Total per month</td><td></td><td class="num">$0</td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="section" id="overview-risks">
+  <div class="section-head">
+    <div class="section-title"><span class="num">07</span><h2>Risks</h2></div>
+    <p class="intro">What could go wrong once it's running, and what we'd do about it.</p>
+  </div>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Risk</th><th>Likelihood</th><th>If it happens</th><th>What we'd do</th><th>Linked</th></tr></thead>
+    <tbody>
+      <tr><td class="q">RISK.</td><td><span class="status open">Medium</span></td><td class="soft">EFFECT.</td><td class="soft">RESPONSE.</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a></div></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+</article>

@@ -1,4 +1,12 @@
 skills:
+  - name: agents-md-authoring
+    source: local
+    skill: skills/active/agents-md-authoring
+    description: Focused authoring and review of repository and folder-local AGENTS.md guidance.
+  - name: design-docs
+    source: local
+    skill: skills/active/design-docs
+    description: HTML design documents and one-question decision briefs, with diagrams, evidence, and meeting updates.
   - name: task-output
     source: local
     skill: packages/cairn/skills/task-output

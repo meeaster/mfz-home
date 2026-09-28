@@ -1,0 +1,325 @@
+<article class="page" id="overview" data-page-title="Overview" data-page-group="overview">
+
+<nav class="page-rail">
+  <div class="rail-group rail-nav">
+    <span class="rail-label">On this page</span>
+    <a href="#overview-short"><span class="n">01</span>In short</a>
+    <a href="#overview-requirements"><span class="n">02</span>Requirements</a>
+    <a href="#overview-solution"><span class="n">03</span>Solution</a>
+    <a href="#overview-decisions"><span class="n">04</span>Decisions</a>
+    <a href="#overview-measure"><span class="n">05</span>How it measures up</a>
+    <a href="#overview-cost"><span class="n">06</span>Cost</a>
+    <a href="#overview-risks"><span class="n">07</span>Risks</a>
+  </div>
+
+  <div class="rail-group">
+    <span class="rail-label">Decisions</span>
+    <a class="rail-item" href="#D1"><span class="top"><span class="id">D1</span><span class="status leaning">Leaning</span></span><span class="q">Where the workers run</span></a>
+    <a class="rail-item" href="#D2"><span class="top"><span class="id">D2</span><span class="status open">Open</span></span><span class="q">How firewall logs get there</span></a>
+    <a class="rail-item" href="#D3"><span class="top"><span class="id">D3</span><span class="status">Later</span></span><span class="q">How customers connect</span></a>
+    <a class="rail-item" href="#D6"><span class="top"><span class="id">D6</span><span class="status open">Open</span></span><span class="q">How customer data is kept apart</span></a>
+    <a class="rail-item" href="#D7"><span class="top"><span class="id">D7</span><span class="status open">Open</span></span><span class="q">What OPW drops</span></a>
+  </div>
+
+  <div class="rail-note">
+    <strong>10 open questions</strong>
+    Q1, Q2 and Q5 block D1. Q8 blocks D6.
+  </div>
+</nav>
+
+<header class="doc-header">
+  <div class="context-line"><span class="mono">observability-pipeline</span><span class="sep">/</span><span class="mono">opw-deployment</span><span>·</span><span>Updated Sep 28, 2026</span></div>
+  <h1>Log ingestion in our cloud</h1>
+  <p class="dek">How firewall and customer logs are collected, filtered and kept in GovCloud: the whole system on one page, and the decisions it still depends on.</p>
+</header>
+
+<section class="section" id="overview-short">
+  <div class="section-head">
+    <div class="section-title"><span class="num">01</span><h2>In short</h2></div>
+  </div>
+  <div class="short-row">
+    <div class="prose">
+      <p>We're putting a log pipeline between our systems and Datadog. A small group of servers running Observability Pipelines Workers (OPW) receives firewall logs from our 14 office and data-center sites and logs that customers send us. The workers drop the noise we pay for today, send the rest to Datadog, and keep a full copy in S3.</p>
+      <p>The workers run in their own small VPC in GovCloud, joined to the rest of our network through the Transit Gateway. Datadog gets filtered logs within a minute. The S3 archive keeps everything for a year, with each customer's logs kept apart from ours and from each other's.</p>
+      <p>Five decisions are still open. Where the workers live and how firewall logs reach them (<a class="mention" href="#D1">D1</a>, <a class="mention" href="#D2">D2</a>) have a brief. How customer data is kept apart (<a class="mention" href="#D6">D6</a>) is being worked out on the <a href="#s3-archive">S3 archive</a> page. What OPW drops before Datadog (<a class="mention" href="#D7">D7</a>) and how customers connect (<a class="mention" href="#D3">D3</a>) haven't started.</p>
+    </div>
+    <div class="terms">
+      <h3>Terms used on this page</h3>
+      <dl>
+        <div><dt>OPW</dt><dd>Observability Pipelines Workers. Datadog's log pipeline software, run on our own servers.</dd></div>
+        <div><dt>VPC</dt><dd>A private network in AWS. Each one has its own address range and rules.</dd></div>
+        <div><dt>Shared Tooling VPC</dt><dd>The existing network that hosts common tools, including the syslog server.</dd></div>
+        <div><dt>ASA</dt><dd>Cisco ASA, the firewalls at each site. They send logs using syslog.</dd></div>
+        <div><dt>Transit Gateway</dt><dd>The AWS hub that connects our VPCs and the site VPNs to each other.</dd></div>
+        <div><dt>PrivateLink</dt><dd>A private connection into one AWS service, with no routes into the rest of the network.</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="overview-requirements">
+  <div class="section-head">
+    <div class="section-title"><span class="num">02</span><h2>Requirements</h2></div>
+    <p class="intro">What the design has to satisfy. "Must" items can't be traded away; "Should" items can, if we say why. Area pages add their own.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Requirement</th><th>Why it matters</th><th>Source</th><th>Priority</th></tr></thead>
+      <tbody>
+        <tr id="R1" data-ref="requirement"><td class="id">R1</td><td data-ref-text>Receive syslog from the firewalls at all 14 sites.</td><td class="soft" data-ref-detail="Why">Firewall logs are the main signal in security investigations.</td><td class="soft" data-ref-detail="Source">Security team</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R2" data-ref="requirement"><td class="id">R2</td><td data-ref-text>Receive logs from customer networks over a private connection.</td><td class="soft" data-ref-detail="Why">The first three customers start in November, and their contracts rule out the public internet.</td><td class="soft" data-ref-detail="Source">Customer onboarding effort</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R3" data-ref="requirement"><td class="id">R3</td><td data-ref-text>Expose no log intake to the public internet.</td><td class="soft" data-ref-detail="Why">The security baseline for any new service.</td><td class="soft" data-ref-detail="Source">Security standard SEC-12</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R4" data-ref="requirement"><td class="id">R4</td><td data-ref-text>Keep running if one AWS availability zone fails.</td><td class="soft" data-ref-detail="Why">Incidents are when we need logs most.</td><td class="soft" data-ref-detail="Source">Platform standards</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R5" data-ref="requirement"><td class="id">R5</td><td data-ref-text>Add no new site VPN tunnels before January.</td><td class="soft" data-ref-detail="Why">The network team's change calendar is full for Q4.</td><td class="soft" data-ref-detail="Source">Network team</td><td><span class="badge outline" data-ref-status>Should</span></td></tr>
+        <tr id="R6" data-ref="requirement"><td class="id">R6</td><td data-ref-text>Keep log data inside the GovCloud partition, unless the destination is authorized to hold it.</td><td class="soft" data-ref-detail="Why">Firewall and customer logs include controlled unclassified information (CUI).</td><td class="soft" data-ref-detail="Source">Compliance: GovCloud boundary</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+        <tr id="R7" data-ref="requirement"><td class="id">R7</td><td data-ref-text>Use FIPS-validated encryption for data in transit and at rest.</td><td class="soft" data-ref-detail="Why">Required for every system inside the authorization boundary.</td><td class="soft" data-ref-detail="Source">Compliance: FIPS 140</td><td><span class="badge" data-ref-status>Must</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="overview-solution">
+  <div class="section-head">
+    <div class="section-title"><span class="num">03</span><h2>Solution</h2><span class="status open">5 decisions open</span></div>
+    <p class="intro">Firewall logs from the 14 sites and logs from customers both end at the OPW workers. The workers filter them, send what matters to Datadog, and keep everything in the S3 archive.</p>
+  </div>
+
+  <div class="diagram-key design">
+    <strong>Reading the diagrams</strong>
+    <span><i class="swatch"></i>Exists today</span>
+    <span><i class="swatch new"></i>Added by this design</span>
+    <span><i class="swatch pending"></i>Waits on a decision</span>
+    <span><span class="ref ref-d" data-state="open">D2</span>Decision, coloured by status</span>
+    <span><span class="ref ref-e">E1</span>Evidence</span>
+    <span><span class="ref ref-q">Q1</span>Not confirmed yet</span>
+  </div>
+
+  <article class="option design">
+    <div class="option-head">
+      <div class="text"><h3>The pipeline end to end</h3><p>Workers in their own VPC in GovCloud, with the syslog server relaying firewall logs to them.</p></div>
+      <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
+    </div>
+    <div class="view-panel" data-view-panel="architecture">
+    <div class="diagram-wrap diagram-scroll">
+      <div class="diagram" style="--w:912;--h:280">
+        <div class="zone" style="--x:220;--y:16;--w:220;--h:124"><div class="zone-label"><b>Shared Tooling VPC</b><small>10.40.0.0/16 · exists</small></div></div>
+        <div class="zone new pending" style="--x:490;--y:16;--w:320;--h:248"><div class="zone-label"><b>Observability VPC</b><small>10.52.0.0/20 · new</small></div></div>
+        <svg class="edges" viewBox="0 0 912 280">
+          <path class="edge" d="M150 86 H244"/>
+          <path class="edge new pending" d="M416 86 H670"/>
+          <path class="edge new pending" d="M150 206 H520"/>
+          <path class="edge new pending" d="M640 206 H670"/>
+          <path class="edge new" d="M794 86 H828"/>
+          <path class="edge new" d="M794 206 H828"/>
+        </svg>
+        <span class="edge-label" style="--x:185;--y:94">syslog</span>
+        <span class="edge-label new" style="--x:300;--y:214">PrivateLink</span>
+        <div class="node" style="--x:0;--y:56;--w:150;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>ASA firewalls</b><small>14 sites</small></span></div>
+        <div class="node" style="--x:0;--y:176;--w:150;--h:60"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from Nov</small></span></div>
+        <div class="node" style="--x:244;--y:56;--w:172;--h:60"><svg><use href="#i-server"/></svg><span class="t"><b>Syslog server</b><small>exists</small></span></div>
+        <div class="node new pending" style="--x:520;--y:176;--w:120;--h:60"><svg><use href="#i-plug"/></svg><span class="t"><b>Endpoint</b><small>new</small></span></div>
+        <div class="node new tall" style="--x:670;--y:56;--w:124;--h:180"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>3 × c7g.large</small></span></div>
+        <div class="node tall" style="--x:828;--y:56;--w:84;--h:60"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b></span></div>
+        <div class="node tall" style="--x:828;--y:176;--w:84;--h:60"><svg><use href="#i-archive"/></svg><span class="t"><b>S3</b><small>1 year</small></span></div>
+        <span class="via" style="--x:426;--y:76"><svg><use href="#i-waypoints"/></svg>Transit Gateway <a class="ref ref-e" href="#E2">E2</a></span>
+        <a class="ref ref-e" href="#E1" style="--x:134;--y:48">E1</a>
+        <a class="ref ref-q" href="#Q3" style="--x:134;--y:168">Q3</a>
+        <a class="ref ref-e" href="#E1" style="--x:420;--y:8">E1</a>
+        <a class="ref ref-e" href="#E5" style="--x:398;--y:48">E5</a>
+        <a class="ref ref-q" href="#Q5" style="--x:790;--y:8">Q5</a>
+        <a class="ref ref-e" href="#E6" style="--x:624;--y:168">E6</a>
+        <a class="ref ref-e" href="#E4" style="--x:776;--y:48">E4</a>
+        <a class="ref ref-d" href="#D1" style="--x:628;--y:27">D1</a>
+        <a class="ref ref-d" href="#D2" style="--x:598;--y:77">D2</a>
+        <a class="ref ref-d" href="#D3" style="--x:420;--y:197">D3</a>
+        <a class="ref ref-d" href="#D4" style="--x:680;--y:47">D4</a>
+        <a class="ref ref-d" href="#D7" style="--x:676;--y:227">D7</a>
+        <a class="ref ref-d" href="#D5" style="--x:808;--y:167">D5</a>
+        <a class="page-link" href="#s3-archive" style="--x:828;--y:250">Page <svg><use href="#i-arrow-right"/></svg></a>
+      </div>
+    </div>
+    </div>
+    <div class="view-panel" data-view-panel="security">
+      <div class="diagram-wrap diagram-scroll">
+      <div class="diagram compact" style="--w:912;--h:440">
+        <span class="region-label" style="--x:0;--y:64">Outside our AWS</span>
+        <span class="region-label" style="--x:800;--y:64">Vendor</span>
+        <div class="boundary" style="--x:190;--y:16;--w:570;--h:408"></div>
+        <div class="zone" style="--x:214;--y:56;--w:196;--h:140"><div class="zone-label"><b>Shared Tooling VPC</b><small>10.40.0.0/16 · exists</small></div></div>
+        <div class="zone new pending" style="--x:430;--y:56;--w:310;--h:244"><div class="zone-label"><b>Observability VPC</b><small>10.52.0.0/20 · new</small></div></div>
+        <svg class="edges" viewBox="0 0 912 440">
+          <path class="edge" d="M132 130 H228"/>
+          <path class="edge new pending" d="M396 130 H600"/>
+          <path class="edge new pending" d="M132 246 H446"/>
+          <path class="edge new pending" d="M576 246 H600"/>
+          <path class="edge new" d="M660 280 V340"/>
+          <path class="edge new" d="M720 130 H800"/>
+        </svg>
+        <div class="node" style="--x:0;--y:100;--w:132;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>ASA firewalls</b><small>14 sites</small></span></div>
+        <div class="node" style="--x:0;--y:216;--w:132;--h:60"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from Nov</small></span></div>
+        <div class="node" style="--x:228;--y:100;--w:168;--h:60"><svg><use href="#i-server"/></svg><span class="t"><b>Syslog server</b><small>EBS · KMS</small></span></div>
+        <div class="node new pending" style="--x:446;--y:216;--w:130;--h:60"><svg><use href="#i-plug"/></svg><span class="t"><b>Endpoint</b><small>private only</small></span></div>
+        <div class="node new tall" style="--x:600;--y:100;--w:120;--h:180"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>no public IP</small></span></div>
+        <div class="node new" style="--x:600;--y:340;--w:120;--h:60"><svg><use href="#i-archive"/></svg><span class="t"><b>S3 archive</b><small>SSE-KMS</small></span></div>
+        <div class="node" style="--x:800;--y:100;--w:112;--h:60"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b><small>vendor</small></span></div>
+        <span class="boundary-tab" style="--x:206;--y:5"><svg><use href="#i-shield-check"/></svg>AWS GovCloud (US) partition · us-gov-west-1</span>
+        <a class="flow cross" href="#S-F1" style="--x:177;--y:121">F1</a>
+        <a class="flow warn" href="#S-F2" style="--x:400;--y:121">F2</a>
+        <a class="flow cross" href="#S-F3" style="--x:177;--y:237">F3</a>
+        <a class="flow" href="#S-F4" style="--x:647;--y:301">F4</a>
+        <a class="flow cross" href="#S-F5" style="--x:747;--y:121">F5</a>
+        <span class="edge-label" style="--x:158;--y:140">IPsec</span>
+        <span class="edge-label warn" style="--x:515;--y:140">syslog · no TLS</span>
+        <span class="edge-label new" style="--x:300;--y:256">TLS · PrivateLink</span>
+        <span class="edge-label new" style="--x:526;--y:303;transform:none">TLS · FIPS endpoint</span>
+        <span class="edge-label new" style="--x:780;--y:140">HTTPS</span>
+        <a class="ref ref-e" href="#E1" style="--x:116;--y:92">E1</a>
+        <a class="ref ref-e" href="#E5" style="--x:380;--y:92">E5</a>
+        <a class="ref ref-e" href="#E6" style="--x:560;--y:208">E6</a>
+        <a class="ref ref-e" href="#E4" style="--x:704;--y:92">E4</a>
+        <a class="ref ref-q" href="#Q6" style="--x:896;--y:92">Q6</a>
+        <a class="ref ref-q" href="#Q5" style="--x:724;--y:48">Q5</a>
+        <a class="ref ref-q" href="#Q7" style="--x:140;--y:160">Q7</a>
+        <a class="ref ref-d" href="#D1" style="--x:560;--y:66">D1</a>
+        <a class="ref ref-d" href="#D2" style="--x:460;--y:121">D2</a>
+      </div>
+      </div>
+      <div class="security-key-wrap"><div class="diagram-key">
+        <strong>Reading the security view</strong>
+        <span><i class="swatch boundary-swatch"></i>Compliance boundary</span>
+        <span><span class="flow cross">F1</span>Crosses the boundary</span>
+        <span><span class="flow warn">F2</span>Needs attention</span>
+        <span><span class="flow">F4</span>Protected</span>
+        <span><span class="muted" style="font-size:11px;font-weight:500">TLS · FIPS</span>Protection in transit</span>
+      </div></div>
+      <div class="security-tables">
+        <h4>Data flows</h4>
+        <p>Each flow in the diagram, what it carries, and how it's protected.</p>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>Flow</th><th>From → to</th><th>Data</th><th>In transit</th><th>Auth</th><th>Crosses</th><th>Assessment</th></tr></thead>
+          <tbody>
+          <tr id="S-F1" data-ref="flow"><td><span class="flow cross" data-ref-chip>F1</span></td><td><span data-ref-text>ASA firewalls → Syslog server</span><span class="sub" data-ref-detail="Path">over site VPNs</span></td><td class="soft" data-ref-detail="Data">Firewall logs · CUI</td><td data-ref-detail="In transit">Syslog over UDP inside IPsec tunnels. Tunnel ciphers not yet confirmed as FIPS-validated.</td><td class="soft" data-ref-detail="Auth">Source IP allowlist</td><td class="crosses" data-ref-status="Crosses:">Partition boundary</td><td data-ref-detail="Assessment"><span class="verdict partly">Confirm FIPS ciphers</span> <a class="ref ref-q" href="#Q7">Q7</a></td></tr>
+          <tr id="S-F2" data-ref="flow"><td><span class="flow warn" data-ref-chip>F2</span></td><td><span data-ref-text>Syslog server → OPW workers</span><span class="sub" data-ref-detail="Path">through the Transit Gateway</span></td><td class="soft" data-ref-detail="Data">Firewall logs · CUI</td><td data-ref-detail="In transit">Syslog over TCP with no TLS. Leaves one VPC for another.</td><td class="soft" data-ref-detail="Auth">Security group</td><td class="soft" data-ref-status="Crosses:">VPC boundary</td><td data-ref-detail="Assessment"><span class="verdict no">Add TLS on the relay before go-live</span> <a class="ref ref-d" href="#D2">D2</a></td></tr>
+          <tr id="S-F3" data-ref="flow"><td><span class="flow cross" data-ref-chip>F3</span></td><td><span data-ref-text>Customers → Endpoint → workers</span><span class="sub" data-ref-detail="Path">PrivateLink</span></td><td class="soft" data-ref-detail="Data">Customer logs · CUI</td><td data-ref-detail="In transit">TLS 1.2 over PrivateLink. No routes into our network.</td><td class="soft" data-ref-detail="Auth">Per-customer API key</td><td class="crosses" data-ref-status="Crosses:">Account and partition boundary</td><td data-ref-detail="Assessment"><span class="verdict yes">Private and encrypted</span> <a class="ref ref-e" href="#E6">E6</a></td></tr>
+          <tr id="S-F4" data-ref="flow"><td><span class="flow" data-ref-chip>F4</span></td><td><span data-ref-text>OPW workers → S3 archive</span><span class="sub" data-ref-detail="Path">gateway endpoint</span></td><td class="soft" data-ref-detail="Data">All logs · CUI</td><td data-ref-detail="In transit">TLS to the S3 FIPS endpoint.</td><td class="soft" data-ref-detail="Auth">IAM role</td><td class="soft" data-ref-status="Crosses:">Leaves the VPC, stays in the partition</td><td data-ref-detail="Assessment"><span class="verdict yes">Meets R6 and R7</span> <a class="ref ref-e" href="#E9">E9</a></td></tr>
+          <tr id="S-F5" data-ref="flow"><td><span class="flow cross" data-ref-chip>F5</span></td><td><span data-ref-text>OPW workers → Datadog</span><span class="sub" data-ref-detail="Path">internet, HTTPS</span></td><td class="soft" data-ref-detail="Data">Filtered logs · CUI</td><td data-ref-detail="In transit">HTTPS with TLS 1.2 to Datadog's intake.</td><td class="soft" data-ref-detail="Auth">API key</td><td class="crosses" data-ref-status="Crosses:">Partition boundary</td><td data-ref-detail="Assessment"><span class="verdict partly">Only if the government site is authorized</span> <a class="ref ref-q" href="#Q6">Q6</a></td></tr>
+          </tbody>
+        </table></div>
+        <h4>Where data rests</h4>
+        <div class="table-wrap"><table class="table">
+          <thead><tr><th>Store</th><th>Holds</th><th>Encryption</th><th>Kept for</th><th>Assessment</th></tr></thead>
+          <tbody>
+          <tr><td>Syslog server disk<span class="sub">Shared Tooling VPC</span></td><td class="soft">Firewall logs, before forwarding</td><td>EBS · KMS key</td><td class="soft">7 days</td><td><span class="verdict yes">Meets R7</span> <a class="ref ref-e" href="#E5">E5</a></td></tr>
+          <tr><td>Worker disk buffers<span class="sub">Observability VPC</span></td><td class="soft">Logs in flight during outages</td><td>EBS · KMS key</td><td class="soft">Until sent</td><td><span class="verdict yes">Meets R7</span></td></tr>
+          <tr><td>S3 archive<span class="sub">us-gov-west-1</span></td><td class="soft">All logs, compressed</td><td>SSE-KMS, a key per customer</td><td class="soft">1 year</td><td><span class="verdict partly">Depends on per-customer keys</span> <a class="ref ref-q" href="#Q10">Q10</a></td></tr>
+          <tr><td>Datadog<span class="sub">vendor</span></td><td class="soft">Filtered logs</td><td>Vendor-managed</td><td class="soft">15 days</td><td><span class="verdict partly">Depends on the site</span> <a class="ref ref-q" href="#Q6">Q6</a></td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+    <div class="parts">
+      <h4>The parts</h4>
+      <div class="table-wrap"><table class="table">
+        <thead><tr><th>Part</th><th>What it does</th><th>Decided by</th><th>Evidence</th></tr></thead>
+        <tbody>
+          <tr><td class="q">ASA firewalls</td><td class="soft">Send firewall logs from 14 sites over the site VPNs. Unchanged.</td><td class="soft">Exists today</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a></div></td></tr>
+          <tr><td class="q">Syslog server</td><td class="soft">Collects firewall logs in Shared Tooling and relays them to the workers over the Transit Gateway.</td><td><div class="marks"><a class="ref ref-d" href="#D2">D2</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a><a class="ref ref-e" href="#E5">E5</a></div></td></tr>
+          <tr><td class="q">Observability VPC</td><td class="soft">A new VPC that holds the workers and the customer endpoint, joined to the Transit Gateway.</td><td><div class="marks"><a class="ref ref-d" href="#D1">D1</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E2">E2</a><a class="ref ref-e" href="#E3">E3</a></div></td></tr>
+          <tr><td class="q">OPW workers</td><td class="soft">Filter and route every log. Three workers, one per zone, so one zone can fail.</td><td><div class="marks"><a class="ref ref-d" href="#D0">D0</a><a class="ref ref-d" href="#D4">D4</a><a class="ref ref-d" href="#D7">D7</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E4">E4</a></div></td></tr>
+          <tr><td class="q">Customer endpoint</td><td class="soft">A PrivateLink endpoint service that customers connect to without routes into our network.</td><td><div class="marks"><a class="ref ref-d" href="#D3">D3</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E6">E6</a><a class="ref ref-q" href="#Q3">Q3</a></div></td></tr>
+          <tr><td class="q">Datadog</td><td class="soft">Receives filtered logs for search, dashboards and alerts.</td><td><div class="marks"><a class="ref ref-d" href="#D0">D0</a></div></td><td><div class="marks"><a class="ref ref-q" href="#Q6">Q6</a></div></td></tr>
+          <tr><td class="q">S3 archive</td><td class="soft">Keeps every log for a year, with each customer's logs kept apart. Designed on <a class="page-link" href="#s3-archive">S3 archive</a>.</td><td><div class="marks"><a class="ref ref-d" href="#D5">D5</a><a class="ref ref-d" href="#D6">D6</a></div></td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a></div></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </article>
+</section>
+
+<section class="section" id="overview-decisions">
+  <div class="section-head">
+    <div class="section-title"><span class="num">04</span><h2>Decisions</h2></div>
+    <p class="intro">Every choice this design depends on. Some were settled in a meeting, some have a brief of their own, and some are still open.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Decision</th><th>Status</th><th>Answer, or where it's leaning</th><th>Worked out in</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="5">Still open</td></tr>
+        <tr id="D1" data-ref="decision"><td class="id">D1</td><td><span class="q" data-ref-text>Where do the workers run?</span><span class="sub">Shapes the Observability VPC and the Transit Gateway routes.</span></td><td><span class="status leaning" data-ref-status>Leaning</span></td><td class="soft"><span data-ref-detail="Leaning">Their own VPC in GovCloud.</span> Waiting on the VPN route and the network owner.<div class="marks" data-ref-detail="Waiting on" data-ref-value="Q1, Q2, Q5"><a class="ref ref-q" href="#Q1">Q1</a><a class="ref ref-q" href="#Q2">Q2</a><a class="ref ref-q" href="#Q5">Q5</a></div></td><td><a class="page-link" href="#workers" data-ref-link="Open the brief"><svg><use href="#i-signpost"/></svg>Brief · Where the workers run</a></td></tr>
+        <tr id="D2" data-ref="decision"><td class="id">D2</td><td><span class="q" data-ref-text>How do firewall logs reach the workers?</span><span class="sub">The syslog relay, or straight from the firewalls.</span></td><td><span class="status open" data-ref-status>Open</span></td><td class="soft"><span data-ref-detail="For now">Relay through the syslog server.</span> Sending direct needs new VPN routes.<div class="marks" data-ref-detail="Waiting on" data-ref-value="Q1, Q4"><a class="ref ref-q" href="#Q1">Q1</a><a class="ref ref-q" href="#Q4">Q4</a></div></td><td><a class="page-link" href="#workers-d2" data-ref-link="Open the brief"><svg><use href="#i-signpost"/></svg>Brief · Where the workers run</a></td></tr>
+        <tr id="D3" data-ref="decision"><td class="id">D3</td><td><span class="q" data-ref-text>How do customers connect?</span><span class="sub">Needs D1 first.</span></td><td><span class="status" data-ref-status>Later</span></td><td class="soft"><span data-ref-detail="Assuming">A PrivateLink endpoint in the workers' VPC.</span><div class="marks" data-ref-detail="Waiting on" data-ref-value="D1, Q3"><a class="ref ref-d" href="#D1">D1</a><a class="ref ref-q" href="#Q3">Q3</a></div></td><td><span class="page-link none"><svg><use href="#i-circle-dashed"/></svg>No brief yet</span></td></tr>
+        <tr id="D6" data-ref="decision"><td class="id">D6</td><td><span class="q" data-ref-text>How is customer data kept apart in S3?</span><span class="sub">A bucket per customer, or a prefix and key per customer.</span></td><td><span class="status open" data-ref-status>Open</span></td><td class="soft"><span data-ref-detail="Leaning">A prefix and KMS key per customer in one bucket.</span> Depends on how many customers we expect.<div class="marks" data-ref-detail="Waiting on" data-ref-value="Q8, Q10"><a class="ref ref-e" href="#E8">E8</a><a class="ref ref-q" href="#Q8">Q8</a><a class="ref ref-q" href="#Q10">Q10</a></div></td><td><a class="page-link" href="#s3-archive" data-ref-link="Open S3 archive"><svg><use href="#i-database"/></svg>Page · S3 archive</a></td></tr>
+        <tr id="D7" data-ref="decision"><td class="id">D7</td><td><span class="q" data-ref-text>What does OPW drop before Datadog?</span><span class="sub">Everything is still archived.</span></td><td><span class="status open" data-ref-status>Open</span></td><td class="soft"><span data-ref-detail="So far">Nothing proposed yet. Security wants a list before anything is dropped.</span><div class="marks" data-ref-detail="Waiting on" data-ref-value="Q9"><a class="ref ref-q" href="#Q9">Q9</a></div></td><td><span class="page-link none"><svg><use href="#i-circle-dashed"/></svg>Not started</span></td></tr>
+        <tr class="group"><td colspan="5">Decided</td></tr>
+        <tr id="D0" data-ref="decision"><td class="id">D0</td><td><span class="q" data-ref-text>What runs the log pipeline?</span></td><td><span class="status decided" data-ref-status>Decided</span></td><td class="soft" data-ref-detail="Answer">Datadog Observability Pipelines Workers, on our own servers.</td><td><a class="page-link" href="#meeting-2026-08-14"><svg><use href="#i-calendar"/></svg>Aug 14 · Platform sync</a></td></tr>
+        <tr id="D4" data-ref="decision"><td class="id">D4</td><td><span class="q" data-ref-text>How many workers, and what size?</span></td><td><span class="status decided" data-ref-status>Decided</span></td><td class="soft"><span data-ref-detail="Answer">Three c7g.large, one per zone. Covers peak load with a zone down.</span><div class="marks"><a class="ref ref-e" href="#E4">E4</a></div></td><td><a class="page-link" href="#meeting-2026-09-22"><svg><use href="#i-calendar"/></svg>Sep 22 · Network working session</a></td></tr>
+        <tr id="D5" data-ref="decision"><td class="id">D5</td><td><span class="q" data-ref-text>How long does the archive keep logs?</span></td><td><span class="status decided" data-ref-status>Decided</span></td><td class="soft"><span data-ref-detail="Answer">One year in S3, then deleted. Matches the security team's retention rule.</span><div class="marks"><a class="ref ref-e" href="#E7">E7</a></div></td><td><a class="page-link" href="#meeting-2026-09-22"><svg><use href="#i-calendar"/></svg>Sep 22 · Network working session</a></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="overview-measure">
+  <div class="section-head">
+    <div class="section-title"><span class="num">05</span><h2>How it measures up</h2></div>
+    <p class="intro">Each requirement, whether this design meets it, and what that rests on.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Requirement</th><th>Met</th><th>How</th><th>Rests on</th></tr></thead>
+      <tbody>
+        <tr><td><a class="ref ref-r" href="#R1">R1</a> Firewall logs from all sites</td><td><span class="verdict yes">Yes</span></td><td class="soft">Relayed by the syslog server over the Transit Gateway.</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R2">R2</a> Customer logs over a private connection</td><td><span class="verdict yes">Yes</span></td><td class="soft">A PrivateLink endpoint in the workers' VPC.</td><td><div class="marks"><a class="ref ref-e" href="#E6">E6</a><a class="ref ref-d" href="#D3">D3</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R3">R3</a> No public log intake</td><td><span class="verdict yes">Yes</span></td><td class="soft">PrivateLink only; nothing listens on a public address.</td><td><div class="marks"><a class="ref ref-e" href="#E6">E6</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R4">R4</a> Survives losing one zone</td><td><span class="verdict partly">Partly</span></td><td class="soft">Workers span three zones, but the syslog server is one instance in one zone.</td><td><div class="marks"><a class="ref ref-e" href="#E4">E4</a><a class="ref ref-e" href="#E5">E5</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R5">R5</a> No new VPN tunnels before January</td><td><span class="verdict yes">Yes</span></td><td class="soft">The relay keeps firewall traffic on the existing site VPNs.</td><td><div class="marks"><a class="ref ref-e" href="#E1">E1</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R6">R6</a> Logs stay in the GovCloud partition</td><td><span class="verdict partly">Partly</span></td><td class="soft">The archive stays inside. Datadog's government site still needs confirming.</td><td><div class="marks"><a class="ref ref-q" href="#Q6">Q6</a></div></td></tr>
+        <tr><td><a class="ref ref-r" href="#R7">R7</a> FIPS-validated encryption</td><td><span class="verdict no">No</span></td><td class="soft">Syslog from the relay to the workers is unencrypted today. TLS on the relay fixes it.</td><td><div class="marks"><a class="ref ref-e" href="#E5">E5</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="overview-cost">
+  <div class="section-head">
+    <div class="section-title"><span class="num">06</span><h2>Cost</h2></div>
+    <p class="intro">What the pipeline costs each month, at us-gov-west-1 list prices. A decision marker shows which lines would change if that decision went another way.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Line item</th><th>What drives it</th><th class="num">Monthly</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr class="group"><td colspan="4">Runs every month</td></tr>
+        <tr><td>Workers</td><td class="soft">3 × c7g.large, one per availability zone.</td><td class="num">$159</td><td><div class="marks"><a class="ref ref-e" href="#E4">E4</a><a class="ref ref-d" href="#D4">D4</a></div></td></tr>
+        <tr><td>Load balancer for the workers</td><td class="soft">Spreads firewall logs across the three workers.</td><td class="num">$26</td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a></div></td></tr>
+        <tr><td>Transit Gateway attachment</td><td class="soft">Joining the Observability VPC to the Transit Gateway.</td><td class="num">$36</td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a><a class="ref ref-d" href="#D1">D1</a></div></td></tr>
+        <tr><td>Transit Gateway data processing</td><td class="soft">1.2 TB of firewall logs a month crossing from the relay.</td><td class="num">$24</td><td><div class="marks"><a class="ref ref-e" href="#E2">E2</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr><td>Customer endpoint</td><td class="soft">Load balancer behind the PrivateLink endpoint service.</td><td class="num">$22</td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a><a class="ref ref-d" href="#D3">D3</a></div></td></tr>
+        <tr><td>Cross-zone transfer</td><td class="soft">The syslog server is in one zone; two thirds of its traffic crosses zones.</td><td class="num">$16</td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr class="group"><td colspan="4">Grows over the first year</td></tr>
+        <tr><td>S3 archive</td><td class="soft">About 120 GB of compressed logs a month, kept for a year.</td><td class="num">$3 → $39</td><td><div class="marks"><a class="ref ref-e" href="#E7">E7</a><a class="ref ref-d" href="#D5">D5</a></div></td></tr>
+        <tr class="total"><td>Total per month</td><td class="soft">From $286 at launch to about $322 once the archive holds a full year.</td><td class="num">$286 → $322</td><td></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="section" id="overview-risks">
+  <div class="section-head">
+    <div class="section-title"><span class="num">07</span><h2>Risks</h2></div>
+    <p class="intro">What could go wrong once it's running, and what we'd do about it.</p>
+  </div>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Risk</th><th>Likelihood</th><th>If it happens</th><th>What we'd do</th><th>Linked</th></tr></thead>
+      <tbody>
+        <tr><td class="q">The syslog relay fails or restarts.</td><td><span class="status open">Medium</span></td><td class="soft">Firewall logs stop until it's back; messages sent meanwhile are lost.</td><td class="soft">Run a second relay behind the load balancer, or send direct once D2 allows it.</td><td><div class="marks"><a class="ref ref-e" href="#E5">E5</a><a class="ref ref-d" href="#D2">D2</a></div></td></tr>
+        <tr><td class="q">Customer volume is much larger than forecast.</td><td><span class="status open">Medium</span></td><td class="soft">Workers fall behind and customer logs reach Datadog late.</td><td class="soft">Size the worker group for twice today's peak and alert on buffer depth.</td><td><div class="marks"><a class="ref ref-e" href="#E4">E4</a><a class="ref ref-q" href="#Q3">Q3</a></div></td></tr>
+        <tr><td class="q">Datadog's government site isn't authorized for CUI.</td><td><span class="status">Unknown</span></td><td class="soft">R6 fails, and logs can't leave the partition for Datadog.</td><td class="soft">Keep the S3 archive as the record and hold customer onboarding until it's confirmed.</td><td><div class="marks"><a class="ref ref-q" href="#Q6">Q6</a></div></td></tr>
+        <tr><td class="q">Nobody owns the new VPC.</td><td><span class="status open">Medium</span></td><td class="soft">Route and security group changes stall between teams.</td><td class="soft">Name an owner before the VPC is built.</td><td><div class="marks"><a class="ref ref-q" href="#Q5">Q5</a><a class="ref ref-d" href="#D1">D1</a></div></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+</article>
