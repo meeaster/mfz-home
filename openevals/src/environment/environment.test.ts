@@ -96,6 +96,7 @@ test("options omit the global instructions and the skills beyond the required se
 
 test("source overrides accept rendered inputs and reject everything else", () => {
   expect(overridable("skills/active/orchestration/references/harnesses/opencode.md")).toBe(true);
+  expect(overridable("packages/cairn/skills/orchestration/references/harnesses/opencode.md")).toBe(true);
   expect(overridable("opencode/agents/explore.md")).toBe(true);
   expect(overridable("profiles/base/profile.yml")).toBe(true);
   expect(overridable("instructions/PERSONAL.md")).toBe(true);

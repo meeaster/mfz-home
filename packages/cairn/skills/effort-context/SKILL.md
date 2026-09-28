@@ -1,6 +1,6 @@
 ---
 name: effort-context
-description: Use for requested effort capture or resume, recommending an effort once work has a subject, explicitly assigned working-record maintenance, or locating storage for output files. Capture preserves current work without entering orchestration or starting ongoing maintenance.
+description: Use for requested effort capture or resume, synthesis or handoff for continuation, recommending an effort once work has a subject, explicitly assigned working-record maintenance, or locating storage for output files. These are bounded operations, not workflow entry.
 ---
 
 # Effort Context
@@ -12,6 +12,7 @@ Select the bounded operation requested or required by the caller. Loading this s
 | Locate storage | [Storage](references/storage.md) | A usable owned output path, or a specific access conflict |
 | Recommend an effort | [Efforts](references/efforts.md) | The human has a recommendation to answer, or has answered it and the answer is applied |
 | Capture current work | [Storage](references/storage.md), [efforts](references/efforts.md), [capture and resume](references/capture-and-resume.md) | Recoverable intent, decisions, evidence, and state preserved in an effort with disclosed gaps |
+| Preserve discussion or prepare a handoff | [Storage](references/storage.md), [synthesis and handoff](references/capture-and-resume.md#synthesis-and-handoff) | Requested understanding preserved in synthesis, with a continuation pointer when an effort is established |
 | Resume an effort | [Capture and resume](references/capture-and-resume.md), [efforts](references/efforts.md) | Relevant continuation context and current authority understood, and this session attached |
 | Maintain assigned records | [Record maintenance](references/record-maintenance.md) | The assigned state change recorded and readers released |
 
@@ -23,7 +24,7 @@ Select the bounded operation requested or required by the caller. Loading this s
 
 ## Boundaries
 
-- Preserve the active execution role. Capture or resume alone does not select orchestration, change work-unit bindings, authorize delivery, or establish a standing Scribe.
+- Preserve the active execution role. Capture, handoff, or resume alone does not select orchestration, change work-unit bindings, authorize delivery, or establish a standing Scribe. Preparing a handoff does not authorize compaction.
 - An explicitly selected orchestration workflow assigns ongoing maintenance. Otherwise each operation ends at its completion condition.
 - `work-context` owns explicit `mfz work` operations and its `orientation.md`/`context-map.md` lifecycle. `session-brief` owns explicitly requested refreshable single-session briefs. Do not substitute either for effort capture or invoke them automatically.
 - Follow the current harness reference only when session retrieval or ongoing continuity is needed: [OpenCode](references/continuity/opencode.md) or [Claude Code](references/continuity/claude-code.md).

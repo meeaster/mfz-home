@@ -2,7 +2,7 @@
 
 - Maintain each attached effort's `context.md` when validated meaning changes, and the session's `coordination.md` when work state changes, including completion and blockers. Keep accepted design in its owner and proposals in their producer artifacts or coordination state until accepted.
 - Write each established decision to the `context.md` of the effort it concerns. A decision that affects two efforts goes in the one that owns it, with a pointer from the other, or in both. The attached efforts come from the compaction note or `catalog_find` sessions.
-- Edit records in place so they hold what is still live, and remove superseded detail; the conversation exports keep history.
+- Edit records in place so they hold what is still live. Preserve consequential rationale and corrections, directly or through a relevant synthesis pointer, when removing superseded detail. Conversation exports retain history; they should not be the only way to recover reasoning still needed for continuation.
 - Cairn generates each effort's index from the catalog. Make completed material findable by describing it, not by listing it. Record corrections and replacements with `supersedes` on `catalog_describe`, and relationships with `informs`; don't edit other producers' accounts. Read new concise learnings and pass them to the tasks they help.
 - Use pointers instead of repeating research findings. Supply selected relevant material to successors with applicability and authority status. Background files never replace the assignment.
 - Keep one writer per shared file, with owned paths and session handles in coordination state. Producers own their evidence. Finish writes before releasing readers and serialize subsequent updates with dependent reads.

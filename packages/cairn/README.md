@@ -6,6 +6,8 @@ The design is in [docs/cairn/design.md](../../docs/cairn/design.md), and the voc
 
 ## Installing
 
+The workflow skills live in `skills/`: `design-partner`, `orchestrate`, `orchestrate-chief`, `orchestration`, `effort-context`, and `task-output`. The home catalog selects these directories through explicit root-relative paths. Run `mfz apply` after editing a skill to update its rendered copy. The package tarball also includes the skills.
+
 Cairn is built into `dist/` and installed from a local tarball; nothing is published. From the repository root:
 
 ```sh

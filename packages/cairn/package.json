@@ -11,7 +11,8 @@
     "cairn-mcp": "./dist/mcp.js"
   },
   "files": [
-    "dist"
+    "dist",
+    "skills"
   ],
   "scripts": {
     "build": "node build.ts",

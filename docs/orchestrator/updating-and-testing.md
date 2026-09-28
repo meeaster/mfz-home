@@ -8,7 +8,7 @@ This is maintainer guidance, not additional runtime material for every orchestra
 
 ## 1. Establish the intended change
 
-Read the current [Orchestration skill](../../skills/active/orchestration/SKILL.md), affected capability references, and each target's authoring record. In the Personal knowledge repository, records are under `authoring-records/mfz-home/skills/<skill-name>/`:
+Read the current [Orchestration skill](../../packages/cairn/skills/orchestration/SKILL.md), affected capability references, and each target's authoring record. In the Personal knowledge repository, records are under `authoring-records/mfz-home/skills/<skill-name>/`:
 
 - `VISION.md` preserves purpose, intended outcomes, and scope.
 - `PRINCIPLES.md` guides authoring choices, including context economy, continuity, provider caching, and model-aware cost.

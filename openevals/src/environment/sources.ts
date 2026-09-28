@@ -55,7 +55,7 @@ export function overridable(path: string): boolean {
     /^profiles\/(?:base|personal)\/profile\.yml$/u.test(path) ||
     /^opencode\/agents\/[a-z-]+\.md$/u.test(path) ||
     /^skills\/active\/[a-z0-9-]+\/[\w./-]+$/u.test(path) ||
-    /^packages\/cairn\/(?:src\/[\w./-]+|package\.json|build\.ts)$/u.test(path) ||
+    /^packages\/cairn\/(?:(?:src|skills)\/[\w./-]+|package\.json|build\.ts)$/u.test(path) ||
     /^opencode\/plugins\/[a-z-]+\/(?:[\w-]+\.ts|package\.json)$/u.test(path);
 }
 
