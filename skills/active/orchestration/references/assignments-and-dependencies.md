@@ -42,7 +42,8 @@ When design, research, review, or planning output contains actionable detail for
 
 ## Missing evidence
 
-- Use `evidence-gathering` to bound the question and select sources; require a useful result and owned output path.
+- Bound the question: why it matters, known locators, the evidence family under [routing](routing-and-roles.md#select-by-outcome), version or freshness needs, and the smallest useful result. Assign an owned output path.
+- Stop gathering when the answer has sufficient support, the remaining choice is a preference, or investigation no longer narrows. Report the actual gap rather than researching to fill it.
 - Check materiality, scope, access, duplication, and overlap with active agents. Reuse existing evidence; parallelize independent requests and wait on dependencies.
 - Check results and normally resume the same valid engagement with the combined delta. Source facts do not settle design choices or expand authority.
 - At the depth limit, the dispatching coordinator owns additional gathering. The child returns the request instead of substituting unauthorized roles.

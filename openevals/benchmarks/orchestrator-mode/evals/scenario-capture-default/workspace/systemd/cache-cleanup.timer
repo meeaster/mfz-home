@@ -1,0 +1,10 @@
+[Unit]
+Description=Prune the media cache nightly
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+Persistent=true
+Unit=cache-cleanup.service
+
+[Install]
+WantedBy=timers.target

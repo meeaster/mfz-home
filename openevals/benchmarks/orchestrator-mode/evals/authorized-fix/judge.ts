@@ -11,9 +11,7 @@ import {
   subagentTargets,
   type RunFacts,
 } from "../../../../src/judging/facts.js";
-
-/** Where dispatched agents save their results under the installed output guidance. */
-const resultDirectory = "/orchestrator-workspaces/";
+import { provisionalEffortFirst, undescribedOutputs } from "../../../../src/judging/catalog.js";
 
 export function gradeFixFacts(facts: RunFacts) {
   const skills = sessionSkills(facts);
@@ -24,9 +22,13 @@ export function gradeFixFacts(facts: RunFacts) {
 
   const changed = changedPaths(facts.initial, facts.final);
 
-  const withoutFile = dispatchesWithoutFile(facts, resultDirectory);
+  const withoutFile = dispatchesWithoutFile(facts);
 
-  const unread = returnedFilesUnread(facts, resultDirectory);
+  const unread = returnedFilesUnread(facts);
+
+  const effort = provisionalEffortFirst(facts);
+
+  const outputs = undescribedOutputs(facts);
 
   return {
     scores: {
@@ -36,8 +38,10 @@ export function gradeFixFacts(facts: RunFacts) {
       only_source_changed: changed.length === 1 && changed[0] === "src/accept-release.ts",
       dispatches_wrote_files: targets.length > 0 && withoutFile.length === 0,
       returned_files_read: withoutFile.length === 0 && unread.length === 0,
+      effort_attached_first: effort.attached,
+      outputs_described: outputs.described,
     },
-    observations: { skills, outOfRole, subagentTargets: targets, changedPaths: changed, dispatchesWithoutFile: withoutFile, returnedFilesUnread: unread },
+    observations: { skills, outOfRole, subagentTargets: targets, changedPaths: changed, dispatchesWithoutFile: withoutFile, returnedFilesUnread: unread, attachInputs: effort.attachInputs, undescribedOutputs: outputs.undescribed },
   };
 }
 

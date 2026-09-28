@@ -1,7 +1,8 @@
 import { expect, test } from "bun:test";
-import type { RecordedFile, ToolCall } from "@hona/openeval";
+import type { RecordedEvent, RecordedFile, ToolCall } from "@hona/openeval";
 import {
   attemptedTools,
+  catalogCallsFrom,
   changedPaths,
   dispatchTools,
   dispatchesWithoutFile,
@@ -35,7 +36,7 @@ test("loadedSkills keeps successful well-formed skill calls in order", () => {
 });
 
 test("loadedRoleProcedures requires orchestration after the entry skill", () => {
-  expect(loadedRoleProcedures(["effort-context", "orchestrate", "evidence-gathering", "orchestration"], "orchestrate")).toBe(true);
+  expect(loadedRoleProcedures(["effort-context", "orchestrate", "anti-slop", "orchestration"], "orchestrate")).toBe(true);
   expect(loadedRoleProcedures(["orchestration", "orchestrate"], "orchestrate")).toBe(false);
   expect(loadedRoleProcedures(["orchestrate"], "orchestrate")).toBe(false);
   expect(loadedRoleProcedures(["orchestration"], "orchestrate")).toBe(false);
@@ -106,24 +107,31 @@ test("dispatchesWithoutFile requires a file from each directly dispatched sessio
     { id: "ses_helper", parentID: "ses_worker" },
   ];
 
-  const workspace = "/orchestrator-workspaces/";
-
   const patch = (sessionID: string, header: string): ToolCall => ({
     ...tool("patch", { patchText: `*** Begin Patch\n${header}\n+x\n*** End Patch` }),
     sessionID,
   });
 
   const written = [
-    patch("ses_worker", "*** Update File: /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md"),
-    { ...tool("write", { filePath: "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/x.md" }, "failed"), sessionID: "ses_explore" },
+    patch("ses_worker", "*** Update File: /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md"),
+    { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/x.md" }, "failed"), sessionID: "ses_explore" },
     { ...tool("edit", { filePath: "/workspace/src/a.ts" }), sessionID: "ses_explore" },
   ];
 
-  expect(dispatchesWithoutFile({ tools: written, sessions }, workspace)).toEqual(["ses_explore"]);
+  expect(dispatchesWithoutFile({ tools: written, sessions })).toEqual(["ses_explore"]);
 
-  const both = [...written, patch("ses_explore", "*** Add File: /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/q.md")];
+  const both = [...written, patch("ses_explore", "*** Add File: /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/q.md")];
 
-  expect(dispatchesWithoutFile({ tools: both, sessions }, workspace)).toEqual([]);
+  expect(dispatchesWithoutFile({ tools: both, sessions })).toEqual([]);
+});
+
+test("Scribe keeps records rather than returning a file, so neither check counts it", () => {
+  const sessions = [{ id: "ses_root" }, { id: "ses_scribe", parentID: "ses_root", agent: "scribe" }];
+
+  const records = { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/context.md" }), sessionID: "ses_scribe" };
+
+  expect(dispatchesWithoutFile({ tools: [], sessions })).toEqual([]);
+  expect(returnedFilesUnread({ tools: [records], sessions })).toEqual([]);
 });
 
 test("returnedFilesUnread requires the root to read each returned file whole after its last write", () => {
@@ -134,11 +142,11 @@ test("returnedFilesUnread requires the root to read each returned file whole aft
     { id: "ses_helper", parentID: "ses_worker" },
   ];
 
-  const result = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md";
+  const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md";
 
-  const learnings = "/home/dev/workspace/scratch/orchestrator-workspaces/e/learnings/fix.md";
+  const learnings = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix-learnings.md";
 
-  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -146,20 +154,20 @@ test("returnedFilesUnread requires the root to read each returned file whole aft
     at("ses_worker", tool("write", { filePath: result })),
     at("ses_worker", tool("write", { filePath: learnings })),
     at("ses_explore", tool("write", { filePath: evidence })),
-    at("ses_helper", tool("write", { filePath: "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/helper.md" })),
+    at("ses_helper", tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/helper.md" })),
     at("ses_worker", tool("write", { filePath: "/workspace/src/accept-release.ts" })),
     at("ses_root", tool("read", { path: result })),
     at("ses_root", tool("bash", { command: `cat ${learnings}` })),
     at("ses_root", tool("read", { path: evidence, offset: 40, limit: 20 })),
   ];
 
-  expect(returnedFilesUnread({ tools, sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+  expect(returnedFilesUnread({ tools, sessions })).toEqual([evidence]);
 });
 
 test("returnedFilesUnread accepts a windowed read of a follow-up after an earlier whole read", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
 
-  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -171,14 +179,14 @@ test("returnedFilesUnread accepts a windowed read of a follow-up after an earlie
 
   const whole = at("ses_root", tool("read", { path: evidence }));
 
-  expect(returnedFilesUnread({ tools: [firstWrite, whole, followUp, addition], sessions }, "/orchestrator-workspaces/")).toEqual([]);
-  expect(returnedFilesUnread({ tools: [firstWrite, followUp, addition], sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+  expect(returnedFilesUnread({ tools: [firstWrite, whole, followUp, addition], sessions })).toEqual([]);
+  expect(returnedFilesUnread({ tools: [firstWrite, followUp, addition], sessions })).toEqual([evidence]);
 });
 
 test("returnedFilesUnread counts only reads by the root after the file's last write", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
 
-  const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/mechanism.md";
+  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -189,23 +197,57 @@ test("returnedFilesUnread counts only reads by the root after the file's last wr
     at("ses_explore", tool("read", { path: evidence })),
   ];
 
-  expect(returnedFilesUnread({ tools, sessions }, "/orchestrator-workspaces/")).toEqual([evidence]);
+  expect(returnedFilesUnread({ tools, sessions })).toEqual([evidence]);
 });
 
 test("shell redirects count as writes, and a redirect into a file is not a read of it", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_worker", parentID: "ses_root" }];
 
-  const result = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/fix.md";
+  const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
-  const heredoc = at("ses_worker", tool("bash", { command: `mkdir -p /home/dev/workspace/scratch/orchestrator-workspaces/e/evidence && cat > ${result} <<'MD'\n# Fix\nMD` }));
+  const heredoc = at("ses_worker", tool("bash", { command: `mkdir -p /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root && cat > ${result} <<'MD'\n# Fix\nMD` }));
 
-  expect(dispatchesWithoutFile({ tools: [heredoc], sessions }, "/orchestrator-workspaces/")).toEqual([]);
+  expect(dispatchesWithoutFile({ tools: [heredoc], sessions })).toEqual([]);
 
   const overwrite = at("ses_root", tool("bash", { command: `cat > ${result} <<'MD'\nMD` }));
 
-  expect(returnedFilesUnread({ tools: [heredoc, overwrite], sessions }, "/orchestrator-workspaces/")).toEqual([result]);
+  expect(returnedFilesUnread({ tools: [heredoc, overwrite], sessions })).toEqual([result]);
 
-  expect(returnedFilesUnread({ tools: [heredoc, at("ses_root", tool("bash", { command: `cat ${result}` }))], sessions }, "/orchestrator-workspaces/")).toEqual([]);
+  expect(returnedFilesUnread({ tools: [heredoc, at("ses_root", tool("bash", { command: `cat ${result}` }))], sessions })).toEqual([]);
+});
+
+/** An `execute` call's progress as OpenCode records it, listing the calls its code has made so far. */
+function progress(sequence: number, id: string, toolCalls: { tool: string; status: string; input: Record<string, string> }[]): RecordedEvent {
+  return {
+    sequence,
+    time: "2026-09-27T23:59:37.451Z",
+    event: {
+      id: `evt_${sequence}`,
+      created: sequence,
+      type: "session.tool.progress",
+      location: { directory: "/workspace" },
+      data: { sessionID: "ses_aut", assistantMessageID: "msg_1", id, metadata: { toolCalls } },
+    },
+  };
+}
+
+test("catalogCallsFrom keeps completed Cairn calls from each execute call's latest progress", () => {
+  const attach = { session: "opencode:ses_aut", attach: "provisional" };
+
+  const events = [
+    progress(1, "call_search", [{ tool: "search", status: "completed", input: { namespace: "cairn" } }]),
+    progress(2, "call_attach", [{ tool: "cairn.catalog_session", status: "running", input: attach }]),
+    progress(3, "call_attach", [{ tool: "cairn.catalog_session", status: "completed", input: attach }]),
+    progress(4, "call_where", [
+      { tool: "cairn.catalog_location", status: "completed", input: { topic: "context" } },
+      { tool: "cairn.catalog_describe", status: "failed", input: { path: "/x" } },
+    ]),
+  ];
+
+  expect(catalogCallsFrom(events)).toEqual([
+    { callID: "call_attach", sessionID: "ses_aut", tool: "session", input: attach },
+    { callID: "call_where", sessionID: "ses_aut", tool: "location", input: { topic: "context" } },
+  ]);
 });

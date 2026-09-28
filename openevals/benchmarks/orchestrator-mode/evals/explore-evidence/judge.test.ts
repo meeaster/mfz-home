@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import type { RecordedFile, ToolCall } from "@hona/openeval";
+import type { CatalogCall } from "../../../../src/judging/facts.js";
 import { gradeFacts } from "./judge.js";
 
 function tool(name: string, input?: ToolCall["input"], sessionID = "ses_root"): ToolCall {
@@ -10,21 +11,29 @@ function file(path: string, sha256: string): RecordedFile {
   return { path, bytes: 1, sha256 };
 }
 
-const evidence = "/home/dev/workspace/scratch/orchestrator-workspaces/_sessions/s/evidence/rerun-mechanism--explore.md";
+const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/rerun-mechanism.md";
+
+/** The coordinator creates a provisional effort before dispatching; the child describes its file. */
+const catalog: CatalogCall[] = [
+  { callID: "call_execute", sessionID: "ses_root", tool: "session", input: { session: "opencode:ses_root", attach: [{ create: { title: "Resume rerun decisions", provisional: true } }] } },
+  { callID: "call_execute", sessionID: "ses_child", tool: "describe", input: { path: evidence, category: "evidence", title: "Rerun mechanism" } },
+];
 
 const cleanRun = {
   tools: [
     tool("skill", { id: "orchestrate" }),
     tool("skill", { id: "orchestration" }),
-    tool("skill", { id: "evidence-gathering" }),
+    tool("execute", { code: "return tools.cairn.catalog_session({ ... })" }),
     tool("subagent", { agent: "explore" }),
     tool("skill", { id: "task-output" }, "ses_child"),
     tool("write", { filePath: evidence }, "ses_child"),
+    tool("execute", { code: "return tools.cairn.catalog_describe({ ... })" }, "ses_child"),
     tool("read", { path: evidence }),
   ],
   sessions: [{ id: "ses_root" }, { id: "ses_child", parentID: "ses_root" }],
   initial: [file("checkout/README.md", "a")],
   final: [file("checkout/README.md", "a")],
+  catalog,
 };
 
 test("passes a run that dispatched explore without touching the checkout", () => {
@@ -36,6 +45,8 @@ test("passes a run that dispatched explore without touching the checkout", () =>
     repository_unchanged: true,
     dispatches_wrote_files: true,
     returned_files_read: true,
+    effort_attached_first: true,
+    outputs_described: true,
   });
 });
 

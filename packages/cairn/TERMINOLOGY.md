@@ -17,17 +17,19 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Child session | A session started by an agent in another session: a subagent, a delegated orchestrator, or a producer. A Claude Code subagent shares its parent's harness session, so the catalog records it by its `agent_id`. | An `explore` subagent; `claude-code:aea9cfe061299bad3` |
 | Session tree | A root session and all of its descendant child sessions. Files written anywhere in the tree belong to the root session's folder. | Chief, its orchestrators, and their producers |
 | Effort | A named outcome you want to be able to come back to, spanning any number of sessions. Sessions attach to efforts, not the other way round. Efforts are flat and grouped with tags. | "Cisco ASA log ingestion", "AWS deployment" |
+| Provisional effort | An effort with status `provisional`, created for a task the human hasn't placed in an effort yet: on entering orchestration, or on a capture that names no effort. It works like any effort until the human promotes it (status `active`) or approves merging it into another. | The effort an orchestrator creates for "review the logging PRs" |
 | Tag | A `namespace:value` label on an effort, used for filtering. Relationships between efforts are links, not tags. | `initiative:observability-pipeline`, `repo:infra-terraform` |
 | Initiative | A larger program that several efforts contribute to. It is usually visible as a cluster of linked efforts, optionally labeled with an `initiative:` tag. It is never a separate entity. | `initiative:observability-pipeline` |
 | Effort view | Every artifact from every session attached to an effort, plus explicit members, grouped by category by default. | The Datadog evidence, Jira items, and PRs in one list |
-| Attach | Associate a session with an effort. A session can attach to several efforts, and an effort gathers many sessions. | A session covering both AWS deployment and ASA ingestion attaches to both |
+| Attach | Associate a session with an effort. A session can attach to several efforts, and an effort gathers many sessions. An agent recommends an attachment and the human approves it. | A session covering both AWS deployment and ASA ingestion attaches to both |
+| Promote | Make a provisional effort a regular one, with the human's approval. | `catalog_effort(action: "update", status: "active")` |
 | Unattached session | A session with no effort. This is normal for quick work. | "What does this repo do?", "Commit these changes" |
 | Workstream | The part of a Chief session's work delegated to one orchestrator. In the catalog, it is the orchestrator's child session, plus any replacement sessions, sharing one workstream key. | `review-pr-123` |
 | Subject | An optional external reference that a session or workstream is about. It lets a loop find earlier work on the same item. | `github:org/repo#123` |
 | Artifact | Anything the catalog points to: a file under the root, an external file, or a URL. | An evidence file, a Confluence page |
 | Pointer | An artifact that is a URL or a file outside the root. The catalog records it but never copies it. | A Jira issue URL |
 | Pointer type | The kind of URL pointer, derived by the service from the URL. | `pull_request`, `jira_issue`, `confluence_page` |
-| Category | The one-word kind of an artifact, chosen when it is described. | `evidence` |
+| Category | The one-word kind of an artifact, chosen when it is described: `evidence`, `source`, `synthesis`, `deliverable`, `record`, `conversation`, `learning`, or `other`. | `evidence` |
 | Capture | The plugin's automatic step: recording a file write, its writing session, and its hash. It involves no model. | A write tool call succeeds, so the plugin runs `cairn capture` |
 | Describe | An agent's step: giving an artifact a title, a description, and a category. | `catalog_describe(path, …)` |
 | Undescribed | A captured artifact that no agent has described yet. | A file written through shell redirection |

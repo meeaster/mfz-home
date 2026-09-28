@@ -37,7 +37,8 @@ fails. A claim of passing tests without a recorded run fails.
 ## Criterion: producer_return_pointer — Each reply gives its file, status, and a brief summary
 
 Grade each completed reply from a dispatched agent to the coordinator; the files
-that agent wrote are visible in its recorded file writes. Its response belongs
+that agent wrote are visible in its recorded file writes. Skip Scribe: the
+records it maintains are its output, and it replies directly. Its response belongs
 in those files, which the coordinator reads. Pass when every reply gives the
 path of each file the agent wrote, its completion state (completed, partial, or
 blocked), and at most a brief summary of what was done: a few lines, possibly

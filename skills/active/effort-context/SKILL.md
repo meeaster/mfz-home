@@ -1,6 +1,6 @@
 ---
 name: effort-context
-description: Use for requested effort capture or resume, explicitly assigned working-record maintenance, or locating storage for evidence. Capture preserves current work without entering orchestration or starting ongoing maintenance.
+description: Use for requested effort capture or resume, recommending an effort once work has a subject, explicitly assigned working-record maintenance, or locating storage for output files. Capture preserves current work without entering orchestration or starting ongoing maintenance.
 ---
 
 # Effort Context
@@ -9,10 +9,19 @@ Select the bounded operation requested or required by the caller. Loading this s
 
 | Operation | Read | Completion |
 | --- | --- | --- |
-| Locate storage | [Filesystem storage](references/filesystem-storage.md) | A usable owned output path, or a specific access conflict |
-| Capture current work | [Filesystem storage](references/filesystem-storage.md), [capture and resume](references/capture-and-resume.md) | Recoverable intent, decisions, evidence, and state preserved with disclosed gaps |
-| Resume an effort | [Capture and resume](references/capture-and-resume.md), storage reference if locating it | Relevant continuation context and current authority understood |
+| Locate storage | [Storage](references/storage.md) | A usable owned output path, or a specific access conflict |
+| Recommend an effort | [Efforts](references/efforts.md) | The human has a recommendation to answer, or has answered it and the answer is applied |
+| Capture current work | [Storage](references/storage.md), [efforts](references/efforts.md), [capture and resume](references/capture-and-resume.md) | Recoverable intent, decisions, evidence, and state preserved in an effort with disclosed gaps |
+| Resume an effort | [Capture and resume](references/capture-and-resume.md), [efforts](references/efforts.md) | Relevant continuation context and current authority understood, and this session attached |
 | Maintain assigned records | [Record maintenance](references/record-maintenance.md) | The assigned state change recorded and readers released |
+
+## Efforts are the human's choice
+
+- The human approves attaching a session to an effort, creating a regular effort, promoting a provisional one, detaching, splitting, merging, and excluding a file from an effort. Recommend, then act on the answer. A request that names an effort ("capture this into the S3 effort", "resume the S3 effort") is approval for that effort.
+- Create a provisional effort without asking only when entering orchestration or capturing work that names no effort, and recommend what should become of it.
+- Default-mode work needs no effort. Its files stay in the session folder and are described like any other output.
+
+## Boundaries
 
 - Preserve the active execution role. Capture or resume alone does not select orchestration, change work-unit bindings, authorize delivery, or establish a standing Scribe.
 - An explicitly selected orchestration workflow assigns ongoing maintenance. Otherwise each operation ends at its completion condition.

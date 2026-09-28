@@ -11,7 +11,9 @@ ENV MISE_DATA_DIR=/opt/mise
 
 # The live shell activates mise, so its tools, including Node, come first on PATH;
 # the profile script keeps them first in login shells, whose profile resets PATH.
-ENV PATH=/opt/mise/shims:$PATH
+# `~/.local/bin` holds the commands preparation links, such as `cairn-mcp`, and is
+# on PATH live for shells and the OpenCode service.
+ENV PATH=/opt/mise/shims:/home/dev/.local/bin:$PATH
 
 COPY mise.toml /etc/mise/config.toml
 
@@ -21,4 +23,4 @@ RUN curl -fsSL -o /usr/local/bin/mise "https://github.com/jdx/mise/releases/down
     && HOME=/root mise install node pnpm \
     && HOME=/root mise install \
     && chown -R dev:dev /opt/mise \
-    && echo 'PATH=/opt/mise/shims:$PATH' > /etc/profile.d/mise.sh
+    && echo 'PATH=/opt/mise/shims:/home/dev/.local/bin:$PATH' > /etc/profile.d/mise.sh

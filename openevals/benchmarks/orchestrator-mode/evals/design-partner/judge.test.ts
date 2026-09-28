@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import type { RecordedFile, ToolCall } from "@hona/openeval";
+import type { CatalogCall } from "../../../../src/judging/facts.js";
 import { gradeDesignFacts } from "./judge.js";
 
 const design: ToolCall = {
@@ -10,15 +11,32 @@ const design: ToolCall = {
   input: { id: "design-partner" },
 };
 
+const effortContext: ToolCall = { ...design, id: "call_effort_context", input: { id: "effort-context" } };
+
+const search: ToolCall = { ...design, id: "call_search", sessionID: "ses_root", name: "execute", input: { code: "return tools.cairn.catalog_find({ ... })" } };
+
+const found: CatalogCall = { callID: "call_search", sessionID: "ses_root", tool: "find", input: { target: "efforts", text: "duplicate reminder submissions" } };
+
 const captured: RecordedFile = { path: "context.md", bytes: 10, sha256: "captured" };
 
-test("standalone selection passes the archive facts", () => {
-  expect(gradeDesignFacts({ tools: [design], sessions: [{ id: "ses_root" }], initial: [], final: [] }).scores).toEqual({
+test("standalone selection that searches efforts to recommend one passes the archive facts", () => {
+  expect(gradeDesignFacts({ tools: [design, effortContext, search], sessions: [{ id: "ses_root" }], initial: [], final: [], catalog: [found] }).scores).toEqual({
     design_skill_loaded: true,
     skills_in_role: true,
     no_child_dispatch: true,
     workspace_unchanged: true,
+    efforts_searched: true,
+    effort_not_attached: true,
   });
+});
+
+test("attaching an effort before the human answers, or recommending without a search, fails the effort facts", () => {
+  const created: CatalogCall = { ...found, tool: "session", input: { session: "opencode:ses_root", attach: [{ create: { title: "Duplicate reminders prevented" } }] } };
+
+  const result = gradeDesignFacts({ tools: [design, effortContext, search], sessions: [{ id: "ses_root" }], initial: [], final: [], catalog: [created] });
+
+  expect(result.scores.efforts_searched).toBe(false);
+  expect(result.scores.effort_not_attached).toBe(false);
 });
 
 test("any orchestration or evidence-production skill load fails even when design also loaded", () => {

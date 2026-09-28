@@ -32,7 +32,7 @@ Use these role capabilities when briefing agents; routine dispatch does not requ
 
 | Agent | Available methods and assignment limits |
 | --- | --- |
-| `explore` | OpenCode file search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Output and edit owned evidence under the external scratch root, but cannot edit project source. Use the harness reference for Claude Code's read-only Explore distinction. |
+| `explore` | OpenCode file search and reading; no Bash/shell, Code Mode, or child delegation. Can load Task Output and edit owned evidence under the Cairn root, but cannot edit project source. Use the harness reference for Claude Code's read-only Explore distinction. |
 | `research` | Remote documentation and upstream-source retrieval, including shell-based source inspection within its research authority; assigned evidence writes. |
 | `inspect` | Shell, tools, and source reads for command-derived, runtime, external-system, and session facts; assigned evidence writes. Application changes remain with a mutation owner. |
 

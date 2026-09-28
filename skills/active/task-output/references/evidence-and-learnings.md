@@ -4,13 +4,13 @@
 
 These preserve incidental working methods, not another copy of the assigned findings.
 
-- Write only a useful new lesson in the producer's optional `learnings/` file. Explain the problem, a meaningful failed approach when helpful, what worked, and applicability. Omit attempt-by-attempt history.
+- Write only a useful new lesson, in the assigned learnings file, described with category `learning`. Explain the problem, a meaningful failed approach when helpful, what worked, and applicability. Omit attempt-by-attempt history.
 - Do not copy supplied lessons. Record a correction in your own file, naming the earlier note and conditions. Keep local observations local; permanent guidance needs separate authority.
 
 ## Raw captures
 
 - Preserve requested source content and format where practical, with interpretation outside the capture.
-- Record origin, extraction time, transformations, and omissions in the existing evidence note or index. Label partial coverage and preserve earlier versions when needed. Omit secrets and unrelated sensitive content.
+- Describe each capture with category `source`, and its source message ID or link as `origin`. Record extraction time, transformations, and omissions in its description or the evidence note. Label partial coverage and preserve earlier versions when needed. Omit secrets and unrelated sensitive content.
 
 ## Screenshots
 

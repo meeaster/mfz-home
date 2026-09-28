@@ -11,10 +11,8 @@ import {
   subagentTargets,
   type RunFacts,
 } from "../../../../src/judging/facts.js";
+import { provisionalEffortFirst, undescribedOutputs } from "../../../../src/judging/catalog.js";
 import { harnessChecks, underTest } from "../../../../src/judging/scenario.js";
-
-/** Where dispatched agents save their results under the installed output guidance. */
-const resultDirectory = "/orchestrator-workspaces/";
 
 /** Direct-coordinator facts for the agent under test; null when no single conversation identifies it. */
 function coordinatorScores(view: RunFacts | undefined) {
@@ -27,6 +25,8 @@ function coordinatorScores(view: RunFacts | undefined) {
         only_source_changed: null,
         dispatches_wrote_files: null,
         returned_files_read: null,
+        effort_attached_first: null,
+        outputs_described: null,
       },
       // OpenEval rejects `undefined` anywhere in judge output.
       observations: null,
@@ -40,9 +40,13 @@ function coordinatorScores(view: RunFacts | undefined) {
 
   const changed = changedPaths(view.initial, view.final);
 
-  const withoutFile = dispatchesWithoutFile(view, resultDirectory);
+  const withoutFile = dispatchesWithoutFile(view);
 
-  const unread = returnedFilesUnread(view, resultDirectory);
+  const unread = returnedFilesUnread(view);
+
+  const effort = provisionalEffortFirst(view);
+
+  const outputs = undescribedOutputs(view);
 
   return {
     scores: {
@@ -52,8 +56,10 @@ function coordinatorScores(view: RunFacts | undefined) {
       only_source_changed: changed.length === 1 && changed[0] === "src/accept-release.ts",
       dispatches_wrote_files: targets.length > 0 && withoutFile.length === 0,
       returned_files_read: withoutFile.length === 0 && unread.length === 0,
+      effort_attached_first: effort.attached,
+      outputs_described: outputs.described,
     },
-    observations: { skills, outOfRole, subagentTargets: targets, changedPaths: changed, dispatchesWithoutFile: withoutFile, returnedFilesUnread: unread },
+    observations: { skills, outOfRole, subagentTargets: targets, changedPaths: changed, dispatchesWithoutFile: withoutFile, returnedFilesUnread: unread, attachInputs: effort.attachInputs, undescribedOutputs: outputs.undescribed },
   };
 }
 

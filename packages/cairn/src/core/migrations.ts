@@ -137,6 +137,80 @@ const migrations: readonly string[] = [
     session_id INTEGER NOT NULL REFERENCES session (id),
     granted_at TEXT NOT NULL
   ) STRICT;
+  `,
+  `
+  -- Adds the provisional effort status and the learning category. SQLite can't change a CHECK constraint in
+  -- place, so both tables are rebuilt, and the view that reads them is dropped first and recreated after.
+  DROP VIEW artifact_effort;
+
+  CREATE TABLE effort_new (
+    id INTEGER PRIMARY KEY,
+    slug TEXT NOT NULL UNIQUE,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('provisional', 'active', 'paused', 'done', 'archived')),
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    index_dirty INTEGER NOT NULL DEFAULT 1
+  ) STRICT;
+
+  INSERT INTO effort_new SELECT id, slug, title, description, status, created_at, updated_at, index_dirty FROM effort;
+  DROP TABLE effort;
+  ALTER TABLE effort_new RENAME TO effort;
+
+  CREATE TABLE artifact_new (
+    id INTEGER PRIMARY KEY,
+    category TEXT CHECK (category IN ('evidence', 'source', 'synthesis', 'deliverable', 'record', 'conversation', 'learning', 'other')),
+    pointer_type TEXT CHECK (pointer_type IN ('pull_request', 'issue', 'jira_issue', 'confluence_page', 'url')),
+    title TEXT,
+    description TEXT,
+    location TEXT NOT NULL CHECK (location IN ('managed', 'external', 'url')),
+    path_or_url TEXT NOT NULL UNIQUE,
+    origin TEXT,
+    sha256 TEXT,
+    size INTEGER,
+    status TEXT NOT NULL CHECK (status IN ('undescribed', 'active', 'superseded', 'missing', 'archived')),
+    producer_session_id INTEGER REFERENCES session (id),
+    captured_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  ) STRICT;
+
+  INSERT INTO artifact_new
+  SELECT id, category, pointer_type, title, description, location, path_or_url, origin, sha256, size, status,
+    producer_session_id, captured_at, updated_at
+  FROM artifact;
+  DROP TABLE artifact;
+  ALTER TABLE artifact_new RENAME TO artifact;
+  CREATE INDEX artifact_producer ON artifact (producer_session_id);
+
+  CREATE VIEW artifact_effort AS
+  WITH RECURSIVE chain (artifact_id, session_id, depth) AS (
+    SELECT id, producer_session_id, 0 FROM artifact WHERE producer_session_id IS NOT NULL
+    UNION ALL
+    SELECT chain.artifact_id, session.parent_session_id, chain.depth + 1
+    FROM chain JOIN session ON session.id = chain.session_id
+    WHERE session.parent_session_id IS NOT NULL AND chain.depth < 64
+  ),
+  attached AS (
+    SELECT artifact_id, session_id, depth FROM chain
+    WHERE EXISTS (SELECT 1 FROM attachment WHERE attachment.session_id = chain.session_id)
+  ),
+  nearest AS (
+    SELECT artifact_id, MIN(depth) AS depth FROM attached GROUP BY artifact_id
+  )
+  SELECT attached.artifact_id, attachment.effort_id
+  FROM attached
+  JOIN nearest ON nearest.artifact_id = attached.artifact_id AND nearest.depth = attached.depth
+  JOIN attachment ON attachment.session_id = attached.session_id
+  UNION
+  SELECT artifact.id, effort.id
+  FROM artifact JOIN effort
+    ON artifact.location = 'managed'
+    AND substr(artifact.path_or_url, 1, length('efforts/' || effort.slug || '/')) = 'efforts/' || effort.slug || '/'
+  UNION
+  SELECT artifact_id, effort_id FROM membership WHERE mode = 'include'
+  EXCEPT
+  SELECT artifact_id, effort_id FROM membership WHERE mode = 'exclude';
   `
 ];
 
@@ -148,23 +222,42 @@ export function userVersion(db: DatabaseSync): number {
   return userVersionRow.parse(db.prepare("PRAGMA user_version").get()).user_version;
 }
 
-export function migrate(db: DatabaseSync): void {
+// target stops at an earlier version, so tests can build a catalog as an older Cairn left it.
+export function migrate(db: DatabaseSync, target = schemaVersion): void {
   const current = userVersion(db);
 
   if (current > schemaVersion) {
     throw new Error(`The catalog schema version ${current} is newer than this Cairn (${schemaVersion})`);
   }
 
-  for (let version = current; version < schemaVersion; version += 1) {
-    db.exec("BEGIN IMMEDIATE");
+  if (current >= target) {
+    return;
+  }
 
-    try {
-      db.exec(migrations[version] ?? "");
-      db.exec(`PRAGMA user_version = ${version + 1}`);
-      db.exec("COMMIT");
-    } catch (error) {
-      db.exec("ROLLBACK");
-      throw error;
+  // A migration that rebuilds a table drops the old one, which with foreign keys on would cascade to the rows
+  // that reference it. SQLite's rebuild procedure turns them off, which only works outside a transaction, and
+  // checks the references before committing.
+  db.exec("PRAGMA foreign_keys = OFF");
+
+  try {
+    for (let version = current; version < target; version += 1) {
+      db.exec("BEGIN IMMEDIATE");
+
+      try {
+        db.exec(migrations[version] ?? "");
+        db.exec(`PRAGMA user_version = ${version + 1}`);
+
+        if (db.prepare("PRAGMA foreign_key_check").all().length > 0) {
+          throw new Error(`Migration to schema version ${version + 1} left broken references`);
+        }
+
+        db.exec("COMMIT");
+      } catch (error) {
+        db.exec("ROLLBACK");
+        throw error;
+      }
     }
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
   }
 }

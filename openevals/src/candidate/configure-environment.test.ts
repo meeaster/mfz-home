@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { mkdtemp, mkdir, readFile, realpath, rm, stat, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
 type ProjectConfig = { agents?: Record<string, { model?: string }> };
@@ -60,6 +61,15 @@ async function fixture(root: string, overrides?: string): Promise<void> {
   );
 
   if (overrides !== undefined) await write(join(root, "workspace", ".openeval", "agent-models.json"), overrides);
+}
+
+/** Add a Cairn build to a fixture's environment. */
+async function withCairn(root: string): Promise<void> {
+  const cairn = join(root, "workspace", ".openeval", "environment", "cairn");
+
+  await write(join(cairn, "package.json"), `{ "name": "@mfz/cairn" }\n`);
+
+  for (const entry of ["cli.js", "mcp.js", "opencode/server.js"]) await write(join(cairn, "dist", entry), "#!/usr/bin/env node\n");
 }
 
 async function configure(root: string, ...args: string[]): Promise<void> {
@@ -170,5 +180,34 @@ test("installs the agent under test one level deeper only when a scenario eval a
     expect(await Bun.file(join(plain, "workspace", "opencode.json")).exists()).toBe(false);
   } finally {
     await rm(plain, { recursive: true, force: true });
+  }
+});
+
+test("installs Cairn and the server plugins and loads them beside OpenEval's", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-agent-models-");
+
+  const home = join(root, "home");
+
+  const installed = join(home, ".local", "share", "mfz-packages", "node_modules", "@mfz", "cairn");
+
+  try {
+    await fixture(root);
+    await withCairn(root);
+    await write(join(root, "workspace", ".openeval", "environment", "plugins", "session-context", "server.js"), "export default {};\n");
+
+    await configure(root);
+
+    const global = await readJson<GlobalConfig>(join(home, ".config", "opencode", "opencode.jsonc"));
+
+    const plugin = join(home, ".local", "share", "mfz-plugins", "session-context");
+
+    expect(global.plugins).toEqual(["/opt/opencode/noninteractive", `file://${plugin}`, `file://${join(installed, "dist", "opencode")}`]);
+    expect(await Bun.file(join(plugin, "server.js")).exists()).toBe(true);
+    expect(await realpath(join(home, ".local", "bin", "cairn-mcp"))).toBe(join(installed, "dist", "mcp.js"));
+    expect(await realpath(join(home, ".local", "bin", "cairn"))).toBe(join(installed, "dist", "cli.js"));
+    expect((await stat(join(installed, "dist", "mcp.js"))).mode & 0o111).not.toBe(0);
+    expect(existsSync(join(root, "workspace", ".openeval"))).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
   }
 });

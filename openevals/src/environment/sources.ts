@@ -45,15 +45,18 @@ export async function archiveSource(sourceHome: string, sourceCommit: string, de
 
 /**
  * Working-tree files that may replace committed source: the global instructions,
- * the skill, reference, and MCP catalogs, the profiles, agent definitions, and
- * skills. Everything outside these paths stays at the commit.
+ * the skill, reference, and MCP catalogs, the profiles, agent definitions,
+ * skills, and the Cairn package and server plugin source the environment builds. Everything
+ * outside these paths stays at the commit.
  */
 export function overridable(path: string): boolean {
   return /^instructions\/[A-Z_]+\.md$/u.test(path) ||
     /^catalog\/(?:skills|references|mcp)\.yml$/u.test(path) ||
     /^profiles\/(?:base|personal)\/profile\.yml$/u.test(path) ||
     /^opencode\/agents\/[a-z-]+\.md$/u.test(path) ||
-    /^skills\/active\/[a-z0-9-]+\/[\w./-]+$/u.test(path);
+    /^skills\/active\/[a-z0-9-]+\/[\w./-]+$/u.test(path) ||
+    /^packages\/cairn\/(?:src\/[\w./-]+|package\.json|build\.ts)$/u.test(path) ||
+    /^opencode\/plugins\/[a-z-]+\/(?:[\w-]+\.ts|package\.json)$/u.test(path);
 }
 
 /** In-scope paths that differ between the commit and the working tree, including untracked and deleted files. */

@@ -1,0 +1,6 @@
+[Unit]
+Description=Prune the media cache
+
+[Service]
+Type=oneshot
+ExecStart=/opt/homelab/scripts/cleanup-cache.sh

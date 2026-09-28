@@ -1,0 +1,3 @@
+# m h dom mon dow command
+# 0 4 * * * /opt/homelab/scripts/cleanup-cache.sh
+15 * * * * /opt/homelab/scripts/rotate-logs.sh

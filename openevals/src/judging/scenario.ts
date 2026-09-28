@@ -112,5 +112,6 @@ export function underTest(facts: RunFacts): RunFacts | undefined {
     sessions,
     initial: facts.initial,
     final: facts.final,
+    catalog: facts.catalog?.filter((call) => included.has(call.sessionID)),
   };
 }

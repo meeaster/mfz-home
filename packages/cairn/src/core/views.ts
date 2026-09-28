@@ -204,6 +204,7 @@ const groupHeadings = new Map<string, string>([
   ["deliverable", "Deliverables"],
   ["synthesis", "Synthesis"],
   ["evidence", "Evidence"],
+  ["learning", "Learnings"],
   ["source", "Sources"],
   ["conversation", "Conversations"],
   ["other", "Other"],

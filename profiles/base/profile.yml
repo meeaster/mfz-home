@@ -52,8 +52,6 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   design-partner:
     agents: { opencode: true, claude-code: true, codex: false }
-  evidence-gathering:
-    agents: { opencode: true, claude-code: true, codex: false }
   task-output:
     agents: { opencode: true, claude-code: true, codex: false }
   effort-context:
@@ -194,6 +192,8 @@ mcp:
     agents: [opencode, claude-code, codex]
   terminal-control:
     agents: [opencode, claude-code, codex]
+  cairn:
+    agents: [opencode, claude-code]
 opencode:
   global_instructions: true
   config:
@@ -222,11 +222,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       inspect:
         model: openai/gpt-6-luna#high
@@ -246,11 +255,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       omp-advisor:
         model: openai/gpt-6-luna#high
@@ -262,9 +280,6 @@ opencode:
             effect: allow
           - action: skill
             resource: effort-context
-            effect: allow
-          - action: skill
-            resource: evidence-gathering
             effect: allow
           - action: edit
             resource: "*"
@@ -281,11 +296,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       operator:
         model: openai/gpt-6-luna#high
@@ -309,11 +333,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       prototype:
         model: openai/gpt-6-luna#max
@@ -335,11 +368,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       pr-reviewer:
         model: openai/gpt-6-sol#high
@@ -359,11 +401,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       ui-ux-designer:
         model: openai/gpt-6-sol#medium
@@ -383,11 +434,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       orchestrator:
         model: openai/gpt-6-sol#medium
@@ -399,6 +459,9 @@ opencode:
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       session-analyst:
         model: openai/gpt-6-sol#medium
@@ -418,11 +481,20 @@ opencode:
           - action: edit
             resource: ~/workspace/scratch/orchestrator-workspaces/*
             effect: allow
+          - action: edit
+            resource: artifacts/cairn/*
+            effect: allow
+          - action: edit
+            resource: ~/workspace/artifacts/cairn/*
+            effect: allow
           - action: external_directory
             resource: /tmp/opencode/*
             effect: allow
           - action: external_directory
             resource: ~/workspace/scratch/orchestrator-workspaces/*
+            effect: allow
+          - action: external_directory
+            resource: ~/workspace/artifacts/cairn/*
             effect: allow
       scribe:
         model: openai/gpt-6-luna#high
@@ -435,6 +507,7 @@ opencode:
     - session-usage
     - session-context
     - skill-continuity
+    - cairn
   tui_plugins:
     - handoff-tui
     - session-cost-tui
@@ -530,6 +603,37 @@ claude:
               timeout: 10
               type: command
           matcher: "*"
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStart:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      PostToolUse:
+        - matcher: Write|Edit|MultiEdit|NotebookEdit
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+        - matcher: Read
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+              async: true
+      Stop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
 
 extra_folders:
   - path: ~/workspace

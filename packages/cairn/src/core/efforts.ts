@@ -47,12 +47,12 @@ function uniqueSlug(cairn: Cairn, base: string): string {
   return candidate;
 }
 
-// Active or paused efforts whose titles share at least half of the shorter title's significant words.
+// Provisional, active, or paused efforts whose titles share at least half of the shorter title's significant words.
 export function similarEfforts(cairn: Cairn, title: string, slug: string | undefined): EffortSummary[] {
   const wanted = significantWords(title);
   const matches: EffortSummary[] = [];
 
-  for (const row of cairn.sql.all`SELECT id, slug, title FROM effort WHERE status IN ('active', 'paused')`) {
+  for (const row of cairn.sql.all`SELECT id, slug, title FROM effort WHERE status IN ('provisional', 'active', 'paused')`) {
     const existing = significantWords(text(row, "title"));
     let shared = 0;
 
@@ -103,8 +103,8 @@ function insertEffort(cairn: Cairn, draft: EffortDraft): number {
   const now = timestamp(cairn);
 
   const effortId = insertedId(cairn.sql.run`
-    INSERT INTO effort (slug, title, description, created_at, updated_at)
-    VALUES (${slug}, ${draft.title}, ${draft.description}, ${now}, ${now})
+    INSERT INTO effort (slug, title, description, status, created_at, updated_at)
+    VALUES (${slug}, ${draft.title}, ${draft.description}, ${draft.provisional ? "provisional" : "active"}, ${now}, ${now})
   `);
 
   addTags(cairn, effortId, draft.tags);

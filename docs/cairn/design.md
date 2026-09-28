@@ -67,6 +67,10 @@ These are the human's own examples. The design is checked against them.
 | The name is Cairn. MCP tools keep the `catalog_` prefix, because models choose tools by name. | Human, on the assistant's recommendation |
 | Durability comes from a daily copy of the database. A text snapshot may come later. | Human, 2026-09-25 (replacing the earlier text-snapshot decision) |
 | Vocabulary is fixed in `TERMINOLOGY.md`. | Human |
+| Efforts are the human's choice. Agents look up existing efforts and recommend one; the human approves attaching a session, creating a regular effort, promoting, detaching, splitting, and merging. Naming an effort in a request ("capture this into the S3 effort", "resume the S3 effort") counts as approval. See [provisional efforts and approval](#provisional-efforts-and-approval). | Human, 2026-09-25 |
+| Orchestration, and a capture that names no effort, create a provisional effort for the task, so its records exist from the first decision. The human promotes it or approves merging it into an existing effort. Default-mode sessions get no effort; their files stay in the session folder. | Human, 2026-09-25 |
+| Operational learnings get their own artifact category, `learning`, so later assignments can find them. | Human, 2026-09-25 |
+| Cairn is enabled in the `base` profile, beside the skills that use it. | Human, 2026-09-25 |
 
 ## Domain model
 
@@ -93,6 +97,17 @@ An effort is a named body of work you want to come back to. There is no nesting.
 
 An artifact's membership in an effort is derived: the artifact belongs to the efforts of the nearest session in its producer's ancestry that has any attachment, starting with the producer itself. So an unattached explore subagent's evidence joins its root session's efforts, while a delegated orchestrator attached to its own effort doesn't also feed Chief's. A file written into an effort's folder also belongs to that effort. When that's too broad, an agent can set membership explicitly for one artifact, either restricting it to some of the session's efforts or adding another effort.
 
+### Provisional efforts and approval
+
+Which efforts exist, and which sessions belong to them, is the human's organization of their work, so agents recommend and the human decides:
+
+- **Look up, then recommend.** Once a conversation has a clear subject, the agent searches with `catalog_find` (text and tags) and names the match and why it fits: "This looks like part of *Logs archived to S3*. Attach it?" With no match, it offers a new effort with a title named for the outcome. It asks once, and again only when the subject changes. Work continues while the question is open: the session's files already live in its folder, and attaching later brings them along.
+- **Approval.** The human approves attaching a session, creating a regular effort, promoting a provisional one, detaching, splitting, merging, and excluding a file from an effort. Naming an effort in a request counts as approval. Subagents inherit the efforts of their root session, and Chief's workstream keys group sessions without being efforts, so neither needs a question.
+- **Provisional efforts.** Orchestration needs its records from the first decision, before the human has answered. So entering orchestration, or capturing work without naming an effort, creates an effort with status `provisional` for the task and attaches the session to it. It spans sessions like any other effort, so a later session can resume it. The human then either promotes it (status `active`, renamed if the title needs it) or approves merging it into an existing effort. Before a merge, the agent folds the provisional `context.md` into the target's, since `merge` moves sessions, files, tags, and links but leaves record files behind. A provisional effort that is never promoted stays as history.
+- **Default mode.** Sessions that aren't orchestrating get no effort unless the human asks for one or approves a recommendation. Their evidence stays in the session folder and is described like any other file.
+
+`catalog_find` and the effort list label provisional efforts, and the duplicate check on create includes them. Recommendations prefer regular efforts. The tools don't enforce approval; the skills carry the rule.
+
 ### Tags instead of hierarchy
 
 Tags are `namespace:value` strings on efforts. Artifacts don't take tags in v1, because their category, efforts, and description already cover the uses that came up. A few namespaces are conventional:
@@ -116,7 +131,7 @@ The human settled these on 2026-09-25, from the observability example. Structure
 3. Customer-device logs then raised the question of a public OPW behind an authorization layer, or a relay through the product server.
 
 The rules:
-1. **Work funnels into the effort you're in.** A new session resumes the matching effort through `catalog_find`, so research, design, and implementation accumulate in one effort. Naming the effort for its outcome ("Logs archived to S3") keeps it stable when the approach changes, because the approach (OPW) is a decision in `context.md`.
+1. **Work funnels into the effort you're in.** A new session finds the matching effort through `catalog_find` and recommends it, and once the human approves, research, design, and implementation accumulate in one effort. Naming the effort for its outcome ("Logs archived to S3") keeps it stable when the approach changes, because the approach (OPW) is a decision in `context.md`.
 2. **No parts in the schema.** Parts are prose in `context.md`. Labeling sessions with parts requires knowing the parts in advance, which you don't.
 3. **Splitting is explicit.** An agent may suggest a split, and the human decides. Signs that a piece should split off:
    - it has its own approval or delivery;
@@ -125,7 +140,7 @@ The rules:
 
    `catalog_effort` with `split` creates the new effort, adds a `split_from` link, and includes the chosen existing sessions and files. It removes nothing from the original. New sessions for that piece attach to the new effort. The original keeps its remaining scope. After the OPW deployment splits off, "Logs archived to S3" still owns the destination design: bucket layout, prefixes and partitioning, retention, encryption, and the permissions that writers get.
 4. **Links between efforts carry relationships.** The relations are `depends_on` (A needs B), `split_from`, and `related`. Links are read in both directions, so add a `depends_on` only in the blocking direction and never add the reverse. When two efforts would depend on each other, split out the shared piece if it has its own life. Otherwise keep one direction and let the other effort read through the link. Relationships found late, such as ASA deciding to reuse OPW, become links when they're found.
-5. **Attach where the work lands.** A session attaches to every effort whose state it changes, and records each decision in that effort's `context.md`. The ASA session that widened OPW's scope attaches to the OPW deployment effort too. A session that only needs background reads a linked effort without attaching, so its files don't flood that effort's view.
+5. **Attach where the work lands.** A session belongs to every effort whose state it changes, and records each decision in that effort's `context.md`. The agent recommends each attachment and the human approves it. The ASA session that widened OPW's scope attaches to the OPW deployment effort too. A session that only needs background reads a linked effort without attaching, so its files don't flood that effort's view.
 6. **Reading scope.** Each `context.md` opens with a short summary: the outcome, where it stands, and key decisions. A session reads:
    - the full `context.md` of each effort it's attached to;
    - only the summary of efforts one link away;
@@ -145,7 +160,7 @@ The OPW deployment's S3 sink configuration needs the destination design. It gets
 
 ### Artifacts
 
-An artifact is a file under the root, an external file, or a URL. Each has a **category** (`evidence`, `source`, `synthesis`, `deliverable`, `record`, `conversation`, `other`), a title, and a description.
+An artifact is a file under the root, an external file, or a URL. Each has a **category** (`evidence`, `source`, `synthesis`, `deliverable`, `record`, `conversation`, `learning`, `other`), a title, and a description. A `learning` is a producer's operational lesson, such as how to run a command or a gotcha in the code, kept apart from its response so coordinators can pass it to later assignments.
 
 URL artifacts also get a **pointer type**, derived from the URL by the service: `pull_request`, `issue`, `jira_issue`, `confluence_page`, or `url`. That lets an effort view list its PRs, Jira items, and Confluence pages directly. Agents register URLs with `catalog_describe` when they create or rely on them, for example after opening a PR or publishing a page.
 
@@ -204,7 +219,7 @@ session starts ── plugin ──▶ session row (+ parent)
 file written   ── plugin ──▶ capture: artifact (undescribed), produced_in
                              tool result note: "describe this with catalog_describe"
 producer       ── catalog_describe ──▶ category, title, description
-scope clear    ── catalog_session ──▶ session description, attach effort(s),
+human approves ── catalog_session ──▶ session description, attach effort(s),
                                       workstream key/subject (orchestrators)
 turn complete  ── plugin ──▶ conversation export updated
 any change     ── service ──▶ effort index.md regenerated
@@ -214,10 +229,10 @@ intake         ── session with the human ──▶ accepted items into conte
 daily          ── service ──▶ database copied to backups/
 ```
 
-1. **Session start (plugin).** The plugin runs `cairn session start` with the session ID and, for child sessions, the parent ID. The command is an idempotent upsert, and plugins also call it the first time they see a session in any other event, because a start event can be missed. It injects the session ID and one line of guidance into context: "When this work becomes research, design, or building, describe this session and attach it to an effort with `catalog_session`."
+1. **Session start (plugin).** The plugin runs `cairn session start` with the session ID and, for child sessions, the parent ID. The command is an idempotent upsert, and plugins also call it the first time they see a session in any other event, because a start event can be missed. It injects the session ID into context, with the session's attached efforts or a line saying it has none.
 2. **File written (plugin).** For a write under the root, the plugin runs `cairn capture`, which upserts the artifact by path with its hash and producing session. The plugin appends a note to the tool result telling the agent to describe the file. Files outside the root are ignored. Capture never blocks or fails the tool.
 3. **Describe (producer).** The agent that wrote the file calls `catalog_describe` with a category, title, and one-sentence description. The parent adds `informs` or `supersedes` links as it uses results, and describes a file only if the producer didn't.
-4. **Attach (the session's lead agent).** Once the work has scope, the root session's agent calls `catalog_session`. It describes the session and attaches one or more efforts, either existing ones found through `catalog_find` or new ones. Before creating an effort, the service checks for similar active efforts and returns them instead, unless the agent confirms a new one. Attaching later is fine: membership is derived through the session, so earlier files join automatically.
+4. **Attach (the session's lead agent, with the human's approval).** Once the work has scope, the root session's agent looks up efforts with `catalog_find` and recommends one (see [provisional efforts and approval](#provisional-efforts-and-approval)). On approval it calls `catalog_session`, which describes the session and attaches one or more efforts, existing or new. Orchestration creates a provisional effort instead of waiting. Before creating an effort, the service checks for similar active, paused, or provisional efforts and returns them instead, unless the agent confirms a new one. Attaching later is fine: membership is derived through the session, so earlier files join automatically.
 5. **Read (plugin).** For a read under the root, the plugin records `read_in`. This shows which sessions actually used which material. Suggested `informs` links built from these reads are a later experiment.
 6. **Turn complete (plugin).** Root sessions only. See [conversation indexing](#conversation-indexing).
 7. **Derived views (service).** There is no long-running process, so a change marks each affected effort as dirty in the database. The hot-path commands (`session start`, `capture`, `read`) only mark. Every other command, and the turn-complete `session index`, regenerates the dirty efforts' `index.md` before it exits.
@@ -227,7 +242,7 @@ daily          ── service ──▶ database copied to backups/
 
 The effort view is the primary way back into work. `catalog_find` and the generated index both provide it.
 
-- **Effort list:** filter by tag (`initiative:observability-pipeline`), status, or text. Each effort shows its title, description, tags, session count, artifact count, and last activity.
+- **Effort list:** filter by tag (`initiative:observability-pipeline`), status, or text. Each effort shows its title, description, status (so provisional efforts stand out), tags, session count, artifact count, and last activity.
 - **Effort view:** its `context.md` summary, its linked efforts with their status (`depends_on`, needed by, `split_from`, `related`), then every artifact from every attached session plus explicit members, **grouped by category** by default, with titles, descriptions, paths, and pointer types. PRs, Jira items, and Confluence pages each get their own group. Grouping by session and filtering to one session are options. Each artifact shows its producing session's title so provenance stays visible.
 - **Sessions of an effort:** the session titles and descriptions, with links to their conversation exports.
 - **Chief loop:** find sessions by `workstream` or `subject`.
@@ -243,7 +258,7 @@ session     id, harness, native_id, parent_session_id?, root_session_id,
             title?, description?, cwd, agent?, workstream?, subject?,
             started_at, last_activity_at,
             export_artifact_id?, watermark_json?, indexed_at?, last_error?
-effort      id, slug, title, description, status(active|paused|done|archived),
+effort      id, slug, title, description, status(provisional|active|paused|done|archived),
             created_at, updated_at, index_dirty
 attachment  session_id, effort_id, attached_at, attached_by   -- unique pair
 artifact    id, category?, pointer_type?, title?, description?,
@@ -289,7 +304,7 @@ Records are split by what they describe, not by who writes them. `context.md` ho
 
 A session attached to several efforts reads the `context.md` of each one. It writes each decision to the effort it concerns, the way you'd keep one notebook per project. A decision that really affects both goes in both, or in the one that owns it with a link from the other. Most sessions attach to only one effort. The session's single `coordination.md` lists the efforts it serves.
 
-Orchestration is scoped work by definition. So selecting `orchestrate` or `orchestrate-chief` attaches the session to an effort, or creates one, before the first decision, and the effort's records exist from the start. Quick, unattached sessions never need a `context.md`. Two sessions editing the same `context.md` at the same time is possible, as it is today. v1 accepts that risk rather than adding locking.
+Orchestration is scoped work by definition. So selecting `orchestrate` or `orchestrate-chief` attaches the session to an effort before the first decision: one the human named or approved, otherwise a new provisional effort (see [provisional efforts and approval](#provisional-efforts-and-approval)). The effort's records exist from the start. Quick, unattached sessions never need a `context.md`. Two sessions editing the same `context.md` at the same time is possible, as it is today. v1 accepts that risk rather than adding locking.
 
 **Who maintains and who reads.** The AI maintains the effort records: Scribe where the harness supports it, otherwise the orchestrator directly. The records are current state, edited in place, so they stay at the size of what's still live. Superseded detail is removed. The conversation exports keep the history. What each role reads by default:
 
@@ -404,14 +419,15 @@ Message-level rows and full-text search wait until cross-session "how did my thi
 
 ## Skill changes
 
-Skills stay short, because the plugins handle the mechanics and the capture note carries the per-file reminder. `task-evidence` is being renamed `task-output` in parallel work.
+Skills stay short, because the plugins handle the mechanics and the capture note carries the per-file reminder. `effort-context` owns the effort rules and the storage layout once, and the other skills point to it.
 
 | Skill | Change |
 | --- | --- |
-| `task-output` | "Write to an assigned path, or one from `catalog_location`. Before returning, describe each file you wrote with `catalog_describe`. Return the paths." |
-| `effort-context` | Capture means `catalog_session` attaching an effort and writing the effort's `context.md`. Resume means `catalog_find` for efforts, then reading the effort view and the `context.md` of each attached effort, then attaching the new session. `index.md` authoring and `sessions/<id>.md` markers are retired. Name an effort for its outcome, not a phase. |
-| `orchestration` | Attach or create an effort before the first decision. Keep the work's state in each effort's `context.md` (and `design.md`), and the run's state in the session's `coordination.md`. Chief puts a `workstream` key and optional `subject` in each orchestrator brief, and checks for existing workstreams by subject before dispatching. Evidence selection uses `catalog_find`. Register PRs and published pages with `catalog_describe`. |
-| `design-partner` | Attach an effort once the design has scope. |
+| `effort-context` | Storage: the parent gets paths from `catalog_location`, in the session folder by default or with `effort` for material that outlives the session. Records: `context.md` and `design.md` in the effort folder, `coordination.md` and Chief workstream folders in the session folder; `index.md` is generated, and the `sessions/<id>.md` markers are retired. The effort rules: look up and recommend, the human approves, provisional efforts for orchestration and unnamed captures, promotion and merge. Capture: attach or create a provisional effort, write validated state to `context.md` and the run's state to `coordination.md`, describe existing files. Resume: `catalog_find`, the effort view, each attached effort's `context.md`, then attach the new session. A line for reading efforts still in the old `orchestrator-workspaces` layout. Claude Code continuity reads `conversation.md` before the raw transcript. |
+| `task-output` | Paths stay assigned by the parent, which gets them from `effort-context`. Before replying, every file the producer wrote is described with `catalog_describe`; learnings files take category `learning`. |
+| `orchestration` | On entry, attach the named or approved effort, or create a provisional one, before the first decision. Keep the work's state in each effort's `context.md` (and `design.md`), and the run's state in the session's `coordination.md`. Chief puts a `workstream` key and optional `subject` in each orchestrator brief, and checks for existing workstreams by subject before dispatching. Evidence selection uses `catalog_find`. Register PRs and published pages with `catalog_describe`. |
+| `design-partner` | Once the design has a subject, recommend an effort. Attaching creates no records unless a capture is requested. |
+| Agents | `research`, `architect`, and `pr-reviewer` write to their assigned output file rather than a named folder. `base` lets `architect` and `inspect` edit under the Cairn root. |
 
 ## Rationale for key choices
 
@@ -475,6 +491,7 @@ These proposals were made and then replaced. Don't re-propose them without new e
 25. **Meeting processing that writes decisions straight into each effort's `context.md`.** The assistant proposed this in the first version of the scenario. The human rejected it: meetings produce candidates, not validated decisions, and promotion into `context.md` is a deliberate intake with the human.
 26. **Size budgets on records, with capture-note warnings.** The assistant proposed about 1,500 tokens for `context.md`. The human rejected budgets because they would push out valuable information. Curation and reading scopes replaced them.
 27. **Five separate record files, then a working and curated layer with a Cairn-generated `brief.md` for agents.** The human rejected the generated brief. For now the AI maintains `context.md` and `design.md`, and the curated layer is a deferred idea.
+28. **Agents attaching sessions to efforts on their own, and orchestration attaching or creating a regular effort on entry.** The human replaced this with recommendation and approval: agents know which efforts exist and suggest, and the human decides. Orchestration's need for records from the first decision is met by provisional efforts, which the human later promotes or merges. The human first considered an effort for every session; the assistant argued that session folders already cover default-mode work, and provisional efforts were limited to orchestration and unnamed captures.
 
 ## Deferred ideas
 
@@ -722,7 +739,7 @@ Built 2026-09-25, at the human's request, so that configuration names commands i
    - A Chief loop finds an existing workstream by subject.
 4. **Conversation indexing** through OpenCode. Built 2026-09-25; see [phase 4 results](#phase-4-results). Acceptance: two turns produce an appended export, a revert triggers a full rewrite, and child sessions produce no export.
 5. **Claude Code hooks and adapter.** Built 2026-09-25; see [phase 5 results](#phase-5-results). Packaged with the CLI and plugin and wired into the personal profile; see [packaging](#packaging).
-6. **Skills.** The [skill changes](#skill-changes), last, once both harnesses have Cairn (human decision, 2026-09-25). Re-run the orchestration evals in `openevals/` afterwards.
+6. **Skills.** The [skill changes](#skill-changes), last, once both harnesses have Cairn (human decision, 2026-09-25). Written 2026-09-25 with provisional efforts, the approval rule, and the `learning` category (schema version 3), and Cairn moved into `base`. Re-run the orchestration evals in `openevals/` afterwards; the eval environment needs Cairn's MCP server and a temporary `CAIRN_ROOT`.
 7. **Trial import.** Deferred. Once Cairn works, bring one existing effort over by hand to see how it looks. Nothing is moved automatically.
 8. **Later.** Read-based suggestions, plugin-drafted descriptions, effort hierarchy if tags stop being enough, message-level search, and a UI.
 
@@ -732,13 +749,13 @@ None open. Code mode and the profile wiring were settled on 2026-09-25; see [pha
 
 ## Continuation
 
-State after phase 5 and packaging, 2026-09-25:
+State after phase 6 (skills), 2026-09-25:
 
 - **Implementation intent.** The human asked for phase 2, then phase 3, then to continue with the next changes, with the skill changes last.
 - **Documents.** This file, [the observability pipeline scenario](scenario-observability-pipeline.md), and [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design lives in `docs/cairn/`, the terminology at the package root, as OpenEval does it.
-- **Commits.** The package, plugin, and docs were committed in `0cf5925`, and the profile wiring, the location grant, and phase 4 in `f713293`, `004452d`, and `a5bc5c7`. Phase 5, packaging, and this update are uncommitted.
+- **Commits.** The package, plugin, and docs were committed in `0cf5925`; the profile wiring, the location grant, and phase 4 in `f713293`, `004452d`, and `a5bc5c7`; phase 5 and packaging in `98dfeda` and `00a54f9`. Phase 6 (the skills, schema version 3, and the move into `base`) is uncommitted, and so are the authoring-record updates in `personal-knowledge`.
 - **Parallel work.** The orchestrator eval work and the `task-evidence` to `task-output` rename landed in `2df1a2d` and `807cccc`.
-- **Storage root.** `~/workspace/artifacts/cairn/` exists and holds the live-run test effort `cairn-live-check`. The catalog is at schema version 2.
+- **Storage root.** `~/workspace/artifacts/cairn/` exists and holds the live-run test effort `cairn-live-check`. The catalog moves to schema version 3 on the first command after the install; a copy of the real catalog migrated with identical row counts, clean integrity, and no broken references.
 - **Existing storage.** `~/workspace/scratch/orchestrator-workspaces/` holds about 16 effort folders and `_sessions/opencode/`, in `effort-context`'s current layout. It stays where it is and isn't moved (human decision).
 - **Facts checked on this machine:**
   - Node is v26.10.0, and `node:sqlite` loads without warnings (SQLite 3.53.4).
@@ -753,5 +770,5 @@ State after phase 5 and packaging, 2026-09-25:
   - Claude Code hooks reference: `https://code.claude.com/docs/en/hooks.md`.
 - **Conversation exporter reference.** `docs/orchestrator/modular-workflows/export-session.py` and [exporter.md](../orchestrator/modular-workflows/exporter.md).
 - **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["cairn-mcp"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root. Since the profile wiring, the global configuration already loads Cairn, so a test needs only `CAIRN_ROOT` set in the environment; without it, the run writes to the real root.
-- **Installed state.** `~/.local/share/mfz-packages/` holds the installed tarball, `~/.local/bin` links its commands, and `opencode/plugins/cairn` points at it. The personal profile has the Claude Code hooks and the `claude-code` MCP entry, and `mfz apply` rendered them. The `opencode-serve` service was restarted and runs the installed `dist/mcp.js`.
-- **Next step.** The skill changes.
+- **Installed state.** `~/.local/share/mfz-packages/` holds the installed tarball, `~/.local/bin` links its commands, and `opencode/plugins/cairn` points at it. The `base` profile now enables Cairn's MCP server, plugin, and Claude Code hooks, and grants the evidence agents edits under the Cairn root; `personal` no longer repeats them. MCP servers started before the schema change refuse the version 3 catalog until they restart.
+- **Next step.** Re-run the orchestration evals with Cairn in the eval environment, then the trial import.

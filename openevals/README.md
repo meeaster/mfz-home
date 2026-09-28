@@ -5,9 +5,11 @@ OpenEval benchmarks for the modular orchestration skills in this home. Each eval
 - every OpenCode agent from the base and Personal profiles, with its live permissions and `subagent_depth`;
 - every skill the live profiles enable for OpenCode, including private ones;
 - the global instructions, their on-demand instruction references, capability groups, extra folders, and four small reference checkouts (openevals, openspec, opencode-plugins, mattpocock-skills) at their catalog revisions;
-- the documentation MCP servers that need no credential (openai-docs, aws-knowledge, cloudflare-docs, x-docs).
+- the documentation MCP servers that need no credential (openai-docs, aws-knowledge, cloudflare-docs, x-docs);
+- Cairn, built from the same source: preparation installs it where live does and adds its OpenCode plugin, and the rendered config runs its catalog server, so output files land under an empty catalog root in the candidate's home;
+- the live server plugins that work on the candidate's own sessions, bundled from the same source: `session-context`, which Scribe needs to read its parent session.
 
-Two flags remove parts of it: `--no-instructions` drops the global instructions with their pointers and references, and `--no-extra-skills` keeps only the required orchestration skills listed in `overlays/required.yml`. Plugins, other MCP servers, and model pins are never rendered; the presets set models. The candidate container is the isolation boundary: it holds no credentials or host mounts, and pointers to host paths resolve to nothing there.
+Two flags remove parts of it: `--no-instructions` drops the global instructions with their pointers and references, and `--no-extra-skills` keeps only the required orchestration skills listed in `overlays/required.yml`. Other plugins, other MCP servers, and model pins are never rendered; the presets set models. The candidate container is the isolation boundary: it holds no credentials or host mounts, and pointers to host paths resolve to nothing there.
 
 ## Run a benchmark
 

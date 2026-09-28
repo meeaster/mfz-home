@@ -26,8 +26,9 @@ const effortToolInput = z.object({
   description: z.string().optional().describe("create and split: the new effort's description. update: the new description."),
   tags: z.array(schemas.tag).optional().describe("create and split: tags such as area:observability."),
   slug: schemas.slug.optional().describe("create and split: the new effort's slug, when the one derived from the title won't do."),
+  provisional: z.boolean().optional().describe("create: create it with status provisional, for work the human hasn't placed in an effort yet."),
   confirm_new: z.boolean().optional().describe("create: create even though similar efforts exist."),
-  status: z.enum(schemas.effortStatuses).optional().describe("update: the new status."),
+  status: z.enum(schemas.effortStatuses).optional().describe("update: the new status. Setting a provisional effort to active promotes it."),
   add_tags: z.array(schemas.tag).optional().describe("update: tags to add."),
   remove_tags: z.array(schemas.tag).optional().describe("update: tags to remove."),
   to: schemas.slug.optional().describe("rename: the new slug."),
@@ -38,10 +39,10 @@ const effortToolInput = z.object({
 
 type EffortToolInput = z.infer<typeof effortToolInput>;
 
-type NewEffortFields = Pick<EffortToolInput, "title" | "description" | "tags" | "slug">;
+type NewEffortFields = Pick<EffortToolInput, "title" | "description" | "tags" | "slug" | "provisional">;
 
 function newEffortDraft(input: EffortToolInput): NewEffortFields {
-  return { title: input.title, description: input.description, tags: input.tags, slug: input.slug };
+  return { title: input.title, description: input.description, tags: input.tags, slug: input.slug, provisional: input.provisional };
 }
 
 function effortInput(input: EffortToolInput): schemas.EffortInput {
@@ -111,7 +112,8 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
       description:
         "Describe a session and attach it to efforts. An effort is a durable piece of work that sessions and files belong to. " +
         "Files written by this session and its subagents join the efforts it is attached to, including files written before attaching. " +
-        "Attach an existing effort by slug, or create one with {create: {title, description, tags}}. " +
+        "Attach an existing effort by slug, or create one with {create: {title, description, tags}}; " +
+        "add provisional: true to create a provisional effort, which the human can later promote or merge. " +
         "When a similar effort already exists, creating returns it under close_matches instead; attach it, or repeat with confirm_new. " +
         "workstream and subject group the sessions a Chief loop dispatches for one piece of work.",
       inputSchema: schemas.sessionDescribeInput

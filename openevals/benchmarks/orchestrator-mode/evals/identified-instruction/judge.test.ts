@@ -1,5 +1,6 @@
 import { expect, test } from "bun:test";
 import type { RecordedFile, ToolCall } from "@hona/openeval";
+import type { CatalogCall } from "../../../../src/judging/facts.js";
 import { gradeInstructionFacts } from "./judge.js";
 
 const file = (sha256: string): RecordedFile => ({ path: "policy.md", bytes: 10, sha256 });
@@ -14,14 +15,19 @@ const entry: ToolCall = {
 
 const procedures: ToolCall = { ...entry, id: "call_procedures", input: { id: "orchestration" } };
 
+const attach: ToolCall = { ...entry, id: "call_attach", sessionID: "ses_root", name: "execute", input: { code: "return tools.cairn.catalog_session({ ... })" } };
+
+const catalog: CatalogCall[] = [{ callID: "call_attach", sessionID: "ses_root", tool: "session", input: { session: "opencode:ses_root", attach: [{ create: { title: "Resume rerun decisions", provisional: true } }] } }];
+
 test("direct read without mutation passes archive criteria", () => {
-  const result = gradeInstructionFacts({ tools: [entry, procedures], sessions: [{ id: "ses_root" }], initial: [file("a")], final: [file("a")] });
+  const result = gradeInstructionFacts({ tools: [entry, procedures, attach], sessions: [{ id: "ses_root" }], initial: [file("a")], final: [file("a")], catalog });
 
   expect(result.scores).toEqual({
     workflow_entered: true,
     coordinator_skills_in_role: true,
     no_child_dispatch: true,
     workspace_unchanged: true,
+    effort_attached_first: true,
   });
 });
 

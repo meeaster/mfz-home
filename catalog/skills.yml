@@ -7,10 +7,6 @@ skills:
     source: local
     skill: active/design-partner
     description: Explicit human-facing design partnership.
-  - name: evidence-gathering
-    source: local
-    skill: active/evidence-gathering
-    description: Bounded deliberate investigation and reusable findings.
   - name: effort-context
     source: local
     skill: active/effort-context

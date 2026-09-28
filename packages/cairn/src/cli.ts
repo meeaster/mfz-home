@@ -467,12 +467,13 @@ const commandTable = {
     }
   },
   "effort create": {
-    usage: "cairn effort create --title <text> [--description <text>] [--tag <ns:value>]... [--slug <slug>] [--confirm-new]",
+    usage: "cairn effort create --title <text> [--description <text>] [--tag <ns:value>]... [--slug <slug>] [--provisional] [--confirm-new]",
     options: {
       title: { type: "string" },
       description: { type: "string" },
       tag: { type: "string", multiple: true },
       slug: { type: "string" },
+      provisional: { type: "boolean" },
       "confirm-new": { type: "boolean" }
     },
     mode: "write",
@@ -483,7 +484,8 @@ const commandTable = {
           title: one(values, "title"),
           description: one(values, "description"),
           tags: many(values, "tag"),
-          slug: one(values, "slug")
+          slug: one(values, "slug"),
+          provisional: flag(values, "provisional")
         },
         confirm_new: flag(values, "confirm-new")
       }))
@@ -496,7 +498,7 @@ const commandTable = {
   },
   "effort update": {
     usage:
-      "cairn effort update <slug> [--title <text>] [--description <text>] [--status active|paused|done|archived] " +
+      "cairn effort update <slug> [--title <text>] [--description <text>] [--status provisional|active|paused|done|archived] " +
       "[--tag <ns:value>]... [--untag <ns:value>]...",
     options: {
       title: { type: "string" },

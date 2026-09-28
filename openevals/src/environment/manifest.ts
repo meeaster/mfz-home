@@ -16,11 +16,25 @@ export const renderedConfig = `${profileDirectory}/opencode/opencode.jsonc`;
 /** Reference checkouts, recorded by revision rather than digested file by file. */
 export const referencesDirectory = `${mindframeDirectory}/references`;
 
+/** The Cairn package built from source: its manifest and bundles, which preparation installs where live keeps them. */
+export const cairnDirectory = "cairn";
+
+/** Files the Cairn MCP server, CLI, and OpenCode plugin need at run time. */
+export const cairnFiles = ["package.json", "dist/cli.js", "dist/mcp.js", "dist/opencode/server.js"].map((path) => `${cairnDirectory}/${path}`);
+
+/** OpenCode server plugins built from source, one bundle each, which preparation installs and loads. */
+export const pluginsDirectory = "plugins";
+
+/** The bundle preparation loads for a server plugin. */
+export function pluginBundle(name: string): string {
+  return `${pluginsDirectory}/${name}/server.js`;
+}
+
 /** Credential-shaped files that must never reach a candidate. */
 const forbiddenPath =
   /(?:(?:^|\/)\.(?:claude|codex)\/|(?:^|\/)(?:\.env(?:\.[\w-]+)?|\.netrc|\.npmrc|auth\.json|credentials?\.json|[^/]+\.(?:pem|key))$)/iu;
 
-const componentSchema = z.enum(["instructions", "skills", "commands", "agents", "config"]);
+const componentSchema = z.enum(["instructions", "skills", "commands", "agents", "config", "cairn", "plugins"]);
 
 const sourceOverrideSchema = z.object({ path: z.string(), sha256: z.string().nullable() });
 
@@ -58,6 +72,10 @@ async function filesUnder(root: string): Promise<string[]> {
 }
 
 function componentFor(path: string): EnvironmentFile["component"] {
+  if (path.startsWith(`${cairnDirectory}/`)) return "cairn";
+
+  if (path.startsWith(`${pluginsDirectory}/`)) return "plugins";
+
   const opencode = `${profileDirectory}/opencode/`;
 
   if (path.startsWith(opencode)) {

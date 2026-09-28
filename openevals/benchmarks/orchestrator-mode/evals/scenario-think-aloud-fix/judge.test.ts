@@ -1,6 +1,7 @@
 import { expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import type { RecordedFile, ToolCall } from "@hona/openeval";
+import type { CatalogCall } from "../../../../src/judging/facts.js";
 import { preamble } from "../../../../src/judging/scenario.js";
 import { gradeScenarioFacts } from "./judge.js";
 
@@ -25,27 +26,40 @@ const decision = call("decide", "ses_driver", "subagent", {
   sessionID: "ses_aut",
 });
 
-const result = "/home/dev/workspace/scratch/orchestrator-workspaces/e/evidence/accept-release-fix--worker.md";
+const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/accept-release-fix.md";
 
+const context = "/home/dev/workspace/artifacts/cairn/efforts/release-status-accepted/context.md";
+
+/** The coordinator creates a provisional effort before it dispatches, and Scribe keeps its records unread. */
 const coordinator = [
   call("entry", "ses_aut", "skill", { id: "orchestrate" }),
   call("procedures", "ses_aut", "skill", { id: "orchestration" }),
+  call("attach", "ses_aut", "execute", { code: "return tools.cairn.catalog_session({ ... })" }),
   call("dispatch", "ses_aut", "subagent", { agent: "worker" }),
   call("fix", "ses_worker", "edit", { filePath: "/workspace/src/accept-release.ts" }),
   call("result", "ses_worker", "write", { filePath: result }),
+  call("describe", "ses_worker", "execute", { code: "return tools.cairn.catalog_describe({ ... })" }),
   call("read-result", "ses_aut", "read", { path: result }),
+  call("records", "ses_aut", "subagent", { agent: "scribe" }),
+  call("context", "ses_scribe", "write", { filePath: context }),
+];
+
+const catalog: CatalogCall[] = [
+  { callID: "attach", sessionID: "ses_aut", tool: "session", input: { session: "opencode:ses_aut", attach: [{ create: { title: "Release status accepted", provisional: true } }] } },
+  { callID: "describe", sessionID: "ses_worker", tool: "describe", input: { path: result, category: "evidence", title: "Status fix" } },
 ];
 
 const sessions = [
   { id: "ses_driver" },
   { id: "ses_aut", parentID: "ses_driver", agent: "agent-under-test" },
   { id: "ses_worker", parentID: "ses_aut", agent: "worker" },
+  { id: "ses_scribe", parentID: "ses_aut", agent: "scribe" },
 ];
 
 const fixed = { initial: [source("a"), tests], final: [source("b"), tests] };
 
 test("a driven conversation that delegates the fix passes every archive criterion", () => {
-  const graded = gradeScenarioFacts({ tools: [opening, decision, ...coordinator], sessions, ...fixed });
+  const graded = gradeScenarioFacts({ tools: [opening, decision, ...coordinator], sessions, ...fixed, catalog });
 
   expect(graded.scores).toEqual({
     harness_preamble_sent: true,
@@ -57,6 +71,8 @@ test("a driven conversation that delegates the fix passes every archive criterio
     only_source_changed: true,
     dispatches_wrote_files: true,
     returned_files_read: true,
+    effort_attached_first: true,
+    outputs_described: true,
   });
 });
 

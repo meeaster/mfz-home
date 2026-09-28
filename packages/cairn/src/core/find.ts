@@ -433,6 +433,7 @@ export const groupOrder: readonly string[] = [
   "deliverable",
   "synthesis",
   "evidence",
+  "learning",
   "source",
   "conversation",
   "other",

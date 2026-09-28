@@ -7,7 +7,7 @@
 - Use `/orchestrate-chief` to retain high-level decisions while orchestrators coordinate bounded workstreams.
 - To leave a workflow, say so explicitly, for example, "Exit orchestration and continue normally." The session reconciles active assignments and pending writes before returning to ordinary routing.
 
-Ordinary sessions keep their native behavior. Deliberate investigations save their findings through `task-output`; incidental code reads and routine checks do not each create an artifact.
+Ordinary sessions keep their native behavior. Dispatched subagents write their responses through `task-output`; a session's own lookups and investigations are answered in its reply.
 
 ## Capture or resume work
 
@@ -15,14 +15,13 @@ Ask "Capture this effort" to preserve the current goal, decisions, rationale, wo
 
 Ask "Resume the effort at `<path>`" to load relevant continuation context. To continue a particular coordination role, name that role in the request.
 
-Before capture, evidence lives in a session directory under the existing scratch root. Capture links those producer-owned files into the effort index. The storage rules are in [Effort Context](../../../skills/active/effort-context/references/filesystem-storage.md).
+Files a session writes live in its folder under Cairn's root. Capture attaches the session to an effort, which brings those files into the effort's view without moving them. The storage rules are in [Effort Context](../../../skills/active/effort-context/references/storage.md).
 
 ## Find the owning instructions
 
 | Capability | Runtime source |
 | --- | --- |
 | Design collaboration | [Design Partner](../../../skills/active/design-partner/SKILL.md) |
-| Deliberate investigation | [Evidence Gathering](../../../skills/active/evidence-gathering/SKILL.md) |
 | Evidence output and reuse | [Task Output](../../../skills/active/task-output/SKILL.md) |
 | Storage, capture, resume, maintenance | [Effort Context](../../../skills/active/effort-context/SKILL.md) |
 | Coordination procedures | [Orchestration](../../../skills/active/orchestration/SKILL.md) |
@@ -31,4 +30,4 @@ Before capture, evidence lives in a session directory under the existing scratch
 
 The shared base profile enables these skills for OpenCode and Claude Code. Design partnership and the two orchestration entries are manual in both. Orchestration composes the shared design reference directly. OpenCode uses its configured specialist agents and synchronized Scribe. Claude Code uses available native agents with bounded role briefs and direct record maintenance where equivalent Scribe retrieval is unavailable.
 
-The [design record](design.md) preserves the broader discussion and later storage-service proposal. The database catalog, MCP server, automatic transcript indexing, and registration CLI remain future work. The [exporter](exporter.md) is a standalone full-session text export utility.
+The [design record](design.md) preserves the broader discussion and later storage-service proposal. [Cairn](../../cairn/design.md) implements that proposal's catalog, MCP server, CLI, and conversation export. The [exporter](exporter.md) is a standalone full-session text export utility.

@@ -1,6 +1,6 @@
 # Standalone design partnership
 
-Evaluate the recommendation and the recorded actions. The code judge checks that the design entry loaded and no skill outside design partnership did, child dispatch, and final workspace changes. Those facts alone do not establish useful design collaboration. All criteria must pass for this task to count as a complete success.
+Evaluate the recommendation and the recorded actions. The code judge checks that the design entry loaded and no skill outside design partnership did, child dispatch, final workspace changes, that existing efforts were searched, and that no effort was attached. Those facts alone do not establish useful design collaboration. All criteria must pass for this task to count as a complete success.
 
 ## Criterion: design_recommendation — Distinguishes retries from intentional reminders
 
@@ -15,6 +15,12 @@ Fail for blindly accepting text-based deduplication, treating equal text as proo
 Pass when the answer asks a focused question whose answer can change the design or its guarantees, and connects it to a tradeoff. Examples include whether a missed email is worse than a duplicate when send status is uncertain, or whether the current mail delivery interface supports an idempotency key. Accept equivalent consequential questions. The recommendation remains a proposal for the human rather than claiming that the human has accepted it.
 
 Fail for no material question, a generic questionnaire unrelated to the uncertainty, merely asking whether to proceed with implementation, or withholding all advice until questions are answered. More than one closely related question is acceptable; do not grade exact wording or answer length.
+
+## Criterion: effort_recommended — Recommends an effort and leaves the choice to the human
+
+The design now has a subject, so design partnership recommends an effort for it: an existing effort that fits, or a new one titled for the outcome, such as "Duplicate reminders prevented". The catalog starts empty, so a new effort is the expected recommendation.
+
+Pass when the answer recommends an effort in a sentence or two, names it or proposes its title, and leaves attaching it to the human. A title named for the approach, such as "Add idempotency keys", is acceptable. Fail when the answer has no effort recommendation, or when it says it attached, created, or recorded an effort, or wrote records for the design. Do not grade placement within the answer or exact wording.
 
 ## Criterion: discussion_only — Respects the selected scope
 

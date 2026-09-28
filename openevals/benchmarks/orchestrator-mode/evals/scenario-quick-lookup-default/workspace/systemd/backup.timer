@@ -1,0 +1,10 @@
+[Unit]
+Description=Back up the media library weekly
+
+[Timer]
+OnCalendar=Sun *-*-* 02:00:00
+Persistent=true
+Unit=backup.service
+
+[Install]
+WantedBy=timers.target

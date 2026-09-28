@@ -32,7 +32,29 @@ export function environmentLabel(options: EnvironmentOptions): string {
 const requiredOverlay = resolve(import.meta.dirname, "../../overlays/required.yml");
 
 /** Documentation MCP servers that need no credential; the environment keeps those the live profiles enable. */
-export const docsServers: ReadonlySet<string> = new Set(["openai-docs", "aws-knowledge", "cloudflare-docs", "x-docs"]);
+const docsServers: ReadonlySet<string> = new Set(["openai-docs", "aws-knowledge", "cloudflare-docs", "x-docs"]);
+
+/**
+ * Local MCP servers that run inside the candidate container on the candidate's own state and need no
+ * credential; the environment keeps those the live profiles enable. Cairn's catalog starts empty in each run.
+ */
+const containedServers: ReadonlySet<string> = new Set(["cairn"]);
+
+/** MCP servers a candidate may reach. */
+export function allowedServer(name: string): boolean {
+  return docsServers.has(name) || containedServers.has(name);
+}
+
+/**
+ * OpenCode server plugins that work inside the candidate container on its own sessions and need no credential;
+ * the environment builds those the live profiles enable. Cairn's plugin comes with its package.
+ */
+const containedPlugins: ReadonlySet<string> = new Set(["session-context"]);
+
+/** OpenCode server plugins a candidate may load. */
+export function allowedPlugin(name: string): boolean {
+  return containedPlugins.has(name);
+}
 
 /** A few small reference repositories the renderer checks out at their catalog revisions. */
 const selectedReferences: ReadonlySet<string> = new Set(["openevals", "openspec", "opencode-plugins", "mattpocock-skills"]);
@@ -60,6 +82,7 @@ const profileSchema = z
       .object({
         global_instructions: z.boolean().optional(),
         agents: z.array(z.string()).optional(),
+        plugins: z.array(z.string()).optional(),
         config: z
           .object({
             experimental: z.record(z.string(), z.json()).optional(),
@@ -104,7 +127,7 @@ function enabledSkills(...profiles: Profile[]): string[] {
   );
 }
 
-function enabledDocsServers(...profiles: Profile[]): string[] {
+function enabledAllowedServers(...profiles: Profile[]): string[] {
   const servers = enabled(
     profiles.flatMap((profile) =>
       Object.entries(profile.mcp ?? {}).map(([name, server]): [string, boolean] => [
@@ -114,7 +137,7 @@ function enabledDocsServers(...profiles: Profile[]): string[] {
     ),
   );
 
-  return servers.filter((name) => docsServers.has(name));
+  return servers.filter(allowedServer);
 }
 
 /** Skills and agents every environment must render, declared once in the required overlay. */
@@ -126,10 +149,13 @@ export async function requiredComponents(): Promise<{ skills: string[]; agents: 
  * Flatten the live base and Personal profiles into the environment's profile.
  *
  * Keeps every OpenCode agent with its live permissions and the experimental
- * settings, and the credential-free documentation servers. The options decide
+ * settings, the credential-free documentation servers, and the in-container
+ * Cairn catalog server. The options decide
  * whether global instructions with their pointers and the skills beyond the
- * required set are included. Drops plugins, other MCP servers, and model pins,
- * which the benchmark presets own instead. Pointers to host paths render as
+ * required set are included. Drops other MCP servers and model pins, which the
+ * benchmark presets own instead, and leaves plugins out of the profile:
+ * preparation installs Cairn's plugin and the allowed server plugins from the
+ * environment's own builds. Pointers to host paths render as
  * written and resolve to nothing in the candidate container.
  */
 function environmentProfile(base: Profile, personal: Profile, required: { skills: string[]; agents: string[] }, options: EnvironmentOptions) {
@@ -155,7 +181,7 @@ function environmentProfile(base: Profile, personal: Profile, required: { skills
       commands: [],
       agents,
     },
-    mcp: Object.fromEntries(enabledDocsServers(base, personal).map((name) => [name, { agents: ["opencode"] }])),
+    mcp: Object.fromEntries(enabledAllowedServers(base, personal).map((name) => [name, { agents: ["opencode"] }])),
   };
 
   if (!options.instructions) return profile;
@@ -171,6 +197,16 @@ function environmentProfile(base: Profile, personal: Profile, required: { skills
     extra_folders: [...(base.extra_folders ?? []), ...(personal.extra_folders ?? [])],
     opencode: { ...profile.opencode, global_instructions: base.opencode?.global_instructions === true },
   };
+}
+
+/** Allowed server plugins the live base or Personal profile enables, read from an archived source home. */
+export async function environmentPlugins(sourceRoot: string): Promise<string[]> {
+  const [base, personal] = await Promise.all([
+    readProfile(resolve(sourceRoot, "profiles", "base", "profile.yml")),
+    readProfile(resolve(sourceRoot, "profiles", "personal", "profile.yml")),
+  ]);
+
+  return [...new Set([...(base.opencode?.plugins ?? []), ...(personal.opencode?.plugins ?? [])])].filter(allowedPlugin).sort();
 }
 
 /** Write the environment's profile into an archived source home. */

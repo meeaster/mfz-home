@@ -1,9 +1,7 @@
 import type { JudgeContext } from "@hona/openeval";
 import { changedPaths, loadedSkills, runFacts, type RunFacts } from "../../../../src/judging/facts.js";
+import { workflowSkills } from "../../../../src/judging/default-session.js";
 import { harnessChecks, underTest } from "../../../../src/judging/scenario.js";
-
-/** Human-only workflow entries and the procedures they select; the developer selects none of them here. */
-const workflowSkills: ReadonlySet<string> = new Set(["orchestrate", "orchestrate-chief", "orchestration", "design-partner", "skill-authoring"]);
 
 /** Default-session facts for the agent under test; null when no single conversation identifies it. */
 function defaultSessionScores(view: RunFacts | undefined) {

@@ -1,9 +1,11 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { main } from "./cli.ts";
+import { migrate } from "./core/migrations.ts";
 
 const artifactEntry = z.object({
   path: z.string(),
@@ -28,7 +30,7 @@ const artifactList = z.object({ artifacts: z.array(artifactEntry) });
 
 const groupedArtifacts = z.object({ groups: z.array(z.object({ group: z.string(), artifacts: z.array(artifactEntry) })) });
 
-const effortList = z.object({ efforts: z.array(z.object({ slug: z.string(), title: z.string() })) });
+const effortList = z.object({ efforts: z.array(z.object({ slug: z.string(), title: z.string(), status: z.string() })) });
 
 const sessionList = z.object({ sessions: z.array(z.object({ key: z.string() })) });
 
@@ -430,6 +432,25 @@ describe("efforts", () => {
     expect(sessions.sessions.map((session) => session.key).sort()).toEqual(["opencode:a", "opencode:b"]);
     expect(cairn.index("cisco-asa-log-ingestion")).toContain("Depends on [OPW deployment on AWS]");
   });
+
+  test("a provisional effort is caught by the duplicate check, marked in the compaction note, and promoted by update", () => {
+    const cairn = workspace();
+
+    cairn.run("effort", "create", "--title", "Price the log buckets", "--provisional");
+    cairn.run("session", "describe", "opencode:root", "--attach", "price-the-log-buckets");
+
+    const duplicate = cairn.json(describedSession, "session", "describe", "opencode:later", "--create", "Log buckets price comparison");
+    const note = cairn.json(compactionNote, "session", "context", "opencode:root");
+
+    expect(duplicate.close_matches[0]?.matches.map((effort) => effort.slug)).toEqual(["price-the-log-buckets"]);
+    expect(note.note).toContain("- Price the log buckets (price-the-log-buckets, provisional):");
+
+    cairn.run("effort", "update", "price-the-log-buckets", "--status", "active");
+
+    expect(cairn.json(effortList, "find", "efforts", "--status", "active").efforts.map((effort) => effort.slug)).toEqual([
+      "price-the-log-buckets"
+    ]);
+  });
 });
 
 describe("compaction note", () => {
@@ -499,6 +520,40 @@ describe("backups", () => {
     expect(restored.code).toBe(0);
     expect(efforts.efforts.map((effort) => effort.slug)).toEqual(["logs-archived-to-s3"]);
     expect(kept).toHaveLength(1);
+  });
+});
+
+describe("schema upgrades", () => {
+  test("a catalog from schema version 2 keeps its attachments, memberships, and tags, and takes the new status and category", () => {
+    const cairn = workspace();
+    const old = new DatabaseSync(join(cairn.root, "catalog.db"), { enableForeignKeyConstraints: true });
+    const at = "2026-09-20T10:00:00.000Z";
+    const notes = "sessions/opencode/2026-09/root/notes.md";
+
+    cairn.write(join(cairn.root, notes), "# Bucket notes\n");
+    migrate(old, 2);
+    old.exec(`
+      INSERT INTO session (id, harness, native_id, root_session_id, started_at, last_activity_at)
+        VALUES (1, 'opencode', 'root', 1, '${at}', '${at}');
+      INSERT INTO effort (id, slug, title, created_at, updated_at) VALUES (1, 'logs-archived-to-s3', 'Logs archived to S3', '${at}', '${at}');
+      INSERT INTO effort (id, slug, title, created_at, updated_at) VALUES (2, 'opw-deployment', 'OPW deployment', '${at}', '${at}');
+      INSERT INTO attachment VALUES (1, 1, '${at}', 'opencode:root');
+      INSERT INTO tag VALUES (1, 'system', 'aws');
+      INSERT INTO artifact (id, category, title, location, path_or_url, status, producer_session_id, captured_at, updated_at)
+        VALUES (1, 'evidence', 'Bucket notes', 'managed', '${notes}', 'active', 1, '${at}', '${at}');
+      INSERT INTO membership VALUES (1, 2, 'include', 'opencode:root');
+    `);
+    old.close();
+
+    const artifacts = cairn.json(artifactList, "find", "artifacts");
+    const tagged = cairn.json(effortList, "find", "efforts", "--tag", "system:aws");
+    const sessions = cairn.json(sessionList, "find", "sessions", "--effort", "logs-archived-to-s3");
+
+    expect(artifacts.artifacts.map((artifact) => artifact.efforts)).toEqual([["logs-archived-to-s3", "opw-deployment"]]);
+    expect(tagged.efforts.map((effort) => effort.slug)).toEqual(["logs-archived-to-s3"]);
+    expect(sessions.sessions.map((session) => session.key)).toEqual(["opencode:root"]);
+    expect(cairn.run("effort", "create", "--title", "Price the buckets", "--provisional").code).toBe(0);
+    expect(cairn.run("describe", join(cairn.root, notes), "--category", "learning").code).toBe(0);
   });
 });
 

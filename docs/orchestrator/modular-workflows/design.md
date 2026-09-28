@@ -128,6 +128,8 @@ The working convention is:
 
 > When an agent performs a deliberate investigation, it saves the substantive findings to an evidence file and returns the useful answer with a pointer to the file.
 
+**Superseded on 2026-09-27.** The human narrowed this convention to dispatched subagents. A session answers its own lookups and investigations in its reply and writes a file only when the human asks for one or requests capture. The rest of this section records the earlier reasoning.
+
 This applies to a main session and to evidence-producing subagents. It does not require more investigation, delegation, a formal design stage, or activation of orchestration.
 
 The unit is one coherent investigation. It is not one file for each tool call, source read, or observed fact. Reading neighboring code to make a small edit remains ordinary task inspection. Investigating why a behavior occurs, exploring alternatives, or researching a factual question produces a reusable result.

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { JudgeContext, RecordedFile, ToolCall } from "@hona/openeval";
+import type { JudgeContext, RecordedEvent, RecordedFile, ToolCall } from "@hona/openeval";
 
 /**
  * Archive facts shared by the code judges. Code judges grade only what the
@@ -10,7 +10,19 @@ export type RunFacts = {
   sessions: readonly { id: string; parentID?: string; agent?: string }[];
   initial: readonly RecordedFile[];
   final: readonly RecordedFile[];
+  /** Completed Cairn catalog calls, which OpenCode runs inside `execute`; absent when a fixture records none. */
+  catalog?: readonly CatalogCall[];
 };
+
+const catalogTool = z.enum(["session", "describe", "find", "location", "effort", "link"]);
+
+export type CatalogTool = z.infer<typeof catalogTool>;
+
+/** A Cairn catalog call made inside the `execute` call `callID`. */
+export type CatalogCall = { callID: string; sessionID: string; tool: CatalogTool; input: ToolCall["input"] };
+
+/** Cairn's root, where output files land; the live default under the candidate's home is `~/workspace/artifacts/cairn/`. */
+export const outputRoot = "/artifacts/cairn/";
 
 /** Tools that change files or run arbitrary commands. */
 export const mutatingTools: ReadonlySet<string> = new Set(["bash", "edit", "multiedit", "patch", "shell", "write"]);
@@ -20,20 +32,36 @@ export const dispatchTools: ReadonlySet<string> = new Set(["subagent", "task"]);
 
 /**
  * Skills each role's guidance has it load; any other load takes on guidance its work does not own.
- * Direct coordination loads `effort-context` for storage and `evidence-gathering` to bound investigations,
- * requires `task-output` of producers rather than loading it, and reads design collaboration directly
- * rather than invoking the human-only `design-partner` entry. Standalone design partnership may load
- * `evidence-gathering` when an investigation could change the decision. Every role may also load the
- * skills the global instructions attach to a kind of work, such as `anti-slop` before a JavaScript or
- * TypeScript edit, including one it delegates.
+ * Direct coordination loads `effort-context` for storage, requires `task-output` of producers rather
+ * than loading it, and reads design collaboration directly rather than invoking the human-only
+ * `design-partner` entry. Design partnership loads `effort-context` to recommend an effort. Every role may also load the skills the global instructions attach to a kind
+ * of work, such as `anti-slop` before a JavaScript or TypeScript edit, including one it delegates.
  */
 const globalSkills = ["anti-slop"];
 
 export const roleSkills = {
-  directCoordinator: new Set([...globalSkills, "orchestrate", "orchestration", "effort-context", "evidence-gathering"]),
-  evidenceProducer: new Set([...globalSkills, "evidence-gathering", "task-output", "effort-context"]),
-  designPartner: new Set([...globalSkills, "design-partner", "evidence-gathering"]),
+  directCoordinator: new Set([...globalSkills, "orchestrate", "orchestration", "effort-context"]),
+  evidenceProducer: new Set([...globalSkills, "task-output", "effort-context"]),
+  designPartner: new Set([...globalSkills, "design-partner", "effort-context"]),
 } satisfies Record<string, ReadonlySet<string>>;
+
+/** Scribe maintains the human-facing session's records, which are its output, and replies directly. */
+const recordKeepers: ReadonlySet<string> = new Set(["scribe"]);
+
+/** Sessions a root session dispatched that owe it a response file: every direct child except Scribe. */
+export function producerSessions(sessions: RunFacts["sessions"]): Map<string, string> {
+  const roots = new Set<string>();
+
+  for (const session of sessions) if (session.parentID === undefined) roots.add(session.id);
+
+  const producers = new Map<string, string>();
+
+  for (const session of sessions) {
+    if (session.parentID !== undefined && roots.has(session.parentID) && !recordKeepers.has(session.agent ?? "")) producers.set(session.id, session.parentID);
+  }
+
+  return producers;
+}
 
 /** VCS metadata and dependency directories are not task content. */
 const ignoredSegments: ReadonlySet<string> = new Set([".git", "node_modules", "upstream.git"]);
@@ -50,12 +78,52 @@ const fileWriteInput = z.object({ filePath: z.string().optional(), path: z.strin
 /** File headers in an `apply_patch` body. */
 const patchedFile = /^\*\*\* (?:Add|Update) File: (.+)$/gmu;
 
+/** OpenCode runs MCP tools in code mode: each `execute` call reports the calls its code made as progress. */
+const executeProgress = z.object({
+  type: z.literal("session.tool.progress"),
+  data: z.object({
+    sessionID: z.string(),
+    id: z.string(),
+    metadata: z.object({
+      toolCalls: z.array(z.object({ tool: z.string(), status: z.string(), input: z.record(z.string(), z.unknown()).optional() })),
+    }),
+  }),
+});
+
+const catalogPrefix = "cairn.catalog_";
+
+/** Completed catalog calls from each `execute` call's latest progress, in the order the calls started. */
+export function catalogCallsFrom(events: readonly RecordedEvent[]): CatalogCall[] {
+  const latest = new Map<string, z.infer<typeof executeProgress>["data"]>();
+
+  for (const { event } of events) {
+    const progress = executeProgress.safeParse(event);
+
+    if (progress.success) latest.set(progress.data.data.id, progress.data.data);
+  }
+
+  const calls: CatalogCall[] = [];
+
+  for (const progress of latest.values()) {
+    for (const inner of progress.metadata.toolCalls) {
+      if (inner.status !== "completed" || !inner.tool.startsWith(catalogPrefix)) continue;
+
+      const tool = catalogTool.safeParse(inner.tool.slice(catalogPrefix.length));
+
+      if (tool.success) calls.push({ callID: progress.id, sessionID: progress.sessionID, tool: tool.data, input: inner.input });
+    }
+  }
+
+  return calls;
+}
+
 export async function runFacts({ recording, workspace }: JudgeContext): Promise<RunFacts> {
   return {
     tools: recording.tools(),
     sessions: await recording.sessions(),
     initial: workspace.files("initial"),
     final: workspace.files("final"),
+    catalog: catalogCallsFrom(recording.events({ type: "session.tool.progress" })),
   };
 }
 
@@ -121,6 +189,11 @@ export function subagentTargets(tools: readonly ToolCall[]): string[] {
   }
 
   return targets;
+}
+
+/** Completed calls to one Cairn catalog tool, such as `catalog_location`. */
+export function catalogCalls(facts: Pick<RunFacts, "catalog">, name: CatalogTool): CatalogCall[] {
+  return (facts.catalog ?? []).filter((call) => call.tool === name);
 }
 
 /** Names of attempted calls to the given tools, whatever their outcome. */
@@ -210,6 +283,15 @@ function writtenPaths(tool: ToolCall): string[] {
   return paths;
 }
 
+/** Paths the given sessions wrote through successful calls, in call order. */
+export function pathsWrittenBy(facts: Pick<RunFacts, "tools">, sessionIDs: ReadonlySet<string>): string[] {
+  const paths: string[] = [];
+
+  for (const tool of facts.tools) if (tool.sessionID !== undefined && sessionIDs.has(tool.sessionID)) paths.push(...writtenPaths(tool));
+
+  return paths;
+}
+
 const readInput = z.object({ path: z.string(), offset: z.number().optional(), limit: z.number().optional() });
 
 /** Whether a successful call read `path`, whole or in a line window. A shell redirect into `path` is not a read. */
@@ -232,28 +314,23 @@ function readsPath(tool: ToolCall, path: string): { whole: boolean } | undefined
 }
 
 /**
- * Files under `directory` that a root-dispatched session wrote and its root session did not read.
+ * Files under the output root that a root-dispatched producer wrote and its root session did not read.
+ * Scribe's records are not returned files.
  * The root reads each returned file whole once it first exists; after a follow-up changes the file, reading
  * the changed part is enough, so any read after the last write counts.
  */
-export function returnedFilesUnread(facts: Pick<RunFacts, "tools" | "sessions">, directory: string): string[] {
-  const parents = new Map<string, string>();
-
-  for (const session of facts.sessions) if (session.parentID !== undefined) parents.set(session.id, session.parentID);
-
-  const roots = new Set<string>();
-
-  for (const session of facts.sessions) if (session.parentID === undefined) roots.add(session.id);
+export function returnedFilesUnread(facts: Pick<RunFacts, "tools" | "sessions">): string[] {
+  const producers = producerSessions(facts.sessions);
 
   const writes = new Map<string, { first: number; last: number; root: string }>();
 
   for (const [index, tool] of facts.tools.entries()) {
-    const root = tool.sessionID === undefined ? undefined : parents.get(tool.sessionID);
+    const root = tool.sessionID === undefined ? undefined : producers.get(tool.sessionID);
 
-    if (root === undefined || !roots.has(root)) continue;
+    if (root === undefined) continue;
 
     for (const path of writtenPaths(tool)) {
-      if (!path.includes(directory)) continue;
+      if (!path.includes(outputRoot)) continue;
 
       const known = writes.get(path);
 
@@ -287,27 +364,17 @@ export function returnedFilesUnread(facts: Pick<RunFacts, "tools" | "sessions">,
 }
 
 /**
- * Sessions a root session dispatched that wrote no file under `directory`.
- * Helpers nested inside a dispatched session return to it and are not counted.
+ * Producers a root session dispatched that wrote no file under the output root.
+ * Helpers nested inside a dispatched session return to it, and Scribe keeps records; neither is counted.
  */
-export function dispatchesWithoutFile(facts: Pick<RunFacts, "tools" | "sessions">, directory: string): string[] {
-  const roots = new Set<string>();
-
-  for (const session of facts.sessions) if (session.parentID === undefined) roots.add(session.id);
-
+export function dispatchesWithoutFile(facts: Pick<RunFacts, "tools" | "sessions">): string[] {
   const wrote = new Set<string>();
 
   for (const tool of facts.tools) {
     if (tool.sessionID === undefined) continue;
 
-    if (writtenPaths(tool).some((path) => path.includes(directory))) wrote.add(tool.sessionID);
+    if (writtenPaths(tool).some((path) => path.includes(outputRoot))) wrote.add(tool.sessionID);
   }
 
-  const missing: string[] = [];
-
-  for (const session of facts.sessions) {
-    if (session.parentID !== undefined && roots.has(session.parentID) && !wrote.has(session.id)) missing.push(session.id);
-  }
-
-  return missing;
+  return [...producerSessions(facts.sessions).keys()].filter((session) => !wrote.has(session));
 }

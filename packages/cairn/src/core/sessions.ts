@@ -201,7 +201,7 @@ function nearestWorkstream(cairn: Cairn, sessionId: number): string | null {
 export function sessionContext(cairn: Cairn, input: SessionContextInput): SessionContext {
   const sessionId = requireSessionId(cairn, input.session);
   const session = loadSession(cairn, sessionId);
-  const efforts: { slug: string; title: string; records: string[] }[] = [];
+  const efforts: { slug: string; title: string; provisional: boolean; records: string[] }[] = [];
   const lines = [`This session's catalog ID is ${session.key}.`];
   const linked = new Map<string, string>();
 
@@ -209,7 +209,7 @@ export function sessionContext(cairn: Cairn, input: SessionContextInput): Sessio
     const view = effortView(cairn, loadEffort(cairn, effortId).slug);
     const recordPaths = view.records.map((record) => record.path);
 
-    efforts.push({ slug: view.slug, title: view.title, records: recordPaths });
+    efforts.push({ slug: view.slug, title: view.title, provisional: view.status === "provisional", records: recordPaths });
 
     for (const link of view.links) {
       linked.set(link.slug, `${link.title} (${view.slug} ${link.relation.replace("_", " ")} ${link.slug})`);
@@ -227,7 +227,7 @@ export function sessionContext(cairn: Cairn, input: SessionContextInput): Sessio
           ? `no records yet; its folder is ${effortFolder(cairn.root, effort.slug)}`
           : effort.records.join(", ");
 
-      lines.push(`- ${effort.title} (${effort.slug}): ${records}`);
+      lines.push(`- ${effort.title} (${effort.slug}${effort.provisional ? ", provisional" : ""}): ${records}`);
     }
   }
 

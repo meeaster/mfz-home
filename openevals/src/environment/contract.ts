@@ -1,8 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { dirname, join, normalize, resolve } from "node:path";
 import { z } from "zod";
-import { manifestSchema, profileDirectory, renderedConfig, verifyManifestFiles, type EnvironmentManifest } from "./manifest.js";
-import { docsServers, requiredComponents } from "./profiles.js";
+import { cairnFiles, manifestSchema, profileDirectory, renderedConfig, verifyManifestFiles, type EnvironmentManifest } from "./manifest.js";
+import { allowedPlugin, allowedServer, requiredComponents } from "./profiles.js";
 
 /** Secret variable names; a rendered file that names one could carry its value. */
 const secretMarker = /(?:EXA_API_KEY|UNIFI_NETWORK_PASSWORD|TRUENAS_API_KEY)/u;
@@ -44,7 +44,9 @@ function brokenSkillLinks(files: ReadonlyMap<string, string>, skills: readonly s
 /**
  * Check a rendered environment: digests match, the required skills and agents
  * rendered with every linked reference, global instructions are present exactly
- * when selected, only credential-free documentation servers are configured, and
+ * when selected, only credential-free documentation servers and the in-container
+ * Cairn catalog are configured, Cairn's build is present when its server is, only
+ * allowed server plugins are built, and
  * no secret variable name appears. The candidate container is the isolation
  * boundary; agents keep their live permissions.
  */
@@ -75,8 +77,17 @@ export async function checkEnvironmentContract(root: string): Promise<Environmen
   if (instructions !== manifest.options.instructions)
     errors.push(`Global instructions ${instructions ? "rendered" : "missing"} against the selected option`);
 
-  for (const name of Object.keys(config.mcp?.servers ?? {}))
-    if (!docsServers.has(name)) errors.push(`MCP server outside the documentation allowlist: ${name}`);
+  const servers = Object.keys(config.mcp?.servers ?? {});
+
+  for (const name of servers) if (!allowedServer(name)) errors.push(`MCP server outside the allowlist: ${name}`);
+
+  if (servers.includes("cairn")) for (const path of cairnFiles) if (!files.has(path)) errors.push(`Missing Cairn build file: ${path}`);
+
+  for (const file of manifest.files) {
+    const plugin = file.component === "plugins" ? file.path.split("/")[1] : undefined;
+
+    if (plugin !== undefined && !allowedPlugin(plugin)) errors.push(`Server plugin outside the allowlist: ${plugin}`);
+  }
 
   for (const [path, text] of files) if (secretMarker.test(text)) errors.push(`Secret variable name found: ${path}`);
 

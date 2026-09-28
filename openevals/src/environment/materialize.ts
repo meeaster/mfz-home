@@ -1,17 +1,19 @@
-import { cp, mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { cp, mkdir, mkdtemp, readdir, readFile, rm, symlink, writeFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { z } from "zod";
 import {
+  cairnDirectory,
   digestEnvironmentFiles,
   manifestJson,
   mindframeDirectory,
+  pluginBundle,
   profileDirectory,
   referencesDirectory,
   sha256,
   type EnvironmentManifest,
 } from "./manifest.js";
-import { profileName, writeProfile, type EnvironmentOptions } from "./profiles.js";
+import { environmentPlugins, profileName, writeProfile, type EnvironmentOptions } from "./profiles.js";
 import { applySourceOverrides, archiveSource, resolveCommit, run, workingTreeChanges } from "./sources.js";
 
 /** Candidate container home; rendered paths under the staging and host homes are rewritten to it. */
@@ -109,12 +111,77 @@ async function copyRenderedEnvironment(runtimeHome: string, destination: string)
 }
 
 /**
+ * Build the Cairn package from the archived source, working-tree overrides included, into the environment.
+ *
+ * The build borrows the source home's installed dependencies and runs at a fixed depth inside the source home,
+ * because the bundles name each module by its path relative to the build directory: building elsewhere would
+ * write host paths into them and change their digests.
+ */
+async function buildCairn(sourceHome: string, source: string, environment: string): Promise<void> {
+  const builds = resolve(sourceHome, "openevals", ".materialized");
+
+  await mkdir(builds, { recursive: true });
+
+  const build = await mkdtemp(resolve(builds, ".cairn-build-"));
+
+  const cairn = resolve(build, "packages", "cairn");
+
+  try {
+    await cp(resolve(source, "packages", "cairn"), cairn, { recursive: true });
+    await symlink(resolve(sourceHome, "packages", "cairn", "node_modules"), resolve(cairn, "node_modules"));
+    await run(["node", "build.ts"], cairn);
+
+    const target = resolve(environment, cairnDirectory);
+
+    await cp(resolve(cairn, "dist"), resolve(target, "dist"), { recursive: true });
+    await cp(resolve(cairn, "package.json"), resolve(target, "package.json"));
+  } finally {
+    await rm(build, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Bundle each allowed server plugin the live profiles enable from the archived source into one self-contained
+ * file, as live loads it from the source home with its installed dependencies. Like Cairn's build, it runs at a
+ * fixed depth inside the source home so the bundle names modules by relative path.
+ */
+async function buildPlugins(sourceHome: string, source: string, environment: string): Promise<void> {
+  const builds = resolve(sourceHome, "openevals", ".materialized");
+
+  await mkdir(builds, { recursive: true });
+
+  for (const name of await environmentPlugins(source)) {
+    const build = await mkdtemp(resolve(builds, ".plugin-build-"));
+
+    const plugin = resolve(build, "opencode", "plugins", name);
+
+    try {
+      await cp(resolve(source, "opencode", "plugins", name), plugin, { recursive: true });
+      await symlink(resolve(sourceHome, "opencode", "plugins", name, "node_modules"), resolve(plugin, "node_modules"));
+
+      const bundled = await Bun.build({ entrypoints: [resolve(plugin, "index.ts")], root: plugin, target: "node", format: "esm" });
+
+      const [output] = bundled.outputs;
+
+      if (!bundled.success || output === undefined) throw new Error(`Plugin build failed: ${name}\n${bundled.logs.join("\n")}`);
+
+      const target = resolve(environment, pluginBundle(name));
+
+      await mkdir(resolve(target, ".."), { recursive: true });
+      await writeFile(target, await output.text(), "utf8");
+    } finally {
+      await rm(build, { recursive: true, force: true });
+    }
+  }
+}
+
+/**
  * Render the environment from `mfz-home` source into `<destination>/environment`.
  *
  * Archives the commit, optionally captures in-scope working-tree changes under
  * `<destination>/source-overrides/`, writes the environment profile, renders it
- * with the canonical `mfz` renderer, and records file digests and reference
- * revisions in `manifest.json`.
+ * with the canonical `mfz` renderer, builds Cairn and the allowed server plugins from the same source, and
+ * records file digests and reference revisions in `manifest.json`.
  */
 export async function materializeEnvironment(spec: EnvironmentSpec, destination: string): Promise<MaterializedEnvironment> {
   const sourceCommit = await resolveCommit(spec.sourceHome, spec.revision ?? "HEAD");
@@ -155,6 +222,9 @@ export async function materializeEnvironment(spec: EnvironmentSpec, destination:
     ]);
 
     const references = await copyRenderedEnvironment(runtimeHome, environment);
+
+    await buildCairn(spec.sourceHome, source, environment);
+    await buildPlugins(spec.sourceHome, source, environment);
 
     const manifest: EnvironmentManifest = {
       version: 3,

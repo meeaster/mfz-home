@@ -1,13 +1,13 @@
 import { isAbsolute } from "node:path";
 import { z } from "zod";
 
-export const categories = ["evidence", "source", "synthesis", "deliverable", "record", "conversation", "other"] as const;
+export const categories = ["evidence", "source", "synthesis", "deliverable", "record", "conversation", "learning", "other"] as const;
 
 export const pointerTypes = ["pull_request", "issue", "jira_issue", "confluence_page", "url"] as const;
 
 export const artifactStatuses = ["undescribed", "active", "superseded", "missing", "archived"] as const;
 
-export const effortStatuses = ["active", "paused", "done", "archived"] as const;
+export const effortStatuses = ["provisional", "active", "paused", "done", "archived"] as const;
 
 export const artifactRelations = ["informs", "supersedes", "related"] as const;
 
@@ -73,7 +73,8 @@ export const effortDraft = z.object({
   title: z.string().min(1),
   description: z.string().default(""),
   tags: z.array(tag).default([]),
-  slug: slug.optional()
+  slug: slug.optional(),
+  provisional: z.boolean().default(false)
 });
 
 // Either an existing effort's slug or a new effort to create; parsed into a tagged form.

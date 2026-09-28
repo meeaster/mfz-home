@@ -22,6 +22,7 @@ const sourceHome = resolve(import.meta.dir, "../../../");
 const renderedConfigSchema = z.object({
   experimental: z.record(z.string(), z.number()),
   agents: z.object({ explore: z.object({ permissions: z.array(z.object({ action: z.string() })) }) }),
+  mcp: z.object({ servers: z.record(z.string(), z.object({ command: z.array(z.string()).optional() }).passthrough()) }),
 });
 
 async function withTemp(prefix: string, body: (root: string) => Promise<void>): Promise<void> {
@@ -52,6 +53,14 @@ test("the default environment renders the live roster, instructions, references,
 
     expect(config.experimental).toEqual({ subagent_depth: 3 });
     expect(config.agents.explore.permissions.length).toBeGreaterThan(0);
+
+    // Cairn's catalog server runs in the container from the environment's own build.
+    expect(config.mcp.servers.cairn?.command).toEqual(["cairn-mcp"]);
+    expect(paths).toContain("cairn/dist/opencode/server.js");
+    expect(report.manifest.files.find((file) => file.path === "cairn/dist/mcp.js")?.component).toBe("cairn");
+
+    // Scribe's session_context tool comes from a live server plugin, bundled from the same source.
+    expect(report.manifest.files.find((file) => file.path === "plugins/session-context/server.js")?.component).toBe("plugins");
 
     for (const file of report.manifest.files) {
       const text = await readFile(resolve(result.environment, file.path), "utf8");
@@ -91,6 +100,10 @@ test("source overrides accept rendered inputs and reject everything else", () =>
   expect(overridable("profiles/base/profile.yml")).toBe(true);
   expect(overridable("instructions/PERSONAL.md")).toBe(true);
   expect(overridable("catalog/references.yml")).toBe(true);
+  expect(overridable("packages/cairn/src/core/efforts.ts")).toBe(true);
+  expect(overridable("packages/cairn/dist/cli.js")).toBe(false);
+  expect(overridable("opencode/plugins/session-context/server.ts")).toBe(true);
+  expect(overridable("opencode/plugins/session-context/server.test.ts")).toBe(false);
   expect(overridable("mcp/server/index.ts")).toBe(false);
 });
 
