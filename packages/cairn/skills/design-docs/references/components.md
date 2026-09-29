@@ -168,6 +168,6 @@ What a component or raw block draws builds from the classes in `assets/doc.css`,
 
 **Security views:** the security component holds the view's `.diagram-wrap`, a `.security-key-wrap` with its key, and `.security-tables` with `<!-- component flows B -->` and a "Where data rests" table. See [security](security.md).
 
-**Decision modal:** a decision row (`tr.opens` with `data-detail`) opens the decision's `.decision-detail` in a `dialog.decision-modal`; the build writes the details after the overview's decisions table.
+**Record modal:** anything with `data-detail="D1-detail"` (a decision or question row, a decision-map box) opens that record's `.record-detail` in a `dialog.record-modal`; the build writes each detail once, after the table that defines the record. A component of the design's own can open one the same way, with `class="opens"` and `tabindex="0"` beside the attribute.
 
 **Cards:** anything with `id` and `data-ref` is a definition the reference cards are built from. The build writes every record's definition; only a doc's own component that defines something new needs the attributes: `data-ref-text` on the main text, `data-ref-status`, `data-ref-detail="Label"` (list items become lines), `data-ref-value`, `data-ref-tags`, and `data-ref-link="Label"` on a link to where it's worked out.

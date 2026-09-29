@@ -55,6 +55,7 @@ Once the design has areas, a record that belongs to one gets "Page: <area id>", 
 ## Decisions
 
 ### D1 · THE DECISION, AS A QUESTION?
+- Explanation: WHAT'S BEING DECIDED, IN PLAIN WORDS, AND WHERE IT FITS: THE PART OF THE DESIGN IT'S ABOUT, WHAT IT FOLLOWS OR FEEDS (D2), AND THE GOAL OR REQUIREMENT IT SERVES (R1).
 - Rail: SHORT QUESTION
 - Shapes: WHAT IT SHAPES.
 - Status: Open
@@ -127,6 +128,7 @@ Once the design has areas, a record that belongs to one gets "Page: <area id>", 
 ## Questions
 
 ### Q1 · QUESTION?
+- Explanation: WHAT WE'RE TRYING TO FIND OUT, IN PLAIN WORDS, AND WHY WHAT IT BLOCKS (D1) NEEDS THE ANSWER.
 - Who: NAME (other team)
 - Blocks: D1
 - So far: A PARTIAL ANSWER, IF THERE IS ONE (E1).

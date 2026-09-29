@@ -2,7 +2,7 @@
 
 `design.md` holds everything the design has established: terms, requirements, parts, decisions with their options, risks, costs, data flows, open questions, evidence and meetings. It is the design's single source of truth. The pages write prose around it and draw its pictures; its tables, option cards, decision maps, cost bars and flow tables are rendered from it at build time, and diagrams bind their parts to it, so a fact is edited in one place and every page that shows it follows.
 
-A session that picks the design up reads `design.md` in full, so write each record so it stands on its own: the question, the answer or leaning, why, and where it came from. `assets/example/design.md` is a complete one; `assets/template/design.md` is the starting point.
+A session that picks the design up reads `design.md` in full, so write each record so it stands on its own: the question and what it means, the answer or leaning, why, and where it came from. `assets/example/design.md` is a complete one; `assets/template/design.md` is the starting point.
 
 ## Layout
 
@@ -80,6 +80,7 @@ Text in record fields and terms takes `code`, links to sections (`[text](#id)`),
 | Field | Holds |
 | --- | --- |
 | Status | Open, Leaning B (name the option), Decided, Later, or Given. A Later decision whose Follows are settled can open: propose it, and change it on the user's word. |
+| Explanation | What the decision asks and how it fits into the design, for a reader who doesn't follow the question: what's being decided in plain words, any term it relies on, which part of the design it's about, and how it connects to the goals and the decisions and questions around it. A few sentences that make sense without the options or the evidence. `check` warns when an Open, Leaning or Later decision has none; keep it once decided. It opens the decision's modal; tables and cards leave it out. |
 | Answer, Leaning, For now, Assuming, or So far | One of these: the answer, the team's leaning, or what the design assumes meanwhile. The field name becomes the label. |
 | Why | What tipped it, in one sentence, citing the evidence or requirement by ID. Required once a decision is Leaning or Decided. It shows on the decision's card. |
 | Reasoning | A list: what else weighed in, the tradeoffs accepted, what it depends on. Adds to the Why rather than repeating it. Skip it when the Why says it all. |
@@ -176,7 +177,8 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 | So far | A partial answer and the evidence it rests on, while it's still open |
 | Answer | Once answered: the answer in a few words |
 | Answered by | Once answered: the evidence it became |
-| Asked | Who it was put to, when, and through what, such as `Security GRC · 2026-10-03 · email`. Not shown in the doc. |
+| Explanation | What the question asks and how it fits into the design, as for a decision: what we're trying to find out in plain words, and what it feeds and why that needs it. `check` warns when an open question has none. It opens the question's modal; tables and cards leave it out. |
+| Asked | Who it was put to, when, and through what, such as `Security GRC · 2026-10-03 · email`. Shown in the question's modal. |
 
 A question has no status: it's open until it has an Answer and Answered by. When and how it was asked goes in `Asked`; what to ask next is proposed when someone asks for a plan, and `check` warns about `Status`, `Latest` or `Page` on a question.
 

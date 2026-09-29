@@ -229,10 +229,11 @@ export default function decisionMap({ props, model, pageDecisions = [], prefix =
       const inScope = scope.includes(id);
       const inner = `<div class="top"><span class="mono">${id}</span>${status(id)}</div><div class="q">${inline(record.title)}</div><div class="foot">${inline(foot(record, shortDate))}</div>`;
 
+      // A decision with a section on this page links to it; any other decision, and each question, opens its modal.
       if (inScope && prefix !== "") {
         nodes.push(`<a class="node decision" href="#${esc(prefix)}-${id.toLowerCase()}" style="${style};text-decoration:none">${inner}</a>`);
       } else {
-        nodes.push(`<div class="node decision${inScope ? "" : " context"}" style="${style}">${inner}</div>`);
+        nodes.push(`<div class="node decision opens${inScope ? "" : " context"}" data-detail="${id}-detail" tabindex="0" style="${style}">${inner}</div>`);
       }
 
       place.set(id, { x, y });
@@ -240,7 +241,9 @@ export default function decisionMap({ props, model, pageDecisions = [], prefix =
       const laid = (last ? besideLayout : belowLayout)(questionsOf.get(id), x, y, cardHeight);
 
       for (const question of laid.placed) {
-        nodes.push(`<div class="node question" style="--x:${question.x};--y:${question.y};--w:${question.width};--h:${question.height}">${ref(question.id)}${esc(question.text)}</div>`);
+        const box = `--x:${question.x};--y:${question.y};--w:${question.width};--h:${question.height}`;
+
+        nodes.push(`<div class="node question opens" data-detail="${question.id}-detail" tabindex="0" style="${box}">${ref(question.id)}${esc(question.text)}</div>`);
       }
 
       for (const path of laid.edges) edges.push(`<path class="edge link" d="${path}"/>`);

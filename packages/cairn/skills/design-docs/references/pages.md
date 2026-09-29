@@ -64,9 +64,11 @@ One row per decision. Each row comes from the decision's record:
 - its status: open, leaning, decided, or plain for Later and Given. Decision markers across the doc take their colour from it.
 - the answer, the current leaning, or what's assumed meanwhile, and what it's waiting on
 - where it's worked out (its brief or area page, the meeting that settled it, or "No brief yet" / "Not started") and the other areas it shapes
-- clicked, on the overview or an area page, the decision opens in a modal: its answer, Why, Reasoning and Revisit if, and its options or alternatives each with a status and reason; beside them, the questions it waits on, where it's worked out, the other areas it shapes, and its evidence. The decision's card shows the Why under the answer, with "Full reasoning" opening the same modal.
+- clicked, on the overview or an area page, the decision opens in a modal: its Explanation, then its answer, Why, Reasoning and Revisit if, and its options or alternatives each with a status and reason; beside them, the questions it waits on, where it's worked out, the other areas it shapes, and its evidence. The decision's card shows the Why under the answer, with "Open details" opening the same modal.
 
 Within each group, unsettled decisions come first. A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
+
+Question rows open the same way: the question's Explanation and So far (or its Answer), and beside them who can answer it, when it was asked, what it blocks, its evidence, and where it lives. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
 
 ## Page files
 

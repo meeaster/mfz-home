@@ -25,8 +25,8 @@ Most sections need only their heading. Add an intro under a heading only when it
 | How it measures up | Each requirement, whether the design meets it (yes, partly, no), how, and the evidence, questions or decisions it rests on. |
 | Cost | One line per cost, what drives it, the monthly figure, and its pricing evidence, grouped by area with each area's subtotal: Costs records, with the basis of the figures as the section's intro. When volumes aren't known yet, put the rate in What drives it and "unknown (Q8)" in Monthly, with the question that would settle it; the total then says how many lines aren't known rather than inventing one. A line that would change if a decision went another way names it in `Affected by`, or gives each option's figure with `Varies with`. A cost that grows over time is a range ("$3 → $39"), and says so in What drives it. |
 | Risks | What could go wrong once it's running: likelihood, what happens, what we'd do, and what it's linked to. |
-| Decisions | Every decision the design depends on, open or made, with its status and where it's worked out. Each row opens the decision in a modal with its reasoning and alternatives, all from design.md. See [pages](pages.md). |
-| Open questions | Every open question, who can answer it and what it blocks. Answered ones collapse under their home page's list. |
+| Decisions | Every decision the design depends on, open or made, with its status and where it's worked out. Each row opens the decision in a modal with its explanation, reasoning and alternatives, all from design.md. See [pages](pages.md). |
+| Open questions | Every open question, who can answer it and what it blocks. Each row opens the question in a modal with its explanation. Answered ones collapse under their home page's list. |
 
 Leave out a section with nothing real in it: cost for a process change, the security view when no data crosses a boundary, the map until there are areas.
 
@@ -97,6 +97,24 @@ When a requirement is implied by how the question was asked but nobody stated it
 - Facts the requester states are evidence too. Write "Stated in the request, not independently checked" in How we know and "Request · <date>" in Gathered from. When a requirement or decision rests on one, add a question to confirm it.
 - A finding can be an absence ("the vendor's docs describe no rotation feature"). Say what was searched, and pair it with a question to whoever could confirm when it matters.
 - Public documentation can be linked from Gathered from; it's portable. Private sources can't.
+
+## Explanations
+
+Each open decision and question carries an `Explanation`: what it asks and how it fits into the design, for the reader who sees the question and doesn't follow it. It's the first thing their modal shows, before the answer or options.
+
+- Say what's being asked in plain words, and spell out any term the title leans on ("the flags", "pick-up", "the relay").
+- Place it: which part of the design it's about, what it follows or feeds, and the goal or requirement it serves, by ID.
+- Keep to what the question is. Options, the leaning and why each have their own fields.
+- Three to five sentences that make sense on their own, without the options or the evidence.
+
+```markdown
+### Q2 · Does security standard SEC-12 allow customer traffic to end inside Shared Tooling?
+- Explanation: Customer connections have to end somewhere inside our network. SEC-12 is the security standard for Shared Tooling, the network that hosts our internal tools. If it doesn't allow customer traffic to end there, the workers can't go in Shared Tooling (D1, option A); that doubt is the main reason the design leans towards a VPC of their own.
+- Short: May customer traffic end in Shared Tooling?
+- Who: Security (GRC) (other team)
+- Blocks: D1
+- Asked: Security GRC · 2026-10-03 · email
+```
 
 ## Open questions
 

@@ -81,6 +81,7 @@ DECISION_STATUS = {"open": "open", "leaning": "leaning", "decided": "decided", "
 OPTION_STATUS = {"current leaning": "leaning", "chosen": "chosen", "not chosen": "not-chosen", "set aside": "", "found in research": "", "not designed yet": ""}
 OPTION_PILL = {"current leaning": "leaning", "chosen": "decided"}
 WHY_LIMIT = 240
+EXPLANATION_HINT = "a few sentences on what it asks and where it fits, for a reader who doesn't follow it"
 # How far a decision has got, for progress: Given counts as settled.
 DECISION_STATE = {"open": "open", "leaning": "leaning", "later": "later", "decided": "decided", "given": "decided"}
 UNSETTLED = ("open", "leaning", "later")
@@ -534,6 +535,8 @@ def is_answered(question: Record) -> bool:
 def check_question(record: Record, design: Design) -> None:
     """A question says who can answer it, what it holds up, and when it was asked; what to ask next isn't recorded."""
     where = design.where(record.line)
+    if not is_answered(record) and not record.get("Explanation"):
+        design.warnings.append(f"{where}: open question '{record.id}' has no 'Explanation': {EXPLANATION_HINT}")
     if not record.get("Blocks"):
         design.warnings.append(f"{where}: question '{record.id}' blocks nothing; a question that holds up no decision, requirement or flow belongs in the effort's open questions")
     status = record.field("Status")
@@ -585,6 +588,8 @@ def check_decision(record: Record, design: Design) -> None:
     state = status.split()[0].lower()
     where = design.where(record.line)
 
+    if state in UNSETTLED and not record.get("Explanation"):
+        design.warnings.append(f"{where}: decision '{record.id}' is {status} but has no 'Explanation': {EXPLANATION_HINT}")
     if state in ("decided", "leaning") and not record.get("Why"):
         design.errors.append(f"{where}: decision '{record.id}' is {status} but has no 'Why': one sentence on what tipped it, citing the evidence")
     decided_in = record.field("Decided in")
@@ -700,6 +705,8 @@ class Renderer:
         # The page that defines every record: the overview, or the first page when a doc has none.
         self.home = "overview" if "overview" in pages else next(iter(pages), "overview")
         self.opts: dict[str, str] = {}
+        # The records whose modal detail is already written, so a record shown in two tables gets one.
+        self.written: set[str] = set()
 
     def inline(self, text: str) -> str:
         kept: list[str] = []
@@ -936,16 +943,73 @@ class Renderer:
             return ""
         return f'<div><h4>{"Options" if r.options else "Alternatives"}</h4><ul class="alts">{"".join(rows)}</ul></div>'
 
+    def detail_head(self, r: Record, pill: str, sub: str) -> str:
+        close = '<button type="button" class="dm-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'
+        line = f'<p class="dm-shapes">{self.inline(sub)}</p>' if sub else ""
+        if r.kind == "question":
+            # A question runs long, so it takes its own line under the ID and status.
+            return f'<div class="dm-head"><div class="dm-top"><div class="dm-title">{self.ref(r.id)}{pill}</div>{close}</div><h2>{self.inline(r.title)}</h2>{line}</div>'
+        return f'<div class="dm-head"><div class="dm-top"><div class="dm-title">{self.ref(r.id)}<h2>{self.inline(r.title)}</h2>{pill}</div>{close}</div>{line}</div>'
+
+    def explanation(self, r: Record) -> list[str]:
+        return [f'<div class="dm-explain"><h4>Explanation</h4><p>{self.inline(r.get("Explanation"))}</p></div>'] if r.get("Explanation") else []
+
+    def id_list(self, idents: list[str], soft: bool = False) -> str:
+        """Records as a list, each ID beside its short title."""
+        items = "".join(
+            f"<li>{self.ref(i)}<span>{self.inline(self.known[i].get('Short') or self.known[i].get('Rail') or self.known[i].title)}</span></li>"
+            for i in idents
+            if i in self.known
+        )
+        return f'<ul class="dm-list{" soft" if soft else ""}">{items}</ul>' if items else ""
+
+    def details(self, records: list[Record]) -> str:
+        """The modal details of records not written yet, hidden after the table that defines them."""
+        fresh = [r for r in records if r.id not in self.written]
+        self.written.update(r.id for r in fresh)
+        written = "".join(self.decision_detail(r) if r.kind == "decision" else self.question_detail(r) for r in fresh)
+        return f'<div class="record-details">{written}</div>' if written else ""
+
+    def question_detail(self, q: Record) -> str:
+        """What a question opens to: what it asks and where it fits, and what's known so far or its answer; beside them
+        who can answer it, when it was asked, what it blocks, the evidence behind it and where it lives."""
+        answered = is_answered(q)
+        pill = f'<span class="status{"" if answered else " open"}">{"Answered" if answered else "Open"}</span>'
+        main = self.explanation(q)
+        label = "Answer" if answered else "So far"
+        if q.get(label):
+            main.append(f'<div class="dm-answer"><h4>{label}</h4><p>{self.inline(q.get(label))}</p></div>')
+
+        side = []
+        name, kind = who(q.get("Who"))
+        if name:
+            side.append(f'<div><h4>Who can answer</h4><p>{esc(name)}{f" · {esc(kind)}" if kind else ""}</p></div>')
+        if q.get("Asked"):
+            side.append(f'<div><h4>Asked</h4><p>{self.inline(q.get("Asked"))}</p></div>')
+        blocks = split_list(q.get("Blocks"))
+        if blocks:
+            others = [b for b in blocks if b not in self.known]
+            rest = f"<p>{esc(', '.join(others))}</p>" if others else ""
+            side.append(f'<div><h4>{"Blocked" if answered else "Blocks"}</h4>{self.id_list(blocks)}{rest}</div>')
+        if answered:
+            side.append(f'<div><h4>Answered by</h4>{self.id_list(split_list(q.get("Answered by")), soft=True)}</div>')
+        cited = [i for i in dict.fromkeys(MENTION.findall(q.get("So far")) + MENTION.findall(q.get("Explanation"))) if i.startswith("E") and i in self.known]
+        if cited and not answered:
+            side.append(f'<div><h4>Evidence</h4>{self.id_list(cited, soft=True)}</div>')
+        if self.home_of(q) != self.home:
+            side.append(f'<div><h4>Lives on</h4><div class="dm-chips">{self.area_chip(self.home_of(q))}</div></div>')
+
+        body = f'<div class="dm-body"><div class="dm-main">{"".join(main)}</div><div class="dm-side">{"".join(side)}</div></div>'
+        return f'<div class="record-detail" id="{q.id}-detail" aria-label="{esc(q.id)} · {esc(q.title)}">{self.detail_head(q, pill, "")}{body}</div>'
+
     def decision_detail(self, r: Record) -> str:
-        """What a decision opens to: its answer and reasoning, its options or alternatives, and beside them what it
-        waits on, where it's worked out, the other areas it shapes and the evidence behind it."""
+        """What a decision opens to: what it asks and where it fits, its answer and reasoning, its options or alternatives,
+        and beside them what it waits on, where it's worked out, the other areas it shapes and the evidence behind it."""
         text, cls = self.status(r)
         pill = f'<span class="status{" " + cls if cls else ""}">{esc(text)}</span>'
-        shapes = f'<p class="dm-shapes">{self.inline(shapes_line(r, self.design))}</p>' if shapes_line(r, self.design) else ""
-        close = '<button type="button" class="dm-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'
-        head = f'<div class="dm-head"><div class="dm-top"><div class="dm-title">{self.ref(r.id)}<h2>{self.inline(r.title)}</h2>{pill}</div>{close}</div>{shapes}</div>'
+        head = self.detail_head(r, pill, shapes_line(r, self.design))
 
-        main = []
+        main = self.explanation(r)
         label = next((key for key in ANSWER_LABELS if r.get(key)), None)
         if label:
             note = f'<p class="note">{self.inline(r.get("Note"))}</p>' if r.get("Note") else ""
@@ -958,8 +1022,7 @@ class Renderer:
         side = []
         waiting = [i for i in split_list(r.get("Waiting on")) if i in self.known]
         if waiting and self.state(r) != "decided":
-            items = "".join(f"<li>{self.ref(i)}<span>{self.inline(self.known[i].get('Short') or self.known[i].title)}</span></li>" for i in waiting)
-            side.append(f'<div><h4>Waiting on</h4><ul class="dm-list">{items}</ul></div>')
+            side.append(f'<div><h4>Waiting on</h4>{self.id_list(waiting)}</div>')
         side.append(f'<div><h4>Worked out in</h4>{self.worked_out(r)}</div>')
         shaped = [p for p in split_list(r.get("Applies to")) if p != self.home_of(r)]
         if shaped:
@@ -971,8 +1034,7 @@ class Renderer:
             cited += MENTION.findall(point)
         evidence = [i for i in dict.fromkeys(cited) if i.startswith("E") and i in self.known]
         if evidence:
-            items = "".join(f"<li>{self.ref(i)}<span>{self.inline(self.known[i].get('Short') or self.known[i].title)}</span></li>" for i in evidence)
-            side.append(f'<div><h4>Evidence</h4><ul class="dm-list soft">{items}</ul></div>')
+            side.append(f'<div><h4>Evidence</h4>{self.id_list(evidence, soft=True)}</div>')
 
         foot = ""
         target = r.get("Worked out in")
@@ -981,7 +1043,7 @@ class Renderer:
             foot = f'<div class="dm-foot"><a class="dm-compare" href="#{esc(target)}">Compare the options in the brief</a></div>'
 
         body = f'<div class="dm-body"><div class="dm-main">{"".join(main)}</div><div class="dm-side">{"".join(side)}</div></div>'
-        return f'<div class="decision-detail" id="{r.id}-detail" aria-label="{esc(r.id)} · {esc(r.title)}">{head}{body}{foot}</div>'
+        return f'<div class="record-detail" id="{r.id}-detail" aria-label="{esc(r.id)} · {esc(r.title)}">{head}{body}{foot}</div>'
 
     def state(self, record: Record) -> str:
         return DECISION_STATE.get((record.get("Status") or "Open").split()[0].lower(), "open")
@@ -1027,9 +1089,8 @@ class Renderer:
                 for home, members in self.by_home(records):
                     rows.append(self.group_row(home, 5))
                     rows += [self.decision_row(r, True, self.also(r)) for r in self.settled_last(members)]
-            details = "".join(self.decision_detail(r) for r in records)
             table = self.table(["ID", "Decision", "Status", "Answer, or where it's leaning", "Worked out in"], rows)
-            return f'{table}<div class="decision-details">{details}</div>'
+            return table + self.details(records)
 
 
         def row(r: Record, lives_on: str | None) -> str:
@@ -1193,7 +1254,7 @@ class Renderer:
         so_far = f'<span class="sub">So far: <span data-ref-detail="So far">{self.inline(q.get("So far"))}</span></span>' if q.get("So far") else ""
         lives = self.lives("Lives on", [lives_on]) if lives_on else ""
         ident = f'<td class="id">{q.id}</td>' if define else f'<td class="id">{self.ref(q.id)}</td>'
-        attrs = f' id="{q.id}" data-ref="question"' if define else ""
+        attrs = (f' id="{q.id}" data-ref="question"' if define else "") + f' class="opens" data-detail="{q.id}-detail" tabindex="0"'
         text = f'<span{" data-ref-text" if define else ""}>{self.inline(q.title)}</span>'
         who_attrs = f' data-ref-detail="Who can answer" data-ref-value="{esc(q.get("Who"))}"' if define else ""
         return (
@@ -1205,7 +1266,7 @@ class Renderer:
         evidence = split_list(q.get("Answered by"))
         found = next((self.known[e].get("Found") for e in evidence if e in self.known and self.known[e].get("Found")), "")
         when = f'<span class="sub">Answered {esc(found)}</span>' if found else ""
-        attrs = f' id="{q.id}" data-ref="question" data-answered' if define else ""
+        attrs = (f' id="{q.id}" data-ref="question" data-answered' if define else "") + f' class="opens" data-detail="{q.id}-detail" tabindex="0"'
         ident = q.id if define else self.ref(q.id)
         answer = self.inline(q.get("Answer"))
         return (
@@ -1221,7 +1282,7 @@ class Renderer:
         return (
             f'<details class="answered"><summary>Answered <span class="n">{len(questions)}</span></summary>'
             f'<div class="table-wrap"><table class="table"><tbody>{rows}</tbody></table></div></details>'
-        )
+        ) + (self.details(questions) if define else "")
 
     def questions(self, page: str, ids: list[str] | None) -> str:
         """Open questions, then the answered ones collapsed. Each is defined on the overview, or on its home page once answered."""
@@ -1236,11 +1297,11 @@ class Renderer:
         if page == self.home and not blocks:
             rows = [self.question_row(q, True) for q in open_] if ids is not None else self.gathered(open_, 4, lambda q: self.question_row(q, True))
             here = [q for q in answered if self.home_of(q) == page]
-            return (self.table(head, rows) if rows else "") + self.answered_group(here, True)
+            return (self.table(head, rows) + self.details(open_) if rows else "") + self.answered_group(here, True)
         if blocks:
             define = page == self.home
             rows = [self.question_row(q, define, None if define else self.home_of(q)) for q in open_]
-            return (self.table(head, rows) if rows else "") + self.answered_group(answered, define)
+            return (self.table(head, rows) + (self.details(open_) if define else "") if rows else "") + self.answered_group(answered, define)
         rows = self.local(page, open_, 4, lambda q, lives_on: self.question_row(q, False, lives_on), "Owned elsewhere, affects this area")
         here = [q for q in answered if self.home_of(q) == page]
         return (self.table(head, rows) if rows else "") + self.answered_group(here, True)

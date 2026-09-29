@@ -63,7 +63,7 @@ Widen boxes or move labels rather than shrinking type.
 
 ## Decision map
 
-`::: decision-map` draws a brief's map from the records: the page's decisions (its `## D1` sections) outlined, the decisions they follow and those that follow them as grey context, in columns by `Follows`, and the open questions in each unsettled decision's `Waiting on` (each question once): beside the decisions in the last column, and under the others, one or two in a row and more in pairs along a spine. A question drops off when it's answered, and a status pill changes with the record. Give questions a `Short` field so their boxes stay small. For a map the records can't express, write a component of the doc's own and bind its boxes to the records.
+`::: decision-map` draws a brief's map from the records: the page's decisions (its `## D1` sections) outlined, the decisions they follow and those that follow them as grey context, in columns by `Follows`, and the open questions in each unsettled decision's `Waiting on` (each question once): beside the decisions in the last column, and under the others, one or two in a row and more in pairs along a spine. A question drops off when it's answered, and a status pill changes with the record. A page's own decision links to its section; a context decision or a question opens its modal. Give questions a `Short` field so their boxes stay small. For a map the records can't express, write a component of the doc's own and bind its boxes to the records.
 
 ## What we're after
 

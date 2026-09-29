@@ -776,17 +776,17 @@ table.table { width: 100%; border-collapse: collapse; }
 .table details[open] summary::before { transform: rotate(90deg); }
 .table td.has-details { padding-left: 42px; }
 .table tr:has(details[open]) td { background: var(--muted); }
-/* Decision rows open the decision in a modal (doc.js); the build writes each decision's detail after its table.
+/* Decision and question rows open the record in a modal (doc.js); the build writes each detail after its table.
    Without the script the details show under the table, one after another. */
 .table tr.opens { cursor: pointer; }
 .table tr.opens:hover td, .table tr.opens:focus-visible td { background: var(--muted); }
 .table tr.opens:focus-visible { outline: 2px solid var(--ring, var(--foreground)); outline-offset: -2px; }
-html.js .decision-details { display: none; }
-html:not(.js) .decision-details { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
-html:not(.js) .decision-detail { border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+html.js .record-details { display: none; }
+html:not(.js) .record-details { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+html:not(.js) .record-detail { border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
 html:not(.js) .dm-close { display: none; }
 
-.decision-modal {
+.record-modal {
   width: min(920px, calc(100vw - 32px));
   max-height: calc(100vh - 64px);
   padding: 0;
@@ -797,11 +797,12 @@ html:not(.js) .dm-close { display: none; }
   box-shadow: 0 16px 48px rgb(0 0 0 / 20%);
   overflow: auto;
 }
-.decision-modal::backdrop { background: rgb(10 10 15 / 40%); }
+.record-modal::backdrop { background: rgb(10 10 15 / 40%); }
 .dm-head { display: flex; flex-direction: column; gap: 8px; padding: 20px 24px 18px; border-bottom: 1px solid var(--border); }
 .dm-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
 .dm-title { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
-.dm-title h2 { font-size: 20px; letter-spacing: -0.3px; }
+.dm-title h2, .dm-head > h2 { font-size: 20px; letter-spacing: -0.3px; }
+.dm-head > h2 { line-height: 1.35; }
 .dm-shapes { font-size: 13.5px; color: var(--muted-foreground); }
 .dm-close { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); cursor: pointer; }
 .dm-close:hover { background: var(--muted); color: var(--foreground); }
@@ -810,6 +811,8 @@ html:not(.js) .dm-close { display: none; }
 .dm-main, .dm-side { display: flex; flex-direction: column; gap: 20px; font-size: 14px; line-height: 1.55; }
 .dm-side { font-size: 13px; line-height: 1.4; }
 .dm-body h4 { font-size: 12px; font-weight: 600; color: var(--muted-foreground); margin-bottom: 6px; }
+.dm-explain:not(:last-child) { padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+.dm-explain p { font-size: 14.5px; line-height: 1.6; }
 .dm-answer > p:first-of-type { font-size: 17px; font-weight: 600; line-height: 1.4; }
 .dm-answer .note { margin-top: 4px; color: var(--muted-foreground); font-size: 13.5px; }
 .dm-main ul:not(.alts) { display: flex; flex-direction: column; gap: 6px; font-size: 13.5px; }
@@ -1173,6 +1176,9 @@ a.flow:hover, a.flow[aria-expanded="true"] { box-shadow: 0 0 0 1px currentColor;
 .node.decision .foot { font-size: 12px; color: var(--muted-foreground); }
 .node.question { flex-direction: column; align-items: stretch; justify-content: flex-start; gap: 3px; padding: 9px 11px; border-color: var(--warn); background: var(--warn-bg); font-size: 12px; line-height: 1.35; }
 .node.question .ref { align-self: flex-start; }
+/* A context decision or a question opens its modal. */
+.node.opens { cursor: pointer; }
+.node.opens:hover, .node.opens:focus-visible { outline: 2px solid var(--muted-foreground); outline-offset: 1px; }
 
 /* Meetings */
 
@@ -1204,5 +1210,5 @@ a.flow:hover, a.flow[aria-expanded="true"] { box-shadow: 0 0 0 1px currentColor;
   .doc { display: block; }
   .main { padding: 0; max-width: none; }
   .table details:not([open]) > :not(summary) { display: block; }
-  html.js .decision-details { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
+  html.js .record-details { display: flex; flex-direction: column; gap: 20px; margin-top: 24px; }
 }
