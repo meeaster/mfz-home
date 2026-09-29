@@ -3,10 +3,6 @@ skills:
     source: local
     skill: skills/active/agents-md-authoring
     description: Focused authoring and review of repository and folder-local AGENTS.md guidance.
-  - name: design-docs
-    source: local
-    skill: skills/active/design-docs
-    description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
   - name: task-output
     source: local
     skill: packages/cairn/skills/task-output
@@ -31,6 +27,10 @@ skills:
     source: local
     skill: packages/cairn/skills/orchestrate-chief
     description: Human-only Chief collaboration entry.
+  - name: design-docs
+    source: local
+    skill: packages/cairn/skills/design-docs
+    description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
   - name: anti-slop
     source: local
     skill: skills/active/anti-slop
