@@ -1,0 +1,57 @@
+<div class="story">
+  <div class="story-row">
+    <div class="story-head"><span class="eyebrow">Today</span><strong>We pay for every log, keep none of them, and customers can't reach us.</strong></div>
+    <div class="diagram-wrap diagram-scroll">
+      <div class="diagram" style="--w:912;--h:150">
+        <svg class="edges" viewBox="0 0 912 150">
+          <path class="band" d="M172 39 H728"/>
+          <path class="band noise" d="M172 43 H728"/>
+          <path class="band-head" d="M728 29 L742 39 L728 49 Z"/>
+          <path class="stub" d="M172 115 H300"/>
+        </svg>
+        <div class="node" style="--x:0;--y:12;--w:172;--h:54"><svg><use href="#i-shield"/></svg><span class="t"><b>Firewalls</b><small>14 sites</small></span></div>
+        <div class="node" style="--x:0;--y:88;--w:172;--h:54"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from November</small></span></div>
+        <div class="node" style="--x:742;--y:12;--w:170;--h:54"><svg><use href="#i-activity"/></svg><span class="t"><b>Search and alerts</b><small>billed per log</small></span></div>
+        <div class="node faded" style="--x:742;--y:88;--w:170;--h:54"><svg><use href="#i-archive"/></svg><span class="t"><b>No copy of our own</b><small>nothing kept</small></span></div>
+        <span class="edge-label" style="--x:456;--y:56">every log, noise included · all of it billed</span>
+        <span class="wall" style="--x:300;--y:101"></span>
+        <span class="edge-label warn" style="--x:314;--y:106;transform:none">no way in</span>
+      </div>
+    </div>
+  </div>
+  <div class="story-row">
+    <div class="story-head"><span class="eyebrow">With the pipeline</span><strong>Every log kept for a year, only the useful ones billed, and customers let in.</strong></div>
+    <div class="diagram-wrap diagram-scroll">
+      <div class="diagram" style="--w:912;--h:172">
+        <svg class="edges" viewBox="0 0 912 172">
+          <path class="band" d="M172 39 C276 39 276 64 380 64"/>
+          <path class="band noise" d="M172 43 C276 43 276 68 380 68"/>
+          <path class="lane a" d="M172 115 C276 115 276 78 380 78"/>
+          <path class="lane b" d="M172 123 C276 123 276 84 380 84"/>
+          <path class="lane c" d="M172 131 C276 131 276 90 380 90"/>
+          <path class="band clean" d="M550 64 C640 64 640 39 728 39"/>
+          <path class="band-head clean" d="M728 31 L742 39 L728 47 Z"/>
+          <path class="band" d="M550 82 C640 82 640 121 728 121"/>
+          <path class="band noise" d="M550 86 C640 86 640 125 728 125"/>
+          <path class="band-head" d="M728 111 L742 121 L728 131 Z"/>
+          <path class="lane a" d="M550 94 C640 94 640 133 728 133"/>
+          <path class="lane b" d="M550 98 C640 98 640 137 728 137"/>
+          <path class="lane c" d="M550 102 C640 102 640 141 728 141"/>
+        </svg>
+        <div class="node" style="--x:0;--y:12;--w:172;--h:54"><svg><use href="#i-shield"/></svg><span class="t"><b>Firewalls</b><small>14 sites</small></span></div>
+        <div class="node" style="--x:0;--y:96;--w:172;--h:54"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from November</small></span></div>
+        <div class="node hub" style="--x:380;--y:40;--w:170;--h:64"><svg><use href="#i-waypoints"/></svg><span class="t"><b>Log pipeline</b></span></div>
+        <div class="node met" style="--x:742;--y:12;--w:170;--h:54"><svg><use href="#i-activity"/></svg><span class="t"><b>Search and alerts</b><small>within a minute</small></span></div>
+        <div class="node met" style="--x:742;--y:96;--w:170;--h:54"><svg><use href="#i-archive"/></svg><span class="t"><b>Archive</b><small>every log, a year</small></span></div>
+        <span class="goal" style="--x:586;--y:12">01</span>
+        <span class="edge-label" style="--x:620;--y:13;transform:none">only the logs we use</span>
+        <span class="goal" style="--x:392;--y:114">02</span>
+        <span class="edge-label" style="--x:426;--y:115;transform:none">noise skips search</span>
+        <span class="goal" style="--x:188;--y:146">03</span>
+        <span class="edge-label" style="--x:222;--y:147;transform:none">private, kept apart</span>
+        <span class="goal" style="--x:586;--y:150">04</span>
+        <span class="edge-label" style="--x:620;--y:151;transform:none">every log, noise too</span>
+      </div>
+    </div>
+  </div>
+</div>

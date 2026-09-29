@@ -1,54 +1,80 @@
 # Pages and how a doc grows
 
-A design doc is one HTML file per effort, made of pages. The reader sees one page at a time and switches with the page list at the top of the rail. Every E, Q, D and R number is unique across the whole doc, so a marker on any page opens the same card.
+A design doc is one HTML file per design, made of pages and built from the design's records. The reader sees one page at a time and switches with the page list at the top of the rail. Every E, Q, D and R number is unique across the whole doc, so a marker on any page opens the same card.
+
+The doc records where the design stands. It doesn't say what to do next: who to chase, what to ask at the next meeting, or which question to settle first. That belongs to the effort (its `context.md`: next actions and waiting-on).
 
 ## Page types
 
 | Group | Page | Holds |
 | --- | --- | --- |
-| `overview` | Overview | What we're building, end to end: in short and terms, the requirements that span the system, the solution diagram (architecture and security views) with its parts table, the decisions table, how the design measures up against the requirements, cost, and risks. |
-| `area` | One per area that needs its own design | A part of the system in more detail than the overview can hold (an archive's bucket layout, a pipeline's routing rules, a network's segmentation). In short and terms, its own requirements plus the overview requirements that apply, a design diagram with a parts table, and how it measures up. Add cost or risks when they're specific to it. |
-| `brief` | One per decision that needs a meeting to settle it | The question, a decision map, and the options with diagrams, comparison, and cost. See [writing](writing.md). |
-| `shared` | Evidence, Open questions, Meetings | Every finding, every open question, and every meeting, for the whole doc. |
+| `overview` | Overview | The problem, the goals, the whole system, and every record's current state: requirements, how the design measures up, cost, risks, decisions and open questions, grouped by the area each lives on with the ones that span areas first. Progress sits under its header. |
+| `area` | One per part of the design that has records of its own | That part in detail: its own requirements, design diagram and parts, how it measures up, risks, decisions and questions, then the ones from elsewhere that reach it. |
+| `brief` | One per decision that needs its options weighed side by side | The question, a decision map, the options with diagrams, comparison and cost, and the open questions that block it. See [writing](writing.md). |
+| `shared` | Evidence, Meetings | Every finding and every meeting, for the whole doc. |
+
+## Scope
+
+The skill is for designing something that will be built or changed. A vendor or tool choice is usually one decision: a doc that is mostly one brief. An investigation (why is something slow?) is mostly questions and evidence until the cause is known; keep it small (an overview with its questions, and a brief once there are options) rather than filling sections that have nothing to say yet.
 
 ## Starting and growing
 
-- **One question to take to a meeting:** a doc with a brief page and the three shared pages. The brief defines its own requirements and decisions.
-- **What we're building:** a doc with an overview and the shared pages. Add briefs and area pages as they're needed.
-- **A brief that grows into a design:** add an overview, then move the brief's requirements and its decision definitions into the overview (see below). The brief keeps its options.
-- **When to give an area its own page:** when it has a diagram at a finer level than the overview's, decisions of its own, and different reviewers or a different pace. Until then it's a row in the overview's parts table and a box in its diagram.
-- **When to write a brief:** when a decision has at least two real options that need comparing in a meeting, with diagrams. Many decisions don't: one settled in a meeting, or with an obvious answer and a finding behind it, is a row in the decisions table and nothing more. In between, an area page can weigh a small decision about its own part in a comparison table or compact option cards; once the options need their own diagrams or a meeting of their own, give it a brief.
-- Leave implementation plans and task lists out. Link to where the work is tracked, if anywhere. A short Rollout section on the overview is fine when the order of change is itself a design question, such as a migration where old and new run side by side.
+- **One question to take to a meeting:** a doc with a brief page and the shared pages. The brief shows the requirements, decisions and questions itself.
+- **What we're building:** start with an overview, briefs as decisions need them, and the shared pages. No areas yet: every record lives on the overview.
+- **When to split off an area:** when a part has requirements, decisions and questions of its own, and most of them would live on it alone. Give it a page, set `Page: <area id>` on the records that belong to it, and its parts move with them. Records don't have to be re-entered; only where they live changes. Areas can come later: a design is often only clear about its parts once the first decisions are made.
+- **How to split:** choose areas so most records live in one of them. Pipeline stages, layers (UI, API, infrastructure), capabilities (sign-up, billing), migration phases, or systems all work when they keep records apart. If most records would reach two areas, the split is wrong; try another.
+- **A brief that grows into a design:** add an overview, and delete the brief's Requirements and Decisions sections and `context`. The records don't move; only where they're shown does.
+- **When to write a brief:** when a decision has at least two real options that need comparing in a meeting, with diagrams. Many decisions don't: one settled in a meeting, or with an obvious answer and a finding behind it, is a row in the decisions table and nothing more. In between, an area page can weigh a small decision about its own part in a comparison table or compact option cards.
+- Leave implementation plans and task lists out; they belong to the efforts building the design (their `approach.md` and `context.md`). A short Rollout section on the overview is fine when the order of change is itself a design question, such as a migration where old and new run side by side.
 
-## Where each item is defined
+## Where each record lives
 
-Each item is written once, in one place, and everything else points at it:
+Every requirement, decision, option, part, risk, question, finding and meeting is a record in `design.md` (see [records](records.md)). A record lives on one page, and is worked on there:
 
-| Item | Defined on | Elsewhere |
-| --- | --- | --- |
-| Requirements | The overview for the whole system; an area page for its own. A brief without an overview defines its own. | Other pages list a requirement with an `R` marker, not a second definition. |
-| Decisions | The overview's decisions table. A brief without an overview defines its decisions in its decision sections, and the ones it shows only for context in a short "Other decisions" table. | Markers on diagrams and in tables. A brief's decision section is a plain section with the marker in its title, so its status is only ever set in the table. |
-| Evidence, questions | The shared pages. | Markers and mentions on any page. |
-| Meetings | The Meetings page. | Links from the decisions table ("Aug 14 · Platform sync"). |
+| Record | Lives on |
+| --- | --- |
+| Requirement, decision, part, risk | Its `Page`, or the overview when it has none. Put a record on the overview only when it's about the whole design (how it's divided, what runs it, a rule every area follows); otherwise it lives with whoever owns it, and `Applies to` names the other areas it reaches. |
+| Question | Wherever the things it blocks live: an area when they all live on it, the overview when they span pages. It isn't set by hand. |
+| Evidence, meeting | The shared pages. |
 
-`check` warns when evidence or a question is defined outside the shared pages, and fails on a duplicate id anywhere.
+Pages show records through their standard sections and components, and point at them with markers and mentions; they never define one. Each record is defined once, on the overview (or the first page when a doc has none): its row there is what every card opens. An answered question is defined in the Answered list on the page it lived on. So a status changes in one place, and every table, card and decision marker on every page follows.
+
+## The overview gathers everything
+
+The overview's requirements, measures, risks, decisions and open questions tables list every record, grouped under "Across all areas" and then one group per area with a link to its page. Reading the overview alone shows the state of the whole design; an area adds the detail. The cost table follows the same grouping, with each area's subtotal.
+
+An area page shows its own records under "This area", then the ones from elsewhere that reach it, each saying where it lives:
+
+| Table | From elsewhere |
+| --- | --- |
+| Requirements | "Applies here, lives elsewhere": requirements whose `Applies to` names the area |
+| Decisions | "Decided elsewhere, shapes this area": decisions whose `Applies to` names it |
+| Risks | "Owned elsewhere, affects this area": risks whose `Applies to` names it |
+| Open questions | "Owned elsewhere, affects this area": questions that block something living on the area, or a requirement that applies to it. A decision's own questions stay with the decision. |
+
+## Progress
+
+The progress line under an overview's or area's header shows how much is settled; the build adds it. On an overview with areas: a tile per area with its decision markers (coloured by status), how many are decided, and its open questions. On an area page, or an overview without areas: one line with the decisions decided out of the total and the open and answered questions, naming the records from elsewhere that still shape it. It counts only the page's own records, so the areas add up to the overview.
 
 ## The decisions table
 
-One row per decision, grouped into "Still open", "Decided", and "Given" (premises the plan or requester fixed, with the request as their source) when there are any. Each row is the decision's definition:
+One row per decision. Each row comes from the decision's record:
 
-- the question as `data-ref-text`, with what it shapes as a `.sub` line
-- a status (`open`, `leaning`, `decided`, or plain for Later). Decision markers across the doc take their colour from it.
-- the answer, the current leaning, or what's assumed meanwhile, as a `data-ref-detail`, plus a `.marks` group of what it's waiting on (`data-ref-detail="Waiting on"`)
-- where it's worked out: a `page-link` to its brief or area page with `data-ref-link="Open the brief"` so the card links there; a meeting link for a decision made in a meeting; or "No brief yet" / "Not started"
+- the question, with what it shapes on a second line
+- its status: open, leaning, decided, or plain for Later and Given. Decision markers across the doc take their colour from it.
+- the answer, the current leaning, or what's assumed meanwhile, and what it's waiting on
+- where it's worked out (its brief or area page, the meeting that settled it, or "No brief yet" / "Not started") and the other areas it shapes
+- clicked, on the overview or an area page, the decision opens in a modal: its answer, Why, Reasoning and Revisit if, and its options or alternatives each with a status and reason; beside them, the questions it waits on, where it's worked out, the other areas it shapes, and its evidence. The decision's card shows the Why under the answer, with "Full reasoning" opening the same modal.
 
-A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
+Within each group, unsettled decisions come first. A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
 
 ## Page files
 
-- Each page is a file in `pages/`, pulled into `doc.html` with `<!-- include pages/<id>.html -->`, in reading order. `build` puts them together into one file.
-- A page is an `<article class="page">` with `id`, `data-page-title`, `data-page-group`, and optionally `data-page-icon` (a symbol id such as `i-database`) and `data-page-meta` (a short note shown beside it in the page list, such as "D6").
-- The page's own rail content is a `<nav class="page-rail">` as the article's first child: its "On this page" links, decisions, and notes. `build` moves it into the rail and writes the page list.
-- Section ids are shared by the whole doc; prefix them with the page id (`s3-design`).
-- Link to a page with `href="#<page id>"` and to anything on it by its id. The script switches pages. Use `?page=<id>` in a URL to open the doc on that page.
-- Shared pages fill their "Cited on" column (`<td data-cited-on></td>`) and their rail filter (`<div class="rail-group cite-filter">`) from the markers on other pages, so neither needs maintaining.
+- A design folder holds `design.md`, `changes.md`, `doc.html`, a Markdown file per page in `pages/`, and the doc's own components in `components/`. The format of pages and components is in [components](components.md).
+- `doc.html` is the shell: `<!-- include pages/<id>.md -->` lines in reading order, the shared SVG definitions (arrowheads and icons), the rail with its `<!-- pages-nav -->` and `<!-- page-rails -->` markers, and the top bar. Drop the top bar's diagrams switch when nothing in the doc has a security view. `build` puts it all together into one file.
+- Section ids are shared by the whole doc, so each page's sections start with its prefix (`s3-design`). Link to a page with `href="#<page id>"` and to anything on it by its id; `?page=<id>` in a URL opens the doc on that page.
+- The Evidence page fills its "Cited on" column and its rail filter from the markers on other pages, so neither needs maintaining.
+
+## Format and migrations
+
+`design.md` starts with `<!-- design-docs format 2 -->`: the format its folder is written in. When the skill's format moves on, `check` stops and says so; `doc.py migrate <folder>` copies the folder's files to `.migrate-backup/`, brings pages and records up to date, and records the new format. Review what it changed before building. Format 1 folders (pages written in HTML) migrate to Markdown pages that keep any hand-written HTML as raw blocks; move those into components or records when you next work on that part.

@@ -45,6 +45,8 @@
   <symbol id="i-git-branch" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="6" x2="6" y1="3" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></symbol>
   <symbol id="i-key-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"/><circle cx="16.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
   <symbol id="i-user-round" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></symbol>
   <symbol id="i-timer" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></symbol>
 </svg>
 
@@ -62,21 +64,29 @@
 
   <!-- page-rails -->
 
-  <div class="rail-group rail-view">
-    <span class="rail-label">Diagrams</span>
-    <div class="view-toggle" data-view-all><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
-  </div>
-
-  <button class="theme-toggle" type="button" data-theme-toggle>Dark theme</button>
 </nav>
 
+<!-- Top bar: stays at the top while the page scrolls. The page name follows the page being read.
+     Remove the diagrams label and switch when nothing in the doc has a security view. -->
+<header class="topbar">
+  <div class="where"><svg data-current-icon><use href="#i-book-open"/></svg><span class="doc-name">Log ingestion</span><span class="sep">/</span><span class="page-name" data-current-page></span></div>
+  <div class="tools">
+    <span class="label">Diagrams</span>
+    <div class="view-toggle" data-view-all><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
+    <span class="divider"></span>
+    <div class="theme-switch" role="group" aria-label="Theme"><button type="button" data-theme-choice="light" aria-label="Light theme"><svg><use href="#i-sun"/></svg></button><button type="button" data-theme-choice="dark" aria-label="Dark theme"><svg><use href="#i-moon"/></svg></button></div>
+  </div>
+</header>
+
 <main class="main">
-<!-- include pages/overview.html -->
-<!-- include pages/s3-archive.html -->
-<!-- include pages/workers.html -->
-<!-- include pages/evidence.html -->
-<!-- include pages/questions.html -->
-<!-- include pages/meetings.html -->
+<!-- include pages/overview.md -->
+<!-- include pages/firewall-intake.md -->
+<!-- include pages/customer-intake.md -->
+<!-- include pages/pipeline-workers.md -->
+<!-- include pages/s3-archive.md -->
+<!-- include pages/workers.md -->
+<!-- include pages/evidence.md -->
+<!-- include pages/meetings.md -->
 </main>
 </div>
 </body>

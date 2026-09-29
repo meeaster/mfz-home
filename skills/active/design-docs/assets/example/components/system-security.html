@@ -1,0 +1,65 @@
+<div class="diagram-wrap diagram-scroll">
+<div class="diagram compact" style="--w:912;--h:440">
+  <span class="region-label" style="--x:0;--y:64">Outside our AWS</span>
+  <span class="region-label" style="--x:800;--y:64">Vendor</span>
+  <div class="boundary" style="--x:190;--y:16;--w:570;--h:408"></div>
+  <div class="zone" style="--x:214;--y:56;--w:196;--h:140"><div class="zone-label"><b>Shared Tooling VPC</b><small>10.40.0.0/16 · exists</small></div></div>
+  <div class="zone new" data-pending="D1" style="--x:430;--y:56;--w:310;--h:244"><div class="zone-label"><b>Observability VPC</b><small>10.52.0.0/20 · new</small></div></div>
+  <svg class="edges" viewBox="0 0 912 440">
+    <path class="edge" d="M132 130 H228"/>
+    <path class="edge new" data-pending="D1 D2" d="M396 130 H600"/>
+    <path class="edge new" data-pending="D3" d="M132 246 H446"/>
+    <path class="edge new" data-pending="D1 D3" d="M576 246 H600"/>
+    <path class="edge new" d="M660 280 V340"/>
+    <path class="edge new" d="M720 130 H800"/>
+  </svg>
+  <div class="node" style="--x:0;--y:100;--w:132;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>ASA firewalls</b><small>14 sites</small></span></div>
+  <div class="node" style="--x:0;--y:216;--w:132;--h:60"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from Nov</small></span></div>
+  <div class="node" style="--x:228;--y:100;--w:168;--h:60"><svg><use href="#i-server"/></svg><span class="t"><b>Syslog server</b><small>EBS · KMS</small></span></div>
+  <div class="node new" data-pending="D3" style="--x:446;--y:216;--w:130;--h:60"><svg><use href="#i-plug"/></svg><span class="t"><b>Endpoint</b><small>private only</small></span></div>
+  <div class="node new tall" style="--x:600;--y:100;--w:120;--h:180"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>no public IP</small></span></div>
+  <div class="node new" style="--x:600;--y:340;--w:120;--h:60"><svg><use href="#i-archive"/></svg><span class="t"><b>S3 archive</b><small>SSE-KMS</small></span></div>
+  <div class="node" style="--x:800;--y:100;--w:112;--h:60"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b><small>vendor</small></span></div>
+  <span class="boundary-tab" style="--x:206;--y:5"><svg><use href="#i-shield-check"/></svg>AWS GovCloud (US) partition · us-gov-west-1</span>
+  <a class="flow cross" href="#S-F1" style="--x:177;--y:121">F1</a>
+  <a class="flow warn" href="#S-F2" style="--x:400;--y:121">F2</a>
+  <a class="flow cross" href="#S-F3" style="--x:177;--y:237">F3</a>
+  <a class="flow" href="#S-F4" style="--x:647;--y:301">F4</a>
+  <a class="flow cross" href="#S-F5" style="--x:747;--y:121">F5</a>
+  <span class="edge-label" style="--x:158;--y:140">IPsec</span>
+  <span class="edge-label warn" style="--x:515;--y:140">syslog · no TLS</span>
+  <span class="edge-label new" style="--x:300;--y:256">TLS · PrivateLink</span>
+  <span class="edge-label new" style="--x:526;--y:303;transform:none">TLS · FIPS endpoint</span>
+  <span class="edge-label new" style="--x:780;--y:140">HTTPS</span>
+  <a class="ref ref-e" href="#E1" style="--x:116;--y:92">E1</a>
+  <a class="ref ref-e" href="#E5" style="--x:380;--y:92">E5</a>
+  <a class="ref ref-e" href="#E6" style="--x:560;--y:208">E6</a>
+  <a class="ref ref-e" href="#E4" style="--x:704;--y:92">E4</a>
+  <a class="ref ref-q" href="#Q6" style="--x:868;--y:92">Q6</a>
+  <a class="ref ref-q" href="#Q5" style="--x:724;--y:48">Q5</a>
+  <a class="ref ref-q" href="#Q7" style="--x:140;--y:160">Q7</a>
+  <a class="ref ref-d" href="#D1" style="--x:560;--y:66">D1</a>
+  <a class="ref ref-d" href="#D2" style="--x:460;--y:121">D2</a>
+</div>
+</div>
+<div class="security-key-wrap"><div class="diagram-key">
+  <strong>Reading the security view</strong>
+  <span><i class="swatch boundary-swatch"></i>Compliance boundary</span>
+  <span><span class="flow cross">F1</span>Crosses the boundary</span>
+  <span><span class="flow warn">F2</span>Needs attention</span>
+  <span><span class="flow">F4</span>Protected</span>
+  <span><span class="muted" style="font-size:11px;font-weight:500">TLS · FIPS</span>Protection in transit</span>
+</div></div>
+<div class="security-tables">
+  <!-- component flows S -->
+  <h4>Where data rests</h4>
+  <div class="table-wrap"><table class="table">
+    <thead><tr><th>Store</th><th>Holds</th><th>Encryption</th><th>Kept for</th><th>Assessment</th></tr></thead>
+    <tbody>
+    <tr><td>Syslog server disk<span class="sub">Shared Tooling VPC</span></td><td class="soft">Firewall logs, before forwarding</td><td>EBS · KMS key</td><td class="soft">7 days</td><td><span class="verdict yes">Meets R7</span> <a class="ref ref-e" href="#E5">E5</a></td></tr>
+    <tr><td>Worker disk buffers<span class="sub">Observability VPC</span></td><td class="soft">Logs in flight during outages</td><td>EBS · KMS key</td><td class="soft">Until sent</td><td><span class="verdict yes">Meets R7</span></td></tr>
+    <tr><td>S3 archive<span class="sub">us-gov-west-1</span></td><td class="soft">All logs, compressed</td><td>SSE-KMS, a key per customer</td><td class="soft">1 year</td><td><span class="verdict partly">Depends on per-customer keys</span> <a class="ref ref-q" href="#Q10">Q10</a></td></tr>
+    <tr><td>Datadog<span class="sub">vendor</span></td><td class="soft">Filtered logs</td><td>Vendor-managed</td><td class="soft">15 days</td><td><span class="verdict partly">Depends on the site</span> <a class="ref ref-q" href="#Q6">Q6</a></td></tr>
+    </tbody>
+  </table></div>
+</div>

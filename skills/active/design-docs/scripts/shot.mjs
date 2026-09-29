@@ -2,7 +2,9 @@
 // Screenshot a built design doc in headless Chrome: one page of it, optionally with a reference card open,
 // every option in its security view, or dark mode. Uses the Chrome DevTools Protocol directly.
 //
-// node shot.mjs <built.html> <out.png> [--page overview] [--selector "#overview-solution .diagram"] [--card E2] [--view security] [--dark] [--full] [--width 1440] [--height 900]
+// node shot.mjs <built.html> <out.png> [--page overview] [--selector "#overview-system .diagram"] [--card E2] [--view security] [--click "#D1"] [--dark] [--full] [--width 1440] [--height 900]
+//
+// --click clicks an element first, such as a decision row to capture its modal.
 
 import { spawn } from "node:child_process";
 import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
@@ -16,6 +18,7 @@ const { values, positionals } = parseArgs({
   options: {
     page: { type: "string" },
     card: { type: "string" },
+    click: { type: "string" },
     selector: { type: "string" },
     view: { type: "string" },
     dark: { type: "boolean", default: false },
@@ -29,7 +32,7 @@ const { values, positionals } = parseArgs({
 const [pagePath, outPath] = positionals;
 
 if (pagePath === undefined || outPath === undefined) {
-  console.error("usage: node shot.mjs <built.html> <out.png> [--page overview] [--selector css] [--card E2] [--view security] [--dark] [--full] [--width 1440] [--height 900]");
+  console.error("usage: node shot.mjs <built.html> <out.png> [--page overview] [--selector css] [--card E2] [--view security] [--click css] [--dark] [--full] [--width 1440] [--height 900]");
   process.exit(2);
 }
 
@@ -128,6 +131,14 @@ try {
   const capture = { format: "png" };
 
   const evaluate = async (expression) => (await send("Runtime.evaluate", { expression, returnByValue: true })).result?.result?.value;
+
+  if (values.click !== undefined) {
+    const clicked = await evaluate(`(() => { const node = document.querySelector(${JSON.stringify(values.click)}); if (node === null) return false; node.scrollIntoView({ block: "center" }); node.click(); return true; })()`);
+
+    if (!clicked) throw new Error(`nothing matches ${values.click} on this page`);
+
+    await sleep(400);
+  }
 
   if (values.card !== undefined && !(await evaluate("document.querySelector('.ref-card:popover-open, .ref-card.is-open') !== null"))) {
     console.warn(`warning: no visible marker for ${values.card} on this page, so no card is open`);

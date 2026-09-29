@@ -1,0 +1,21 @@
+<div class="diagram" style="--w:912;--h:260">
+  <div class="zone new" data-pending="D1" style="--x:250;--y:10;--w:370;--h:240"><div class="zone-label"><b>Observability VPC</b><small>10.52.0.0/20 · new</small></div></div>
+  <svg class="edges" viewBox="0 0 912 260">
+    <path class="edge" d="M196 78 H340"/>
+    <path class="edge new" data-pending="D3" d="M196 188 H340"/>
+    <path class="edge new" d="M520 78 H730"/>
+    <path class="edge new" d="M520 188 H730"/>
+  </svg>
+  <div class="node" style="--x:0;--y:50;--w:196;--h:56"><svg><use href="#i-shield"/></svg><span class="t"><b>Firewall logs</b><small>from <a href="#firewall-intake">Firewall intake</a></small></span></div>
+  <div class="node" style="--x:0;--y:160;--w:196;--h:56"><svg><use href="#i-plug"/></svg><span class="t"><b>Customer logs</b><small>from <a href="#customer-intake">Customer intake</a></small></span></div>
+  <div class="node new tall" style="--x:340;--y:64;--w:180;--h:152"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>3 × c7g.large</small><small>one per zone</small></span></div>
+  <div class="node" style="--x:730;--y:50;--w:182;--h:56"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b><small>filtered logs</small></span></div>
+  <div class="node" style="--x:730;--y:160;--w:182;--h:56"><svg><use href="#i-archive"/></svg><span class="t"><b>S3 archive</b><small>on <a href="#s3-archive">S3 archive</a></small></span></div>
+  <span class="edge-label new" style="--x:625;--y:86">what matters</span>
+  <span class="edge-label new" style="--x:625;--y:196">every log</span>
+  <a class="ref ref-d" href="#D1" style="--x:574;--y:18">D1</a>
+  <a class="ref ref-e" href="#E4" style="--x:504;--y:56">E4</a>
+  <a class="ref ref-d" href="#D4" style="--x:350;--y:56">D4</a>
+  <a class="ref ref-d" href="#D7" style="--x:560;--y:62">D7</a>
+  <a class="ref ref-q" href="#Q6" style="--x:866;--y:42">Q6</a>
+</div>

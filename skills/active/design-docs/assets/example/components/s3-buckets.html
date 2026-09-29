@@ -1,0 +1,20 @@
+<div class="diagram" style="--w:912;--h:330">
+  <div class="zone" style="--x:176;--y:14;--w:540;--h:302"><div class="zone-label"><b>Archive account</b><small>GovCloud · us-gov-west-1</small></div></div>
+  <svg class="edges" viewBox="0 0 912 330">
+    <path class="edge new" d="M150 147 H163 V94 H206"/>
+    <path class="edge new" d="M150 167 H163 V239 H206"/>
+    <path class="edge new" d="M506 94 H746"/>
+    <path class="edge new" d="M506 239 H746"/>
+  </svg>
+  <div class="node" style="--x:0;--y:125;--w:150;--h:64"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>on <a href="#pipeline-workers">Pipeline workers</a></small></span></div>
+  <div class="node new" style="--x:206;--y:58;--w:300;--h:72"><svg><use href="#i-archive"/></svg><span class="t"><b>opw-archive-internal</b><small>firewall/site=*/date=* · internal key</small></span></div>
+  <div class="node new" data-pending="D6" style="--x:206;--y:176;--w:300;--h:126"><svg><use href="#i-archive"/></svg><span class="t"><b>opw-archive-customers</b><small>customer=acme/ · acme key</small><small>customer=globex/ · globex key</small><small>customer=…/ · one key each</small></span></div>
+  <div class="node" style="--x:746;--y:64;--w:166;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>Security team</b><small>read role</small></span></div>
+  <div class="node" style="--x:746;--y:209;--w:166;--h:60"><svg><use href="#i-user-round"/></svg><span class="t"><b>Customer export</b><small>role per customer</small></span></div>
+  <span class="edge-label new" style="--x:626;--y:102">read · TLS</span>
+  <span class="edge-label new" style="--x:626;--y:247">export · TLS</span>
+  <span class="via" style="--x:538;--y:156"><svg><use href="#i-timer"/></svg>Delete after 1 year <a class="ref ref-d" href="#D5">D5</a></span>
+  <a class="ref ref-e" href="#E7" style="--x:470;--y:50">E7</a>
+  <span class="pins" style="--x:382;--y:168"><a class="ref ref-e" href="#E8">E8</a><a class="ref ref-d" href="#D6">D6</a><a class="ref ref-q" href="#Q10">Q10</a></span>
+  <a class="ref ref-e" href="#E9" style="--x:868;--y:56">E9</a>
+</div>

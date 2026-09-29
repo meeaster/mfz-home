@@ -6,7 +6,7 @@ skills:
   - name: design-docs
     source: local
     skill: skills/active/design-docs
-    description: HTML design documents and one-question decision briefs, with diagrams, evidence, and meeting updates.
+    description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
   - name: task-output
     source: local
     skill: packages/cairn/skills/task-output

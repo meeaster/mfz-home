@@ -1,0 +1,36 @@
+<div class="diagram" style="--w:912;--h:280">
+  <div class="zone" style="--x:220;--y:16;--w:220;--h:124"><div class="zone-label"><b>Shared Tooling VPC</b><small>10.40.0.0/16 · exists</small></div></div>
+  <div class="zone new" data-pending="D1" style="--x:490;--y:16;--w:320;--h:248"><div class="zone-label"><b>Observability VPC</b><small>10.52.0.0/20 · new</small></div></div>
+  <svg class="edges" viewBox="0 0 912 280">
+    <path class="edge" d="M150 86 H244"/>
+    <path class="edge new" data-pending="D1 D2" d="M416 86 H670"/>
+    <path class="edge new" data-pending="D3" d="M150 206 H520"/>
+    <path class="edge new" data-pending="D1 D3" d="M640 206 H670"/>
+    <path class="edge new" d="M794 86 H828"/>
+    <path class="edge new" d="M794 206 H828"/>
+  </svg>
+  <span class="edge-label" style="--x:185;--y:94">syslog</span>
+  <span class="edge-label new" style="--x:300;--y:214">PrivateLink</span>
+  <div class="node" style="--x:0;--y:56;--w:150;--h:60"><svg><use href="#i-shield"/></svg><span class="t"><b>ASA firewalls</b><small>14 sites</small></span></div>
+  <div class="node" style="--x:0;--y:176;--w:150;--h:60"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from Nov</small></span></div>
+  <div class="node" style="--x:244;--y:56;--w:172;--h:60"><svg><use href="#i-server"/></svg><span class="t"><b>Syslog server</b><small>exists</small></span></div>
+  <div class="node new" data-pending="D3" style="--x:520;--y:176;--w:120;--h:60"><svg><use href="#i-plug"/></svg><span class="t"><b>Endpoint</b><small>new</small></span></div>
+  <div class="node new tall" style="--x:670;--y:56;--w:124;--h:180"><svg><use href="#i-cpu"/></svg><span class="t"><b>OPW workers</b><small>3 × c7g.large</small></span></div>
+  <div class="node tall" style="--x:828;--y:56;--w:84;--h:60"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b></span></div>
+  <div class="node tall" style="--x:828;--y:176;--w:84;--h:60"><svg><use href="#i-archive"/></svg><span class="t"><b>S3</b><small>1 year</small></span></div>
+  <span class="via" style="--x:426;--y:76"><svg><use href="#i-waypoints"/></svg>Transit Gateway <a class="ref ref-e" href="#E2">E2</a></span>
+  <a class="ref ref-e" href="#E1" style="--x:134;--y:48">E1</a>
+  <a class="ref ref-q" href="#Q3" style="--x:134;--y:168">Q3</a>
+  <a class="ref ref-e" href="#E1" style="--x:420;--y:8">E1</a>
+  <a class="ref ref-e" href="#E5" style="--x:398;--y:48">E5</a>
+  <a class="ref ref-q" href="#Q5" style="--x:790;--y:8">Q5</a>
+  <a class="ref ref-e" href="#E6" style="--x:624;--y:168">E6</a>
+  <a class="ref ref-e" href="#E4" style="--x:776;--y:48">E4</a>
+  <a class="ref ref-d" href="#D1" style="--x:628;--y:27">D1</a>
+  <a class="ref ref-d" href="#D2" style="--x:598;--y:77">D2</a>
+  <a class="ref ref-d" href="#D3" style="--x:420;--y:197">D3</a>
+  <a class="ref ref-d" href="#D4" style="--x:680;--y:47">D4</a>
+  <a class="ref ref-d" href="#D7" style="--x:676;--y:227">D7</a>
+  <a class="ref ref-d" href="#D5" style="--x:808;--y:167">D5</a>
+  <a class="page-link" href="#s3-archive" style="--x:828;--y:250">Page <svg><use href="#i-arrow-right"/></svg></a>
+</div>

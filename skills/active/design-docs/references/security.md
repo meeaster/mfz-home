@@ -1,6 +1,6 @@
 # Security view
 
-Design docs often go to a security team as well as the working team. Give the overview's solution card, each area page's design where it matters, and each option in a brief a Security tab alongside its Architecture tab, so reviewers see the same picture with what they need added: where the compliance boundary is, every data flow, where flows cross the boundary, how each flow is protected, and where data rests. `assets/example/` has complete security views on its overview and on both options of its brief.
+Design docs often go to a security team as well as the working team. Give the overview's whole-system card, each area page's design where it matters, and each option in a brief a Security tab alongside its Architecture tab, so reviewers see the same picture with what they need added: where the compliance boundary is, every data flow, where flows cross the boundary, how each flow is protected, and where data rests. `assets/example/` has complete security views on its overview and on both options of its brief.
 
 ## When to include it
 
@@ -25,25 +25,29 @@ Keep every box in the same place as in the architecture view. The diagram is usu
 
 ## Tables under the diagram
 
-**Data flows.** One row per flow:
+**Data flows.** One Flows record per flow in design.md, rendered by `<!-- component flows B -->` in the security component:
 
-| Column | Content |
+```markdown
+### B-F2 · Syslog server → OPW workers
+- Path: through the Transit Gateway
+- Data: Firewall logs · CUI
+- In transit: Syslog over TCP with no TLS. Leaves one VPC for another.
+- Auth: Security group
+- Crosses: No · VPC boundary
+- Assessment: No · Add TLS on the relay before go-live [D2]
+```
+
+| Field | Content |
 | --- | --- |
-| Flow | The flow chip, in the same state as the diagram |
-| From → to | The two ends, with how it travels on a second line (`.sub`) |
-| Data | What it carries and its classification ("Firewall logs · CUI") |
+| Heading | The flow's ID and its two ends. Prefix the ID so it stays unique across the doc: the option letter in a brief, `S` for the overview's whole system, or a short capital prefix for an area page (`AR-F1`). The flows component shows the records with its prefix. |
+| Path | How it travels |
+| Data | What it carries and its classification |
 | In transit | Protocol and encryption, stated plainly, including what isn't known yet |
 | Auth | How the ends authenticate (IAM role, security group, API key, mutual TLS) |
-| Crosses | Which boundary it crosses; add `class="crosses"` to the cell when it's the compliance boundary |
-| Assessment | A verdict (`yes`, `partly`, `no`) with a short reason, plus the evidence or question marker behind it |
+| Crosses | `Yes` when it crosses the compliance boundary, else `No`, then `·` and which boundary |
+| Assessment | `Yes`, `Partly` or `No`, a short reason, and the evidence or question behind it in brackets |
 
-Each flow row is a definition, so clicking its chip in the diagram opens a card with the row's details, just like evidence and questions:
-
-- Give the row `id="B-F1" data-ref="flow"`, prefixed so IDs stay unique across the doc: the option letter in a brief, `S` for the overview's solution, or a short capital prefix for an area page (`AR-F1`).
-- Put `data-ref-chip` on the row's flow chip.
-- Put `data-ref-text` on the "from → to" text and `data-ref-detail="Path"` on its `.sub` line.
-- Put `data-ref-detail="Data"`, `"In transit"`, `"Auth"` and `"Assessment"` on those cells, and `data-ref-status="Crosses:"` on the Crosses cell.
-- In the diagram, make each chip a link to its row: `<a class="flow cross" href="#B-F1" style="…">F1</a>`.
+The chip's colour follows: `warn` when the assessment is No, `cross` when it crosses the boundary, plain otherwise. Each row is a definition, so its chip in the diagram opens a card with the row's details. Make each chip in the diagram a link to it, in the same colour: `<a class="flow cross" href="#B-F1" style="…">F1</a>`.
 
 **Where data rests.** One row per store: store (with where it lives on a second line), what it holds, encryption, how long it's kept, and an assessment.
 
@@ -56,37 +60,26 @@ Each flow row is a definition, so clicking its chip in the diagram opens a card 
 
 ## Markup
 
+The security view is a component of the doc's own, named on the block that draws the card: `B-security=d1-b-security` on `::: options`, or `security=system-security` on `::: design-card`. The card gets the Architecture / Security switch, and the component holds what the security panel shows:
+
 ```html
-<article class="option opt-b">
-  <div class="option-head">
+<div class="diagram-wrap diagram-scroll">
+  <div class="diagram compact" style="--w:912;--h:440">
+    <span class="region-label" style="--x:0;--y:64">Outside our AWS</span>
+    <div class="boundary" style="--x:190;--y:16;--w:570;--h:408"></div>
+    … zones, edges, boxes …
+    <span class="boundary-tab" style="--x:206;--y:5"><svg><use href="#i-shield-check"/></svg>AWS GovCloud (US) partition · us-gov-west-1</span>
+    <a class="flow cross" href="#B-F1" style="--x:177;--y:121">F1</a>
+    <span class="edge-label" style="--x:158;--y:140">IPsec</span>
     …
-    <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>
   </div>
-  <div class="view-panel" data-view-panel="architecture">
-    <div class="diagram-wrap diagram-scroll"> … architecture diagram … </div>
-  </div>
-  <div class="view-panel" data-view-panel="security">
-    <div class="diagram-wrap diagram-scroll">
-      <div class="diagram compact" style="--w:912;--h:440">
-        <span class="region-label" style="--x:0;--y:64">Outside our AWS</span>
-        <div class="boundary" style="--x:190;--y:16;--w:570;--h:408"></div>
-        … zones, edges, boxes …
-        <span class="boundary-tab" style="--x:206;--y:5"><svg><use href="#i-shield-check"/></svg>AWS GovCloud (US) partition · us-gov-west-1</span>
-        <a class="flow cross" href="#B-F1" style="--x:177;--y:121">F1</a>
-        <span class="edge-label" style="--x:158;--y:140">IPsec</span>
-        …
-      </div>
-    </div>
-    <div class="security-key-wrap"><div class="diagram-key"> … </div></div>
-    <div class="security-tables">
-      <h4>Data flows</h4><p>…</p>
-      <div class="table-wrap"><table class="table"> … </table></div>
-      <h4>Where data rests</h4>
-      <div class="table-wrap"><table class="table"> … </table></div>
-    </div>
-  </div>
-  <div class="assess"> … </div>
-</article>
+</div>
+<div class="security-key-wrap"><!-- component diagram-key title="Reading the security view" items="boundary | crosses | attention | protected | transit" --></div>
+<div class="security-tables">
+  <!-- component flows B -->
+  <h4>Where data rests</h4>
+  <div class="table-wrap"><table class="table"> … </table></div>
+</div>
 ```
 
 - **Placing the boundary parts:**
@@ -94,7 +87,7 @@ Each flow row is a definition, so clicking its chip in the diagram opens a card 
   - Place the boundary tab after the boxes, so it sits on top of the line.
   - Centre flow chips on the line where it crosses a boundary: `--x` = crossing x − 13, `--y` = line y − 9.
 - **Choosing the view:**
-  - Keep the rail's `data-view-all` toggle so a reader can switch every card at once.
+  - Keep the top bar's `data-view-all` switch so a reader can switch every card at once.
   - Link a security reviewer to the built doc with `?page=overview&view=security` to open it on the overview in its security view.
   - Or set `<html data-default-view="security">` in a copy built for them.
 - **Without the script,** both views show one after the other, with the security panel labelled.

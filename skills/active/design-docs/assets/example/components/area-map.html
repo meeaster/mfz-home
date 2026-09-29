@@ -1,0 +1,26 @@
+<div class="option design">
+    <div class="diagram-wrap diagram-scroll">
+      <div class="diagram" style="--w:912;--h:380">
+        <div class="zone" style="--x:170;--y:8;--w:560;--h:364"><div class="zone-label"><b>Our AWS</b><small>GovCloud (US-West)</small></div></div>
+        <svg class="edges" viewBox="0 0 912 380">
+          <path class="edge" d="M140 98 H190"/>
+          <path class="edge" d="M140 290 H190"/>
+          <path class="edge" d="M390 98 H500"/>
+          <path class="edge" d="M390 294 H445 V140 H500"/>
+          <path class="edge" d="M710 98 H760"/>
+          <path class="edge" d="M605 170 V238"/>
+        </svg>
+        <div class="node" style="--x:0;--y:70;--w:140;--h:56"><svg><use href="#i-shield"/></svg><span class="t"><b>ASA firewalls</b><small>14 sites</small></span></div>
+        <div class="node" style="--x:0;--y:262;--w:140;--h:56"><svg><use href="#i-building"/></svg><span class="t"><b>Customers</b><small>3 from Nov</small></span></div>
+        <div class="node" style="--x:760;--y:70;--w:152;--h:56"><svg><use href="#i-activity"/></svg><span class="t"><b>Datadog</b><small>government site</small></span></div>
+        <div class="area-node" style="--x:190;--y:58;--w:200;--h:112"><span class="head"><svg><use href="#i-shield"/></svg>Firewall intake</span><p>Sites, VPNs, and the syslog relay.</p><a href="#firewall-intake">Open<svg><use href="#i-arrow-right"/></svg></a></div>
+        <div class="area-node" style="--x:190;--y:238;--w:200;--h:112"><span class="head"><svg><use href="#i-plug"/></svg>Customer intake</span><p>The private endpoint and customer keys.</p><a href="#customer-intake">Open<svg><use href="#i-arrow-right"/></svg></a></div>
+        <div class="area-node" style="--x:500;--y:58;--w:210;--h:112"><span class="head"><svg><use href="#i-cpu"/></svg>Pipeline workers</span><p>The workers, filtering, and delivery.</p><a href="#pipeline-workers">Open<svg><use href="#i-arrow-right"/></svg></a></div>
+        <div class="area-node" style="--x:500;--y:238;--w:210;--h:112"><span class="head"><svg><use href="#i-database"/></svg>S3 archive</span><p>Buckets, customer keys, retention.</p><a href="#s3-archive">Open<svg><use href="#i-arrow-right"/></svg></a></div>
+      </div>
+    </div>
+    <div class="diagram-key">
+      <span><i class="swatch area"></i>An area, with its own page</span>
+      <span><i class="swatch"></i>Outside the design: where logs come from or go</span>
+    </div>
+  </div>

@@ -3,7 +3,7 @@
 (() => {
   const KIND_LABELS = {
     evidence: "Evidence",
-    question: "Open question",
+    question: "Question",
     decision: "Decision",
     requirement: "Requirement",
     flow: "Data flow",
@@ -120,6 +120,17 @@
   );
   window.addEventListener("resize", markCurrent);
 
+  // The top bar names the page being read, with its icon from the page switcher.
+  const showCurrentPage = (page) => {
+    const name = document.querySelector("[data-current-page]");
+    const icon = document.querySelector("[data-current-icon] use");
+    const switcherIcon = document.querySelector(`.rail-page[href="#${page.id}"] use`);
+
+    if (name !== null) name.textContent = pageTitle(page);
+
+    if (icon !== null && switcherIcon !== null) icon.setAttribute("href", switcherIcon.getAttribute("href") ?? "");
+  };
+
   const showPage = (page) => {
     if (!multiPage || page === null || page === currentPage) return;
 
@@ -138,6 +149,7 @@
     }
 
     document.title = `${pageTitle(page)} · ${baseTitle}`;
+    showCurrentPage(page);
     collectNav();
     markCurrent();
   };
@@ -148,6 +160,52 @@
     showPage(page);
     history.pushState(null, "", urlFor(page, hash));
   };
+
+  // A decision opens in a modal: its row, or "Full reasoning" on its card, shows the detail the build wrote
+  // after the decisions table (data-detail names it). Reference cards are popovers, so they open above it.
+  const detailOf = (element) => document.getElementById(element.dataset.detail ?? "");
+  const decisionModal = document.createElement("dialog");
+
+  decisionModal.className = "decision-modal";
+  document.body.append(decisionModal);
+
+  const openDecision = (element) => {
+    const detail = detailOf(element);
+
+    if (detail === null) return;
+
+    decisionModal.replaceChildren(...[...detail.children].map((child) => child.cloneNode(true)));
+    decisionModal.setAttribute("aria-label", detail.getAttribute("aria-label") ?? "");
+    decisionModal.showModal();
+
+    // Outside an open modal everything is inert, so the reference card moves in while it's open.
+    decisionModal.append(card);
+  };
+
+  decisionModal.addEventListener("close", () => document.body.append(card));
+
+  decisionModal.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    // The backdrop is the dialog itself; a link out of the modal closes it before the page moves.
+    const leaving = event.target.closest("a[href^='#']:not(.ref):not(.mention)");
+
+    if (event.target === decisionModal || event.target.closest(".dm-close") !== null || leaving !== null) decisionModal.close();
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element) || event.target.closest("a, button, .ref, .mention") !== null) return;
+
+    const row = event.target.closest("tr[data-detail]");
+
+    if (row !== null) openDecision(row);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const row = event.target instanceof Element && event.key === "Enter" ? event.target.closest("tr[data-detail]") : null;
+
+    if (row !== null && row === event.target) openDecision(row);
+  });
 
   // Reveal a target: show its page, open any collapsed details around or inside it, scroll to it, and flash it.
   const reveal = (id) => {
@@ -170,6 +228,7 @@
     if (inner !== null) inner.open = true;
 
     if (outer !== null) outer.open = true;
+
     target.scrollIntoView({ block: "start" });
     target.classList.remove("flash");
     void target.offsetWidth;
@@ -233,7 +292,7 @@
       return { label: ownLink.dataset.refLink || flatText(ownLink), target: linked.id };
     }
 
-    if (kind === "decision") return { label: `Go to ${id}`, target: id };
+    if (kind === "decision") return { label: detailOf(definition) === null ? `Go to ${id}` : "Full reasoning", target: id, opens: detailOf(definition) !== null };
 
     if (kind === "flow") return { label: "Show in the flow table", target: id };
 
@@ -295,7 +354,21 @@
       if (options.length > 0) rows.push(["Options", options.join("\n")]);
     }
 
-    for (const detail of ownParts(definition, "[data-ref-detail]")) rows.push([detail.dataset.refDetail, detailValue(detail)]);
+    const details = [];
+
+    for (const detail of ownParts(definition, "[data-ref-detail]")) details.push([detail.dataset.refDetail, detailValue(detail)]);
+
+    // A decision's short Why lives in its detail; it follows the answer.
+    const more = kind === "decision" ? detailOf(definition) : null;
+
+    if (more !== null) {
+      const reasons = [];
+
+      for (const detail of more.querySelectorAll("[data-ref-detail]")) reasons.push([detail.dataset.refDetail, detailValue(detail)]);
+      details.splice(Math.min(1, details.length), 0, ...reasons);
+    }
+
+    rows.push(...details);
 
     if (rows.length > 0) {
       const list = make("dl");
@@ -316,6 +389,8 @@
 
     link.href = `#${onward.target}`;
     link.dataset.reveal = onward.target;
+
+    if (onward.opens) link.dataset.opens = "";
     foot.append(tags, link);
 
     return [head, body, foot];
@@ -386,6 +461,14 @@
     if (revealLink !== null) {
       event.preventDefault();
       closeCard();
+
+      const opens = revealLink.dataset.opens === undefined ? null : document.getElementById(revealLink.dataset.reveal);
+
+      if (opens !== null) {
+        openDecision(opens);
+
+        return;
+      }
 
       if (!multiPage) history.replaceState(null, "", `#${revealLink.dataset.reveal}`);
       reveal(revealLink.dataset.reveal);
@@ -541,7 +624,9 @@
 
   // Theme toggle: follows the system until the reader picks one
 
+  // The top bar's sun and moon buttons ([data-theme-choice]); older shells have one [data-theme-toggle] button in the rail.
   const toggle = document.querySelector("[data-theme-toggle]");
+  const choices = [...document.querySelectorAll("button[data-theme-choice]")];
   const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
 
   const readStoredTheme = () => {
@@ -555,33 +640,38 @@
   const effectiveTheme = () => root.dataset.theme ?? (systemDark.matches ? "dark" : "light");
 
   const labelToggle = () => {
-    if (toggle !== null) toggle.textContent = effectiveTheme() === "dark" ? "Light theme" : "Dark theme";
+    const theme = effectiveTheme();
+
+    if (toggle !== null) toggle.textContent = theme === "dark" ? "Light theme" : "Dark theme";
+
+    for (const choice of choices) choice.setAttribute("aria-pressed", String(choice.dataset.themeChoice === theme));
+  };
+
+  const setTheme = (theme) => {
+    root.dataset.theme = theme;
+
+    try {
+      localStorage.setItem(THEME_KEY, theme);
+    } catch {
+      // Storage can be unavailable (private windows, file:// pages); the choice then lasts for this visit.
+    }
+
+    labelToggle();
   };
 
   const storedTheme = readStoredTheme();
 
   if (storedTheme === "light" || storedTheme === "dark") root.dataset.theme = storedTheme;
 
-  if (toggle !== null) {
-    toggle.addEventListener("click", () => {
-      const next = effectiveTheme() === "dark" ? "light" : "dark";
+  if (toggle !== null) toggle.addEventListener("click", () => setTheme(effectiveTheme() === "dark" ? "light" : "dark"));
 
-      root.dataset.theme = next;
+  for (const choice of choices) choice.addEventListener("click", () => setTheme(choice.dataset.themeChoice === "dark" ? "dark" : "light"));
 
-      try {
-        localStorage.setItem(THEME_KEY, next);
-      } catch {
-        // Storage can be unavailable (private windows, file:// pages); the choice then lasts for this visit.
-      }
-
-      labelToggle();
-    });
-    systemDark.addEventListener("change", labelToggle);
-    labelToggle();
-  }
+  systemDark.addEventListener("change", labelToggle);
+  labelToggle();
 
   // Architecture / Security views. Each option or solution card with view panels switches on its own;
-  // [data-view-all] controls (for example in the rail) switch every one at once.
+  // [data-view-all] controls (the top bar's diagrams switch) switch every one at once.
 
   const VIEWS = new Set(["architecture", "security"]);
   const viewOptions = [];
@@ -650,6 +740,7 @@
       showPage(page !== null && page.matches("article.page") ? page : pages[0]);
     });
   } else {
+    if (startPage !== null) showCurrentPage(startPage);
     collectNav();
     markCurrent();
   }
