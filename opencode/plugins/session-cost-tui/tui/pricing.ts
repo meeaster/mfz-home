@@ -1,4 +1,5 @@
 import type { PricingUsage } from "./messages.js";
+import type { ModelAliases } from "./models.js";
 
 export type Rates = {
   input?: number;
@@ -55,14 +56,18 @@ export function ratesFor(model: Model, usage: PricingUsage): Rates | undefined {
 export function aggregateCost(
   usages: readonly PricingUsage[],
   priceCatalog: Catalog,
-  sinceCompactionUsages?: readonly PricingUsage[]
+  sinceCompactionUsages?: readonly PricingUsage[],
+  modelAliases: ModelAliases = {}
 ): CostEstimate {
   const costs = new Map<string, Cost>();
   const sinceCompaction = sinceCompactionUsages && new Set(sinceCompactionUsages);
   let unpriced = 0;
 
   for (const usage of usages) {
-    const model = materializeModels(priceCatalog[usage.providerID]?.models ?? {})[usage.modelID];
+    const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
+    const providerID = alias?.providerID ?? usage.providerID;
+    const modelID = alias?.modelID ?? usage.modelID;
+    const model = materializeModels(priceCatalog[providerID]?.models ?? {})[modelID];
     const rates = model && ratesFor(model, usage);
 
     if (!rates) {
@@ -71,7 +76,7 @@ export function aggregateCost(
     }
 
     const key = `${usage.providerID}/${usage.modelID}`;
-    const item = costs.get(key) ?? { model: model.name ?? usage.modelID, amount: 0 };
+    const item = costs.get(key) ?? { model: alias ? key : model.name ?? usage.modelID, amount: 0 };
     const amount = price(usage, rates);
 
     if (sinceCompaction && item.sinceCompaction === undefined) item.sinceCompaction = 0;

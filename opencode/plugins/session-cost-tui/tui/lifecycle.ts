@@ -2,13 +2,15 @@ import type { Context } from "@opencode/plugin/tui/plugin";
 
 import { familyPricingUsages, loadFamilySessionMessages } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
+import type { ModelAliases } from "./models.js";
 
 type CostLifecycleOptions = {
   context: Context;
   sessionID: () => string;
   setEstimate: (value: CostEstimate | undefined) => void;
   setError: (value: string | undefined) => void;
-  estimate?: (context: Context, sessionID: string) => Promise<CostEstimate>;
+  estimate?: (context: Context, sessionID: string, modelAliases: ModelAliases) => Promise<CostEstimate>;
+  modelAliases?: ModelAliases;
   delay?: number;
 };
 
@@ -31,7 +33,7 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     failed = false;
     options.setError(undefined);
     timer = setTimeout(() => {
-      void (options.estimate ?? estimateCost)(options.context, sessionID).then(
+      void (options.estimate ?? estimateCost)(options.context, sessionID, options.modelAliases ?? {}).then(
         (value) => active && current === generation && options.setEstimate(value),
         (reason: RejectionReason) => {
           if (!active || current !== generation) return;
@@ -75,7 +77,7 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   };
 }
 
-async function estimateCost(context: Context, sessionID: string) {
+async function estimateCost(context: Context, sessionID: string, modelAliases: ModelAliases) {
   const [priceCatalog, sessionIDs] = await Promise.all([
     loadCatalog(),
     Promise.resolve(context.data.session.family(sessionID))
@@ -84,7 +86,7 @@ async function estimateCost(context: Context, sessionID: string) {
   const familyMessages = await loadFamilySessionMessages(context.client, sessionIDs);
   const usages = familyPricingUsages(familyMessages, sessionID);
 
-  return aggregateCost(usages.all, priceCatalog, usages.sinceCompaction);
+  return aggregateCost(usages.all, priceCatalog, usages.sinceCompaction, modelAliases);
 }
 
 type RejectionReason = Parameters<typeof String>[0];

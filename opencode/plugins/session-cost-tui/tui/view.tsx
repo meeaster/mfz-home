@@ -4,15 +4,17 @@ import { createEffect, createSignal, For, Match, onCleanup, Switch } from "solid
 
 import { createCostLifecycle } from "./lifecycle.js";
 import type { CostEstimate } from "./pricing.js";
+import type { ModelAliases } from "./models.js";
 import { catalogRenderState, formatCost } from "./render-state.js";
 
-export function View(props: { context: Context; sessionID: () => string }) {
+export function View(props: { context: Context; sessionID: () => string; modelAliases: ModelAliases }) {
   const [estimate, setEstimate] = createSignal<CostEstimate>();
   const [error, setError] = createSignal<string>();
 
   const lifecycle = createCostLifecycle({
     context: props.context,
     sessionID: props.sessionID,
+    modelAliases: props.modelAliases,
     setEstimate,
     setError
   });

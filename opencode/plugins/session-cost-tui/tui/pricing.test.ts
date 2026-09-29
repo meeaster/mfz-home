@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { PricingUsage } from "./messages.js";
 import { aggregateCost, materializeModels, ratesFor, type Catalog, type Model } from "./pricing.js";
+import type { ModelAliases } from "./models.js";
 
 const usage = (modelID: string, input: number, variant?: string): PricingUsage => {
   const result: PricingUsage = {
@@ -9,7 +10,9 @@ const usage = (modelID: string, input: number, variant?: string): PricingUsage =
   modelID,
   tokens: { input, output: 1_000_000, reasoning: 1_000_000, cacheRead: 1_000_000, cacheWrite: 1_000_000 }
   };
+
   if (variant) result.variant = variant;
+
   return result;
 };
 
@@ -24,6 +27,7 @@ describe("session cost pricing", () => {
         ]
       }
     };
+
     expect(ratesFor(model, usage("tier", 3_000_001))?.input).toBe(3);
     expect(ratesFor(model, usage("tier", 1))?.input).toBe(1);
   });
@@ -36,6 +40,7 @@ describe("session cost pricing", () => {
         experimental: { modes: { fast: { cost: { input: 6, tiers: [{ tier: { type: "context", size: 10 }, output: 7 }] } } } }
       }
     });
+
     expect(models["base-fast"]).toMatchObject({
       name: "Base Fast",
       cost: { input: 6, output: 0, cache_read: 0, tiers: [{ input: 0, output: 7 }] }
@@ -46,6 +51,7 @@ describe("session cost pricing", () => {
     const catalog: Catalog = {
       openai: { models: { base: { name: "Base", cost: { input: 1 }, experimental: { modes: { high: { cost: { input: 9 } } } } } } }
     };
+
     expect(aggregateCost([usage("base", 1_000_000, "high")], catalog).costs).toEqual([{ model: "Base", amount: 1 }]);
     expect(aggregateCost([usage("base-high", 1_000_000)], catalog).costs).toEqual([{ model: "Base High", amount: 9 }]);
   });
@@ -54,9 +60,30 @@ describe("session cost pricing", () => {
     const catalog: Catalog = {
       openai: { models: { priced: { name: "Priced", cost: { input: 1, output: 2, cache_read: 3, cache_write: 4 } } } }
     };
+
     expect(aggregateCost([usage("priced", 1_000_000), usage("priced", 1_000_000), usage("missing", 1)], catalog)).toEqual({
       costs: [{ model: "Priced", amount: 24 }],
       unpriced: 1
+    });
+  });
+
+  it("prices a Tyler alias from mapped catalog rates and labels it by its route ID", () => {
+    const gatewayUsage = { ...usage("sol", 1_000_000), providerID: "tyler" };
+
+    const catalog: Catalog = {
+      azure: { models: { "gpt-6.1-sol": { name: "GPT-6.1 Sol", cost: { input: 2 } } } }
+    };
+
+    const aliases: ModelAliases = {
+      "tyler/sol": {
+        providerID: "azure",
+        modelID: "gpt-6.1-sol"
+      }
+    };
+
+    expect(aggregateCost([gatewayUsage], catalog, undefined, aliases)).toEqual({
+      costs: [{ model: "tyler/sol", amount: 2 }],
+      unpriced: 0
     });
   });
 

@@ -29,15 +29,18 @@ export type SessionMessage = {
 
 export type SessionMessageGroup = { sessionID: string; messages: SessionMessage[] };
 
-export async function loadSessionMessages(client: Context["client"], sessionID: string): Promise<SessionMessage[]> {
+export async function loadSessionMessages(
+  client: Context["client"],
+  sessionID: string,
+): Promise<SessionMessage[]> {
   const messages: SessionMessage[] = [];
   const cursors = new Set<string>();
   let cursor: string | undefined;
 
   do {
-    const page = await client.message.list(cursor
-      ? { sessionID, limit: 200, cursor }
-      : { sessionID, limit: 200, order: "asc" });
+    const page = await client.message.list(
+      cursor ? { sessionID, limit: 200, cursor } : { sessionID, limit: 200, order: "asc" },
+    );
 
     messages.push(...page.data);
     const next = page.cursor.next ?? undefined;
@@ -53,12 +56,14 @@ export async function loadSessionMessages(client: Context["client"], sessionID: 
 
 export async function loadFamilySessionMessages(
   client: Context["client"],
-  sessionIDs: readonly string[]
+  sessionIDs: readonly string[],
 ): Promise<SessionMessageGroup[]> {
-  return Promise.all(sessionIDs.map(async (sessionID) => ({
-    sessionID,
-    messages: await loadSessionMessages(client, sessionID)
-  })));
+  return Promise.all(
+    sessionIDs.map(async (sessionID) => ({
+      sessionID,
+      messages: await loadSessionMessages(client, sessionID),
+    })),
+  );
 }
 
 export async function loadFamilyMessages(client: Context["client"], sessionIDs: readonly string[]) {
@@ -67,13 +72,13 @@ export async function loadFamilyMessages(client: Context["client"], sessionIDs: 
 
 export function latestCompletedCompactionIndex(messages: readonly SessionMessage[]) {
   return messages.findLastIndex(
-    (message) => message.type === "compaction" && message.status === "completed"
+    (message) => message.type === "compaction" && message.status === "completed",
   );
 }
 
 export function familyPricingUsages(
   family: readonly SessionMessageGroup[],
-  selectedSessionID: string
+  selectedSessionID: string,
 ) {
   const selected = family.find(({ sessionID }) => sessionID === selectedSessionID);
   const compactionIndex = latestCompletedCompactionIndex(selected?.messages ?? []);
@@ -84,18 +89,20 @@ export function familyPricingUsages(
       const usage = pricingUsage(message);
 
       return usage ? [{ index, usage }] : [];
-    })
+    }),
   }));
 
-  const selectedUsages = pricedGroups.find(({ sessionID }) => sessionID === selectedSessionID)?.usages ?? [];
+  const selectedUsages =
+    pricedGroups.find(({ sessionID }) => sessionID === selectedSessionID)?.usages ?? [];
 
-  const sinceCompaction = compactionIndex === -1
-    ? undefined
-    : selectedUsages.flatMap(({ index, usage }) => index > compactionIndex ? [usage] : []);
+  const sinceCompaction =
+    compactionIndex === -1
+      ? undefined
+      : selectedUsages.flatMap(({ index, usage }) => (index > compactionIndex ? [usage] : []));
 
   return {
     all: pricedGroups.flatMap(({ usages }) => usages.map(({ usage }) => usage)),
-    sinceCompaction
+    sinceCompaction,
   };
 }
 
@@ -106,7 +113,8 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
     !message.model.id ||
     message.time?.completed === undefined ||
     !message.tokens
-  ) return undefined;
+  )
+    return undefined;
 
   const usage: PricingUsage = {
     providerID: message.model.providerID,
@@ -116,8 +124,8 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
       output: finite(message.tokens.output),
       reasoning: finite(message.tokens.reasoning),
       cacheRead: finite(message.tokens.cache?.read),
-      cacheWrite: finite(message.tokens.cache?.write)
-    }
+      cacheWrite: finite(message.tokens.cache?.write),
+    },
   };
 
   if (message.model.variant) usage.variant = message.model.variant;

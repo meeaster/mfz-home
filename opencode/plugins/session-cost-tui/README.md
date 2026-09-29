@@ -33,6 +33,11 @@ followed by its full-session total in parentheses and a full total.
 The full total covers the complete current projected transcript for each family
 session currently known to the TUI.
 
+The plugin accepts a `modelAliases` option mapping recorded `providerID/modelID`
+keys to models.dev `providerID` and `modelID` entries. The TUI labels mapped
+models with their recorded provider and model IDs. These are catalog estimates,
+not gateway billing records.
+
 The plugin targets OpenCode V2 2.0.3 through the `opencode` CLI and
 `@opencode/plugin@2.0.3`. The TUI development peers are pinned to OpenTUI
 `0.5.10` and Solid `1.9.15`. The SDK import is type-only; OpenCode provides
