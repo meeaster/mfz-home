@@ -161,50 +161,52 @@
     history.pushState(null, "", urlFor(page, hash));
   };
 
-  // A decision opens in a modal: its row, or "Full reasoning" on its card, shows the detail the build wrote
-  // after the decisions table (data-detail names it). Reference cards are popovers, so they open above it.
+  // A decision or question opens in a modal: its table row, its box on a decision map, or "Open details" on its
+  // card shows the detail the build wrote after the table that defines it (data-detail names it). Reference cards
+  // are popovers, so they open above it, and opening another record from one replaces what the modal shows.
   const detailOf = (element) => document.getElementById(element.dataset.detail ?? "");
-  const decisionModal = document.createElement("dialog");
+  const recordModal = document.createElement("dialog");
 
-  decisionModal.className = "decision-modal";
-  document.body.append(decisionModal);
+  recordModal.className = "record-modal";
+  document.body.append(recordModal);
 
-  const openDecision = (element) => {
+  const openDetail = (element) => {
     const detail = detailOf(element);
 
     if (detail === null) return;
 
-    decisionModal.replaceChildren(...[...detail.children].map((child) => child.cloneNode(true)));
-    decisionModal.setAttribute("aria-label", detail.getAttribute("aria-label") ?? "");
-    decisionModal.showModal();
+    recordModal.replaceChildren(...[...detail.children].map((child) => child.cloneNode(true)));
+    recordModal.setAttribute("aria-label", detail.getAttribute("aria-label") ?? "");
+
+    if (!recordModal.open) recordModal.showModal();
 
     // Outside an open modal everything is inert, so the reference card moves in while it's open.
-    decisionModal.append(card);
+    recordModal.append(card);
   };
 
-  decisionModal.addEventListener("close", () => document.body.append(card));
+  recordModal.addEventListener("close", () => document.body.append(card));
 
-  decisionModal.addEventListener("click", (event) => {
+  recordModal.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;
 
     // The backdrop is the dialog itself; a link out of the modal closes it before the page moves.
-    const leaving = event.target.closest("a[href^='#']:not(.ref):not(.mention)");
+    const leaving = event.target.closest("a[href^='#']:not(.ref):not(.mention):not([data-opens])");
 
-    if (event.target === decisionModal || event.target.closest(".dm-close") !== null || leaving !== null) decisionModal.close();
+    if (event.target === recordModal || event.target.closest(".dm-close") !== null || leaving !== null) recordModal.close();
   });
 
   document.addEventListener("click", (event) => {
     if (!(event.target instanceof Element) || event.target.closest("a, button, .ref, .mention") !== null) return;
 
-    const row = event.target.closest("tr[data-detail]");
+    const opener = event.target.closest("[data-detail]");
 
-    if (row !== null) openDecision(row);
+    if (opener !== null) openDetail(opener);
   });
 
   document.addEventListener("keydown", (event) => {
-    const row = event.target instanceof Element && event.key === "Enter" ? event.target.closest("tr[data-detail]") : null;
+    const opener = event.target instanceof Element && event.key === "Enter" ? event.target.closest("[data-detail]") : null;
 
-    if (row !== null && row === event.target) openDecision(row);
+    if (opener !== null && opener === event.target) openDetail(opener);
   });
 
   // Reveal a target: show its page, open any collapsed details around or inside it, scroll to it, and flash it.
@@ -280,6 +282,9 @@
   };
 
   const cardLink = (id, definition, kind) => {
+    // A decision or question with a detail opens it, explanation first; the detail links on to its brief.
+    if (detailOf(definition) !== null) return { label: "Open details", target: id, opens: true };
+
     // A definition can name its own onward link, such as the brief or page where a decision is worked out.
     const [ownLink] = ownParts(definition, "a[data-ref-link]");
 
@@ -292,7 +297,7 @@
       return { label: ownLink.dataset.refLink || flatText(ownLink), target: linked.id };
     }
 
-    if (kind === "decision") return { label: detailOf(definition) === null ? `Go to ${id}` : "Full reasoning", target: id, opens: detailOf(definition) !== null };
+    if (kind === "decision") return { label: `Go to ${id}`, target: id };
 
     if (kind === "flow") return { label: "Show in the flow table", target: id };
 
@@ -465,7 +470,7 @@
       const opens = revealLink.dataset.opens === undefined ? null : document.getElementById(revealLink.dataset.reveal);
 
       if (opens !== null) {
-        openDecision(opens);
+        openDetail(opens);
 
         return;
       }

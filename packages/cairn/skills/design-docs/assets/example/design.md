@@ -221,6 +221,7 @@ Customers ──private endpoint────────────────
 ## Decisions
 
 ### D1 · Where do the workers run?
+- Explanation: OPW, the software that filters the logs, runs on a small group of servers: the workers. They need a network in AWS to live in, and that choice sets how firewall logs and customer connections reach them. They can join Shared Tooling, where the syslog server already runs, or get a VPC of their own. It comes first after D0 because how firewall logs arrive (D2) and how customers connect (D3) both build on it, and it has to fit security's rules on where customer traffic may end (Q2).
 - Rail: Where the workers run
 - Shapes: Shapes the Observability VPC and the Transit Gateway routes.
 - Applies to: firewall-intake, customer-intake, pipeline-workers
@@ -292,6 +293,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Why not: Five worker groups to run and patch, and customer traffic would still need a single home, so it doesn't answer the question.
 
 ### D2 · How do firewall logs reach the workers?
+- Explanation: Today the firewalls at every site send syslog to one syslog server in Shared Tooling. Once the workers exist, firewall logs can keep going through that server, which forwards them on, or the firewalls can send to the workers directly. This decides whether that server stays in the path, which matters because it runs in one zone and has dropped messages (E5, R4), and whether all 14 sites need firewall changes. It follows D1 because a direct path needs the site VPNs to reach wherever the workers live.
 - Rail: How firewall logs get there
 - Shapes: The syslog relay, or straight from the firewalls.
 - Page: firewall-intake
@@ -325,6 +327,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Evidence: Q4
 
 ### D3 · How do customers connect?
+- Explanation: From November, customers send us their own logs, and their contracts rule out the public internet (R2, R3). This decides the private way in: what customers connect to and how it reaches the workers. It waits because the endpoint lives in the workers' network, which D1 settles, and is sized by how much customers will send (Q3). Until then the design assumes a PrivateLink endpoint.
 - Rail: How customers connect
 - Shapes: How customers reach the workers, and what they connect to.
 - Page: customer-intake
@@ -335,6 +338,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Worked out in: No brief yet
 
 ### D6 · How is customer data kept apart in S3?
+- Explanation: Every log is kept in S3 for a year (R9), and a customer's logs may be read only with that customer's own role and key (R8). This decides how that separation is built: a bucket for each customer, or one shared bucket where each customer has a prefix and an encryption key of their own. Which works depends on how many customers there will be (Q8), since a shared bucket's access rules fit about 60 customers (E8), and on whether OPW can write each customer's logs with its own key (Q10).
 - Rail: How customer data is kept apart
 - Shapes: A bucket per customer, or a prefix and key per customer.
 - Page: s3-archive
@@ -346,6 +350,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Worked out in: s3-archive
 
 ### D7 · What does OPW drop before Datadog?
+- Explanation: Most of the saving in this design comes from not paying Datadog to index logs nobody searches. OPW can drop those before they reach Datadog, while S3 still keeps everything. This decides which kinds of log are dropped. Nothing is dropped until security agrees which logs investigations need (Q9).
 - Rail: What OPW drops
 - Shapes: Everything is still archived.
 - Page: pipeline-workers
@@ -595,48 +600,58 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 ## Questions
 
 ### Q1 · Can the site VPNs carry a route to a new VPC's address range without re-creating the tunnels?
+- Explanation: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If the workers get their own VPC (D1, option B), firewalls sending straight to them (D2) needs the tunnels to carry that VPC's range too. We need to know whether a route can be added to the tunnels as they are, or whether they'd have to be re-created, which R5 rules out before January.
 - Short: Can site VPNs reach a new VPC?
 - Who: Network team (other team)
 - Blocks: D1, D2
 
 ### Q2 · Does security standard SEC-12 allow customer traffic to end inside Shared Tooling?
+- Explanation: Customer connections have to end somewhere inside our network. SEC-12 is the security standard for Shared Tooling, the network that hosts our internal tools. If it doesn't allow customer traffic to end there, the workers can't go in Shared Tooling (D1, option A); that doubt is the main reason the design leans towards a VPC of their own.
 - Short: May customer traffic end in Shared Tooling?
 - Who: Security (GRC) (other team)
 - Blocks: D1
 
 ### Q3 · How much log volume will the first three customers send in their first 90 days?
+- Explanation: The customer endpoint and what sits behind it are sized for the traffic they carry. We don't know yet how much the first three customers will send in their first 90 days. The answer sizes the customer connection (D3).
 - Short: Customer log volume?
 - Who: Customer onboarding lead (other team)
 - Blocks: D3
 
 ### Q4 · Can OPW receive UDP syslog behind a Network Load Balancer without dropping messages?
+- Explanation: If firewalls send straight to the workers (D2, option 2), a Network Load Balancer spreads their syslog across the workers. The firewalls send syslog over UDP, which has no delivery confirmation, and we don't know whether OPW behind a load balancer receives it without losing messages. Datadog can tell us; a no rules the direct path out.
 - Short: Syslog behind a load balancer?
 - Who: Datadog support (vendor)
 - Blocks: D2
 
 ### Q5 · If we create a new VPC, which team owns it: patching, alerts, and cost?
+- Explanation: A VPC of the pipeline's own (D1, option B) is a new network someone has to run: patch what's in it, answer its alerts, and pay for it. No team owns it yet, and option B isn't workable until one agrees to.
 - Short: Who owns a new VPC?
 - Who: Platform team (our team)
 - Blocks: D1
 
 ### Q6 · Is our Datadog organization on Datadog's government site, and is that site authorized for this data?
+- Explanation: Log data stays in GovCloud unless where it goes is authorized to hold it (R6). Filtered logs go to Datadog, so we need to know whether our Datadog organization is on Datadog's government site, and whether that site is authorized for this data. If it isn't, sending logs to Datadog breaks R6 whichever way D1 goes.
 - Short: Is Datadog's government site authorized?
 - Who: Security (GRC) (other team)
 - Blocks: D1, R6
 
 ### Q7 · Do the site VPN tunnels use FIPS-validated encryption today?
+- Explanation: Every connection carrying these logs must use FIPS-validated encryption (R7). The site VPN tunnels carry firewall logs into AWS, and nobody has confirmed what encryption they use today. If it isn't FIPS-validated, R7 isn't met for firewall logs until the tunnels change.
 - Who: Network team (other team)
 - Blocks: R7
 
 ### Q8 · How many customers do we expect to onboard in the first year?
+- Explanation: How customer data is kept apart in S3 (D6) depends on how many customers there will be. One shared bucket's access rules fit about 60 customers (E8); past that, the design needs another way to keep them apart. The onboarding forecast for the first year tells us which fits.
 - Who: Customer onboarding lead (other team)
 - Blocks: D6
 
 ### Q9 · Which kinds of log may OPW drop before Datadog, and which must always reach it?
+- Explanation: OPW can drop logs before Datadog to cut the bill, and S3 keeps everything regardless. Security decides which logs investigations depend on, so D7 needs their list of what may be dropped and what must always reach Datadog.
 - Who: Security (GRC) (other team)
 - Blocks: D7
 
 ### Q10 · Can OPW's S3 destination write each customer's logs with a different KMS key?
+- Explanation: Keeping each customer's logs readable only with their own key (R8) is simplest if OPW encrypts each customer's logs with that customer's KMS key as it writes them. We don't know whether OPW's S3 destination can choose a key per customer. If it can't, the shared bucket in D6 needs another way to apply the keys.
 - Who: Datadog support (vendor)
 - Blocks: D6, R8
 
