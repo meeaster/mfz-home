@@ -24,7 +24,7 @@ designs/<slug>/
 ## Designs and efforts
 
 - **Link an effort to each design it changes** by making `design.md` a member of it: `catalog_describe` with the path and `efforts: {include: [<effort slug>]}`. The session that creates a design links it to its own effort automatically. A session that only reads a design for background doesn't link it.
-- **Split the knowledge by what it describes.** What the system is and why (requirements, decisions, parts, evidence, questions) goes in the design. How the work is going (next actions, questions asked and who to chase, tickets, planned meetings and their agendas, PRs) goes in the effort's `context.md`, and how the effort builds its part goes in the effort's `approach.md`, citing the design's decisions by ID.
+- **Split the knowledge by what it describes.** What the system is and why (requirements, decisions, parts, evidence, questions) goes in the design. What already exists around it, such as the AWS environment it runs in or a vendor's product, goes in a knowledge article under `<root>/knowledge/`, kept by the effort-context skill; the design's evidence cites it. How the work is going (next actions, questions asked and who to chase, tickets, planned meetings and their agendas, PRs) goes in the effort's `context.md`, and how the effort builds its part goes in the effort's `approach.md`, citing the design's decisions by ID.
 - **When an effort's own decisions outgrow it** (others need to see them, another effort needs them, or they need evidence and options), create a design, move those decisions into it once, and leave a pointer in the effort's records.
 
 ## Picking a design up
@@ -39,30 +39,32 @@ When a session starts work on a design, or on an effort linked to one:
 ## Working on it
 
 - **Findings go in as you establish them:** evidence, open questions, and options found in research, each with `Recorded from`.
+- **Evidence from a knowledge article:** copy the claim the design rests on into an evidence item, since design.md must stand alone, and cite the article's section in `Recorded from` (`knowledge aws-environment · Transit gateways`) rather than the evidence files it was written from.
 - **Decisions and requirements change when the user says so.** Change a decision's status, add or drop a requirement, or set an option aside only on the user's word or a meeting's accepted outcome. The page can still say what the evidence favours.
 - **Log every accepted change** in `changes.md` under today's date and its source (`session <your catalog id>`, `request`, `meeting <date>`, `email <date> · <sender>`). One entry per sitting is enough.
 - **Bring the pages along** when records change: tables, option cards, decision maps, costs, flows and bound diagram parts follow on their own; prose, and any part of a picture that isn't bound, don't. Redraw a picture when what was chosen differs from what it shows; update "In short", the dek, and the "Updated" date on each page that changed.
 
 ## After a meeting
 
-The transcript and the full meeting summary are sources: they stay where the session that processed them put them (with Cairn, in that session's folder). The summary separates what was decided, suggested, left open, and assigned, and lists candidates for each design and effort the meeting touched.
+The transcript and the full meeting summary are sources. With Cairn they live together in the meeting's folder, `<root>/sources/meetings/<date>-<subject>/`, as the effort-context skill describes. The summary separates what was decided, suggested, left open, and assigned, and lists candidates for each design and effort the meeting touched.
 
 1. **Go through the candidates with the user.** Each is accepted, deferred, or rejected. A colleague's "sounds good" is not a decision until the user says it is.
 2. **Apply what was accepted:** decision statuses (Decided only when the meeting actually decided, with `Decided in` naming the meeting when the decision was worked out in a brief) with the Why the meeting gave and any reasoning or alternatives it discussed, the winning option Chosen and the others Not chosen with why, answered questions (the answer becomes evidence; the question gets Answer and Answered by, and comes off the Waiting on of what it blocked), new evidence and questions, options set aside with the date and reason, new pages the meeting opened up. The user's own actions go to the effort's `context.md`, not the design.
 3. **Record the meeting** in design.md's Meetings section: status Summarised, who attended by team or role, and a summary list. A meeting that's planned, and its agenda, go in the effort, not the design.
-4. **Log the changes** in `changes.md` under `meeting <date>`. They appear as the meeting's "Changed in this doc" chips.
+4. **Log the changes** in `changes.md` under `meeting <date>`. They appear as the meeting's "Changed in this doc" chips. Record each candidate's outcome in the summary's Intake section too, so it isn't gone through twice.
 5. **Rebuild.**
 
 Mark a meeting Awaiting review when its summary is in but the candidates haven't been gone through.
 
 ## After an email
 
-An email thread that answers a question, settles a decision, or brings a finding is a source like a transcript. With Cairn it's captured in the session's folder as the effort-context skill describes: one file per thread per session, messages oldest first, a later session capturing only what's new.
+An email thread that answers a question, settles a decision, or brings a finding is a source like a transcript. With Cairn it's kept at `<root>/sources/email/<thread>.md` as the effort-context skill describes: one file per thread, messages oldest first, later replies added at the end, and `Reviewed through` naming the last message already taken through intake.
 
-1. **Go through what the new messages offer** with the user, as candidates: accepted, deferred, or rejected. An email agreeing to something is not a decision until the user says it is.
+1. **Go through what the new messages offer** (those after `Reviewed through`) with the user, as candidates: accepted, deferred, or rejected. An email agreeing to something is not a decision until the user says it is.
 2. **Apply what was accepted** as after a meeting, citing the message in `Recorded from` and, for evidence, `Gathered from: Email: <team or role>, <date>`. The evidence an answer becomes says who answered and when.
 3. **Log the changes** in `changes.md` under `email <date> · <sender>`. An email gets no entry on the Meetings page; what it settled shows in the records and the change log.
-4. **Rebuild.**
+4. **Move `Reviewed through`** in the thread's header to the last message gone through.
+5. **Rebuild.**
 
 ## Checking and building
 

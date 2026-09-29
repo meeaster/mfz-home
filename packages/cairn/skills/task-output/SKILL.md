@@ -13,7 +13,8 @@ A dispatched assignment's response lives in one file that its parent reads in fu
 - Work a session does for itself, including its own investigation, is answered in its reply rather than a file.
 - A dispatched assignment writes only to the exact paths its brief assigns, as given: the response file and, for a lesson, the learnings file.
 - Own your assigned files. A follow-up on the same assignment continues the same file. Never overwrite another producer's account.
-- The request and applicable instructions own scope and authority. Output writing does not authorize project edits, publication, or knowledge promotion. If no path is assigned or a permitted write is unavailable, reply with the exact conflict and attributed file-ready content; never bypass a denial.
+- A brief can assign a knowledge article as the file to write. The article belongs to its subject, not to you: update it in place, keeping what still holds from earlier writers, and follow the write-up steps in `effort-context`'s knowledge reference. The reply names the article like any response file.
+- The request and applicable instructions own scope and authority. Output writing does not authorize project edits, publication, or promotion into a personal knowledge base. If no path is assigned or a permitted write is unavailable, reply with the exact conflict and attributed file-ready content; never bypass a denial.
 
 ## Write the response
 
@@ -29,7 +30,7 @@ A dispatched assignment's response lives in one file that its parent reads in fu
 
 ## Describe the files
 
-- Before replying, describe every file you wrote under the Cairn root with `catalog_describe`: a category (`evidence` for a response unless `deliverable`, `synthesis`, or `source` fits better; `learning` for a learnings file), a short title, and a one-sentence description of what it establishes. Later sessions choose what to open from these descriptions in search results and effort views.
+- Before replying, describe every file you wrote under the Cairn root with `catalog_describe`: a category (`evidence` for a response unless `deliverable`, `synthesis`, or `source` fits better; `learning` for a learnings file; `knowledge` for an assigned knowledge article), a short title, and a one-sentence description of what it establishes. Later sessions choose what to open from these descriptions in search results and effort views.
 - A file you changed that is already described needs a new description only when its meaning changed. Add `supersedes` when your file replaces an earlier one.
 
 ## Reply
@@ -38,4 +39,4 @@ A dispatched assignment's response lives in one file that its parent reads in fu
 - Name new learnings and corrections in the summary so the coordinator can pass them on. Producer completion is distinct from acceptance or independent review.
 - Read selected existing outputs for reuse, checking freshness and applicability. Report material gaps without expanding the assignment or replaying sound completed work.
 
-The operation ends when the file is complete and described and the reply names it, or the blocked write is disclosed with recoverable content. Files remain working evidence rather than durable knowledge or new authority.
+The operation ends when the file is complete and described and the reply names it, or the blocked write is disclosed with recoverable content. Response files remain working evidence rather than new authority; they reach a knowledge article only through a write-up.

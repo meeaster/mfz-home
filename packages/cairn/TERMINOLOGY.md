@@ -29,7 +29,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Artifact | Anything the catalog points to: a file under the root, an external file, or a URL. | An evidence file, a Confluence page |
 | Pointer | An artifact that is a URL or a file outside the root. The catalog records it but never copies it. | A Jira issue URL |
 | Pointer type | The kind of URL pointer, derived by the service from the URL. | `pull_request`, `jira_issue`, `confluence_page` |
-| Category | The one-word kind of an artifact, chosen when it is described: `evidence`, `source`, `synthesis`, `deliverable`, `record`, `conversation`, `learning`, or `other`. | `evidence` |
+| Category | The one-word kind of an artifact, chosen when it is described: `evidence`, `source`, `synthesis`, `knowledge`, `deliverable`, `record`, `conversation`, `learning`, or `other`. | `evidence` |
 | Capture | The plugin's automatic step: recording a file write, its writing session, and its hash. It involves no model. | A write tool call succeeds, so the plugin runs `cairn capture` |
 | Describe | An agent's step: giving an artifact a title, a description, and a category. | `catalog_describe(path, …)` |
 | Undescribed | A captured artifact that no agent has described yet. | A file written through shell redirection |
@@ -39,12 +39,14 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Split | Creating a new effort from a piece of an existing one, with a `split_from` link. The original loses nothing. Splitting is explicit. | OPW deployment split from Logs archived to S3 |
 | Reading scope | What a session reads by default: the full `context.md` of attached efforts, the summary of efforts one link away, and more only on demand. It's not a size limit. | |
 | Suggestion | A link proposed by the service rather than by an agent or the human. It is hidden until accepted. | Y was written after X was read, so the service suggests "Y informs X" |
-| Index | The effort view rendered as Markdown. The service generates it from the database, and it is a view only. | `efforts/asa-ingestion/index.md` |
+| Index | A view rendered as Markdown from the database: an effort's view, or the list of knowledge articles. The service generates it, and it is a view only. | `efforts/asa-ingestion/index.md`, `knowledge/index.md` |
+| Knowledge article | What is known about one existing subject, such as an AWS environment, a vendor product, or a codebase, written for a reader who never saw the evidence and kept current. It lives at the root under `knowledge/`, named for its subject, and joins the efforts that rely on it or add to it. The evidence it is written from `informs` it. | `knowledge/aws-environment.md` |
+| Write up | Turn evidence into a knowledge article, or fold new evidence into an existing one. | Writing up the session's AWS evidence |
 | Record | A file that holds state rather than findings. The work's state (purpose, validated decisions, open questions, next actions, waiting-on, design) lives in the effort's folder. The run's state (assignments, blockers, next steps) lives in the root session's folder. The skills name records, not the catalog. | `efforts/asa-ingestion/context.md`, `sessions/…/coordination.md` |
-| External input | Material from outside the working sessions: meetings, emails, other people's notes. It is kept as artifacts and is never validated state by itself. | A meeting transcript, the security lead's email |
+| External input | Material from outside the working sessions: meetings, emails, chats, tickets, other people's notes. It is kept as artifacts under `sources/` and is never validated state by itself. | A meeting transcript, the security lead's email |
 | Candidate | A decision, suggestion, or open question found in external input and not yet accepted by the human. It lives in the input's summary. | "Infra engineer suggested the shared services VPC" |
 | Action item | A to-do from a meeting or other input, with an owner. At intake it becomes a next action (yours), a waiting-on item (someone else's), or a Jira item. | "Security lead to confirm the IAM scope" |
-| Intake | A deliberate session with the human that works through external input's candidates and action items. It promotes accepted items into `context.md` and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
+| Intake | A deliberate session with the human that works through external input's candidates and action items. It moves accepted items into `context.md`, a design, or a knowledge article, and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
 | Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths and the session's `coordination.md`. | "Attached to asa-ingestion: context at …/context.md" |
 | Conversation export | A root session's user messages and assistant text, written as Markdown and kept up to date after each turn. | `conversation.md` |
 | Watermark | The position in a session's source history that the conversation export has reached. | Last exported message sequence and tail hash |
@@ -57,15 +59,17 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | `evidence` | Findings from an investigation, with their support |
 | `source` | Raw input material: email excerpts, meeting notes, exports, screenshots |
 | `synthesis` | Distilled discussion, designs, plans, and summaries |
+| `knowledge` | A knowledge article: one subject's current state, kept current |
 | `deliverable` | Something made to share with people: a Confluence page, a Jira item, a quick shared note |
 | `record` | State: an effort's context and design, or a session's coordination |
 | `conversation` | A conversation export. Set only by the service. |
+| `learning` | A producer's operational lesson, such as how to run a command, kept apart from its response |
 | `other` | Anything else. Use it rarely. |
 
 ## Relationships between the terms
 
 - A session belongs to exactly one session tree. It is attached to zero or more efforts.
-- An artifact is produced in exactly one session. Its home folder is its root session's folder, unless it was deliberately written to an effort's folder.
+- An artifact is produced in exactly one session. Its home folder is its root session's folder, unless it was deliberately written to an effort's folder or to one of the root's subject folders: `designs/`, `knowledge/`, or `sources/`.
 - An artifact belongs to an effort through its session's attachment (or its nearest attached ancestor's), through its effort folder, or through explicit membership.
 - An effort's view covers the artifacts of every session attached to it, plus explicit members, minus explicit exclusions.
 - Efforts relate to each other through links. Tags only filter.
@@ -78,6 +82,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 - Say **attach** for session-to-effort association and **membership** for artifact-to-effort association. Don't say a session "is in" or "belongs to" an effort, because a session can serve several.
 - Say **capture** for the automatic step and **describe** for the agent step. Registration is not a separate operation.
 - **Artifact** is the general term. **Evidence** is only the category for investigation findings. Don't call every file evidence.
+- Say **knowledge article** for what is known about a subject, and **evidence** for the investigation output it is written from. A design records what is being built and why; a knowledge article records what exists. Cairn's knowledge articles are working material in the catalog, separate from any personal knowledge base.
 - **Workstream** is a Chief concept represented by sessions. It is not a separate kind of container. Don't create an effort just to represent a workstream.
 - Name an **effort** for its outcome ("Cisco ASA log ingestion"), never a phase ("Design ASA ingestion"). Design and implementation belong to the same effort.
 - Only validated state goes into `context.md`. Say **candidate** for anything from external input that the human hasn't accepted, and **intake** for the step that accepts it.

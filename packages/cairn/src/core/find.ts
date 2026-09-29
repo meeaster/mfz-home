@@ -61,9 +61,9 @@ export type EffortSummary = {
   readonly last_activity_at: string;
 };
 
-export type ArtifactGroup = {
+export type ArtifactGroup<Entry extends ArtifactEntry = ArtifactEntry> = {
   readonly group: string;
-  readonly artifacts: readonly ArtifactEntry[];
+  readonly artifacts: readonly Entry[];
 };
 
 export type FindResult =
@@ -431,6 +431,7 @@ export const groupOrder: readonly string[] = [
   "confluence_page",
   "record",
   "deliverable",
+  "knowledge",
   "synthesis",
   "evidence",
   "learning",
@@ -440,12 +441,12 @@ export const groupOrder: readonly string[] = [
   "undescribed"
 ];
 
-export function groupArtifacts(
-  entries: readonly ArtifactEntry[],
-  keyOf: (entry: ArtifactEntry) => string,
+export function groupArtifacts<Entry extends ArtifactEntry>(
+  entries: readonly Entry[],
+  keyOf: (entry: Entry) => string,
   order: readonly string[]
-): ArtifactGroup[] {
-  const groups = new Map<string, ArtifactEntry[]>();
+): ArtifactGroup<Entry>[] {
+  const groups = new Map<string, Entry[]>();
 
   for (const entry of entries) {
     const key = keyOf(entry);

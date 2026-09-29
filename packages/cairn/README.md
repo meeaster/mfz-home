@@ -28,7 +28,7 @@ The build bundles each entry with its dependencies: `dist/cli.js`, `dist/mcp.js`
 
 ## Running
 
-`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `~/workspace/artifacts/cairn/`. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, and effort folders in `efforts/`. Every command accepts `--json`.
+`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `~/workspace/artifacts/cairn/`. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, effort folders in `efforts/`, and folders named for their subjects: designs in `designs/`, knowledge articles in `knowledge/` (with a generated `index.md`), and meetings and message threads in `sources/`. Every command accepts `--json`.
 
 A typical sequence, as the harness plugins and agents will run it:
 

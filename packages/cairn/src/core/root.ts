@@ -37,10 +37,14 @@ export function rootPaths(root: string): RootPaths {
 }
 
 // The records an agent keeps in each effort's folder.
-export const recordNames: readonly string[] = ["context.md", "design.md"];
+export const recordNames: readonly string[] = ["context.md", "approach.md"];
 
 export function effortFolder(root: string, slug: string): string {
   return join(root, "efforts", slug);
+}
+
+export function knowledgeFolder(root: string): string {
+  return join(root, "knowledge");
 }
 
 export function sessionFolder(root: string, harness: string, month: string, rootNativeId: string): string {
@@ -83,6 +87,7 @@ export function isCairnOwned(inside: string): boolean {
     inside.startsWith("backups/") ||
     inside.startsWith("logs/") ||
     inside.startsWith("locks/") ||
+    inside === "knowledge/index.md" ||
     /^efforts\/[^/]+\/index\.md$/.test(inside)
   );
 }

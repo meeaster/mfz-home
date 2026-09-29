@@ -71,6 +71,9 @@ These are the human's own examples. The design is checked against them.
 | Orchestration, and a capture that names no effort, create a provisional effort for the task, so its records exist from the first decision. The human promotes it or approves merging it into an existing effort. Default-mode sessions get no effort; their files stay in the session folder. | Human, 2026-09-25 |
 | Operational learnings get their own artifact category, `learning`, so later assignments can find them. | Human, 2026-09-25 |
 | Cairn is enabled in the `base` profile, beside the skills that use it. | Human, 2026-09-25 |
+| What is known about a subject is kept in a knowledge article: one Markdown document per existing subject (an AWS environment, a vendor product, a codebase), written for a reader who never saw the evidence and edited in place as evidence arrives. Evidence stays organized by the question each assignment answered; the article reorganizes it by subject. See [knowledge articles](#knowledge-articles). | Human, 2026-09-29, replacing the assistant's proposal of per-claim findings in the effort |
+| Knowledge articles live at the root in `knowledge/`, beside `designs/`, and join efforts through membership, because several efforts rely on one subject and it outlives each of them. Cairn generates `knowledge/index.md`. | Human, 2026-09-29 |
+| External input lives at the root in `sources/`: a folder per meeting holding its transcripts and summary, and one file per email, chat, or ticket thread that grows as replies arrive. | Human, 2026-09-29, replacing the session-folder placement and one file per thread per session |
 
 ## Domain model
 
@@ -168,15 +171,30 @@ Material that isn't a link is handled by where it lives:
 
 | Material | How it's stored | Category |
 | --- | --- | --- |
-| Email | Saved as a Markdown file in the session folder, through the email connector or pasted in. An optional `origin` field keeps the source message ID or link. | `source` |
-| Meeting | The recording as a pointer (external file or URL, never copied). The raw transcript or notes as Markdown. A cleaned transcript, with the raw one kept and linked with `informs`. A summary whose description is a short abstract. See [external input and intake](#external-input-and-intake). | recording and transcripts `source`; summary `synthesis` |
+| Email, chat, or ticket thread | One Markdown file per thread at `sources/<kind>/<thread>.md`, through a connector or pasted in, with later replies appended. An optional `origin` field keeps the source message ID or link. | `source` |
+| Meeting | A folder at `sources/meetings/<date>-<subject>/`. The recording as a pointer (external file or URL, never copied). The raw transcript or notes as Markdown. A cleaned transcript, with the raw one kept and linked with `informs`. A summary whose description is a short abstract. See [external input and intake](#external-input-and-intake). | recording and transcripts `source`; summary `synthesis` |
+| What is known about a subject | A knowledge article at `knowledge/<subject>.md`. See [knowledge articles](#knowledge-articles). | `knowledge` |
 | PR, issue, Jira item, Confluence page | A URL pointer with a derived pointer type | `deliverable`, or `source` when it's input rather than output |
+
+### Knowledge articles
+
+Evidence is organized by the question each assignment answered: one file per assignment, in the order the questions came up. A session that explored an AWS environment can leave ten such files. A later session, or a design, needs the same understanding organized by subject, and reading every file again to rebuild it doesn't scale. A knowledge article is that subject-organized document.
+
+- **What earns one.** An article describes one existing thing as it is: an AWS environment, a vendor product, a codebase, another team's service. The test is whether a later session would otherwise have to reread the evidence, or redo the research, to understand it. Single facts don't earn a file. Lists of separate claims were considered and rejected, because they can't carry a connected model such as how accounts, VPCs, and routing fit together.
+- **Depth.** As deep as the subject needs: tables, diagrams, the layout, the boundaries, the unknowns. Each section says when it was last known true and which evidence supports it. Raw detail, such as full route table dumps, stays in the evidence and is linked.
+- **Current state.** It is edited in place when new evidence arrives. Superseded content comes out, since the evidence keeps the history. Disagreement between sources is stated where it applies rather than resolved silently.
+- **Designs and articles.** A design records what is being built and why, with decisions. An article records what exists, and decides nothing. A design's evidence item copies the claim it rests on, because `design.md` must stand alone, and cites the article's section in `Recorded from`.
+- **Where it lives.** `knowledge/<subject>.md` at the root, or a folder when it needs sub-pages or pictures (`cairn mv` keeps its identity). It joins the efforts of the session that first wrote it, and an agent adds other efforts with `efforts.include` when their work relies on it or adds to it. Reading an article for background adds nothing.
+- **Writing up.** On the human's request, an agent writes up evidence into an article: it looks for an existing article on the subject first, then writes or updates it, and links each evidence file it used with `informs`. A large write-up can be a dispatched assignment whose output file is the article.
+- **Finding them.** `catalog_find` with category `knowledge`, the effort view's Knowledge group, and the generated `knowledge/index.md`, which lists each article with its efforts, how many files inform it, and when it last changed. In the effort view, each file that informs an article says which one, so evidence that hasn't been written up yet stands out.
+
+Articles are working material in the catalog. Promotion into a personal knowledge base is a separate step with its own authority.
 
 ### External input and intake
 
 Some material arrives from outside the working sessions: meetings, emails, a colleague's notes. It carries decisions, suggestions, and to-dos, but none of it is validated. A colleague's "that sounds good" in a meeting isn't an accepted decision. So external input is kept as artifacts, and only a deliberate intake with the human moves any of it into `context.md`.
 
-**Processing a meeting** (a short session after the meeting, attached to the efforts it concerned so the meeting appears in their views):
+**Processing a meeting** (a short session after the meeting, attached to the efforts it concerned so the meeting appears in their views). Its files go in one folder, `sources/meetings/<date>-<subject>/`, so the summary, which intake works from and designs cite, stays beside the transcripts it summarizes:
 1. Register the recording as a pointer (`source`).
 2. Save the raw transcript or notes (`source`), and keep it unchanged.
 3. Write a cleaned transcript (`source`): speaker labels by role, filler removed, nothing added. Link it with the raw one through `informs`.
@@ -191,7 +209,8 @@ Some material arrives from outside the working sessions: meetings, emails, a col
 Processing never writes to any `context.md`.
 
 **Intake** is a deliberate session with the human, right after processing or days later, that works through the summary's candidates:
-- **Accept** a decision: the agent writes it into the `context.md` of the effort it concerns, citing the meeting summary. Wording may be adjusted as the human confirms it.
+- **Accept** a decision: the agent writes it into the `context.md` of the effort it concerns, or the design it concerns, citing the meeting summary. Wording may be adjusted as the human confirms it.
+- **Accept** a stated fact about an existing system: it goes into that subject's knowledge article, citing the summary.
 - **Adjust or discuss:** talk it through first. What comes out is the human's decision, recorded as above.
 - **Reject or defer:** it stays in the summary, marked as such.
 - **Open questions:** become open questions in `context.md` only if the human wants to pursue them.
@@ -202,7 +221,7 @@ Processing never writes to any `context.md`.
 
 The intake session attaches to the efforts whose `context.md` it changes ("attach where the work lands"). It records the outcome for each candidate in the summary's Intake section, so nothing is reviewed twice.
 
-The same intake applies to other external input, such as an email thread with questions or a colleague's design notes. Processing an email is lighter: save it as a `source` file, with an optional summary.
+The same intake applies to other external input, such as an email thread with questions or a colleague's design notes. Processing an email is lighter: save it as a `source` file at `sources/email/<thread>.md`, appending later replies to the same file, with an optional summary.
 
 Following the conversation content rules, attribution stays explicit throughout: what a person said, what the assistant proposed, and what the human accepted are never merged.
 
@@ -246,6 +265,7 @@ The effort view is the primary way back into work. `catalog_find` and the genera
 - **Effort view:** its `context.md` summary, its linked efforts with their status (`depends_on`, needed by, `split_from`, `related`), then every artifact from every attached session plus explicit members, **grouped by category** by default, with titles, descriptions, paths, and pointer types. PRs, Jira items, and Confluence pages each get their own group. Grouping by session and filtering to one session are options. Each artifact shows its producing session's title so provenance stays visible.
 - **Sessions of an effort:** the session titles and descriptions, with links to their conversation exports.
 - **Chief loop:** find sessions by `workstream` or `subject`.
+- **Knowledge:** `knowledge/index.md` lists every article with its efforts, how many files inform it, and when it last changed.
 
 The generated `efforts/<slug>/index.md` renders the default effort view as Markdown with relative links. It is a view only. Agents don't edit it, and the database remains the source of truth.
 
@@ -290,11 +310,21 @@ An artifact's efforts are the attached efforts of the nearest attached session i
   efforts/<slug>/
     index.md                 generated effort view
     context.md               the work's state: purpose, scope, decisions and rationale, open questions
-    design.md                optional, when the effort has a design
+    approach.md              optional: how this effort builds its part
     …                        other material deliberately written to the effort
+  designs/<slug>/            a design, named for its subject (owned by the design-docs skill)
+  knowledge/
+    index.md                 generated list of articles
+    <subject>.md             a knowledge article, or <subject>/ when it needs sub-pages
+  sources/
+    meetings/<date>-<subject>/
+      transcript-raw.md      the raw transcript or notes, unchanged
+      transcript.md          cleaned
+      summary.md             candidates and action items, with the Intake outcome
+    email/<thread>.md        one thread, replies appended (chat/ and tickets/ alike)
 ```
 
-`catalog_location` returns a path in the root session's folder by default. With `effort` set, it returns a path in that effort's folder, for material meant to outlive the session. Chief's delegated orchestrators get a subfolder named by workstream key inside the root session folder, so parallel workstreams don't collide. Files never move automatically, and `cairn mv` moves a file while keeping its identity.
+`designs/`, `knowledge/`, and `sources/` are named for their subjects rather than the work, because each outlives the sessions and efforts that touch it, and their paths are composed from the subject. `catalog_location` returns a path in the root session's folder by default. With `effort` set, it returns a path in that effort's folder, for material meant to outlive the session. Chief's delegated orchestrators get a subfolder named by workstream key inside the root session folder, so parallel workstreams don't collide. Files never move automatically, and `cairn mv` moves a file while keeping its identity.
 
 `catalog_location` records which session each path was handed to, and never hands the same path out twice. A file written there that no capture records, for example by a shell command, is credited to that session when it is first recorded, by a read or by `catalog_describe` without `session`. Provenance then still doesn't depend on the model knowing its own session ID.
 
@@ -513,7 +543,7 @@ These proposals were made and then replaced. Don't re-propose them without new e
   - **Decisions as a primitive:** one Markdown file each, with the question, a status (open, decided, superseded, dropped), options with pros, cons, and evidence, the chosen option and rationale, and resulting requirements. They're parsed into rows. Decision trees are links: `depends_on` between decisions, an option `raises` or `constrains` another decision (including in other efforts), and a decision `produces` a requirement. A site would draw the tree and order open decisions by what they block.
   - **`requirements.md`**, promoted, or produced by decisions.
   - **`todos.md`**, owned by the human, added only when the human accepts them, and kept out of agent context so "talk to the security reviewer" never reads as an agent task. Waiting-on items are to-dos owned by others.
-  - **Knowledge documents** (category `knowledge`): refined, shareable research promoted from evidence ("How OPW works"), which the human may restructure and share.
+  - **Knowledge documents**: built on 2026-09-29 as [knowledge articles](#knowledge-articles), kept at the root rather than in the effort.
   - **A working log:** decisions made along the way with who made them, approaches tried and dropped, and candidates AI flags for promotion. Never loaded by default; a cheap Scribe or explore agent summarizes it on demand.
   - **Promotion**, generalizing intake: any working material (meeting summary, log candidate, evidence, conversation) promoted into a decision, requirement, to-do, knowledge document, or context update, citing its source and marking what was promoted or declined.
   - **Items parsed from Markdown:** checkbox bullets under known headings (`## To-dos`, `## Open questions`, `## Candidates`) become `item` rows, with the files remaining the source of truth. Pending intake is then derived from unchecked candidates, and a needs-attention view across efforts becomes possible: open decisions, candidates awaiting review, the human's to-dos, and waiting-on.
@@ -725,6 +755,15 @@ Built 2026-09-25, at the human's request, so that configuration names commands i
 - **Startup.** The bundled CLI answers a hook in about 66 ms, and about 79 ms through pnpm's `.bin` shim. The source with `NODE_COMPILE_CACHE` took about 84 ms.
 - **Checked.** The installed `cairn hook claude-code` answers `SessionStart`, its `Stop` export runs detached from `dist/cli.js` and writes `conversation.md`, and `cairn-mcp` lists the six tools over stdio, also with the OpenCode service's PATH. `cairn:link` and `cairn:install` switch the installed package both ways. After `mfz apply`, `opencode mcp list` shows `cairn` connected, and Claude Code's settings carry the five hook events. 52 package tests pass, including the plugin's 8.
 - **Live check.** After `mfz apply` and a restart of `opencode-serve`, the service runs `dist/mcp.js` from the installed package. A `claude -p --model haiku` run with the user's rendered settings and a temporary `CAIRN_ROOT` registered the session and its subagent as a child, titled from the Agent tool's description. The subagent received its catalog ID and the capture note, wrote a file from `catalog_location`, and described it; the file's producer is the subagent. `Stop` exported `conversation.md`, and nothing was logged as a failure. A test folder under `~/.claude/` first blocked the write, since Claude Code refuses edits there even with `acceptEdits`. A `claude -p` call that exits before its prompt still fires `SessionStart`, which leaves an empty session row.
+
+### Knowledge and sources
+
+Built 2026-09-29.
+- **Schema version 4** adds the `knowledge` category, rebuilding the artifact table the way version 3 did.
+- **Knowledge index.** `knowledge/index.md` is Cairn's own file and never captured. It has no dirty flag: every non-hot command renders it and writes it only when the content changed, which costs one query.
+- **Written up.** The effort view gives each artifact the knowledge articles it `informs` (`written_up_in`), and the index shows them after the producer.
+- **Record names.** Cairn's record list was still `context.md` and `design.md` after the skills renamed the effort's technical record to `approach.md`, so `approach.md` got a capture note, was missing from the compaction note, and wasn't listed after a merge. The list is now `context.md` and `approach.md`; no effort folder held a `design.md`.
+- `sources/` and `designs/` need no code: any folder under the root is captured and described like the rest.
 
 ### Phases
 

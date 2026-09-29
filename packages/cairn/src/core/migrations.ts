@@ -211,6 +211,66 @@ const migrations: readonly string[] = [
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'include'
   EXCEPT
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'exclude';
+  `,
+  `
+  -- Adds the knowledge category, rebuilding the artifact table the same way as version 3.
+  DROP VIEW artifact_effort;
+
+  CREATE TABLE artifact_new (
+    id INTEGER PRIMARY KEY,
+    category TEXT CHECK (category IN (
+      'evidence', 'source', 'synthesis', 'knowledge', 'deliverable', 'record', 'conversation', 'learning', 'other'
+    )),
+    pointer_type TEXT CHECK (pointer_type IN ('pull_request', 'issue', 'jira_issue', 'confluence_page', 'url')),
+    title TEXT,
+    description TEXT,
+    location TEXT NOT NULL CHECK (location IN ('managed', 'external', 'url')),
+    path_or_url TEXT NOT NULL UNIQUE,
+    origin TEXT,
+    sha256 TEXT,
+    size INTEGER,
+    status TEXT NOT NULL CHECK (status IN ('undescribed', 'active', 'superseded', 'missing', 'archived')),
+    producer_session_id INTEGER REFERENCES session (id),
+    captured_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  ) STRICT;
+
+  INSERT INTO artifact_new
+  SELECT id, category, pointer_type, title, description, location, path_or_url, origin, sha256, size, status,
+    producer_session_id, captured_at, updated_at
+  FROM artifact;
+  DROP TABLE artifact;
+  ALTER TABLE artifact_new RENAME TO artifact;
+  CREATE INDEX artifact_producer ON artifact (producer_session_id);
+
+  CREATE VIEW artifact_effort AS
+  WITH RECURSIVE chain (artifact_id, session_id, depth) AS (
+    SELECT id, producer_session_id, 0 FROM artifact WHERE producer_session_id IS NOT NULL
+    UNION ALL
+    SELECT chain.artifact_id, session.parent_session_id, chain.depth + 1
+    FROM chain JOIN session ON session.id = chain.session_id
+    WHERE session.parent_session_id IS NOT NULL AND chain.depth < 64
+  ),
+  attached AS (
+    SELECT artifact_id, session_id, depth FROM chain
+    WHERE EXISTS (SELECT 1 FROM attachment WHERE attachment.session_id = chain.session_id)
+  ),
+  nearest AS (
+    SELECT artifact_id, MIN(depth) AS depth FROM attached GROUP BY artifact_id
+  )
+  SELECT attached.artifact_id, attachment.effort_id
+  FROM attached
+  JOIN nearest ON nearest.artifact_id = attached.artifact_id AND nearest.depth = attached.depth
+  JOIN attachment ON attachment.session_id = attached.session_id
+  UNION
+  SELECT artifact.id, effort.id
+  FROM artifact JOIN effort
+    ON artifact.location = 'managed'
+    AND substr(artifact.path_or_url, 1, length('efforts/' || effort.slug || '/')) = 'efforts/' || effort.slug || '/'
+  UNION
+  SELECT artifact_id, effort_id FROM membership WHERE mode = 'include'
+  EXCEPT
+  SELECT artifact_id, effort_id FROM membership WHERE mode = 'exclude';
   `
 ];
 

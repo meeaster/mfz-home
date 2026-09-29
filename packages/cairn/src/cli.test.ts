@@ -206,9 +206,11 @@ describe("files", () => {
 
     const external = cairn.json(fileEvent, "capture", outside, "--session", "opencode:root");
     const index = cairn.json(fileEvent, "capture", join(cairn.root, "efforts", "logs-archived-to-s3", "index.md"), "--session", "opencode:root");
+    const knowledgeIndex = cairn.json(fileEvent, "capture", join(cairn.root, "knowledge", "index.md"), "--session", "opencode:root");
 
     expect(external.recorded).toBe(false);
     expect(index.recorded).toBe(false);
+    expect(knowledgeIndex.recorded).toBe(false);
   });
 
   test("location never hands out a path that exists or is already recorded", () => {
@@ -487,6 +489,33 @@ describe("indexes", () => {
     expect(cairn.index("logs-archived-to-s3")).toContain("late-finding.md");
     expect(path).toContain("late-finding.md");
   });
+
+  test("a knowledge article is listed in the knowledge index, and evidence written up in it says where", () => {
+    const cairn = workspace();
+
+    cairn.run("session", "describe", "opencode:root", "--create", "Logs archived to S3");
+
+    const evidence = writeEvidence(cairn, "opencode:root", "aws accounts");
+    const unused = writeEvidence(cairn, "opencode:root", "bucket pricing");
+    const article = cairn.write(join(cairn.root, "knowledge", "aws-environment.md"), "# AWS environment\n");
+
+    cairn.run("capture", article, "--session", "opencode:root");
+    cairn.run("describe", evidence, "--category", "evidence", "--title", "AWS accounts");
+    cairn.run("describe", unused, "--category", "evidence", "--title", "Bucket pricing");
+    cairn.run("describe", article, "--category", "knowledge", "--title", "AWS environment", "--description", "Accounts, VPCs, and routing.");
+    expect(cairn.run("link", "add", "artifact", evidence, "informs", article).code).toBe(0);
+
+    const knowledgeIndex = readFileSync(join(cairn.root, "knowledge", "index.md"), "utf8");
+    const effortIndex = cairn.index("logs-archived-to-s3");
+
+    expect(knowledgeIndex).toContain(
+      "- [AWS environment](aws-environment.md) — Accounts, VPCs, and routing. · efforts: [logs-archived-to-s3](../efforts/logs-archived-to-s3/index.md) · informed by 1 file"
+    );
+    expect(effortIndex).toContain("## Knowledge");
+    expect(effortIndex).toMatch(/\[AWS accounts\]\([^)]+\).* · written up in \[AWS environment\]\(\.\.\/\.\.\/knowledge\/aws-environment\.md\)/);
+    expect(effortIndex).toMatch(/\[Bucket pricing\]\([^)]+\)[^\n]*$/m);
+    expect(effortIndex).not.toMatch(/\[Bucket pricing\][^\n]*written up in/);
+  });
 });
 
 describe("backups", () => {
@@ -524,7 +553,7 @@ describe("backups", () => {
 });
 
 describe("schema upgrades", () => {
-  test("a catalog from schema version 2 keeps its attachments, memberships, and tags, and takes the new status and category", () => {
+  test("a catalog from schema version 2 keeps its attachments, memberships, and tags, and takes the new status and categories", () => {
     const cairn = workspace();
     const old = new DatabaseSync(join(cairn.root, "catalog.db"), { enableForeignKeyConstraints: true });
     const at = "2026-09-20T10:00:00.000Z";
@@ -554,6 +583,7 @@ describe("schema upgrades", () => {
     expect(sessions.sessions.map((session) => session.key)).toEqual(["opencode:root"]);
     expect(cairn.run("effort", "create", "--title", "Price the buckets", "--provisional").code).toBe(0);
     expect(cairn.run("describe", join(cairn.root, notes), "--category", "learning").code).toBe(0);
+    expect(cairn.run("describe", join(cairn.root, notes), "--category", "knowledge").code).toBe(0);
   });
 });
 

@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, relative } from "node:path";
 import { effortStatuses, type EffortStatus } from "../schemas.ts";
-import { integer, text, type Cairn } from "./db.ts";
+import { integer, optionalText, text, type Cairn } from "./db.ts";
 import {
   artifactGroup,
   groupArtifacts,
@@ -15,7 +15,7 @@ import {
   type SessionSummary
 } from "./find.ts";
 import { requireEffortId } from "./lookup.ts";
-import { effortFolder, recordNames } from "./root.ts";
+import { absolutePath, effortFolder, knowledgeFolder, recordNames } from "./root.ts";
 
 export type RecordFile = {
   readonly name: string;
@@ -37,7 +37,22 @@ export type EffortView = EffortSummary & {
   readonly records: readonly RecordFile[];
   readonly links: readonly LinkedEffort[];
   readonly sessions: readonly SessionSummary[];
-  readonly artifacts: readonly ArtifactEntry[];
+  readonly artifacts: readonly EffortArtifact[];
+};
+
+export type ArticleReference = {
+  readonly title: string | null;
+  readonly path: string;
+};
+
+// An artifact in an effort view, with the knowledge articles it informs.
+export type EffortArtifact = ArtifactEntry & {
+  readonly written_up_in: readonly ArticleReference[];
+};
+
+// A knowledge article in the knowledge index, with how many files inform it.
+export type KnowledgeEntry = ArtifactEntry & {
+  readonly informed_by: number;
 };
 
 export function markEffortDirty(cairn: Cairn, effortId: number): void {
@@ -116,6 +131,39 @@ function records(folder: string): RecordFile[] {
   return found;
 }
 
+// The knowledge articles each of these artifacts informs, keyed by the artifact's absolute path.
+function articlesInformed(cairn: Cairn, artifactIds: readonly number[]): Map<string, ArticleReference[]> {
+  const byPath = new Map<string, ArticleReference[]>();
+
+  for (const row of cairn.sql.all`
+    SELECT source.location AS source_location, source.path_or_url AS source_path,
+      article.location AS article_location, article.path_or_url AS article_path, article.title AS article_title
+    FROM link
+    JOIN artifact AS source ON source.id = link.src_id
+    JOIN artifact AS article ON article.id = link.dst_id
+    WHERE link.rel = 'informs' AND link.src_kind = 'artifact' AND link.dst_kind = 'artifact'
+      AND article.category = 'knowledge' AND article.status != 'archived'
+      AND link.src_id IN (SELECT value FROM json_each(${JSON.stringify(artifactIds)}))
+    ORDER BY article.title, article.path_or_url
+  `) {
+    const sourcePath = absolutePath(cairn.root, fileLocation(text(row, "source_location")), text(row, "source_path"));
+    const articles = byPath.get(sourcePath) ?? [];
+
+    articles.push({
+      title: optionalText(row, "article_title"),
+      path: absolutePath(cairn.root, fileLocation(text(row, "article_location")), text(row, "article_path"))
+    });
+    byPath.set(sourcePath, articles);
+  }
+
+  return byPath;
+}
+
+// A URL's stored form is the URL itself, which absolutePath leaves alone like an external path.
+function fileLocation(value: string): "managed" | "external" {
+  return value === "managed" ? "managed" : "external";
+}
+
 function linkedEfforts(cairn: Cairn, effortId: number): LinkedEffort[] {
   const linked: LinkedEffort[] = [];
 
@@ -176,11 +224,12 @@ export function effortView(cairn: Cairn, slug: string): EffortView {
     sessions.push(loadSession(cairn, integer(row, "id")));
   }
 
-  const artifacts: ArtifactEntry[] = [];
+  const writtenUp = articlesInformed(cairn, artifactIds);
+  const artifacts: EffortArtifact[] = [];
 
   for (const entry of loadArtifacts(cairn, artifactIds)) {
     if (!recordPaths.has(entry.path)) {
-      artifacts.push(entry);
+      artifacts.push({ ...entry, written_up_in: writtenUp.get(entry.path) ?? [] });
     }
   }
 
@@ -202,6 +251,7 @@ const groupHeadings = new Map<string, string>([
   ["confluence_page", "Confluence pages"],
   ["record", "Session records"],
   ["deliverable", "Deliverables"],
+  ["knowledge", "Knowledge"],
   ["synthesis", "Synthesis"],
   ["evidence", "Evidence"],
   ["learning", "Learnings"],
@@ -227,7 +277,15 @@ function target(folder: string, entry: ArtifactEntry): string {
   return entry.location === "url" ? entry.path : relative(folder, entry.path).replaceAll("\\", "/");
 }
 
-function artifactLine(folder: string, entry: ArtifactEntry): string {
+function relativeLink(folder: string, path: string): string {
+  return relative(folder, path).replaceAll("\\", "/");
+}
+
+function articleLink(folder: string, article: ArticleReference): string {
+  return `[${linkText(article.title ?? basename(article.path))}](${relativeLink(folder, article.path)})`;
+}
+
+function artifactLine(folder: string, entry: EffortArtifact): string {
   const parts = [`- [${linkText(entry.title ?? basename(entry.path))}](${target(folder, entry)})`];
 
   if (entry.description !== null) {
@@ -240,6 +298,10 @@ function artifactLine(folder: string, entry: ArtifactEntry): string {
 
   if (entry.producer !== null) {
     parts.push(` · from ${entry.producer.title ?? `\`${entry.producer.session}\``}`);
+  }
+
+  if (entry.written_up_in.length > 0) {
+    parts.push(` · written up in ${entry.written_up_in.map((article) => articleLink(folder, article)).join(", ")}`);
   }
 
   return parts.join("");
@@ -341,13 +403,110 @@ export function writeIndex(cairn: Cairn, slug: string): string {
   return path;
 }
 
-// Clears each flag before rendering, so a change made while rendering marks the effort again.
+export function knowledgeArticles(cairn: Cairn): KnowledgeEntry[] {
+  const ids: number[] = [];
+  const informedBy = new Map<number, number>();
+
+  for (const row of cairn.sql.all`
+    SELECT artifact.id, (
+      SELECT count(*) FROM link
+      WHERE link.rel = 'informs' AND link.src_kind = 'artifact' AND link.dst_kind = 'artifact'
+        AND link.dst_id = artifact.id
+    ) AS informed_by
+    FROM artifact WHERE artifact.category = 'knowledge' AND artifact.status != 'archived'
+    ORDER BY coalesce(artifact.title, artifact.path_or_url), artifact.id
+  `) {
+    const id = integer(row, "id");
+
+    ids.push(id);
+    informedBy.set(id, integer(row, "informed_by"));
+  }
+
+  return loadArtifacts(cairn, ids).map((entry, position) => ({
+    ...entry,
+    informed_by: informedBy.get(ids[position] ?? -1) ?? 0
+  }));
+}
+
+function knowledgeLine(folder: string, article: KnowledgeEntry): string {
+  const parts = [`- ${articleLink(folder, article)}`];
+
+  if (article.description !== null) {
+    parts.push(` — ${article.description}`);
+  }
+
+  if (article.status !== "active") {
+    parts.push(` · *${article.status}*`);
+  }
+
+  if (article.efforts.length > 0) {
+    parts.push(` · efforts: ${article.efforts.map((slug) => `[${slug}](../efforts/${slug}/index.md)`).join(", ")}`);
+  }
+
+  parts.push(
+    ` · informed by ${article.informed_by} ${article.informed_by === 1 ? "file" : "files"}`,
+    ` · updated ${article.updated_at.slice(0, 10)}`
+  );
+
+  return parts.join("");
+}
+
+export function renderKnowledgeIndex(folder: string, articles: readonly KnowledgeEntry[]): string {
+  const lines = ["# Knowledge", "", "> Generated by Cairn from the catalog. Edits here are overwritten.", ""];
+
+  for (const article of articles) {
+    lines.push(knowledgeLine(folder, article));
+  }
+
+  if (articles.length === 0) {
+    lines.push("No knowledge articles.");
+  }
+
+  lines.push("");
+
+  return lines.join("\n");
+}
+
+// Writes knowledge/index.md when its content changed, and returns its path when it did.
+function writeKnowledgeIndex(cairn: Cairn): string | null {
+  const folder = knowledgeFolder(cairn.root);
+  const path = join(folder, "index.md");
+  const articles = knowledgeArticles(cairn);
+  const exists = existsSync(path);
+
+  if (articles.length === 0 && !exists) {
+    return null;
+  }
+
+  const content = renderKnowledgeIndex(folder, articles);
+
+  if (exists && readFileSync(path, "utf8") === content) {
+    return null;
+  }
+
+  const temporary = `${path}.${process.pid}.tmp`;
+
+  mkdirSync(folder, { recursive: true });
+  writeFileSync(temporary, content);
+  renameSync(temporary, path);
+
+  return path;
+}
+
+// Clears each flag before rendering, so a change made while rendering marks the effort again. The knowledge
+// index has no flag: it is rendered every time and written only when it changed.
 export function regenerateDirty(cairn: Cairn): string[] {
   const written: string[] = [];
 
   for (const row of cairn.sql.all`SELECT id, slug FROM effort WHERE index_dirty = 1 ORDER BY slug`) {
     cairn.sql.run`UPDATE effort SET index_dirty = 0 WHERE id = ${integer(row, "id")}`;
     written.push(writeIndex(cairn, text(row, "slug")));
+  }
+
+  const knowledge = writeKnowledgeIndex(cairn);
+
+  if (knowledge !== null) {
+    written.push(knowledge);
   }
 
   return written;

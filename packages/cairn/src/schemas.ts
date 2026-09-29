@@ -1,7 +1,7 @@
 import { isAbsolute } from "node:path";
 import { z } from "zod";
 
-export const categories = ["evidence", "source", "synthesis", "deliverable", "record", "conversation", "learning", "other"] as const;
+export const categories = ["evidence", "source", "synthesis", "knowledge", "deliverable", "record", "conversation", "learning", "other"] as const;
 
 export const pointerTypes = ["pull_request", "issue", "jira_issue", "confluence_page", "url"] as const;
 
