@@ -4,6 +4,9 @@ A design doc is read together on a shared screen, and someone who doesn't know t
 
 ## Headers
 
+An ID written as an example rather than a reference, such as "D4 decided" in a design about change logs, needs its escape (`\D4`); otherwise it links to the doc's own D4 if there is one.
+
+
 Every page starts with a header: the title (about ten words at most), a one-sentence dek, a context line, and the last-updated date. The dek says what the title can't: the page's answer or where it stands, never a list of what the page covers. The overview's says what the system does, more concretely than its title. A brief's says where the decision stands and what it turns on. An area's says what the part guarantees and what's still open in it. On shared pages, Meetings says what the meetings so far settled, and Evidence says when and where the findings came from. A brief's title is its question ("Where should the log pipeline workers run?"). The overview's names what's being built ("Log ingestion in our cloud"). On pages other than the overview, the context line starts with a link back to it ("Overview / area", "Overview / brief"). Under an overview's or area's header, the progress line shows how much is settled (see [pages](pages.md)). Leave out parts that don't exist rather than inventing names. No owner, audience, or status fields. The rail's short title is two or three words.
 
 ## Section intros

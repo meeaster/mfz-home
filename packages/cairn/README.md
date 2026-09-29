@@ -98,17 +98,17 @@ Each catalog update is a detached `node` process running the CLI from the same p
 
 ## UI
 
-`cairn ui` serves a browser UI over the catalog at `http://localhost:4317/`, until you stop it. `--port` picks another port.
+`cairn ui` serves a browser UI over the catalog at `http://localhost:4317/`. It runs in the foreground until you stop it with Ctrl+C; start it again to pick up a rebuilt UI. `--port` picks another port.
 
 ```sh
 cairn ui
 ```
 
-It has a page for each effort and session and lists of efforts, sessions, knowledge articles, designs, and sources. The sidebar groups efforts by their `initiative:` tag. An effort's page groups its files by category, shows its records and linked efforts, and marks each file that has been written up in a knowledge article. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. Clicking a file opens it, rendered or raw.
+It has a page for each effort and session and lists of efforts, sessions, knowledge articles, designs, and sources. The sidebar groups efforts by their `initiative:` tag. An effort's page groups its files by category, shows its records and linked efforts, and marks each file that has been written up in a knowledge article. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. A built doc opens in its own tab from the list: the UI serves `designs/<name>/published/<slug>.html` at `/docs/<name>/`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. Clicking a file opens it, rendered or raw.
 
 The UI only reads. Its one action, Open folder, opens a folder under the root in the desktop's file manager (Explorer from WSL). The server listens on 127.0.0.1 and answers only requests addressed to `localhost`. The file viewer shows files under the root, and outside it only files the catalog records.
 
-The app is React with shadcn/ui components, in `ui/`. `pnpm --filter @mfz/cairn build` builds it into `dist/ui/` alongside the CLI. To work on it with reloading, run `cairn ui` (or `node src/cli.ts ui`) for the data, then `pnpm --filter @mfz/cairn dev:ui`; Vite forwards `/api` to port 4317.
+The app is React with shadcn/ui components, in `ui/`. `pnpm --filter @mfz/cairn build` builds it into `dist/ui/` alongside the CLI. To work on it with reloading, run `cairn ui` (or `node src/cli.ts ui`) for the data, then `pnpm --filter @mfz/cairn dev:ui`; Vite forwards `/api` and `/docs` to port 4317.
 
 ## Development
 

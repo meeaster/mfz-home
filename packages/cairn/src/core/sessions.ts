@@ -12,7 +12,7 @@ import { CairnError, insertedId, integer, optionalInteger, optionalText, timesta
 import { attach, createEffort, detach } from "./efforts.ts";
 import { loadEffort, loadSession, type EffortSummary, type SessionSummary } from "./find.ts";
 import { requireEffortId, requireSessionId } from "./lookup.ts";
-import { effortFolder, storedPath } from "./root.ts";
+import { effortFolder, isStableDesign, storedPath } from "./root.ts";
 import { effortView, markSessionDirty } from "./views.ts";
 
 export type SessionDetails = {
@@ -31,7 +31,12 @@ export type DescribedSession = {
 export type SessionContext = {
   readonly session: string;
   readonly note: string;
-  readonly efforts: readonly { readonly slug: string; readonly title: string; readonly records: readonly string[] }[];
+  readonly efforts: readonly {
+    readonly slug: string;
+    readonly title: string;
+    readonly records: readonly string[];
+    readonly designs: readonly string[];
+  }[];
 };
 
 function ancestors(cairn: Cairn, sessionId: number): number[] {
@@ -200,15 +205,16 @@ function nearestWorkstream(cairn: Cairn, sessionId: number): string | null {
 export function sessionContext(cairn: Cairn, input: SessionContextInput): SessionContext {
   const sessionId = requireSessionId(cairn, input.session);
   const session = loadSession(cairn, sessionId);
-  const efforts: { slug: string; title: string; provisional: boolean; records: string[] }[] = [];
+  const efforts: { slug: string; title: string; provisional: boolean; records: string[]; designs: string[] }[] = [];
   const lines = [`This session's catalog ID is ${session.key}.`];
   const linked = new Map<string, string>();
 
   for (const effortId of workingEfforts(cairn, sessionId)) {
     const view = effortView(cairn, loadEffort(cairn, effortId).slug);
     const recordPaths = view.records.map((record) => record.path);
+    const designs = view.artifacts.filter((artifact) => isStableDesign(cairn.root, artifact.path)).map((artifact) => artifact.path);
 
-    efforts.push({ slug: view.slug, title: view.title, provisional: view.status === "provisional", records: recordPaths });
+    efforts.push({ slug: view.slug, title: view.title, provisional: view.status === "provisional", records: recordPaths, designs });
 
     for (const link of view.links) {
       linked.set(link.slug, `${link.title} (${view.slug} ${link.relation.replace("_", " ")} ${link.slug})`);
@@ -226,7 +232,9 @@ export function sessionContext(cairn: Cairn, input: SessionContextInput): Sessio
           ? `no records yet; its folder is ${effortFolder(cairn.root, effort.slug)}`
           : effort.records.join(", ");
 
-      lines.push(`- ${effort.title} (${effort.slug}${effort.provisional ? ", provisional" : ""}): ${records}`);
+      const designs = effort.designs.length === 0 ? "" : `; designs: ${effort.designs.join(", ")}`;
+
+      lines.push(`- ${effort.title} (${effort.slug}${effort.provisional ? ", provisional" : ""}): ${records}${designs}`);
     }
   }
 

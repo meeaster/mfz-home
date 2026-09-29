@@ -58,7 +58,7 @@ Once the design has areas, a record that belongs to one gets "Page: <area id>", 
 - Rail: SHORT QUESTION
 - Shapes: WHAT IT SHAPES.
 - Status: Open
-- Leaning: CURRENT LEANING, OR WHAT'S ASSUMED.
+- So far: WHAT'S KNOWN, OR WHAT THE DESIGN ASSUMES MEANWHILE.
 - Waiting on: Q1
 - Worked out in: No brief yet
 

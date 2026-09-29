@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { homedir } from "node:os";
-import { basename, dirname, join, resolve } from "node:path";
+import { basename, dirname, join, resolve, sep } from "node:path";
 import { CairnError, integer, text, type Cairn } from "../core/db.ts";
 import {
   artifactGroup,
@@ -328,6 +328,20 @@ function folderEfforts(cairn: Cairn, folder: string): string[] {
   return [...slugs];
 }
 
+// A design's built doc, designs/<name>/published/<slug>.html, or null when it isn't built. The name comes from a URL,
+// so it must be one folder under designs/, and the slug from doc.html must keep the file inside published/.
+export function builtDoc(root: string, name: string): string | null {
+  if (!/^[\w.-]+$/.test(name) || name.startsWith(".")) {
+    return null;
+  }
+
+  const folder = join(root, "designs", name);
+  const published = join(folder, "published");
+  const path = resolve(published, `${docSlug(readIfPresent(join(folder, "doc.html")), name)}.html`);
+
+  return path.startsWith(`${published}${sep}`) && existsSync(path) ? path : null;
+}
+
 function designItem(cairn: Cairn, folder: string): DesignItem | null {
   const designPath = join(folder, "design.md");
   const design = readIfPresent(designPath);
@@ -339,8 +353,8 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
   const stats = designStats(design);
   const changesPath = join(folder, "changes.md");
   const changes = countChanges(readIfPresent(changesPath) ?? "");
-  const slug = docSlug(readIfPresent(join(folder, "doc.html")), basename(folder));
-  const built = readIfPresent(join(folder, "published", `${slug}.html`));
+  const doc = builtDoc(cairn.root, basename(folder));
+  const built = doc === null ? null : readFileSync(doc, "utf8");
   const included = built === null ? null : (publishedMark(built) ?? 0);
   const entry = catalogEntry(cairn, designPath);
 
@@ -359,6 +373,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
         : changes > included
           ? { state: "behind", changes: changes - included }
           : { state: "current" },
+    doc_url: doc === null ? null : `/docs/${encodeURIComponent(basename(folder))}/`,
     updated_at: modifiedAt([designPath, changesPath])
   };
 }

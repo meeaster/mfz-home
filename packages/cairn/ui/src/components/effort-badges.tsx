@@ -24,8 +24,9 @@ export function EffortBadges({ slugs }: { readonly slugs: readonly string[] }) {
   return (
     <div className="flex items-center gap-1.5">
       <Badge variant="outline" asChild>
-        <a href={effortHref(first)} className="max-w-52 truncate">
-          {title(first)}
+        {/* The badge is a centered flex box, where text clips on both sides; a span of its own ends in an ellipsis. */}
+        <a href={effortHref(first)} className="max-w-52 justify-start">
+          <span className="min-w-0 truncate">{title(first)}</span>
         </a>
       </Badge>
       {rest.length > 0 && (

@@ -259,8 +259,22 @@ describe("cairn ui server", () => {
       efforts: ["opw-deployment-on-aws"],
       decisions: { total: 3, decided: 2 },
       open_questions: 1,
-      published: { state: "behind", changes: 1 }
+      published: { state: "behind", changes: 1 },
+      doc_url: "/docs/opw-deployment/"
     });
+  });
+
+  test("a design's built doc is served at its doc_url, and nothing outside published/ is", async () => {
+    const { root } = catalog();
+    const { send } = await serve(root);
+    const doc = await send("/docs/opw-deployment/");
+
+    expect(doc.status).toBe(200);
+    expect(doc.body).toContain('<meta name="design-changes" content="2">');
+
+    for (const path of ["/docs/unbuilt/", "/docs/..%2Fsessions/", "/docs/%E0%A4%A/"]) {
+      expect((await send(path)).status, path).toBe(404);
+    }
   });
 
   test("sources are newest first, with each one's intake state", async () => {

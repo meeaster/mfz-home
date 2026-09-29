@@ -49,7 +49,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Candidate | A decision, suggestion, or open question found in external input and not yet accepted by the human. It lives in the input's summary. | "Infra engineer suggested the shared services VPC" |
 | Action item | A to-do from a meeting or other input, with an owner. It stays in the summary that recorded it, as said; team-tracked items become Jira items. Records don't copy action items. | "Security lead to confirm the IAM scope" |
 | Intake | A deliberate session with the human that works through external input's candidates and action items. It moves accepted items into `effort.md`, a design, or a knowledge article, and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
-| Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths. | "Cisco ASA log ingestion (asa-ingestion): …/effort.md" |
+| Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths and the stable designs they work on. | "Cisco ASA log ingestion (asa-ingestion): …/effort.md" |
 | Conversation export | A root session's user messages and assistant text, written as Markdown and kept up to date after each turn. | `conversation.md` |
 | Watermark | The position in a session's source history that the conversation export has reached. | Last exported message sequence and tail hash |
 | Backup | A daily copy of the database made with `VACUUM INTO`, used by `cairn restore`. | `backups/catalog-2026-09-25.db` |

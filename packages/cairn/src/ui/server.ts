@@ -17,6 +17,7 @@ import type {
   SourceItem
 } from "./api.ts";
 import {
+  builtDoc,
   designList,
   effortList,
   effortPage,
@@ -127,6 +128,15 @@ function sendAsset(response: ServerResponse, assets: string, pathname: string): 
   send(response, 200, readFileSync(file), contentTypes.get(extname(file)) ?? "application/octet-stream");
 }
 
+// A malformed escape in the path names no design.
+function safeDecode(segment: string): string {
+  try {
+    return decodeURIComponent(segment);
+  } catch {
+    return "";
+  }
+}
+
 async function readBody(request: IncomingMessage): Promise<string> {
   const chunks: Buffer[] = [];
 
@@ -145,6 +155,20 @@ async function handle(options: UiOptions, request: IncomingMessage, response: Se
   }
 
   const url = new URL(request.url ?? "/", "http://localhost");
+  const docName = /^\/docs\/([^/]+)\/?$/.exec(url.pathname)?.[1];
+
+  // A design's built doc is one self-contained HTML file, served as it is so it opens in its own tab.
+  if (docName !== undefined) {
+    const doc = builtDoc(options.root, safeDecode(docName));
+
+    if (doc === null) {
+      send(response, 404, "This design has no built doc. Build it with the design-docs skill's doc.py build.", "text/plain; charset=utf-8");
+    } else {
+      send(response, 200, readFileSync(doc), "text/html; charset=utf-8");
+    }
+
+    return;
+  }
 
   if (!url.pathname.startsWith("/api/")) {
     sendAsset(response, resolve(options.assets), url.pathname);

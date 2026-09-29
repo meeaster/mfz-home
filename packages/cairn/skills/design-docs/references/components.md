@@ -44,7 +44,7 @@ Framing: what's being chosen and what stays the same.
 | `prefix` | What section ids start with (`s3` gives `s3-design`); the page id when left out |
 | `meta` | A short note in the page list; on a brief, the decisions it covers (`D1 D2`), which also picks the open questions it shows and fills its rail: those decisions and the ones waiting on them, the meetings that touched them or their questions, and which questions block which decision |
 | `updated` | `YYYY-MM-DD` |
-| `context` | The context line on the doc's home page (the overview, or the brief of a brief-only doc): `initiative / effort-slug` when the design belongs to an effort. Without it, the home page shows only its date and other pages link home. |
+| `context` | The context line on the doc's home page (the overview, or the brief of a brief-only doc): the effort's slug, after the value of its `initiative:` tag and a `/` when it has one (`observability-pipeline / opw-deployment`). Without it, the home page shows only its date and other pages link home. |
 | `rail` | `none` drops the rail's record groups: an overview's or area's open decisions, or a brief's decisions, meetings and blocking questions |
 | `rail-note` | A note in the rail: `Requirements: This brief is measured against the overview's R1 to R7.` |
 | `shows` | On a shared page, `evidence` or `meetings`: the page is that list |
@@ -52,7 +52,7 @@ Framing: what's being chosen and what stays the same.
 
 **Sections** are `##` headings, numbered in order and listed in the rail.
 
-- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Decisions" and "Open questions" render from design.md when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids.
+- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Phases", "Decisions" and "Open questions" render from design.md when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Phases `phases`, Decisions `decisions`, Open questions `questions` (so `#overview-system`).
 - `## D1` is a decision's section: its title and marker, its relations (from Follows and Waiting on), and its reasoning once it has a Why come from the record. The paragraphs under the heading are the framing.
 - Any other heading is a section of the page's own; `{#id}` after a heading sets its id.
 - Opening prose followed by something else (a component, a table) becomes the section's intro; a section of prose alone stays prose.

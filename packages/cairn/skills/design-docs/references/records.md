@@ -44,6 +44,8 @@ Problem, Goals and How it works are prose, the connected understanding an agent 
 
 ## Items
 
+Text in record fields and terms takes `code`, links to sections (`[text](#id)`), and ID mentions. Page prose takes **bold** and *emphasis* too. A requirement or phase an agent proposes from research stays proposed until the user accepts it: a requirement's Source says `Proposed from research`, and a phase's Status is Proposed.
+
 **Terms** are one line each, with the pages they appear on:
 
 ```markdown
@@ -162,13 +164,13 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 
 **Flows** (`### B-F2 · Syslog server → OPW workers`): one per data flow in a security view, with Path, Data, In transit, Auth, Crosses (`Yes · Partition boundary` when it crosses the compliance boundary) and Assessment (`No · Add TLS on the relay [D2]`). See [security](security.md).
 
-**Phases** (`### Firewall logs through OPW`): the design's delivery units, in order. Scope (what it delivers), Exit criteria (how everyone knows it's done), Status (Planned, In progress, Done), and Effort (the slug of the effort doing it). The overview's Phases table shows them; a phase's status lives only here.
+**Phases** (`### Firewall logs through OPW`): the design's delivery units, in order. Scope (what it delivers), Exit criteria (how everyone knows it's done), Status (Proposed until the user accepts it, then Planned, In progress, Done), and Effort (the slug of the effort doing it). The overview's Phases table shows them; a phase's status lives only here.
 
 **Questions** (`### Q1 · Can the site VPNs carry a route to a new VPC?`)
 
 | Field | Holds |
 | --- | --- |
-| Who | A person, team or vendor, with `(me)`, `(our team)`, `(other team)` or `(vendor)` |
+| Who | A person, team or vendor, with `(me)`, `(our team)`, `(other team)` or `(vendor)` last: `Security GRC (other team)`. Text after the tag drops it. |
 | Short | A few words for the decision map ("Who owns a new VPC?"), up to about 40 characters; its box grows to fit |
 | Blocks | The decisions, requirements and flows it blocks. It decides where the question lives: with them, or on the overview when they're on different pages or it blocks only flows. |
 | So far | A partial answer and the evidence it rests on, while it's still open |

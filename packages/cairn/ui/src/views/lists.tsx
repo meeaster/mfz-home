@@ -1,4 +1,4 @@
-import { BookOpenIcon, DraftingCompassIcon, InboxIcon, LayersIcon, MailIcon, MessageCircleIcon, TicketIcon, UsersIcon, type LucideIcon } from "lucide-react";
+import { BookOpenIcon, DraftingCompassIcon, ExternalLinkIcon, InboxIcon, LayersIcon, MailIcon, MessageCircleIcon, TicketIcon, UsersIcon, type LucideIcon } from "lucide-react";
 import { Fragment, useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -287,7 +287,15 @@ export function DesignsView({ route }: { readonly route: Route }) {
                           </div>
                         </TableCell>
                         <TableCell className="align-top">
-                          <PublishedBadge published={design.published} />
+                          <div className="flex flex-col items-start gap-1">
+                            <PublishedBadge published={design.published} />
+                            {design.doc_url !== null && (
+                              <a href={design.doc_url} target="_blank" rel="noreferrer" className="text-sm font-medium underline underline-offset-4">
+                                Open doc
+                                <ExternalLinkIcon className="ml-1 inline size-3 text-muted-foreground" aria-hidden />
+                              </a>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="align-top text-muted-foreground">{shortDate(design.updated_at)}</TableCell>
                       </TableRow>

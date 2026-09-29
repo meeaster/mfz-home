@@ -479,6 +479,23 @@ describe("compaction note", () => {
     expect(result.note).toContain(`- Cisco ASA log ingestion (cisco-asa-log-ingestion): ${record}`);
     expect(result.note).toContain("OPW deployment on AWS (cisco-asa-log-ingestion depends on opw-deployment-on-aws)");
   });
+
+  test("lists the stable designs an attached effort works on", () => {
+    const cairn = workspace();
+
+    cairn.run("session", "describe", "opencode:root", "--create", "Cisco ASA log ingestion");
+
+    const design = cairn.write(join(cairn.root, "designs", "log-ingestion", "design.md"), "# Log ingestion\n");
+    const changes = cairn.write(join(cairn.root, "designs", "log-ingestion", "changes.md"), "# Changes\n");
+
+    cairn.run("capture", design, "--session", "opencode:root");
+    cairn.run("capture", changes, "--session", "opencode:root");
+
+    const result = cairn.json(compactionNote, "session", "context", "opencode:root");
+
+    expect(result.note).toContain(`- Cisco ASA log ingestion (cisco-asa-log-ingestion): no records yet; its folder is ${join(cairn.root, "efforts", "cisco-asa-log-ingestion")}; designs: ${design}`);
+    expect(result.note).not.toContain(changes);
+  });
 });
 
 describe("indexes", () => {

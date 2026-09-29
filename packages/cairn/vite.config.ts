@@ -5,7 +5,8 @@ import { defineConfig } from "vite";
 
 const uiSource = fileURLToPath(new URL("./ui/src", import.meta.url));
 
-// The UI is a static app served by `cairn ui`. In development, Vite serves it and forwards /api to a running `cairn ui`.
+// The UI is a static app served by `cairn ui`. In development, Vite serves it and forwards /api and the design docs
+// under /docs to a running `cairn ui`.
 export default defineConfig({
   root: "ui",
   base: "./",
@@ -20,6 +21,6 @@ export default defineConfig({
     chunkSizeWarningLimit: 1024
   },
   server: {
-    proxy: { "/api": "http://127.0.0.1:4317" }
+    proxy: { "/api": "http://127.0.0.1:4317", "/docs": "http://127.0.0.1:4317" }
   }
 });

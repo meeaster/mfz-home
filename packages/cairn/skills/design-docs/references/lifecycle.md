@@ -15,7 +15,7 @@ designs/<slug>/
 ```
 
 - Name the design for its subject ("log-ingestion"), not for the work ("opw-deployment"). Put the slug in `<html data-doc="<slug>">`.
-- With Cairn, designs live beside efforts and sessions at the Cairn root: `<root>/designs/<slug>/` (the root is `CAIRN_ROOT`, by default `~/workspace/artifacts/cairn/`). Files written there are captured and credited to your session. Describe `design.md` with `catalog_describe` (category `record`, title "<Name> design") and the published doc as a `deliverable`. Without Cairn, ask the user where designs live.
+- With Cairn, designs live beside efforts and sessions at the Cairn root: `<root>/designs/<slug>/` (the root is `CAIRN_ROOT`, by default `~/workspace/artifacts/cairn/`). Files written with the harness's file tools are captured and credited to your session as you write them; files a script writes, such as the built doc, are recorded when you describe them. Describe `design.md` with `catalog_describe` (category `record`, title "<Name> design") and the published doc as a `deliverable`. Without Cairn, ask the user where designs live.
 - Start a new design by copying `assets/template/`. A design can be `design.md` and `changes.md` alone until someone needs to see it; add `doc.html` and pages then.
 - The page structure, components, styles and script come from the skill at build time, so docs pick up the skill's improvements when rebuilt. To pin a doc's look, copy `doc.css` and `doc.js` into its folder; the build prefers local copies, and a component in `components/` replaces the skill's of the same name.
 - When `check` says a folder is written in an older format, run `doc.py migrate <folder>` and review what it changed (see [pages](pages.md#format-and-migrations)).
@@ -34,7 +34,7 @@ designs/<slug>/
 When a session starts work on a design, or on an effort linked to one:
 
 1. Find it: the effort view (`catalog_effort show`) lists linked designs among its files; otherwise the user names it.
-2. Read `design.md` in full, and `changes.md` since the effort's last session. When an entry changes a decision or question the effort cites by ID, check what in the effort rests on it.
+2. Read `design.md` in full, and the `changes.md` entries since the effort's last session, counted the way the effort-context skill's resume procedure defines, and check what in the effort cites the IDs they changed.
 3. Run `check` on the folder. Besides problems, it says when the published doc is behind `changes.md`.
 4. Read a transcript, session, or other source only when a record's reasoning needs checking; its `Recorded from` says where to look.
 
@@ -42,6 +42,7 @@ When a session starts work on a design, or on an effort linked to one:
 
 - **Findings go in as you establish them:** evidence, open questions, and options found in research, each with `Recorded from`.
 - **Evidence from a knowledge article:** copy the claim the design rests on into an evidence item, since design.md must stand alone, and cite the article's section in `Recorded from` (`knowledge aws-environment · Transit gateways`) rather than the evidence files it was written from.
+- **Proposals from research wait for the user.** A requirement or phase you propose goes in marked as proposed (records.md says how) and becomes accepted only on the user's word, logged in changes.md.
 - **Decisions and requirements change when the user says so.** Change a decision's status, add or drop a requirement, or set an option aside only on the user's word or a meeting's accepted outcome. The page can still say what the evidence favours.
 - **Log every accepted change** in `changes.md` under today's date and its source (`session <your catalog id>`, `request`, `meeting <date>`, `email <date> · <sender>`). One entry per source per sitting is enough; [records](records.md#changesmd) says which source a change belongs to.
 - **Bring the pages along** when records change: tables, option cards, decision maps, costs, flows and bound diagram parts follow on their own; prose, and any part of a picture that isn't bound, don't. Redraw a picture when what was chosen differs from what it shows; update "In short", the dek, and the "Updated" date on each page that changed.

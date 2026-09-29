@@ -85,7 +85,7 @@ WHY_LIMIT = 240
 DECISION_STATE = {"open": "open", "leaning": "leaning", "later": "later", "decided": "decided", "given": "decided"}
 UNSETTLED = ("open", "leaning", "later")
 MEETING_STATUS = {"awaiting review": "open", "summarised": ""}
-PHASE_STATUS = {"planned": "", "in progress": "leaning", "done": "decided"}
+PHASE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
 VERDICT = {"yes": "yes", "partly": "partly", "no": "no"}
 PRIORITY = {"must": "badge", "should": "badge outline"}
@@ -340,7 +340,7 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
         if record.kind == "meeting" and record.field("Agenda"):
             design.warnings.append(f"{design.where(record.field('Agenda').line)}: meeting '{record.id}' has an 'Agenda'; the doc records meetings that happened, and an agenda is drafted when someone asks")
         if record.kind == "phase" and status and status.lower() not in PHASE_STATUS:
-            design.errors.append(f"{design.where(record.line)}: phase status '{status}'; use Planned, In progress or Done")
+            design.errors.append(f"{design.where(record.line)}: phase status '{status}'; use Proposed, Planned, In progress or Done")
         if record.kind == "requirement" and record.get("Priority").lower() not in PRIORITY:
             design.errors.append(f"{design.where(record.line)}: priority '{record.get('Priority')}'; use Must or Should")
         if record.kind == "decision":
@@ -702,16 +702,20 @@ class Renderer:
         self.opts: dict[str, str] = {}
 
     def inline(self, text: str) -> str:
-        links: list[str] = []
+        kept: list[str] = []
 
-        def keep(match: re.Match[str]) -> str:
-            links.append(f'<a href="{esc(match.group(2))}">{esc(match.group(1))}</a>')
-            return f"\x00{len(links) - 1}\x00"
+        def keep(html: str) -> str:
+            kept.append(html)
+            return f"\x00{len(kept) - 1}\x00"
 
-        out = esc(LINK.sub(keep, text))
+        # Code spans first, so an ID or a tag-like <slug> inside one stays text; render.mjs does the same.
+        out = re.sub(r"`([^`]+)`", lambda m: keep(f"<code>{esc(m.group(1))}</code>"), text)
+        out = esc(LINK.sub(lambda m: keep(f'<a href="{esc(m.group(2))}">{esc(m.group(1))}</a>'), out))
         out = MENTION.sub(lambda m: f'<a class="mention" href="#{m.group(1)}">{m.group(1)}</a>' if m.group(1) in self.known else m.group(1), out)
         out = ESCAPED.sub(r"\1", out)
-        return re.sub(r"\x00(\d+)\x00", lambda m: links[int(m.group(1))], out)
+        while re.search(r"\x00\d+\x00", out):
+            out = re.sub(r"\x00(\d+)\x00", lambda m: kept[int(m.group(1))], out)
+        return out
 
     def ref(self, ident: str) -> str:
         return f'<a class="ref ref-{ident[0].lower()}" href="#{ident}">{ident}</a>'

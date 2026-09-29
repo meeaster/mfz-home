@@ -79,9 +79,10 @@ function inline(text, model) {
     return `\u0000${kept.length - 1}\u0000`;
   };
 
+  // Code spans go first, so a tag-like `<slug>` inside one is escaped as text rather than kept as a tag.
   let out = String(text)
-    .replace(/<\/?[a-zA-Z][^<>]*>/g, keep)
     .replace(/`([^`]+)`/g, (_, code) => keep(`<code>${esc(code)}</code>`))
+    .replace(/<\/?[a-zA-Z][^<>]*>/g, keep)
     .replace(/\[([^\]]+)\]\((#[\w.-]+)\)/g, (_, label, href) => keep(`<a href="${esc(href)}">${esc(label)}</a>`));
 
   out = esc(out)
@@ -90,7 +91,10 @@ function inline(text, model) {
     .replace(MENTION, (match, id) => (id in model.records ? `<a class="mention" href="#${id}">${id}</a>` : match))
     .replace(ESCAPED_ID, "$1");
 
-  return out.replace(/\u0000(\d+)\u0000/g, (_, index) => kept[Number(index)]);
+  // A kept piece can hold another's placeholder, such as a code span inside a link's label.
+  while (/\u0000\d+\u0000/.test(out)) out = out.replace(/\u0000(\d+)\u0000/g, (_, index) => kept[Number(index)]);
+
+  return out;
 }
 
 function blocksOf(lines) {

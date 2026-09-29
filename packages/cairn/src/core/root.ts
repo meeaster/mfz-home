@@ -48,6 +48,11 @@ export function knowledgeFolder(root: string): string {
   return join(root, "knowledge");
 }
 
+// A stable design's record: designs/<slug>/design.md under the root.
+export function isStableDesign(root: string, path: string): boolean {
+  return /^[^/]+\/design\.md$/.test(relative(join(root, "designs"), path));
+}
+
 export function sessionFolder(root: string, harness: string, month: string, rootNativeId: string): string {
   return join(root, "sessions", safeSegment(harness), month, safeSegment(rootNativeId));
 }

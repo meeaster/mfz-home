@@ -906,7 +906,7 @@ def main() -> int:
     c.add_argument("doc", type=Path, help="a design folder, its doc.html, or its design.md")
     b = sub.add_parser("build", help="check, then write one self-contained HTML file")
     b.add_argument("doc", type=Path, help="a design folder or its doc.html")
-    b.add_argument("-o", "--out", type=Path, help="output file (default: <folder>/published/<slug>.html, the slug from <html data-doc>)")
+    b.add_argument("-o", "--out", type=Path, help="output file (default: <folder>/published/<slug>.html, the slug from <html data-doc>; with --pages, <slug>-<page ids>.html)")
     b.add_argument("--pages", help="comma-separated page ids to include; shared pages are trimmed to match")
     m = sub.add_parser("migrate", help="bring a design folder written for an older version of this skill up to date")
     m.add_argument("doc", type=Path, help="a design folder")
@@ -930,8 +930,10 @@ def main() -> int:
             print("not built: there's no doc.html yet; the records are checked on their own")
             return 1
         shell = resolve(args.doc)[0]
-        out = args.out or shell.parent / "published" / f"{doc_slug(source.text, shell)}.html"
         keep = [p.strip() for p in args.pages.split(",") if p.strip()] if args.pages else None
+        # A copy with some pages goes beside the full doc, never over it, so the full doc keeps its change stamp.
+        name = doc_slug(source.text, shell) + (f"-{'-'.join(keep)}" if keep else "")
+        out = args.out or shell.parent / "published" / f"{name}.html"
         return build(shell, source, design if not keep else None, out, keep)
     return 1 if errors else 0
 

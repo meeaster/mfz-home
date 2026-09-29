@@ -249,14 +249,14 @@ intake         ── session with the human ──▶ accepted items into the d
 daily          ── service ──▶ database copied to backups/
 ```
 
-1. **Session start (plugin).** The plugin runs `cairn session start` with the session ID and, for child sessions, the parent ID. The command is an idempotent upsert, and plugins also call it the first time they see a session in any other event, because a start event can be missed. It injects the session ID into context, with the session's attached efforts or a line saying it has none.
+1. **Session start (plugin).** The plugin runs `cairn session start` with the session ID and, for child sessions, the parent ID. The command is an idempotent upsert, and plugins also call it the first time they see a session in any other event, because a start event can be missed. It injects the session ID into context. The attached efforts come later, with the compaction note, or from `catalog_find` when a session resumes an effort.
 2. **File written (plugin).** For a write under the root, the plugin runs `cairn capture`, which upserts the artifact by path with its hash and producing session. The plugin appends a note to the tool result telling the agent to describe the file. Files outside the root are ignored. Capture never blocks or fails the tool.
 3. **Describe (producer).** The agent that wrote the file calls `catalog_describe` with a category, title, and one-sentence description. The parent adds `informs` or `supersedes` links as it uses results, and describes a file only if the producer didn't.
 4. **Attach (the session's lead agent, with the human's approval).** Once the work has scope, the root session's agent looks up efforts with `catalog_find` and recommends one (see [provisional efforts and approval](#provisional-efforts-and-approval)). On approval it calls `catalog_session`, which describes the session and attaches one or more efforts, existing or new. Orchestration creates a provisional effort instead of waiting. Before creating an effort, the service checks for similar active, paused, or provisional efforts and returns them instead, unless the agent confirms a new one. Attaching later is fine: membership is derived through the session, so earlier files join automatically.
 5. **Read (plugin).** For a read under the root, the plugin records `read_in`. This shows which sessions actually used which material. Suggested `informs` links built from these reads are a later experiment.
 6. **Turn complete (plugin).** Root sessions only. See [conversation indexing](#conversation-indexing).
 7. **Derived views (service).** There is no long-running process, so a change marks each affected effort as dirty in the database. The hot-path commands (`session start`, `capture`, `read`) only mark. Every other command, and the turn-complete `session index`, regenerates the dirty efforts' `index.md` before it exits.
-8. **Compaction (plugin).** After compaction, the plugin adds a factual note listing each attached effort with the paths of its `effort.md` and local `design.md`. The agent rereads what it needs. This replaces relying on the orchestrator to remember where its records are.
+8. **Compaction (plugin).** After compaction, the plugin adds a factual note listing each attached effort with the paths of its `effort.md` and local `design.md`, and the stable designs it works on. The agent rereads what it needs. This replaces relying on the orchestrator to remember where its records are.
 
 ## Retrieval
 
@@ -798,9 +798,18 @@ Built 2026-09-29.
 
 Built 2026-09-29.
 - **Record names.** Cairn's record list is `effort.md` and `design.md`, with `context.md` and `approach.md` still recognized so existing efforts keep their summaries and capture behavior until they are renamed with `cairn mv`. The effort view's summary comes from `effort.md`, or `context.md` when an effort hasn't been renamed.
-- **Compaction note.** It lists the attached efforts with their record paths and no longer looks for `coordination.md`.
+- **Compaction note.** It lists the attached efforts with their record paths and the stable designs each works on, and no longer looks for `coordination.md`.
 - **design-docs.** `design.md` gains prose sections (Problem, Goals, How it works) and Phases records. The overview's `goals` and `scope-note` components show design.md's Goals when they have no body of their own, a new `design-section` component shows a prose section with its text diagrams left out, and a `## Phases` section on a page shows the phases table. Questions gain an `Asked` field for who was asked, when, and through what.
 - **Skills.** `effort-context` describes `effort.md` and the local `design.md`, drops `coordination.md`, records decisions where they land, and adds the import operation. `orchestration` and the continuity references find Scribe and workstreams through the catalog instead of `coordination.md`.
+
+### End-to-end test and fixes
+
+Four subagents ran the new skills end to end on 2026-09-29: two gathered evidence, one wrote a stable design with design-docs, and one resumed the effort cold. The test found these, fixed the same day:
+- **Code spans with `<…>`.** `render.mjs` stashed tags before code spans, so `designs/<slug>/` rendered as `designs/0/` and left NUL bytes in the built doc. Code spans now go first in both renderers, and terms render code spans.
+- **Partial builds.** `build --pages` without `-o` overwrote the full doc without its change stamp; it now writes `published/<slug>-<page ids>.html`.
+- **The resume cutoff.** "Changes since the effort's last session" is defined in effort-context: the latest activity among the effort's sessions outside the resuming session's tree; entries from elsewhere dated that day count; the effort's own `session` entries don't.
+- **Stable designs after compaction.** The compaction note lists the stable designs each attached effort works on.
+- **Smaller gaps.** A Proposed phase status and `Proposed from research` requirements, an `effort.md` template, the resume procedure's slug lookup, attach, and dispatched report, and documented section ids, `Who` tags, `context`, inline markup, and the escape for example IDs.
 
 ### Phases
 
