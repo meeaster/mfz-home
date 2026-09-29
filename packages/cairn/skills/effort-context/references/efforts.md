@@ -14,7 +14,7 @@ An effort is an outcome the human wants to come back to, such as "Logs archived 
 - **Create.** Entering orchestration without a named or approved effort, or capturing work that names none, creates one: `catalog_session` with `attach: [{create: {title, description, provisional: true}}]`, titled for the task's outcome. When `close_matches` come back, create it with `confirm_new` and recommend the matches as merge targets.
 - **Use.** It works like any effort, including resume in a later session. Tell the human once that it exists, with the recommendation.
 - **Promote** on approval: `catalog_effort` `update` with `status: active`, and a new title or `rename` when the human wants one.
-- **Merge** on approval: first fold the provisional `context.md` and `design.md` into the target's, keeping attribution and removing duplication; then `catalog_effort` `merge` into the target. Check that each record in `records_left_behind` was folded in.
+- **Merge** on approval: first fold the provisional `context.md` and `approach.md` into the target's, keeping attribution and removing duplication, and link the target to the provisional effort's designs; then `catalog_effort` `merge` into the target. Check that each record in `records_left_behind` was folded in.
 
 ## Other changes
 
