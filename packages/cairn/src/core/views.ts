@@ -81,13 +81,16 @@ export function markSessionDirty(cairn: Cairn, sessionId: number): void {
   `;
 }
 
-// The summary a linked session reads: a "Summary" section if context.md has one, otherwise its first paragraph.
-export function contextSummary(contextPath: string): string | null {
-  if (!existsSync(contextPath)) {
+// The summary a linked session reads: a "Summary" section if the effort's record has one, otherwise its first paragraph.
+// effort.md is the record; context.md is its earlier name.
+export function effortSummary(folder: string): string | null {
+  const recordPath = [join(folder, "effort.md"), join(folder, "context.md")].find((path) => existsSync(path));
+
+  if (recordPath === undefined) {
     return null;
   }
 
-  const lines = readFileSync(contextPath, "utf8").split("\n");
+  const lines = readFileSync(recordPath, "utf8").split("\n");
   const summaryHeading = lines.findIndex((line) => /^#{2,6}\s+summary\s*$/i.test(line));
   const start = summaryHeading === -1 ? 0 : summaryHeading + 1;
   const paragraph: string[] = [];
@@ -182,7 +185,7 @@ function linkedEfforts(cairn: Cairn, effortId: number): LinkedEffort[] {
       slug,
       title: text(row, "title"),
       status: member(effortStatuses, text(row, "status")),
-      summary: contextSummary(join(effortFolder(cairn.root, slug), "context.md"))
+      summary: effortSummary(effortFolder(cairn.root, slug))
     });
   }
 
@@ -236,7 +239,7 @@ export function effortView(cairn: Cairn, slug: string): EffortView {
   return {
     ...loadEffort(cairn, effortId),
     folder,
-    summary: contextSummary(join(folder, "context.md")),
+    summary: effortSummary(folder),
     records: records(folder),
     links: linkedEfforts(cairn, effortId),
     sessions,
@@ -342,7 +345,7 @@ export function renderIndex(view: EffortView): string {
     "",
     "## Summary",
     "",
-    view.summary ?? "`context.md` has no summary yet.",
+    view.summary ?? "`effort.md` has no summary yet.",
     ""
   );
 

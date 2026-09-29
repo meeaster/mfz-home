@@ -171,7 +171,7 @@ function Details({ effort, route }: { readonly effort: EffortPage; readonly rout
           <CardTitle>Records</CardTitle>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          {effort.records.length === 0 && <p className="text-sm text-muted-foreground">No context.md or approach.md yet.</p>}
+          {effort.records.length === 0 && <p className="text-sm text-muted-foreground">No effort.md or design.md yet.</p>}
           {effort.records.map((record) => (
             <a key={record.name} href={fileHref(route, record.path)} className="flex items-center gap-2 text-sm hover:underline">
               <FilePenLineIcon className="size-4 text-muted-foreground" aria-hidden />

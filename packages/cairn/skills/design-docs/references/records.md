@@ -12,11 +12,15 @@ A session that picks the design up reads `design.md` in full, so write each reco
 
 One sentence on what the system does.
 
+## Problem
+## Goals
+## How it works
 ## Terms
 ## Requirements
 ## Parts
 ## Decisions
 ## Risks
+## Phases
 ## Costs
 ## Flows
 ## Questions
@@ -29,6 +33,14 @@ The first line is the format the folder is written in (see [pages](pages.md#form
 Each section holds items. An item is a `###` heading, then `- Field: value` lines. A field that holds a list puts its items on indented `  - ` lines. Anything else under an item (plain paragraphs) is notes for whoever works on the design next: reasoning, context, what was tried. Notes are never rendered.
 
 Sections can be empty or missing. A small design can be `design.md` alone, with no pages yet.
+
+## Prose
+
+Problem, Goals and How it works are prose, the connected understanding an agent reads before the records, and the overview shows them through components, so the words agree everywhere.
+
+- **Problem:** the problem today, who it affects and what it costs, and the value of solving it. Cite evidence by ID.
+- **Goals:** each goal as an outcome, one bullet each, then a line `Not in scope: …` for what a reader might assume is included. The overview's `::: goals` and `::: scope-note` show them.
+- **How it works:** the shape of the solution in a few paragraphs: how the parts connect and why that shape, naming the decisions that shape it (D1). Add a diagram in text in a fenced block for agents; the pages draw their own pictures, and `::: design-section section=how-it-works` shows the paragraphs without it.
 
 ## Items
 
@@ -150,6 +162,8 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 
 **Flows** (`### B-F2 · Syslog server → OPW workers`): one per data flow in a security view, with Path, Data, In transit, Auth, Crosses (`Yes · Partition boundary` when it crosses the compliance boundary) and Assessment (`No · Add TLS on the relay [D2]`). See [security](security.md).
 
+**Phases** (`### Firewall logs through OPW`): the design's delivery units, in order. Scope (what it delivers), Exit criteria (how everyone knows it's done), Status (Planned, In progress, Done), and Effort (the slug of the effort doing it). The overview's Phases table shows them; a phase's status lives only here.
+
 **Questions** (`### Q1 · Can the site VPNs carry a route to a new VPC?`)
 
 | Field | Holds |
@@ -160,12 +174,13 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 | So far | A partial answer and the evidence it rests on, while it's still open |
 | Answer | Once answered: the answer in a few words |
 | Answered by | Once answered: the evidence it became |
+| Asked | Who it was put to, when, and through what, such as `Security GRC · 2026-10-03 · email`. Not shown in the doc. |
 
-A question has no status: it's open until it has an Answer and Answered by. When it was asked, a ticket number or what to ask next belongs in the effort, and `check` warns about `Status`, `Latest` or `Page` on a question.
+A question has no status: it's open until it has an Answer and Answered by. When and how it was asked goes in `Asked`; what to ask next is proposed when someone asks for a plan, and `check` warns about `Status`, `Latest` or `Page` on a question.
 
 **Evidence** (`### E1 · Firewall logs from all 14 sites reach the syslog server over site VPNs.`): Found (a date), How we know, and Gathered from as a list of `Kind: portable description` items, such as `AWS account: prod-network · Transit Gateway route tables` or `Email: Security GRC, Oct 3`.
 
-**Meetings** (`### 2026-09-22 · Network working session`): Status (Awaiting review, Summarised), Who, and Summary as a list. Only meetings that happened are recorded; a planned one and its agenda belong in the effort. The meeting's "Changed in this doc" chips come from changes.md.
+**Meetings** (`### 2026-09-22 · Network working session`): Status (Awaiting review, Summarised), Who, and Summary as a list. Only meetings that happened are recorded; a planned one and its agenda aren't. The meeting's "Changed in this doc" chips come from changes.md.
 
 ## Where a record came from
 

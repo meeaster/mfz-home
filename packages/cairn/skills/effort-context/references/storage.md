@@ -16,18 +16,19 @@ Create only needed files. Keep writers' session working directories and project 
 
 | Path | Category | Purpose |
 | --- | --- | --- |
-| `efforts/<slug>/context.md` | `record` | The work's validated state: a short summary first (outcome, where it stands, key decisions), then purpose, scope, the human's decisions and their rationale, open questions, the human's next actions, and waiting-on items |
-| `efforts/<slug>/approach.md` | `record` | How this effort goes about its work: accepted technical boundaries, interfaces, sequence, invariants, and tradeoffs, citing a linked design's decisions by ID; no blanket execution authority |
+| `efforts/<slug>/effort.md` | `record` | Where the work stands, as state: a short summary first (outcome, where it stands, key decisions); the design and phase it serves, or without a design the problem, why it matters, and when it's done; the human's views (leanings, concerns, what they ruled out and why); decisions about the work itself, each with who made it and where; open questions with who was asked, when, and through what; pointers to the design, knowledge articles, and key sources |
+| `efforts/<slug>/design.md` | `record` | A design local to the effort: something small, or the detail below a stable design, citing its decisions by ID. One connected document for agents and the human: problem and goals, the approach in prose, how it fits together (parts and flows, with a diagram in text), decisions with their reasoning and the alternatives weighed, open questions, and what it rests on |
 | `efforts/<slug>/index.md` | none | The generated effort view. Read it or `catalog_effort` `show`; Cairn rewrites it |
-| `designs/<slug>/` | `record`, `deliverable` | A design: the lasting record of what a system is and why (`design.md`, `changes.md`) and the doc built from it. Owned by `design-docs` |
+| `designs/<slug>/` | `record`, `deliverable` | A stable design: the agreed record of a body of work (what is being built or changed, why it's worth doing, its phases and decisions), shared by the efforts on it and shown to the people who approve it, in `design.md` and `changes.md`, and the doc built from them. Owned by `design-docs` |
 | `knowledge/<subject>.md` | `knowledge` | What is known about one existing subject, kept current. A folder `knowledge/<subject>/` when it needs sub-pages or pictures. See [knowledge](knowledge.md) |
 | `knowledge/index.md` | none | The generated list of knowledge articles; Cairn rewrites it |
 | `sources/meetings/<yyyy-mm-dd>-<subject>/` | `source`, `synthesis` | One meeting: its transcripts and summary. See [meetings](#meetings) |
 | `sources/<kind>/<thread>.md` | `source` | One email, chat, or ticket thread (`email/`, `chat/`, `tickets/`). See [message threads](#message-threads) |
-| `sessions/<harness>/<yyyy-mm>/<root-id>/coordination.md` | `record` | The run's state: the efforts it serves, assignments and session handles, authority, dependencies, blockers, verification, unaccepted proposals, next steps, active role, and writer ownership |
-| `sessions/…/<workstream-key>/` | | A delegated orchestrator's workstream, with its own `coordination.md` |
+| `sessions/…/<workstream-key>/` | | A delegated orchestrator's files, kept apart from parallel workstreams |
 | `sessions/…/conversation.md` | `conversation` | The root session's conversation, exported by Cairn after each turn |
 | Other paths from `catalog_location` | `evidence`, `learning`, `source`, `synthesis`, `deliverable`, `other` | Producer responses, operational lessons, raw captures from our own work such as exports and screenshots, requested fuller synthesis, and finished outputs |
+
+Records describe state: what is settled, the human's views, what was said and by whom, and what is still open. Next steps, to-dos, waiting-on lists, planned meetings, and agendas stay out of them; when the human wants a plan, an agent reads the records and proposes one in the conversation, kept as a dated synthesis only when asked. An effort whose records still carry the earlier names `context.md` and `approach.md` is read the same way; rename them with `cairn mv` the next time you write them.
 
 A file's efforts come from the session that first wrote it, so nothing is copied or moved to join an effort. A design, knowledge article, or source that bears on another effort joins it through `catalog_describe` with `efforts.include`. `catalog_find` returns pointers with titles and descriptions; read the files you need.
 
@@ -35,7 +36,7 @@ A file's efforts come from the session that first wrote it, so nothing is copied
 
 Meetings, emails, chats, tickets, and documents someone shared come from outside the work. They live under `sources/`, so any session can find them and cite them by date and subject. Include each one in the efforts it bears on. The raw output of our own investigations stays with the evidence it supports.
 
-A source is the raw record. What it settles reaches an effort's `context.md`, a design, or a knowledge article only after the human accepts it at intake, citing the source and the message or meeting: `email 2026-10-03 · SEC-12 and customer ingress (Alex, Oct 3)`, `meeting 2026-10-02 · Network working session`. The human's own actions go to `context.md` under next actions, and other people's under waiting-on.
+A source is the raw record. What it settles reaches an effort's `effort.md`, a design, or a knowledge article only after the human accepts it at intake, citing the source and the message or meeting: `email 2026-10-03 · SEC-12 and customer ingress (Alex, Oct 3)`, `meeting 2026-10-02 · Network working session`. Action items stay in the summary that recorded them, with their owners as stated. A question put to someone is recorded with who was asked, when, and through what: in the design when it's about the system, in `effort.md` when it's about the work.
 
 ### Message threads
 

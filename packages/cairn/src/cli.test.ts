@@ -36,7 +36,7 @@ const sessionList = z.object({ sessions: z.array(z.object({ key: z.string() })) 
 
 const writePath = z.object({ path: z.string() });
 
-const compactionNote = z.object({ note: z.string(), coordination: z.array(z.string()) });
+const compactionNote = z.object({ note: z.string() });
 
 const checkReport = z.object({
   missing: z.array(z.string()),
@@ -226,9 +226,9 @@ describe("files", () => {
 
     cairn.run("effort", "create", "--title", "Logs archived to S3");
 
-    const { path } = cairn.json(writePath, "location", "--session", "opencode:root", "--topic", "context", "--effort", "logs-archived-to-s3");
+    const { path } = cairn.json(writePath, "location", "--session", "opencode:root", "--topic", "effort", "--effort", "logs-archived-to-s3");
 
-    expect(path).toBe(join(cairn.root, "efforts", "logs-archived-to-s3", "context.md"));
+    expect(path).toBe(join(cairn.root, "efforts", "logs-archived-to-s3", "effort.md"));
 
     cairn.write(path, "# Logs archived to S3\n\nArchive every log stream to S3 for a year. OPW is the chosen shipper.\n");
     cairn.run("capture", path, "--session", "opencode:root");
@@ -237,7 +237,17 @@ describe("files", () => {
     const index = cairn.index("logs-archived-to-s3");
 
     expect(index).toContain("Archive every log stream to S3 for a year. OPW is the chosen shipper.");
-    expect(index).toMatch(/\[context\.md\]\(context\.md\) · about \d+ tokens/);
+    expect(index).toMatch(/\[effort\.md\]\(effort\.md\) · about \d+ tokens/);
+  });
+
+  test("an effort whose record still has its earlier name, context.md, shows its summary", () => {
+    const cairn = workspace();
+
+    cairn.run("effort", "create", "--title", "Logs archived to S3");
+    cairn.write(join(cairn.root, "efforts", "logs-archived-to-s3", "context.md"), "# Logs archived to S3\n\n## Summary\n\nOPW ships every log stream to S3.\n");
+    cairn.run("index");
+
+    expect(cairn.index("logs-archived-to-s3")).toContain("OPW ships every log stream to S3.");
   });
 
   test("URL pointers are grouped by their derived type", () => {
@@ -456,21 +466,18 @@ describe("efforts", () => {
 });
 
 describe("compaction note", () => {
-  test("lists attached efforts with record paths, linked efforts, and the coordination record", () => {
+  test("lists attached efforts with record paths, and linked efforts by summary", () => {
     const cairn = workspace();
 
     cairn.run("session", "describe", "opencode:root", "--create", "Cisco ASA log ingestion");
     cairn.run("effort", "create", "--title", "OPW deployment on AWS");
     cairn.run("link", "add", "effort", "cisco-asa-log-ingestion", "depends_on", "opw-deployment-on-aws");
 
-    const context = cairn.write(join(cairn.root, "efforts", "cisco-asa-log-ingestion", "context.md"), "# ASA\n");
-    const { path: folderProbe } = cairn.json(writePath, "location", "--session", "opencode:root", "--topic", "probe");
-    const coordination = cairn.write(join(dirname(folderProbe), "coordination.md"), "# Run\n");
+    const record = cairn.write(join(cairn.root, "efforts", "cisco-asa-log-ingestion", "effort.md"), "# ASA\n");
     const result = cairn.json(compactionNote, "session", "context", "opencode:root");
 
-    expect(result.note).toContain(`- Cisco ASA log ingestion (cisco-asa-log-ingestion): ${context}`);
+    expect(result.note).toContain(`- Cisco ASA log ingestion (cisco-asa-log-ingestion): ${record}`);
     expect(result.note).toContain("OPW deployment on AWS (cisco-asa-log-ingestion depends on opw-deployment-on-aws)");
-    expect(result.coordination).toEqual([coordination]);
   });
 });
 

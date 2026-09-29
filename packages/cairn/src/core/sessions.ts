@@ -32,7 +32,6 @@ export type SessionContext = {
   readonly session: string;
   readonly note: string;
   readonly efforts: readonly { readonly slug: string; readonly title: string; readonly records: readonly string[] }[];
-  readonly coordination: readonly string[];
 };
 
 function ancestors(cairn: Cairn, sessionId: number): number[] {
@@ -239,22 +238,7 @@ export function sessionContext(cairn: Cairn, input: SessionContextInput): Sessio
     lines.push(`Linked efforts, read by summary: ${[...linked.values()].join("; ")}.`);
   }
 
-  const coordination: string[] = [];
-  const workstream = nearestWorkstream(cairn, sessionId);
-  const candidates = [join(session.folder, "coordination.md")];
-
-  if (workstream !== null) {
-    candidates.push(join(session.folder, workstream, "coordination.md"));
-  }
-
-  for (const candidate of candidates) {
-    if (existsSync(candidate)) {
-      coordination.push(candidate);
-      lines.push(`Coordination record: ${candidate}.`);
-    }
-  }
-
-  return { session: session.key, note: lines.join("\n"), efforts, coordination };
+  return { session: session.key, note: lines.join("\n"), efforts };
 }
 
 type TopicFile = {

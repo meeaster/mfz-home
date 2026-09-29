@@ -79,7 +79,7 @@ const summary = `# Infra working session
 - OPW placement
 
 ## Intake
-- D1 placement: accepted, recorded in context.md
+- D1 placement: accepted, recorded in effort.md
 - Subnet reservation: deferred until the network review
 `;
 

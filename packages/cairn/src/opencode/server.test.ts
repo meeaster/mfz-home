@@ -115,7 +115,7 @@ describe("cairn plugin", () => {
 
   it("leaves files outside the root, Cairn's own files, and effort records without a note", async () => {
     const app = harness(sessions);
-    const record = `${root}/efforts/logs-archived-to-s3/context.md`;
+    const record = `${root}/efforts/logs-archived-to-s3/effort.md`;
 
     for (const path of ["/home/user/repo/src/app.ts", `${root}/efforts/logs-archived-to-s3/index.md`, `${root}/catalog.db`, record]) {
       expect(await app.tool("ses_lead", "write", { path }, { target: path }, "ok")).toBeNull();

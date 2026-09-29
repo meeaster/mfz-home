@@ -1,6 +1,6 @@
 # OpenCode continuity
 
-These procedures apply to the Chief and direct orchestrator. Delegated orchestrators maintain their own workstream records and do not receive Scribes.
+These procedures apply to the Chief and direct orchestrator. Delegated orchestrators record directly and do not receive Scribes.
 
 For a bounded capture or named-session retrieval, use only the relevant retrieval rules below. Loading this reference alone does not authorize ongoing Scribe synchronization or the orchestration post-compaction lifecycle.
 
@@ -16,7 +16,7 @@ For a bounded capture or named-session retrieval, use only the relevant retrieva
 
 - The human-facing session owns decisions and assigns Scribe transcription of its working files.
 - Scribe has `session_context`, file reads, and edits to assigned working records; no child delegation. Synchronization supplies its understanding rather than independent research.
-- Use one Scribe writer at a time. Keep its session ID and last usable cursor as recovery information in coordination state. Do not make every dispatch wait for a Scribe round trip.
+- Use one Scribe writer at a time. After a compaction, find it again as this session's child in the catalog (`catalog_find` sessions); Scribe keeps its own last usable cursor. Do not make every dispatch wait for a Scribe round trip.
 - Batch related Scribe updates when no dependent action needs the records sooner.
 
 ## Brief Scribe
@@ -34,7 +34,7 @@ Scribe records established meaning and its decision owner. It does not resolve d
 
 ## After parent compaction
 
-Cairn's compaction note lists the attached efforts with their record paths and the session's `coordination.md`; reread what the next decision needs. Initiate a bounded background continuity check after each recognized completed compaction, even when no omission is apparent. This skill-level instruction is not a guaranteed event callback. Never initiate compaction without an explicit human request.
+Cairn's compaction note lists the attached efforts with their record paths; reread what the next decision needs. Initiate a bounded background continuity check after each recognized completed compaction, even when no omission is apparent. This skill-level instruction is not a guaranteed event callback. Never initiate compaction without an explicit human request.
 
 1. Identify the old Scribe and its last successfully read marker. Ask it to finish its assigned continuity work before transferring write ownership.
 2. Require `session_context` on the human-facing session with `previousCompaction: true`, starting from its retained marker and following chunks. If it has lost the cursor or prior context, read the selected previous window in full. Then read current active context and compare it with the workspace.

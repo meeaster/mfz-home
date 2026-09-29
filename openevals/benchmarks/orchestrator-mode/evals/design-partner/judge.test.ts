@@ -17,7 +17,7 @@ const search: ToolCall = { ...design, id: "call_search", sessionID: "ses_root", 
 
 const found: CatalogCall = { callID: "call_search", sessionID: "ses_root", tool: "find", input: { target: "efforts", text: "duplicate reminder submissions" } };
 
-const captured: RecordedFile = { path: "context.md", bytes: 10, sha256: "captured" };
+const captured: RecordedFile = { path: "effort.md", bytes: 10, sha256: "captured" };
 
 test("standalone selection that searches efforts to recommend one passes the archive facts", () => {
   expect(gradeDesignFacts({ tools: [design, effortContext, search], sessions: [{ id: "ses_root" }], initial: [], final: [], catalog: [found] }).scores).toEqual({

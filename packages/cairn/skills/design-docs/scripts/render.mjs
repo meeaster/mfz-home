@@ -42,7 +42,7 @@ const BOUND_TAG = /<([a-zA-Z][\w:-]*)(\s[^<>]*?\bdata-(?:pending|when|text|state
 const DECISION_HEADING = /^D\d+$/;
 
 // Record tables doc.py renders; ::: <kind> asks for one, and a design's own component of that name replaces it.
-const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "decisions-rail", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "meetings-rail", "progress"]);
+const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "decisions-rail", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "meetings-rail", "progress", "phases"]);
 
 const STANDARD_SECTIONS = {
   "in short": { suffix: "short", layout: "short" },
@@ -56,6 +56,7 @@ const STANDARD_SECTIONS = {
   cost: { suffix: "cost", records: "cost" },
   risks: { suffix: "risks", records: "risks" },
   decisions: { suffix: "decisions", records: "decisions" },
+  phases: { suffix: "phases", records: "phases" },
   "open questions": { suffix: "questions", records: "questions" },
 };
 

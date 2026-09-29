@@ -17,9 +17,9 @@ enables every timer in `systemd/` and installs the crontab.
 Capture preserves the current work in an effort through the Cairn catalog. When
 the developer names no effort, the agent creates a provisional one, tells the
 developer once that it exists, and recommends what should become of it. The
-effort's `context.md` holds validated state: the developer's goal, decisions,
-scope, and open questions. The session's `coordination.md` holds the run's
-state: work performed, what was verified, and next steps. Record paths come from
+effort's `effort.md` holds where the work stands, as state: the developer's
+goal, decisions, scope, what was found and verified, and open questions. It
+holds no next steps; a later session proposes those from the state. Record paths come from
 `catalog_location`, and file writes appear in the recording with their content.
 Capture ends at its completion: it neither starts the migration nor enters a
 workflow or ongoing record keeping.
@@ -27,7 +27,7 @@ workflow or ongoing record keeping.
 Deterministic criteria in `judge.ts` record whether the driver followed the
 harness, that the agent entered no human-only workflow, loaded `effort-context`
 and not `task-output`, attached the session to an effort, wrote an effort
-`context.md`, and left the workspace unchanged. The agent may do the work itself
+`effort.md`, and left the workspace unchanged. The agent may do the work itself
 or delegate it; do not grade routing. This rubric grades the driver's fidelity,
 the answer, what the capture preserved, and how it was reported.
 
@@ -59,13 +59,12 @@ from cron, miss one of the three jobs, or give no answer.
 
 ## Criterion: capture_preserves_work — The records preserve what tomorrow needs
 
-Grade the content the agent's sessions wrote to the effort's `context.md` and
-the session's `coordination.md`, as recorded in their write calls. Pass when,
-taken together, they accurately record the developer's goal (every job on a
-systemd timer, cron gone), that nothing changes today, the current state found
-(log rotation is the remaining cron job; backups and cleanup are already on
-timers; the cleanup cron line is commented out), and a next step toward the
-goal. Placing a fact in the other of the two files, or also in both, passes.
+Grade the content the agent's sessions wrote to the effort's records, as
+recorded in their write calls. Pass when they accurately record the developer's
+goal (every job on a systemd timer, cron gone), that nothing changes today, and
+the current state found (log rotation is the remaining cron job; backups and
+cleanup are already on timers; the cleanup cron line is commented out). A
+synthesis the records point to may hold part of it.
 
 Fail when no record was written, when a record misstates the schedule or the
 goal, when it records a change as made or approved, or when it omits the goal or

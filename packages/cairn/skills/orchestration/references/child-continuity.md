@@ -1,6 +1,6 @@
 # Child continuity
 
-Use `effort-context` for effort resume and harness-specific history recovery. A delegated orchestrator uses assigned workstream records and does not pull its parent's session unless explicitly assigned a named-session read.
+Use `effort-context` for effort resume and harness-specific history recovery. A delegated orchestrator uses its workstream's files and the effort records its brief selects, and does not pull its parent's session unless explicitly assigned a named-session read.
 
 ## Choose child continuity
 

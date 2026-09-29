@@ -2,13 +2,13 @@
 
 A design doc is one HTML file per design, made of pages and built from the design's records. The reader sees one page at a time and switches with the page list at the top of the rail. Every E, Q, D and R number is unique across the whole doc, so a marker on any page opens the same card.
 
-The doc records where the design stands. It doesn't say what to do next: who to chase, what to ask at the next meeting, or which question to settle first. That belongs to the effort (its `context.md`: next actions and waiting-on).
+The doc records where the design stands. It doesn't say what to do next: who to chase, what to ask at the next meeting, or which question to settle first. Nothing records that; an agent proposes it from the records when someone asks.
 
 ## Page types
 
 | Group | Page | Holds |
 | --- | --- | --- |
-| `overview` | Overview | The problem, the goals, the whole system, and every record's current state: requirements, how the design measures up, cost, risks, decisions and open questions, grouped by the area each lives on with the ones that span areas first. Progress sits under its header. |
+| `overview` | Overview | The problem, the goals, the whole system, and every record's current state: requirements, how the design measures up, cost, risks, phases, decisions and open questions, grouped by the area each lives on with the ones that span areas first. Progress sits under its header. |
 | `area` | One per part of the design that has records of its own | That part in detail: its own requirements, design diagram and parts, how it measures up, risks, decisions and questions, then the ones from elsewhere that reach it. |
 | `brief` | One per decision that needs its options weighed side by side | The question, a decision map, the options with diagrams, comparison and cost, and the open questions that block it. See [writing](writing.md). |
 | `shared` | Evidence, Meetings | Every finding and every meeting, for the whole doc. A new design has no Meetings page until its first meeting is recorded: leave its include out of doc.html until then. |
@@ -25,7 +25,7 @@ The skill is for designing something that will be built or changed. A vendor or 
 - **How to split:** choose areas so most records live in one of them. Pipeline stages, layers (UI, API, infrastructure), capabilities (sign-up, billing), migration phases, or systems all work when they keep records apart. If most records would reach two areas, the split is wrong; try another.
 - **A brief that grows into a design:** add an overview, and delete the brief's Requirements and Decisions sections, and move its `context`, if any, to the overview. The records don't move; only where they're shown does.
 - **When to write a brief:** when a decision has at least two real options that need comparing in a meeting, with diagrams. Many decisions don't: one settled in a meeting, or with an obvious answer and a finding behind it, is a row in the decisions table and nothing more. In between, an area page can weigh a small decision about its own part in a comparison table or compact option cards.
-- Leave implementation plans and task lists out; they belong to the efforts building the design (their `approach.md` and `context.md`). A short Rollout section on the overview is fine when the order of change is itself a design question, such as a migration where old and new run side by side.
+- Phases are the design's delivery units: each with its scope, exit criteria, status, and the effort doing it, in design.md's Phases section and the overview's Phases table. Leave implementation plans and task lists out; how an effort builds its phase goes in its local `design.md`.
 
 ## Where each record lives
 

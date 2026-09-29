@@ -36,8 +36,9 @@ export function rootPaths(root: string): RootPaths {
   };
 }
 
-// The records an agent keeps in each effort's folder.
-export const recordNames: readonly string[] = ["context.md", "approach.md"];
+// The records an agent keeps in each effort's folder: effort.md, and design.md for a design local to the effort.
+// context.md and approach.md are their earlier names, still read until an effort's records are renamed.
+export const recordNames: readonly string[] = ["effort.md", "design.md", "context.md", "approach.md"];
 
 export function effortFolder(root: string, slug: string): string {
   return join(root, "efforts", slug);

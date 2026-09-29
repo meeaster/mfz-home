@@ -128,7 +128,7 @@ test("dispatchesWithoutFile requires a file from each directly dispatched sessio
 test("Scribe keeps records rather than returning a file, so neither check counts it", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_scribe", parentID: "ses_root", agent: "scribe" }];
 
-  const records = { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/context.md" }), sessionID: "ses_scribe" };
+  const records = { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/effort.md" }), sessionID: "ses_scribe" };
 
   expect(dispatchesWithoutFile({ tools: [], sessions })).toEqual([]);
   expect(returnedFilesUnread({ tools: [records], sessions })).toEqual([]);

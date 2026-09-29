@@ -3,6 +3,30 @@
 
 How firewall and customer logs are collected, filtered and kept in GovCloud.
 
+## Problem
+
+Firewall logs from our 14 sites, about 1.2 TB a month (E2), go straight to Datadog, and we pay to index all of them, including the noise nobody searches. We keep no copy of our own, so a year-long investigation or a customer's request for their logs depends on what Datadog still holds. Customers want to send us their own logs, and there is no private way in for them.
+
+Solving it cuts the Datadog bill for logs nobody reads, gives us a year of every log that we control, and lets us offer customer log intake from November.
+
+## Goals
+
+- Every firewall log searchable within a minute
+- Pay only for logs we use
+- Customers send logs privately from November, each kept apart
+- A year of every log, ready to hand over
+
+Not in scope: what the firewalls log, and the dashboards and alerts built on the logs.
+
+## How it works
+
+Firewalls keep sending syslog to the syslog server in Shared Tooling, which relays it to a group of OPW workers. Customers reach the same workers through a private endpoint, so no intake faces the internet. The workers drop the noise before Datadog (D7) and send everything, noise included, to S3, where firewall and customer logs sit in separate buckets with their own keys (D6). Where the workers run (D1) decides the network path from the syslog server and the endpoint; the rest of the design holds whichever way it goes.
+
+```text
+ASA firewalls ──syslog──▶ Syslog server ──relay──▶ OPW workers ──filtered──▶ Datadog
+Customers ──private endpoint──────────────────────▶ OPW workers ──everything──▶ S3 (internal | customers)
+```
+
 ## Terms
 
 - **OPW** [overview, pipeline-workers, workers]: Observability Pipelines Workers. Datadog's log pipeline software, run on our own servers.
@@ -173,6 +197,26 @@ How firewall and customer logs are collected, filtered and kept in GovCloud.
 - Does: One per customer. Reads only that customer's prefix, with that customer's key.
 - Decided by: D6
 - Evidence: E8
+
+## Phases
+
+### Firewall logs through OPW
+- Scope: Workers running, firewall logs relayed to them, filtered logs in Datadog.
+- Exit criteria: All 14 sites' logs reach Datadog through the workers for a week, and the direct forwarding is switched off.
+- Status: In progress
+- Effort: opw-deployment
+
+### The S3 archive
+- Scope: Every firewall log kept in S3 for a year, encrypted, with the security read role.
+- Exit criteria: A date range of logs handed over within one working day, in a test run.
+- Status: Planned
+- Effort: logs-archived-to-s3
+
+### Customer intake
+- Scope: The private endpoint, per-customer buckets and keys, and export roles.
+- Exit criteria: The first three customers sending logs, each readable only with its own role and key.
+- Status: Planned
+- Effort: customer-log-ingestion
 
 ## Decisions
 

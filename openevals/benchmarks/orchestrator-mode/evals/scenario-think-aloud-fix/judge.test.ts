@@ -28,7 +28,7 @@ const decision = call("decide", "ses_driver", "subagent", {
 
 const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/accept-release-fix.md";
 
-const context = "/home/dev/workspace/artifacts/cairn/efforts/release-status-accepted/context.md";
+const context = "/home/dev/workspace/artifacts/cairn/efforts/release-status-accepted/effort.md";
 
 /** The coordinator creates a provisional effort before it dispatches, and Scribe keeps its records unread. */
 const coordinator = [

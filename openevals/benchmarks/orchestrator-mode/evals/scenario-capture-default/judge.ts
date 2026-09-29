@@ -8,7 +8,7 @@ import { harnessChecks, underTest } from "../../../../src/judging/scenario.js";
 const attachInput = z.object({ attach: z.array(z.union([z.string(), z.object({ create: z.object({}).passthrough() })])).min(1) });
 
 /** An effort's validated state, which capture writes at a path from `catalog_location`. */
-const effortContext = new RegExp(`${outputRoot}efforts/[^/]+/context\\.md$`, "u");
+const effortRecord = new RegExp(`${outputRoot}efforts/[^/]+/effort\\.md$`, "u");
 
 function sessionScores(view: RunFacts | undefined) {
   if (view === undefined)
@@ -18,7 +18,7 @@ function sessionScores(view: RunFacts | undefined) {
         effort_context_loaded: null,
         no_task_output: null,
         effort_attached: null,
-        context_recorded: null,
+        effort_record_written: null,
         workspace_unchanged: null,
       },
       // OpenEval rejects `undefined` anywhere in judge output.
@@ -35,7 +35,7 @@ function sessionScores(view: RunFacts | undefined) {
 
   const written = pathsWrittenBy(view, new Set(view.sessions.map((session) => session.id)));
 
-  const contexts = written.filter((path) => effortContext.test(path));
+  const effortRecords = written.filter((path) => effortRecord.test(path));
 
   const changed = changedPaths(view.initial, view.final);
 
@@ -45,7 +45,7 @@ function sessionScores(view: RunFacts | undefined) {
       effort_context_loaded: rootSkills.includes("effort-context"),
       no_task_output: !rootSkills.includes("task-output"),
       effort_attached: attached.length > 0,
-      context_recorded: contexts.length > 0,
+      effort_record_written: effortRecords.length > 0,
       workspace_unchanged: changed.length === 0,
     },
     observations: {

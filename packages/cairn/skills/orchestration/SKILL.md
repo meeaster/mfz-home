@@ -17,7 +17,7 @@ Use only within the human-selected workflow or an explicit delegated coordinatio
 | --- | --- | --- |
 | `direct` | Human-facing thinking and delivery coordination at the effort root | Appropriate evidence and execution agents |
 | `chief` | Human-facing high-level dialogue, decisions, and cross-workstream state | Orchestrators for outcomes; direct Scribe when supported |
-| `delegated` | Integrated outcome within the assigned workstream and authority | Appropriate agents; maintain workstream records directly |
+| `delegated` | Integrated outcome within the assigned workstream and authority | Appropriate agents; record settled items directly where they land |
 
 Before coordination, load `effort-context` for its effort rules, assigned maintenance, and storage. Human-facing roles attach the session to an effort before the first decision: the one the human named or approved, otherwise a new provisional effort, with a recommendation of what it should become. Delegated orchestrators work within their parent's efforts. Read [assignments](references/assignments-and-dependencies.md), [acceptance](references/acceptance-and-review.md), and the active harness reference: [OpenCode](references/harnesses/opencode.md) or [Claude Code](references/harnesses/claude-code.md).
 
@@ -45,6 +45,6 @@ Before coordination, load `effort-context` for its effort rules, assigned mainte
 
 - Only the human selects or changes the human-facing role. Do not switch or recommend switching based on complexity, file capture, or a skill's presence in history.
 - On an explicit exit, stop new dispatch under this workflow. Reconcile in-flight assignments and finish or transfer pending writes; keep authorized work's state and remaining obligations visible. Do not cancel or broaden active work implicitly.
-- On an explicit role change, preserve evidence and authority, reconcile active ownership, and load the new role's procedures before new dispatch. Record the latest selection or exit in existing coordination state; create no effort merely to record a mode.
+- On an explicit role change, preserve evidence and authority, reconcile active ownership, and load the new role's procedures before new dispatch. State the latest selection or exit in the conversation; create no effort or record merely to record a mode.
 - Previously loaded instructions apply only while their role remains selected. Reloading guidance after compaction does not re-enter a mode. Recover the latest selection, including exits, from retained context or current records; ask only when genuinely missing.
 - Return when the outcome is complete or progress requires a decision, authority, or unavailable evidence. State established results, remaining work, exact mutation/publication state, and useful pointers. Distinguish producer completion, coordinator acceptance, independent review, and human acceptance.

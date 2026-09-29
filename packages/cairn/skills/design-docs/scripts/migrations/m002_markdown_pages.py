@@ -225,13 +225,13 @@ def move_to_effort(folder: Path) -> list[str]:
         record = lines[index:end]
         status = next((line[len("- Status: ") :] for line in record if line.startswith("- Status: ")), "")
         if heading and heading.group(2) and status not in ("Awaiting review", "Summarised"):
-            notes.append(f"design.md: removed meeting '{heading.group(2)}' (Status: {status}); a planned meeting and its agenda belong in the effort")
+            notes.append(f"design.md: removed meeting '{heading.group(2)}' (Status: {status}); the doc records meetings that happened")
             index = end + 1 if end < len(lines) and not lines[end].strip() else end
             continue
         if heading and heading.group(1):
             chasing = [line for line in record[1:] if re.match(r"- (Status|Latest): ", line) and line != "- Status: Answered"]
             if chasing:
-                notes.append(f"design.md: {heading.group(1)} dropped {' · '.join(line[2:] for line in chasing)}; put it in the effort's waiting-on list")
+                notes.append(f"design.md: {heading.group(1)} dropped {' · '.join(line[2:] for line in chasing)}; record who was asked and when in the question's 'Asked'")
             record = [line for line in record if line not in chasing]
         kept += record
         index = end

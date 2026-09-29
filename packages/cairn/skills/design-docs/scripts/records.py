@@ -1,7 +1,8 @@
 """Read a design's records (design.md and changes.md) and render them as page HTML.
 
-design.md holds what the design has established: terms, requirements, parts,
-decisions with their options, risks, open questions, evidence and meetings.
+design.md holds what the design has established: the problem, goals and how it
+works in prose, then terms, requirements, parts, phases, decisions with their
+options, risks, open questions, evidence and meetings.
 Pages pull tables from it with placeholders such as
 
     <!-- records decisions -->
@@ -47,7 +48,10 @@ SECTIONS = {
     "questions": "question",
     "evidence": "evidence",
     "meetings": "meeting",
+    "phases": "phase",
 }
+# Prose sections an agent reads to understand the design; a page shows them with the design-section component.
+PROSE_SECTIONS = {"problem": "problem", "goals": "goals", "how it works": "how-it-works"}
 PREFIX = {"requirement": "R", "decision": "D", "question": "Q", "evidence": "E"}
 ID_TOKEN = re.compile(r"^[EQDR]\d+$")
 FLOW_ID = re.compile(r"^[A-Z][A-Z0-9]*-F\d+$")
@@ -69,6 +73,7 @@ REQUIRED = {
     "risk": ["Likelihood"],
     "cost": ["Monthly"],
     "flow": ["Data", "Crosses", "Assessment"],
+    "phase": ["Scope", "Exit criteria", "Status"],
 }
 ANSWER_LABELS = ("Answer", "Leaning", "For now", "Assuming", "So far")
 DECISION_STATUS = {"open": "open", "leaning": "leaning", "decided": "decided", "later": "", "given": ""}
@@ -80,6 +85,7 @@ WHY_LIMIT = 240
 DECISION_STATE = {"open": "open", "leaning": "leaning", "later": "later", "decided": "decided", "given": "decided"}
 UNSETTLED = ("open", "leaning", "later")
 MEETING_STATUS = {"awaiting review": "open", "summarised": ""}
+PHASE_STATUS = {"planned": "", "in progress": "leaning", "done": "decided"}
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
 VERDICT = {"yes": "yes", "partly": "partly", "no": "no"}
 PRIORITY = {"must": "badge", "should": "badge outline"}
@@ -149,6 +155,7 @@ class Design:
     title: str = ""
     dek: str = ""
     terms: list[Term] = field(default_factory=list)
+    prose: dict[str, list[str]] = field(default_factory=dict)
     records: list[Record] = field(default_factory=list)
     changes: list[Change] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
@@ -173,6 +180,7 @@ def read_design(path: Path) -> Design:
     record: Record | None = None
     option: Record | None = None
     last: Field | None = None
+    prose: list[str] = []
     title_seen = False
 
     for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
@@ -187,8 +195,15 @@ def read_design(path: Path) -> Design:
             name = line[3:].strip().lower()
             section = SECTIONS.get(name)
             record = option = last = None
+            if name in PROSE_SECTIONS:
+                section = "prose"
+                prose = design.prose.setdefault(PROSE_SECTIONS[name], [])
+                continue
             if section is None:
                 design.warnings.append(f"{design.where(number)}: section '{line[3:].strip()}' isn't a records section; nothing in it is rendered")
+            continue
+        if section == "prose":
+            prose.append(line)
             continue
         if section is None:
             if title_seen and stripped and not design.dek and not stripped.startswith(("-", "#")):
@@ -321,9 +336,11 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
         if record.kind == "question":
             check_question(record, design)
         if record.kind == "meeting" and status and status.lower() not in MEETING_STATUS:
-            design.errors.append(f"{design.where(record.line)}: meeting status '{status}'; use Awaiting review or Summarised. The doc records meetings that happened; the next one belongs in the effort")
+            design.errors.append(f"{design.where(record.line)}: meeting status '{status}'; use Awaiting review or Summarised. The doc records meetings that happened, not the next one")
         if record.kind == "meeting" and record.field("Agenda"):
-            design.warnings.append(f"{design.where(record.field('Agenda').line)}: meeting '{record.id}' has an 'Agenda'; plans for a meeting belong in the effort, not the design")
+            design.warnings.append(f"{design.where(record.field('Agenda').line)}: meeting '{record.id}' has an 'Agenda'; the doc records meetings that happened, and an agenda is drafted when someone asks")
+        if record.kind == "phase" and status and status.lower() not in PHASE_STATUS:
+            design.errors.append(f"{design.where(record.line)}: phase status '{status}'; use Planned, In progress or Done")
         if record.kind == "requirement" and record.get("Priority").lower() not in PRIORITY:
             design.errors.append(f"{design.where(record.line)}: priority '{record.get('Priority')}'; use Must or Should")
         if record.kind == "decision":
@@ -496,7 +513,8 @@ def design_model(design: Design) -> dict:
     for entry in records.values():
         entry["unblocks"] = sorted((i for i, other in records.items() if entry is not other and any(records.get(f) is entry for f in other.get("follows", []))), key=lambda i: int(i[1:]))
 
-    return {"title": design.title, "records": records, "costs": costs, "flows": flows}
+    prose = {name: "\n".join(lines).strip() for name, lines in design.prose.items()}
+    return {"title": design.title, "records": records, "costs": costs, "flows": flows, "prose": prose}
 
 
 def shapes_line(record: Record, design: Design) -> str:
@@ -514,15 +532,15 @@ def is_answered(question: Record) -> bool:
 
 
 def check_question(record: Record, design: Design) -> None:
-    """A question says who can answer it and what it holds up; chasing the answer is the effort's business."""
+    """A question says who can answer it, what it holds up, and when it was asked; what to ask next isn't recorded."""
     where = design.where(record.line)
     if not record.get("Blocks"):
-        design.warnings.append(f"{where}: question '{record.id}' blocks nothing; a question that holds up no decision, requirement or flow belongs in the effort")
+        design.warnings.append(f"{where}: question '{record.id}' blocks nothing; a question that holds up no decision, requirement or flow belongs in the effort's open questions")
     status = record.field("Status")
     if status and status.value.lower() != "answered":
         design.warnings.append(
             f"{design.where(status.line)}: question '{record.id}' has 'Status: {status.value}'; the doc records only whether it's answered. "
-            "Asking and chasing belong in the effort's waiting-on list"
+            "When and how it was asked goes in 'Asked'"
         )
     for key in ("Latest", "Page"):
         found = record.field(key)
@@ -1061,6 +1079,17 @@ class Renderer:
             )
         return self.table(["Part", "What it does", "Decided by", "Evidence"], rows)
 
+    def phases(self, page: str, ids: list[str] | None) -> str:
+        rows = []
+        for r in self.design.of("phase"):
+            status = r.get("Status")
+            cls = PHASE_STATUS.get(status.lower(), "")
+            rows.append(
+                f'<tr><td class="q">{self.inline(r.title)}</td><td class="soft">{self.inline(r.get("Scope"))}</td>'
+                f'<td class="soft">{self.inline(r.get("Exit criteria"))}</td><td><span class="status{" " + cls if cls else ""}">{esc(status)}</span></td></tr>'
+            )
+        return self.table(["Phase", "Scope", "Done when", "Status"], rows)
+
     def risk_row(self, r: Record, lives_on: str | None = None) -> str:
         likelihood = r.get("Likelihood").capitalize()
         cls = LIKELIHOOD.get(likelihood.lower(), "")
@@ -1338,6 +1367,7 @@ class Renderer:
             "reasoning": self.reasoning,
             "parts": self.parts,
             "risks": self.risks,
+            "phases": self.phases,
             "cost": self.cost,
             "terms": self.terms,
             "evidence": self.evidence,

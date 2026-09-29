@@ -78,10 +78,11 @@ Framing: what's being chosen and what stays the same.
 | `decision-map [D1 D2]` | The page's decisions, the ones they follow and the ones waiting on them, in columns by what must be decided first, with each one's open questions under it. |
 | `flows <view>` | A security view's data flows table, from the Flows records whose ID starts with the view (`B` for B-F1). |
 | `diagram-key items="today \| new: label \| …" [title=…] [design]` | A legend from named entries: `today`, `outside`, `new`, `pending`, `sketch`, `retired`, `area`, `context`, `covered`, `blocking`, `first`, `decision`, `evidence`, `question`, `boundary`, `crosses`, `attention`, `protected`, `transit`. `name: label` changes an entry's words and `name(sample)` its sample, as in `boundary: Our AWS account` or `transit(TLS · IAM)`. Give the flow entries the view's own numbers: `crosses(F1) \| attention(F2) \| protected(F3)`. |
-| `goals` | The body's lines as the numbered goals. |
-| `scope-note` | "Not part of this design:" and the body. |
+| `goals` | The body's lines as the numbered goals; with an empty body, the bullets of design.md's Goals. |
+| `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.md's Goals. |
+| `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.md, with its fenced diagrams in text left out. |
 | `callout title="…" icon=<symbol>` | An aside with an icon, such as "What would settle it". |
-| `requirements`, `measure`, `decisions`, `risks`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning` | The record tables, the same as `<!-- records … -->`. |
+| `requirements`, `measure`, `decisions`, `risks`, `phases`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning` | The record tables, the same as `<!-- records … -->`. |
 
 ## The doc's own components
 

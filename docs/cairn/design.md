@@ -55,12 +55,16 @@ These are the human's own examples. The design is checked against them.
 | Efforts are flat and organized with tags. Hierarchy can be added later. | Human |
 | An effort view aggregates everything from all of its sessions. Grouping by session is optional. | Human |
 | The catalog doesn't prescribe file names. Any file written under the root is captured and then described. Record names belong to the skills. | Human |
-| Records split by what they describe. The work's state (`context.md`: purpose, scope, decisions and rationale, open questions; plus an optional `design.md`) lives in the effort's folder. The run's state (`coordination.md`: assignments, blockers, next steps, workstreams) lives in the root session's folder. | Human, 2026-09-25 |
-| After compaction, the plugin re-injects the session's attached efforts with their record paths, plus the session's `coordination.md` path. | Human, 2026-09-25 |
-| An effort is an outcome, such as a feature or a capability, and not a phase. Design, implementation, review, and follow-up fixes attach to the same effort. Where the work stands lives in `context.md` and in session descriptions, not in a phase field. | Human, 2026-09-25 |
+| Records split by what they describe. Where the work stands lives in the effort's `effort.md`. What is being built and why lives in a design: a stable design at the root when others review it or several efforts share it, or a local `design.md` in the effort's folder for small work and for detail below a stable design. What already exists lives in knowledge articles. A run keeps no record of its own: the catalog's session tree, the repository, and the conversation export already hold it. See [records](#records-and-multi-effort-sessions). | Human, 2026-09-29, replacing the split into `context.md` and a session's `coordination.md` |
+| After compaction, the plugin re-injects the session's attached efforts with their record paths. | Human, 2026-09-25; `coordination.md` dropped 2026-09-29 |
+| An effort is an outcome, such as a feature or a capability, and not a phase. Design, implementation, review, and follow-up fixes attach to the same effort. Where the work stands lives in `effort.md` and in session descriptions, not in a phase field. A stable design's phases are delivery units, each done by an effort. | Human, 2026-09-25 |
 | Work funnels into the current effort. Splitting is explicit, keeps the original's history, and adds `split_from`. There are no parts in the schema. Efforts relate through `depends_on`, `split_from`, and `related` links. Tags are for filtering, and `initiative:` is optional. Sessions attach where the work lands. A reading scope applies: attached efforts are read in full, linked efforts only by summary. See [effort relationships](#effort-relationships-and-splitting). | Human, 2026-09-25 |
-| `context.md` holds only validated state: decisions the human made in working sessions, or items the human accepted at intake. External input (meetings, emails, other people's notes) stays in its own artifacts until the human deliberately promotes it. A meeting is kept as its raw source, a cleaned source, and a summary that separates what was decided, suggested, left open, and assigned. | Human, 2026-09-25 |
-| Records for v1: the AI maintains `context.md` and `design.md` in the effort's folder, through Scribe or the orchestrator directly, and `coordination.md` in the root session's folder. Cairn generates only `index.md` and doesn't generate an agent brief. There are no size budgets. Size is kept in check by curation (edit in place, remove what's no longer live) and by what each role reads, and the effort view shows record sizes. A curated layer maintained by the human with AI is a future direction. | Human, 2026-09-25 |
+| `effort.md` holds only validated state: decisions the human made in working sessions, or items the human accepted at intake. External input (meetings, emails, other people's notes) stays in its own artifacts until the human deliberately promotes it. A meeting is kept as its raw source, a cleaned source, and a summary that separates what was decided, suggested, left open, and assigned. | Human, 2026-09-25 |
+| Records for v1: the AI maintains `effort.md` and any local `design.md` in the effort's folder, through Scribe or the orchestrator directly. Cairn generates only `index.md` and doesn't generate an agent brief. There are no size budgets. Size is kept in check by curation (edit in place, remove what's no longer live) and by what each role reads, and the effort view shows record sizes. A curated layer maintained by the human with AI is a future direction. | Human, 2026-09-25 |
+| Records describe state: what is settled, the human's views, what was said and by whom, and what is open. They hold no next steps, to-dos, waiting-on lists, planned meetings, or agendas, because those go stale silently and read as instructions to the agents that maintain the files. When the human wants a plan, an agent reads the records and proposes one in the conversation. | Human, 2026-09-29 |
+| The stable design is the agreed record of a body of work, not only of a system: the problem and its business value, goals and non-goals, how it works, requirements, phases (each with scope, exit criteria, status, and the effort doing it), and decisions. What changes daily stays in the effort. The test for what goes in the design: would changing it mean telling the people who approved it? | Human, 2026-09-29 |
+| A local `design.md` is one connected document written for agents and the human, not the stable design's record format, because records split the understanding from the facts and agents never read the pages that join them. The stable design's `design.md` gains a prose "How it works" that the overview shows. Promoting a local design is a write-up for reviewers, and the stable design supersedes it. | Human, 2026-09-29 |
+| Design and effort stay in step by recording each fact once, where it lands, and referring to it by ID everywhere else. `changes.md` is the log a resuming session reads for what changed since the effort's last session. | Human, 2026-09-29 |
 | Nothing in `~/workspace/scratch/orchestrator-workspaces/` is moved or imported automatically. Once Cairn works, a trial may bring one effort over to see how it looks. | Human, 2026-09-25 |
 | Evidence from before a session attached is found through the catalog (`cairn ls`, the effort index), not moved. | Human |
 | The root is `~/workspace/artifacts/cairn/`. Revisit after use. | Human |
@@ -106,7 +110,7 @@ Which efforts exist, and which sessions belong to them, is the human's organizat
 
 - **Look up, then recommend.** Once a conversation has a clear subject, the agent searches with `catalog_find` (text and tags) and names the match and why it fits: "This looks like part of *Logs archived to S3*. Attach it?" With no match, it offers a new effort with a title named for the outcome. It asks once, and again only when the subject changes. Work continues while the question is open: the session's files already live in its folder, and attaching later brings them along.
 - **Approval.** The human approves attaching a session, creating a regular effort, promoting a provisional one, detaching, splitting, merging, and excluding a file from an effort. Naming an effort in a request counts as approval. Subagents inherit the efforts of their root session, and Chief's workstream keys group sessions without being efforts, so neither needs a question.
-- **Provisional efforts.** Orchestration needs its records from the first decision, before the human has answered. So entering orchestration, or capturing work without naming an effort, creates an effort with status `provisional` for the task and attaches the session to it. It spans sessions like any other effort, so a later session can resume it. The human then either promotes it (status `active`, renamed if the title needs it) or approves merging it into an existing effort. Before a merge, the agent folds the provisional `context.md` into the target's, since `merge` moves sessions, files, tags, and links but leaves record files behind. A provisional effort that is never promoted stays as history.
+- **Provisional efforts.** Orchestration needs its records from the first decision, before the human has answered. So entering orchestration, or capturing work without naming an effort, creates an effort with status `provisional` for the task and attaches the session to it. It spans sessions like any other effort, so a later session can resume it. The human then either promotes it (status `active`, renamed if the title needs it) or approves merging it into an existing effort. Before a merge, the agent folds the provisional `effort.md` into the target's, since `merge` moves sessions, files, tags, and links but leaves record files behind. A provisional effort that is never promoted stays as history.
 - **Default mode.** Sessions that aren't orchestrating get no effort unless the human asks for one or approves a recommendation. Their evidence stays in the session folder and is described like any other file.
 
 `catalog_find` and the effort list label provisional efforts, and the duplicate check on create includes them. Recommendations prefer regular efforts. The tools don't enforce approval; the skills carry the rule.
@@ -134,8 +138,8 @@ The human settled these on 2026-09-25, from the observability example. Structure
 3. Customer-device logs then raised the question of a public OPW behind an authorization layer, or a relay through the product server.
 
 The rules:
-1. **Work funnels into the effort you're in.** A new session finds the matching effort through `catalog_find` and recommends it, and once the human approves, research, design, and implementation accumulate in one effort. Naming the effort for its outcome ("Logs archived to S3") keeps it stable when the approach changes, because the approach (OPW) is a decision in `context.md`.
-2. **No parts in the schema.** Parts are prose in `context.md`. Labeling sessions with parts requires knowing the parts in advance, which you don't.
+1. **Work funnels into the effort you're in.** A new session finds the matching effort through `catalog_find` and recommends it, and once the human approves, research, design, and implementation accumulate in one effort. Naming the effort for its outcome ("Logs archived to S3") keeps it stable when the approach changes, because the approach (OPW) is a decision in its design.
+2. **No parts in the schema.** Parts are prose in `effort.md`, or phases in a stable design. Labeling sessions with parts requires knowing the parts in advance, which you don't.
 3. **Splitting is explicit.** An agent may suggest a split, and the human decides. Signs that a piece should split off:
    - it has its own approval or delivery;
    - other efforts need only that piece;
@@ -143,9 +147,9 @@ The rules:
 
    `catalog_effort` with `split` creates the new effort, adds a `split_from` link, and includes the chosen existing sessions and files. It removes nothing from the original. New sessions for that piece attach to the new effort. The original keeps its remaining scope. After the OPW deployment splits off, "Logs archived to S3" still owns the destination design: bucket layout, prefixes and partitioning, retention, encryption, and the permissions that writers get.
 4. **Links between efforts carry relationships.** The relations are `depends_on` (A needs B), `split_from`, and `related`. Links are read in both directions, so add a `depends_on` only in the blocking direction and never add the reverse. When two efforts would depend on each other, split out the shared piece if it has its own life. Otherwise keep one direction and let the other effort read through the link. Relationships found late, such as ASA deciding to reuse OPW, become links when they're found.
-5. **Attach where the work lands.** A session belongs to every effort whose state it changes, and records each decision in that effort's `context.md`. The agent recommends each attachment and the human approves it. The ASA session that widened OPW's scope attaches to the OPW deployment effort too. A session that only needs background reads a linked effort without attaching, so its files don't flood that effort's view.
-6. **Reading scope.** Each `context.md` opens with a short summary: the outcome, where it stands, and key decisions. A session reads:
-   - the full `context.md` of each effort it's attached to;
+5. **Attach where the work lands.** A session belongs to every effort whose state it changes, and records each decision where it lands: about the work in that effort's `effort.md`, about the system in its design. The agent recommends each attachment and the human approves it. The ASA session that widened OPW's scope attaches to the OPW deployment effort too. A session that only needs background reads a linked effort without attaching, so its files don't flood that effort's view.
+6. **Reading scope.** Each `effort.md` opens with a short summary: the outcome, where it stands, and key decisions. A session reads:
+   - the full `effort.md` of each effort it's attached to, and the designs it works on;
    - only the summary of efforts one link away;
    - anything further on demand.
 
@@ -206,20 +210,17 @@ Some material arrives from outside the working sessions: meetings, emails, a col
    - **Action items:** each with its owner (you or another role) and any date.
    - **Intake:** filled in later (see below).
 
-Processing never writes to any `context.md`.
+Processing never writes to any effort's or design's records.
 
 **Intake** is a deliberate session with the human, right after processing or days later, that works through the summary's candidates:
-- **Accept** a decision: the agent writes it into the `context.md` of the effort it concerns, or the design it concerns, citing the meeting summary. Wording may be adjusted as the human confirms it.
+- **Accept** a decision: the agent writes it into the `effort.md` of the effort it concerns when it's about the work, or into the design it concerns with a `changes.md` entry, citing the meeting summary. Wording may be adjusted as the human confirms it.
 - **Accept** a stated fact about an existing system: it goes into that subject's knowledge article, citing the summary.
 - **Adjust or discuss:** talk it through first. What comes out is the human's decision, recorded as above.
 - **Reject or defer:** it stays in the summary, marked as such.
-- **Open questions:** become open questions in `context.md` only if the human wants to pursue them.
-- **Action items:**
-  - the human's own items go to the effort's `context.md` under "Next actions";
-  - items owned by others go under "Waiting on";
-  - team-tracked items become Jira items, registered as `deliverable` pointers.
+- **Open questions:** become open questions in the design or `effort.md` only if the human wants to pursue them, with who was asked, when, and through what.
+- **Action items:** stay in the summary with their owners, as said. Records don't copy them; team-tracked items become Jira items, registered as `deliverable` pointers.
 
-The intake session attaches to the efforts whose `context.md` it changes ("attach where the work lands"). It records the outcome for each candidate in the summary's Intake section, so nothing is reviewed twice.
+The intake session attaches to the efforts whose records it changes ("attach where the work lands"). It records the outcome for each candidate in the summary's Intake section, so nothing is reviewed twice.
 
 The same intake applies to other external input, such as an email thread with questions or a colleague's design notes. Processing an email is lighter: save it as a `source` file at `sources/email/<thread>.md`, appending later replies to the same file, with an optional summary.
 
@@ -242,9 +243,9 @@ human approves ── catalog_session ──▶ session description, attach effo
                                       workstream key/subject (orchestrators)
 turn complete  ── plugin ──▶ conversation export updated
 any change     ── service ──▶ effort index.md regenerated
-compaction     ── plugin ──▶ note: attached efforts + record paths, coordination.md path
+compaction     ── plugin ──▶ note: attached efforts + record paths
 meeting/email  ── session ──▶ source + cleaned source + summary (candidates, action items)
-intake         ── session with the human ──▶ accepted items into context.md; summary marked
+intake         ── session with the human ──▶ accepted items into the design or effort.md; summary marked
 daily          ── service ──▶ database copied to backups/
 ```
 
@@ -255,14 +256,14 @@ daily          ── service ──▶ database copied to backups/
 5. **Read (plugin).** For a read under the root, the plugin records `read_in`. This shows which sessions actually used which material. Suggested `informs` links built from these reads are a later experiment.
 6. **Turn complete (plugin).** Root sessions only. See [conversation indexing](#conversation-indexing).
 7. **Derived views (service).** There is no long-running process, so a change marks each affected effort as dirty in the database. The hot-path commands (`session start`, `capture`, `read`) only mark. Every other command, and the turn-complete `session index`, regenerates the dirty efforts' `index.md` before it exits.
-8. **Compaction (plugin).** After compaction, the plugin adds a factual note listing each attached effort with the paths of its `context.md` and `design.md`, plus the session's `coordination.md` path when it exists. The agent rereads what it needs. This replaces relying on the orchestrator to remember where its records are.
+8. **Compaction (plugin).** After compaction, the plugin adds a factual note listing each attached effort with the paths of its `effort.md` and local `design.md`. The agent rereads what it needs. This replaces relying on the orchestrator to remember where its records are.
 
 ## Retrieval
 
 The effort view is the primary way back into work. `catalog_find` and the generated index both provide it.
 
 - **Effort list:** filter by tag (`initiative:observability-pipeline`), status, or text. Each effort shows its title, description, status (so provisional efforts stand out), tags, session count, artifact count, and last activity.
-- **Effort view:** its `context.md` summary, its linked efforts with their status (`depends_on`, needed by, `split_from`, `related`), then every artifact from every attached session plus explicit members, **grouped by category** by default, with titles, descriptions, paths, and pointer types. PRs, Jira items, and Confluence pages each get their own group. Grouping by session and filtering to one session are options. Each artifact shows its producing session's title so provenance stays visible.
+- **Effort view:** its `effort.md` summary, its linked efforts with their status (`depends_on`, needed by, `split_from`, `related`), then every artifact from every attached session plus explicit members, **grouped by category** by default, with titles, descriptions, paths, and pointer types. PRs, Jira items, and Confluence pages each get their own group. Grouping by session and filtering to one session are options. Each artifact shows its producing session's title so provenance stays visible.
 - **Sessions of an effort:** the session titles and descriptions, with links to their conversation exports.
 - **Chief loop:** find sessions by `workstream` or `subject`.
 - **Knowledge:** `knowledge/index.md` lists every article with its efforts, how many files inform it, and when it last changed.
@@ -304,15 +305,14 @@ An artifact's efforts are the attached efforts of the nearest attached session i
   logs/
   sessions/<harness>/<yyyy-mm>/<root-native-id>/
     conversation.md          root-session export
-    coordination.md          the run's state, when the session orchestrates
-    <workstream-key>/        Chief workstream folders, also the run's state
+    <workstream-key>/        a delegated orchestrator's files, apart from parallel workstreams
     …                        anything else written by the session tree; names are up to the skills
   efforts/<slug>/
     index.md                 generated effort view
-    context.md               the work's state: purpose, scope, decisions and rationale, open questions
-    approach.md              optional: how this effort builds its part
+    effort.md                where the work stands: summary, its design and phase, views, decisions, open questions
+    design.md                optional: a design local to the effort, one connected document
     …                        other material deliberately written to the effort
-  designs/<slug>/            a design, named for its subject (owned by the design-docs skill)
+  designs/<slug>/            a stable design, named for its subject (owned by the design-docs skill)
   knowledge/
     index.md                 generated list of articles
     <subject>.md             a knowledge article, or <subject>/ when it needs sub-pages
@@ -330,25 +330,45 @@ An artifact's efforts are the attached efforts of the nearest attached session i
 
 ### Records and multi-effort sessions
 
-Records are split by what they describe, not by who writes them. `context.md` holds only validated state: decisions the human made or accepted, and the human's next actions and waiting-on items. External input reaches it only through [intake](#external-input-and-intake). The work's state outlives any session, so it belongs to the effort. The run's state belongs to the session running it.
+Records are split by what they describe, not by who writes them, and they describe state, never next steps. `effort.md` holds where the work stands: a summary, the design and phase it serves, the human's views, decisions about the work, and open questions with who was asked and when. What a system is and why goes in its design, and what exists in knowledge articles. External input reaches any of them only through [intake](#external-input-and-intake). A run keeps no record of its own: its sessions and their files are in the catalog, its code is in the repository, and its conversation is exported.
 
-A session attached to several efforts reads the `context.md` of each one. It writes each decision to the effort it concerns, the way you'd keep one notebook per project. A decision that really affects both goes in both, or in the one that owns it with a link from the other. Most sessions attach to only one effort. The session's single `coordination.md` lists the efforts it serves.
+A session attached to several efforts reads the `effort.md` of each one. It writes each decision to the effort it concerns, the way you'd keep one notebook per project. A decision that really affects both goes in both, or in the one that owns it with a link from the other. Most sessions attach to only one effort.
 
-Orchestration is scoped work by definition. So selecting `orchestrate` or `orchestrate-chief` attaches the session to an effort before the first decision: one the human named or approved, otherwise a new provisional effort (see [provisional efforts and approval](#provisional-efforts-and-approval)). The effort's records exist from the start. Quick, unattached sessions never need a `context.md`. Two sessions editing the same `context.md` at the same time is possible, as it is today. v1 accepts that risk rather than adding locking.
+Orchestration is scoped work by definition. So selecting `orchestrate` or `orchestrate-chief` attaches the session to an effort before the first decision: one the human named or approved, otherwise a new provisional effort (see [provisional efforts and approval](#provisional-efforts-and-approval)). The effort's records exist from the start. Quick, unattached sessions never need an `effort.md`. Two sessions editing the same `effort.md` at the same time is possible, as it is today. v1 accepts that risk rather than adding locking.
 
 **Who maintains and who reads.** The AI maintains the effort records: Scribe where the harness supports it, otherwise the orchestrator directly. The records are current state, edited in place, so they stay at the size of what's still live. Superseded detail is removed. The conversation exports keep the history. What each role reads by default:
 
 | Reader | Reads by default |
 | --- | --- |
-| Human-facing orchestrator (direct or Chief), on resume or after compaction | `context.md` of each attached effort in full, the session's `coordination.md`, and the summary of linked efforts. `design.md` when the discussion needs it. |
+| Human-facing orchestrator (direct or Chief), on resume or after compaction | `effort.md` and any local `design.md` of each attached effort in full, each linked stable design's `design.md` with the `changes.md` entries since the effort's last session, and the summary of linked efforts |
 | Scribe | The human-facing session's context and the records it maintains |
-| Delegated orchestrator | Its workstream records, plus what its brief selects from effort records |
+| Delegated orchestrator | Its workstream's files, plus what its brief selects from effort records and designs |
 | Producers (explore, worker, reviewer, …) | Only the context and pointers their brief supplies |
-| Intake session | The input's summary and the `context.md` of each effort it concerns |
+| Intake session | The input's summary, and the `effort.md` and design of each effort it concerns |
 
 Scribe learns the session's attached efforts from `catalog_session` or the compaction note, and routes each established decision to the effort it concerns. The effort view shows each record's approximate token size, so growth is visible. Cairn never warns or blocks on size.
 
 Each profile has its own root and database. Work material stays in a work profile's catalog, and there is no code difference between profiles.
+
+### Stable and local designs
+
+Efforts come in every size, from a feature built in one session to one phase of an initiative that needs approvals, so a design lives in one of two places:
+
+- **Stable design** (`designs/<slug>/`, `design-docs`): the agreed record of a body of work, shared by the efforts on it and shown to the people who approve it. Its `design.md` opens with prose (the problem and business value, goals and non-goals, how it works) and then holds the records: requirements, phases, decisions with their options, parts, risks, questions, evidence, and meetings. Each phase names the effort doing it, and its status lives only there.
+- **Local design** (`efforts/<slug>/design.md`): the design of something small, or the detail below a stable design. It is one connected document for agents and the human (problem and goals, the approach, how it fits together with a diagram in text, decisions with their reasoning, open questions, and what it rests on), because a local design's readers are agents and the human, not reviewers.
+
+A local design is promoted by writing it up as a stable design once others need to see it, another effort needs it, or it outlives the effort. The stable design supersedes it. The readers change, so it is a write-up, not a move.
+
+**Keeping them in step.** A settled question or decision is recorded once, where it lands: about the system, in the design with a `changes.md` entry citing the session or meeting; about the work, in `effort.md`. Everything else refers to it by ID. A session picking an effort up reads the `changes.md` entries since the effort's last session and checks anything in the effort that cites a changed ID.
+
+### Bringing existing material in
+
+Material from before an effort had records, such as earlier sessions' notes, evidence, meeting notes, and exported email, is usually too large to read in one context. The `effort-context` import operation brings it in through passes, each reading only what the one before selected and each ending with the human:
+
+1. **Inventory:** copy the files into the session folder and describe every one, so the effort view becomes the map.
+2. **Framing:** from the syntheses and notes, draft the problem, why it matters, goals, scope, and candidate requirements, attributed to whoever said them, and take them through intake. Accepted framing becomes the lens for the later passes.
+3. **Sources and knowledge**, in parallel: meetings and threads into `sources/` with their candidates, and evidence written up into knowledge articles.
+4. **Design:** options, decisions, open questions, and phases, citing the articles and accepted sources.
 
 ## Durability
 
@@ -449,6 +469,8 @@ Message-level rows and full-text search wait until cross-session "how did my thi
 
 ## Skill changes
 
+This table is the phase 6 plan. The [records revision](#records-revision) later replaced `context.md` with `effort.md` and `approach.md` with a local `design.md`, and removed `coordination.md`.
+
 Skills stay short, because the plugins handle the mechanics and the capture note carries the per-file reminder. `effort-context` owns the effort rules and the storage layout once, and the other skills point to it.
 
 | Skill | Change |
@@ -474,7 +496,7 @@ Skills stay short, because the plugins handle the mechanics and the capture note
 | Workstreams represented by sessions | A workstream is one orchestrator's delegated work. Its session, and any replacement session with the same key, already carry its files. A separate container duplicated the effort in the common one-to-one case. |
 | Chief sets workstream keys explicitly | Chief must check the subject before dispatching ("does PR 123 already have one?"), so it's already making that call. Auto-creating on orchestrator session start would duplicate a workstream when Chief replaces a stale orchestrator. Detecting from new folders would create the container before anything said what it was. |
 | Duplicate-effort check on create | Many sessions work on the same thing. Without a check, each would create its own effort. |
-| No prescribed file names | The catalog stays loose, so structure can grow later. Anything under the root is captured and described. Record names such as `context.md` belong to the skills. |
+| No prescribed file names | The catalog stays loose, so structure can grow later. Anything under the root is captured and described. Record names such as `effort.md` belong to the skills. |
 | Daily database copy for durability | Relationships exist only in the database, and metadata in files was rejected because agents can't be relied on to write it. A text snapshot is readable and diffable, but nothing tracks the root yet, so a `VACUUM INTO` copy covers the real risk with less code. |
 | Records split into the work's state and the run's state | The old per-effort folder mixed state that lives as long as the effort with state that lives only for one run. Once a session can serve several efforts, only this split answers "which design file do I use?". |
 | Effort is the outcome | When implementation starts, the design's evidence, decisions, and open questions are already in the same effort. Splitting by phase would force every implementing session to find and attach the design effort as well. |
@@ -523,6 +545,13 @@ These proposals were made and then replaced. Don't re-propose them without new e
 27. **Five separate record files, then a working and curated layer with a Cairn-generated `brief.md` for agents.** The human rejected the generated brief. For now the AI maintains `context.md` and `design.md`, and the curated layer is a deferred idea.
 28. **Agents attaching sessions to efforts on their own, and orchestration attaching or creating a regular effort on entry.** The human replaced this with recommendation and approval: agents know which efforts exist and suggest, and the human decides. Orchestration's need for records from the first decision is met by provisional efforts, which the human later promotes or merges. The human first considered an effort for every session; the assistant argued that session folders already cover default-mode work, and provisional efforts were limited to orchestration and unnamed captures.
 
+29. **`context.md` as the effort's record.** The name said nothing about the file and collided with "context" as the model's context window and with a domain glossary's `CONTEXT.md`. Renamed `effort.md` (human, 2026-09-29), matching `design.md` in a design folder.
+30. **Next actions, waiting-on, planned meetings, and agendas in `context.md`, and intake routing action items there.** The human rejected prescriptive content in files agents maintain: it goes stale silently and reads as instructions. Records describe state; plans are proposed in the conversation on request.
+31. **`coordination.md` for the run's state.** No effort had one in practice. The catalog's session tree, the repository, and the conversation export hold what it was for. Removed (human, 2026-09-29).
+32. **`approach.md`, then a local design in the stable design's record format so promotion would be a move.** The record format splits the connected understanding into records and pages, and agents read only the records. Replaced by a local `design.md` written as one connected document, with promotion as a write-up (human, 2026-09-29).
+33. **Every effort that builds something links a stable design.** The assistant proposed this to remove the two homes for design material. The human pointed out that efforts range from a single-session feature to an approval-heavy initiative, and the stable design is for the latter. Replaced by stable and local designs.
+34. **A separate preferences file for the human's views.** Considered and not adopted: firm preferences become requirements or constraints, leanings sit on the decisions they bear on, ruled-out options sit in the design's Also considered, and views about the work sit in `effort.md`.
+
 ## Deferred ideas
 
 - Suggested `informs` links built from reads. `read_in` facts are recorded from phase 3, and suggestions follow only after a sample shows most would be correct.
@@ -535,14 +564,14 @@ These proposals were made and then replaced. Don't re-propose them without new e
 - Ingesting email automatically through the email connector. For now, emails are saved as Markdown `source` files when needed.
 
 - A text snapshot (sorted JSONL) of the database, once the root is tracked by git or a sync service.
-- Importing `orchestrator-workspaces`, starting with a trial of one effort.
+- Importing `orchestrator-workspaces` with the import operation, starting with a trial of one effort.
 - **Meeting processing and intake skills.** Processing registers the recording, saves the raw and cleaned transcripts, and writes the summary with candidates and action items. Intake walks the human through the candidates and promotes accepted ones. Build them once the manual version has been used. See the scenario, steps 7 and 8.
 - **People on artifacts.** v1 finds people through `person:` tags on efforts and attendees named in descriptions.
-- **Structured action items and waiting-on** (see open question 2).
+- **Structured action items** from meeting summaries, for a view across efforts. Records hold no waiting-on lists, so this would read the summaries.
 - **A curated layer, maintained by the human with AI.** This was proposed on 2026-09-25 and deferred by the human in favor of AI-maintained `context.md` and `design.md` for now. It separates AI-maintained working material from content the human curates, with explicit promotion as the only path between them. Its parts:
   - **Decisions as a primitive:** one Markdown file each, with the question, a status (open, decided, superseded, dropped), options with pros, cons, and evidence, the chosen option and rationale, and resulting requirements. They're parsed into rows. Decision trees are links: `depends_on` between decisions, an option `raises` or `constrains` another decision (including in other efforts), and a decision `produces` a requirement. A site would draw the tree and order open decisions by what they block.
   - **`requirements.md`**, promoted, or produced by decisions.
-  - **`todos.md`**, owned by the human, added only when the human accepts them, and kept out of agent context so "talk to the security reviewer" never reads as an agent task. Waiting-on items are to-dos owned by others.
+  - **`todos.md`** (not adopted: records hold no next steps, 2026-09-29), owned by the human, added only when the human accepts them, and kept out of agent context so "talk to the security reviewer" never reads as an agent task. Waiting-on items are to-dos owned by others.
   - **Knowledge documents**: built on 2026-09-29 as [knowledge articles](#knowledge-articles), kept at the root rather than in the effort.
   - **A working log:** decisions made along the way with who made them, approaches tried and dropped, and candidates AI flags for promotion. Never loaded by default; a cheap Scribe or explore agent summarizes it on demand.
   - **Promotion**, generalizing intake: any working material (meeting summary, log candidate, evidence, conversation) promoted into a decision, requirement, to-do, knowledge document, or context update, citing its source and marking what was promoted or declined.
@@ -765,6 +794,14 @@ Built 2026-09-29.
 - **Record names.** Cairn's record list was still `context.md` and `design.md` after the skills renamed the effort's technical record to `approach.md`, so `approach.md` got a capture note, was missing from the compaction note, and wasn't listed after a merge. The list is now `context.md` and `approach.md`; no effort folder held a `design.md`.
 - `sources/` and `designs/` need no code: any folder under the root is captured and described like the rest.
 
+### Records revision
+
+Built 2026-09-29.
+- **Record names.** Cairn's record list is `effort.md` and `design.md`, with `context.md` and `approach.md` still recognized so existing efforts keep their summaries and capture behavior until they are renamed with `cairn mv`. The effort view's summary comes from `effort.md`, or `context.md` when an effort hasn't been renamed.
+- **Compaction note.** It lists the attached efforts with their record paths and no longer looks for `coordination.md`.
+- **design-docs.** `design.md` gains prose sections (Problem, Goals, How it works) and Phases records. The overview's `goals` and `scope-note` components show design.md's Goals when they have no body of their own, a new `design-section` component shows a prose section with its text diagrams left out, and a `## Phases` section on a page shows the phases table. Questions gain an `Asked` field for who was asked, when, and through what.
+- **Skills.** `effort-context` describes `effort.md` and the local `design.md`, drops `coordination.md`, records decisions where they land, and adds the import operation. `orchestration` and the continuity references find Scribe and workstreams through the catalog instead of `coordination.md`.
+
 ### Phases
 
 1. **Verify harness facts.** Done 2026-09-25; see the verification results under [harness integration](#harness-integration).
@@ -779,7 +816,7 @@ Built 2026-09-29.
 4. **Conversation indexing** through OpenCode. Built 2026-09-25; see [phase 4 results](#phase-4-results). Acceptance: two turns produce an appended export, a revert triggers a full rewrite, and child sessions produce no export.
 5. **Claude Code hooks and adapter.** Built 2026-09-25; see [phase 5 results](#phase-5-results). Packaged with the CLI and plugin and wired into the personal profile; see [packaging](#packaging).
 6. **Skills.** The [skill changes](#skill-changes), last, once both harnesses have Cairn (human decision, 2026-09-25). Written 2026-09-25 with provisional efforts, the approval rule, and the `learning` category (schema version 3), and Cairn moved into `base`. Re-run the orchestration evals in `openevals/` afterwards; the eval environment needs Cairn's MCP server and a temporary `CAIRN_ROOT`.
-7. **Trial import.** Deferred. Once Cairn works, bring one existing effort over by hand to see how it looks. Nothing is moved automatically.
+7. **Trial import.** Deferred. Once Cairn works, bring one existing effort over with the import operation to see how it looks. Nothing is moved automatically.
 8. **Later.** Read-based suggestions, plugin-drafted descriptions, effort hierarchy if tags stop being enough, message-level search, and a UI.
 
 ## Open questions

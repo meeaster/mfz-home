@@ -21,14 +21,9 @@ The design has four areas: how firewall logs get in, how customer logs get in, t
 <!-- component story -->
 
 ::: goals
-- Every firewall log searchable within a minute
-- Pay only for logs we use
-- Customers send logs privately from November, each kept apart
-- A year of every log, ready to hand over
 :::
 
 ::: scope-note
-what the firewalls log, and the dashboards and alerts built on the logs.
 :::
 
 ## Requirements
@@ -42,6 +37,9 @@ what the firewalls log, and the dashboards and alerts built on the logs.
 ::: diagram-key design title="Reading the diagrams" items="today | new | pending | decision | evidence | question"
 :::
 
+::: design-section section=how-it-works
+:::
+
 ::: design-card title="The pipeline end to end" diagram=system security=system-security parts=false
 Workers in their own VPC in GovCloud, with the syslog server relaying firewall logs to them.
 :::
@@ -53,6 +51,8 @@ Workers in their own VPC in GovCloud, with the syslog server relaying firewall l
 Monthly, at us-gov-west-1 list prices.
 
 ## Risks
+
+## Phases
 
 ## Decisions
 

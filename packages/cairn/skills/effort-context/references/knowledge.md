@@ -9,7 +9,7 @@ A subject earns an article when a later session would otherwise have to reread t
 | Evidence | One assignment's findings, as they stood when it was written |
 | Knowledge article | What exists and how it works, organized by the subject and kept current |
 | Design (`design-docs`) | What is being built or changed, and why. Its evidence items copy the claims they rest on and cite the article |
-| `context.md` | How the work is going: the human's decisions, next actions, waiting-on |
+| `effort.md` | Where the work stands: the human's decisions and views, open questions |
 
 ## Write up
 
@@ -33,6 +33,6 @@ A large write-up can be dispatched: the brief assigns the article as the file to
 
 ## Boundaries
 
-- An article records what exists and decides nothing. Choices about the work go to `context.md`, and choices about a designed system go to its design.
+- An article records what exists and decides nothing. Choices about the work go to `effort.md`, and choices about a designed system go to its design.
 - What other people state in meetings, emails, or tickets reaches an article only through intake, once the human accepts it, citing the source.
 - Articles are working material in the Cairn catalog. Promoting one into a personal knowledge base is a separate step that needs its own request.

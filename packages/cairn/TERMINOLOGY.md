@@ -37,17 +37,19 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Membership | An artifact's relationship to an effort. It is normally derived: the nearest attached session in the artifact's session tree, starting with its producer, is attached to the effort, or the file sits in the effort's folder. It can also be set explicitly for one artifact. | A file relevant to only one of a session's two efforts |
 | Link | A named relationship between two artifacts (`informs`, `supersedes`, `related`) or two efforts (`depends_on`, `split_from`, `related`). Links are read in both directions. | `asa-ingestion depends_on opw-deployment` |
 | Split | Creating a new effort from a piece of an existing one, with a `split_from` link. The original loses nothing. Splitting is explicit. | OPW deployment split from Logs archived to S3 |
-| Reading scope | What a session reads by default: the full `context.md` of attached efforts, the summary of efforts one link away, and more only on demand. It's not a size limit. | |
+| Reading scope | What a session reads by default: the full `effort.md` of attached efforts and the designs they work on, the summary of efforts one link away, and more only on demand. It's not a size limit. | |
 | Suggestion | A link proposed by the service rather than by an agent or the human. It is hidden until accepted. | Y was written after X was read, so the service suggests "Y informs X" |
 | Index | A view rendered as Markdown from the database: an effort's view, or the list of knowledge articles. The service generates it, and it is a view only. | `efforts/asa-ingestion/index.md`, `knowledge/index.md` |
 | Knowledge article | What is known about one existing subject, such as an AWS environment, a vendor product, or a codebase, written for a reader who never saw the evidence and kept current. It lives at the root under `knowledge/`, named for its subject, and joins the efforts that rely on it or add to it. The evidence it is written from `informs` it. | `knowledge/aws-environment.md` |
 | Write up | Turn evidence into a knowledge article, or fold new evidence into an existing one. | Writing up the session's AWS evidence |
-| Record | A file that holds state rather than findings. The work's state (purpose, validated decisions, open questions, next actions, waiting-on, design) lives in the effort's folder. The run's state (assignments, blockers, next steps) lives in the root session's folder. The skills name records, not the catalog. | `efforts/asa-ingestion/context.md`, `sessions/…/coordination.md` |
+| Record | A file that holds state rather than findings or instructions: where things stand, the human's views, what was decided and by whom, and what is open, never next steps. Where the work stands lives in the effort's `effort.md`; what is being built and why lives in a design. The skills name records, not the catalog. | `efforts/asa-ingestion/effort.md` |
+| Design | What is being built or changed and why. A stable design (`designs/<slug>/`) is the agreed record of a body of work, shared by its efforts and shown to the people who approve it: problem and value, goals, how it works, requirements, phases, and decisions. A local design (`efforts/<slug>/design.md`) is one connected document for small work, or for detail below a stable design. | `designs/log-ingestion/`, `efforts/opw-deployment/design.md` |
+| Phase | A stable design's delivery unit: its scope, exit criteria, status, and the effort doing it. Its status lives only in the design. | "Firewall logs through OPW" |
 | External input | Material from outside the working sessions: meetings, emails, chats, tickets, other people's notes. It is kept as artifacts under `sources/` and is never validated state by itself. | A meeting transcript, the security lead's email |
 | Candidate | A decision, suggestion, or open question found in external input and not yet accepted by the human. It lives in the input's summary. | "Infra engineer suggested the shared services VPC" |
-| Action item | A to-do from a meeting or other input, with an owner. At intake it becomes a next action (yours), a waiting-on item (someone else's), or a Jira item. | "Security lead to confirm the IAM scope" |
-| Intake | A deliberate session with the human that works through external input's candidates and action items. It moves accepted items into `context.md`, a design, or a knowledge article, and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
-| Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths and the session's `coordination.md`. | "Attached to asa-ingestion: context at …/context.md" |
+| Action item | A to-do from a meeting or other input, with an owner. It stays in the summary that recorded it, as said; team-tracked items become Jira items. Records don't copy action items. | "Security lead to confirm the IAM scope" |
+| Intake | A deliberate session with the human that works through external input's candidates and action items. It moves accepted items into `effort.md`, a design, or a knowledge article, and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
+| Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths. | "Cisco ASA log ingestion (asa-ingestion): …/effort.md" |
 | Conversation export | A root session's user messages and assistant text, written as Markdown and kept up to date after each turn. | `conversation.md` |
 | Watermark | The position in a session's source history that the conversation export has reached. | Last exported message sequence and tail hash |
 | Backup | A daily copy of the database made with `VACUUM INTO`, used by `cairn restore`. | `backups/catalog-2026-09-25.db` |
@@ -61,7 +63,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | `synthesis` | Distilled discussion, designs, plans, and summaries |
 | `knowledge` | A knowledge article: one subject's current state, kept current |
 | `deliverable` | Something made to share with people: a Confluence page, a Jira item, a quick shared note |
-| `record` | State: an effort's context and design, or a session's coordination |
+| `record` | State: an effort's `effort.md`, or a design's `design.md` and `changes.md` |
 | `conversation` | A conversation export. Set only by the service. |
 | `learning` | A producer's operational lesson, such as how to run a command, kept apart from its response |
 | `other` | Anything else. Use it rarely. |
@@ -85,5 +87,5 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 - Say **knowledge article** for what is known about a subject, and **evidence** for the investigation output it is written from. A design records what is being built and why; a knowledge article records what exists. Cairn's knowledge articles are working material in the catalog, separate from any personal knowledge base.
 - **Workstream** is a Chief concept represented by sessions. It is not a separate kind of container. Don't create an effort just to represent a workstream.
 - Name an **effort** for its outcome ("Cisco ASA log ingestion"), never a phase ("Design ASA ingestion"). Design and implementation belong to the same effort.
-- Only validated state goes into `context.md`. Say **candidate** for anything from external input that the human hasn't accepted, and **intake** for the step that accepts it.
+- Only validated state goes into `effort.md` and designs. Say **candidate** for anything from external input that the human hasn't accepted, and **intake** for the step that accepts it.
 - The **index** is generated. Agents never edit it, and it is never the source of truth.

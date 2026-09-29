@@ -51,7 +51,7 @@ test("a producer's file needs its own description, and Scribe's records need non
   const tools = [
     dispatch,
     call("write", "ses_explore", "write", { filePath: evidence }),
-    call("context", "ses_scribe", "write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/context.md" }),
+    call("context", "ses_scribe", "write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/effort.md" }),
     execute("describe", "ses_root"),
   ];
 

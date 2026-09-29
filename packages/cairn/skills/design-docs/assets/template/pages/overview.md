@@ -28,12 +28,11 @@ HOW THE DESIGN IS DIVIDED, AND WHAT SHAPES ALL OF IT.
      it's met. See references/diagrams.md. -->
 <!-- component story -->
 
+<!-- goals and scope-note show design.md's Goals section: its bullets, and its "Not in scope:" line. -->
 ::: goals
-- GOAL, AS AN OUTCOME
 :::
 
 ::: scope-note
-WHAT'S DELIBERATELY LEFT OUT.
 :::
 
 ## Requirements
@@ -43,7 +42,8 @@ WHAT'S DELIBERATELY LEFT OUT.
 
 ## The whole system
 
-HOW THE PARTS CONNECT, IN ONE OR TWO SENTENCES.
+::: design-section section=how-it-works
+:::
 
 ::: diagram-key design title="Reading the diagrams" items="today | new | pending | decision | evidence | question"
 :::
@@ -63,6 +63,9 @@ ONE-LINE SUMMARY OF THE CURRENT DESIGN.
 THE BASIS OF THE FIGURES: MONTHLY, AT WHICH PRICES.
 
 ## Risks
+
+<!-- Phases shows design.md's phases. Leave the section out while the design is delivered in one go. -->
+## Phases
 
 ## Decisions
 

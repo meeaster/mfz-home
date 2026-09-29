@@ -26,7 +26,7 @@ const sessions = [{ id: "ses_driver" }, { id: "ses_aut", parentID: "ses_driver",
 
 const root = "/home/dev/workspace/artifacts/cairn";
 
-const context = `${root}/efforts/systemd-timers-only/context.md`;
+const context = `${root}/efforts/systemd-timers-only/effort.md`;
 
 /** A catalog call as OpenCode records it: made by code inside an `execute` call. */
 const catalogCall = (callID: string, tool: CatalogCall["tool"], input: CatalogCall["input"]): CatalogCall => ({ callID, sessionID: "ses_aut", tool, input });
@@ -41,10 +41,9 @@ const capture = [
   call("attach", "ses_aut", "execute", { code: "return tools.cairn.catalog_session({ ... })" }),
   call("where", "ses_aut", "execute", { code: "return tools.cairn.catalog_location({ ... })" }),
   call("context", "ses_aut", "write", { filePath: context, content: "# Systemd timers only\n" }),
-  call("coordination", "ses_aut", "write", { filePath: `${root}/sessions/opencode/2026-09/ses_driver/coordination.md`, content: "# Run\n" }),
 ];
 
-const captured = [attachNew, catalogCall("where", "location", { session: "opencode:ses_aut", topic: "context", effort: "systemd-timers-only" })];
+const captured = [attachNew, catalogCall("where", "location", { session: "opencode:ses_aut", topic: "effort", effort: "systemd-timers-only" })];
 
 const unchanged = { initial, final: initial };
 
@@ -61,7 +60,7 @@ test("capturing into a provisional effort without a workflow passes the archive 
     effort_context_loaded: true,
     no_task_output: true,
     effort_attached: true,
-    context_recorded: true,
+    effort_record_written: true,
     workspace_unchanged: true,
   });
 });
@@ -82,7 +81,7 @@ test("attaching a named effort by slug counts, and a context written by a delega
   });
 
   expect(graded.scores.effort_attached).toBe(true);
-  expect(graded.scores.context_recorded).toBe(true);
+  expect(graded.scores.effort_record_written).toBe(true);
 });
 
 test("entering orchestration or loading task-output fails those criteria", () => {
@@ -108,7 +107,7 @@ test("a summary written outside an effort, a search without an attach, or a chan
   const graded = gradeCaptureFacts({ tools: [...conversation, ...note], sessions, initial, final: [...initial.slice(1), file("README.md", "b")], catalog: searched });
 
   expect(graded.scores.effort_attached).toBe(false);
-  expect(graded.scores.context_recorded).toBe(false);
+  expect(graded.scores.effort_record_written).toBe(false);
   expect(graded.scores.workspace_unchanged).toBe(false);
 });
 
