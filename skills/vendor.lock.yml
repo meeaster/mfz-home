@@ -114,3 +114,6 @@ skills:
   shadcn:
     commit: 98a1fe67b439324ddc857f47fbdce056600a4329
     digest: 69500ee5e3aa41c69b804c3fc68166ee0e074a6a964df340d49a82189ff2e216
+  pr-lens:
+    commit: 09f6378c082ff8ddb17e211f36bfc71c2f2b8d86
+    digest: af5069df06bd99e431a3a5f709b4f48cde3be1894d213149aad655af2e09b4da

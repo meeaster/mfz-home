@@ -183,6 +183,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   visual-pr:
     agents: { opencode: true, claude-code: true, codex: true }
+  pr-lens:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   browser-control:
     agents: [opencode]
