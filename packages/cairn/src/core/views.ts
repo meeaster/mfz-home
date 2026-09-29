@@ -132,7 +132,7 @@ function records(folder: string): RecordFile[] {
 }
 
 // The knowledge articles each of these artifacts informs, keyed by the artifact's absolute path.
-function articlesInformed(cairn: Cairn, artifactIds: readonly number[]): Map<string, ArticleReference[]> {
+export function articlesInformed(cairn: Cairn, artifactIds: readonly number[]): Map<string, ArticleReference[]> {
   const byPath = new Map<string, ArticleReference[]>();
 
   for (const row of cairn.sql.all`

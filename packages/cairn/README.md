@@ -96,6 +96,20 @@ Each catalog update is a detached `node` process running the CLI from the same p
 
 `CAIRN_ROOT` in OpenCode's environment sets the root. It must match the root the MCP server uses. The default for both is `~/workspace/artifacts/cairn/`.
 
+## UI
+
+`cairn ui` serves a browser UI over the catalog at `http://localhost:4317/`, until you stop it. `--port` picks another port.
+
+```sh
+cairn ui
+```
+
+It has a page for each effort and session and lists of efforts, sessions, knowledge articles, designs, and sources. The sidebar groups efforts by their `initiative:` tag. An effort's page groups its files by category, shows its records and linked efforts, and marks each file that has been written up in a knowledge article. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. Clicking a file opens it, rendered or raw.
+
+The UI only reads. Its one action, Open folder, opens a folder under the root in the desktop's file manager (Explorer from WSL). The server listens on 127.0.0.1 and answers only requests addressed to `localhost`. The file viewer shows files under the root, and outside it only files the catalog records.
+
+The app is React with shadcn/ui components, in `ui/`. `pnpm --filter @mfz/cairn build` builds it into `dist/ui/` alongside the CLI. To work on it with reloading, run `cairn ui` (or `node src/cli.ts ui`) for the data, then `pnpm --filter @mfz/cairn dev:ui`; Vite forwards `/api` to port 4317.
+
 ## Development
 
 ```sh
@@ -104,4 +118,4 @@ pnpm --filter @mfz/cairn test
 pnpm --filter @mfz/cairn build
 ```
 
-Tests drive the CLI in process against a temporary root. No test touches the real root.
+`typecheck` covers the Node sources and the UI. Tests drive the CLI in process against a temporary root, and the UI server's tests call its HTTP interface the same way. No test touches the real root.

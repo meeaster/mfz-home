@@ -3,6 +3,7 @@ import { execFileSync, spawn } from "node:child_process";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs, type ParseArgsOptionsConfig } from "node:util";
 import { z } from "zod";
 import { readClaudeCodeTranscript } from "./conversation/claude-code.ts";
@@ -22,6 +23,7 @@ import { describeSession, location, sessionContext, startSession } from "./core/
 import { effortView, regenerateDirty, renderIndex } from "./core/views.ts";
 import { claudeCodeHook, type IndexLauncher } from "./harness/claude-code.ts";
 import * as schemas from "./schemas.ts";
+import { openInFileManager, startUiServer } from "./ui/server.ts";
 
 type Output = {
   readonly json: schemas.Json;
@@ -671,7 +673,14 @@ function effortOutput(cairn: Cairn, input: schemas.EffortInput): Output {
 function helpText(): string {
   const usages = [...commands.values()].map((command) => `  ${command.usage}`);
 
-  return ["Usage:", ...usages, "  cairn restore <backup-file>", "", "Every command accepts --json. CAIRN_ROOT sets the root."].join("\n");
+  return [
+    "Usage:",
+    ...usages,
+    "  cairn restore <backup-file>",
+    "  cairn ui [--port <n>]",
+    "",
+    "Every command accepts --json. CAIRN_ROOT sets the root."
+  ].join("\n");
 }
 
 type SelectedCommand = {
@@ -720,6 +729,47 @@ function restoreCommand(root: string, rest: readonly string[], json: boolean, io
   io.stdout(json ? `${JSON.stringify(result)}\n` : `Restored ${result.restored}. The previous catalog was kept at ${result.previous ?? "(none)"}.\n`);
 }
 
+// The built UI sits beside the bundled CLI in dist/; running from source, it's in the package's dist/.
+function uiAssets(): string {
+  const beside = fileURLToPath(new URL("./ui/", import.meta.url));
+
+  return existsSync(join(beside, "index.html")) ? beside : fileURLToPath(new URL("../dist/ui/", import.meta.url));
+}
+
+const uiPort = z.coerce.number().int().min(0).max(65535).default(4317);
+
+const listeningPort = z.object({ port: z.number() });
+
+// Serves the UI until the process is stopped. Only this machine can reach it.
+function uiCommand(root: string, rest: readonly string[], io: CliIo): void {
+  const parsed = parseArgs({
+    args: [...rest],
+    options: { help: { type: "boolean", short: "h" }, port: { type: "string" } },
+    strict: true
+  });
+
+  if (parsed.values.help === true) {
+    io.stdout("cairn ui [--port <n>]\n");
+
+    return;
+  }
+
+  const port = uiPort.parse(parsed.values.port);
+
+  startUiServer({ root, assets: uiAssets(), host: "127.0.0.1", port, now: io.now, openFolder: openInFileManager }).then(
+    (server) => {
+      const shown = listeningPort.safeParse(server.address());
+
+      io.stdout(`Cairn UI at http://localhost:${shown.success ? shown.data.port : port}/ (root ${root}). Stop with Ctrl+C.\n`);
+    },
+    // Listening fails with a system error, such as EADDRINUSE when the port is taken.
+    (error: Error) => {
+      io.stderr(`cairn: ${error.message}\n`);
+      process.exitCode = 1;
+    }
+  );
+}
+
 export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo = processIo): number {
   const root = resolveRoot(env.CAIRN_ROOT);
   const json = args.includes("--json");
@@ -734,6 +784,12 @@ export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo 
 
     if (args[0] === "restore") {
       restoreCommand(root, args.slice(1), json, io);
+
+      return 0;
+    }
+
+    if (args[0] === "ui") {
+      uiCommand(root, args.slice(1), io);
 
       return 0;
     }

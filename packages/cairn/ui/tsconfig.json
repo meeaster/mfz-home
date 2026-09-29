@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     "target": "esnext",
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "lib": ["esnext", "dom", "dom.iterable"],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -11,10 +13,10 @@
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": ["vite/client"],
     "paths": {
-      "@/*": ["./ui/src/*"]
+      "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "build.ts", "vitest.config.ts", "vite.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.tsx", "../src/ui/api.ts"]
 }
