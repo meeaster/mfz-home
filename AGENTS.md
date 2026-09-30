@@ -12,6 +12,7 @@
 - For OpenEval benchmarks, eval environments, or judges, read `openevals/AGENTS.md` before changing them.
 - For Executor routing changes or unverified live behavior, load `/home/mark/workspace/knowledge/personal-knowledge/threads/executor-mcp-routing-evidence/digest.md` before changing configuration or renderer behavior.
 - For Cairn changes, read `packages/cairn/README.md`: `opencode/plugins/cairn` is an ignored installation symlink; edit `packages/cairn/src/`. Source changes require a build before the installed CLI, MCP server, or plugin can use them.
+  - Keep Cairn's designs consistent proactively: when a design change touches one place (the Pencil mock `C:\Users\chewb\OneDrive\Documents\cairn_design.pen`, the design-docs format and its example and template, the renderer, or the UI), find every other place showing the same thing and bring it in line in the same change, including disagreements that predate it. Report any left because the right version is unclear.
 
 ## Verification
 
