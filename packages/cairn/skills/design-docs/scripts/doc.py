@@ -372,8 +372,7 @@ def check_text(p: DocParser, where) -> tuple[list[str], list[str]]:
             errors.append(f"{where(d.line)}: '{d.id}' has data-ref=\"{d.kind}\"; expected \"{expected}\"")
         if not d.has_text:
             warnings.append(f"{where(d.line)}: '{d.id}' has no data-ref-text; its card will show the whole row")
-        if d.kind == "question" and not {"Who can answer", "Answer"} & set(d.details):
-            errors.append(f"{where(d.line)}: question '{d.id}' has no data-ref-detail=\"Who can answer\" (or \"Answer\" once answered)")
+
         if d.kind == "decision" and not d.has_status:
             warnings.append(f"{where(d.line)}: '{d.id}' has no data-ref-status")
 

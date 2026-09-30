@@ -66,7 +66,6 @@ CHANGE_HEAD = re.compile(r"^##\s+(\d{4}-\d{2}-\d{2})\s+·\s+(.+?)\s*$")
 REQUIRED = {
     "requirement": ["Priority", "Why", "Source"],
     "decision": ["Status"],
-    "question": ["Who"],
     "evidence": ["Found", "How we know", "Gathered from"],
     "meeting": ["Status"],
     "part": ["Does"],
@@ -89,8 +88,22 @@ MEETING_STATUS = {"awaiting review": "open", "summarised": ""}
 PHASE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
 VERDICT = {"yes": "yes", "partly": "partly", "no": "no"}
+# How a requirement measures up, three ways: the system as it is today, what this design covers, and what still has to
+# be shown before anyone can say it holds. Each maps a verdict to its class; Still to show also to its label.
+TODAY = {"meets": "yes", "doesn't meet": "no", "unknown": "unknown", "nothing today": "none"}
+DESIGN = {"covers": "yes", "partly covers": "partly", "partly": "partly", "not covered": "no"}
+STILL = {"demonstrated": ("Demonstrated", "decided"), "intended": ("Intended, not tested", "leaning"), "unconfirmed": ("Unconfirmed", "open"), "nothing left": ("Nothing left", "")}
+# The older single verdict, read as what the design covers.
+LEGACY_MET = {"yes": "covers", "partly": "partly", "no": "not covered"}
+TODAY_LABEL = {"meets": "Meets", "doesn't meet": "Doesn't meet", "unknown": "Unknown", "nothing today": "Nothing today"}
+DESIGN_LABEL = {"covers": "Covers", "partly covers": "Partly covers", "partly": "Partly covers", "not covered": "Not covered"}
+# When a question's answer is needed; a phase's title works too.
+NEEDED_BY = {"choosing the design": "choose", "before building": "build", "later phase": "later"}
+# The parts an Explanation can be written in, in the order they show.
+EXPLAIN_PARTS = [("means here", "What it means here"), ("matters", "Why it matters"), ("answer changes", "What the answer changes"), ("settled by", "What settles it")]
+# A verdict of "not built yet" says nothing about whether the design fits; these words give it away.
+NOT_BUILT = re.compile(r"\b(not (yet )?built|isn't built|aren't built|to be built|once (it's|it is) built|when (it's|it is) built)\b", re.I)
 PRIORITY = {"must": "badge", "should": "badge outline"}
-WHO_KINDS = {"me": "Me", "our team": "Our team", "other team": "Other team", "vendor": "Vendor"}
 PRIVATE = "recorded from"
 LOCAL_PATH_PATTERNS = [
     (re.compile(r"file://", re.I), "file:// URL"),
@@ -158,6 +171,8 @@ class Design:
     terms: list[Term] = field(default_factory=list)
     prose: dict[str, list[str]] = field(default_factory=dict)
     records: list[Record] = field(default_factory=list)
+    # What the cost figures assume and leave out: '- Assumes:' and '- Leaves out:' under '## Costs', before its lines.
+    cost_basis: dict[str, Field] = field(default_factory=dict)
     changes: list[Change] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
@@ -235,6 +250,13 @@ def read_design(path: Path) -> Design:
 
         target = option or record
         if target is None:
+            basis = re.match(r"^- (Assumes|Leaves out):\s*(.*)$", line)
+            if section == "cost" and basis:
+                design.cost_basis[basis.group(1)] = last = Field(basis.group(2).strip(), [], number)
+                continue
+            if section == "cost" and last is not None and re.match(r"^\s{2,}- (.+)$", line):
+                last.items.append(line.strip()[2:].strip())
+                continue
             if stripped:
                 design.warnings.append(f"{design.where(number)}: text before the first ### item is ignored")
             continue
@@ -353,11 +375,10 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
                 found = record.field(key)
                 if found and not parse_met(found.value):
                     design.errors.append(f"{design.where(found.line)}: write a flow's '{key}' as 'Yes|Partly|No · words [E1, Q2]'")
-        if record.kind == "question" and not who(record.get("Who"))[0]:
-            design.errors.append(f"{design.where(record.line)}: question '{record.id}' needs someone who can answer it")
-        for name, value in record.fields.items():
-            if name.lower().startswith("met") and value.value and not parse_met(value.value):
-                design.errors.append(f"{design.where(value.line)}: write '{name}' as 'Yes|Partly|No · how [E1, D2]'")
+        if record.kind == "requirement":
+            check_requirement(record, design)
+        if record.field("Explanation") is not None:
+            explanation_parts(record, design)
 
         for text, line in record_texts(record):
             for pattern, label in LOCAL_PATH_PATTERNS:
@@ -375,8 +396,9 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
                     if page not in pages:
                         design.errors.append(f"{design.where(found.line)}: '{key}' names page '{page}', which isn't in the doc")
             for name, value in record.fields.items():
-                if name.lower().startswith("met on "):
-                    page = name[7:].strip()
+                on = re.match(r"^(?:met|design|still to show) on (.+)$", name, re.I)
+                if on:
+                    page = on.group(1).strip()
                     if page not in pages:
                         design.errors.append(f"{design.where(value.line)}: '{name}' names page '{page}', which isn't in the doc")
             for key in ("Worked out in", "Decided in"):
@@ -397,6 +419,14 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
                     design.errors.append(f"{design.where(term.line)}: term '{term.name}' names page '{page}', which isn't in the doc")
 
     check_waiting(design)
+
+    costs = design.of("cost")
+    categorised = [c for c in costs if c.get("Category")]
+    if categorised and len(categorised) < len(costs):
+        missing = [c.title for c in costs if not c.get("Category")]
+        design.warnings.append(f"{design.path.name}: cost lines without a 'Category' ({'; '.join(missing[:4])}); give every line one so totals compare")
+    if costs and not design.cost_basis:
+        design.warnings.append(f"{design.path.name}: '## Costs' has no '- Assumes:' or '- Leaves out:' before its lines; say what the figures assume and what they leave out")
 
     meetings = {r.id for r in design.of("meeting")}
     for change in design.changes:
@@ -479,14 +509,19 @@ def design_model(design: Design) -> dict:
             entry["chosen"] = next((o["id"] for o in entry["options"] if o["status"] == "chosen"), None)
             entry["answer"] = next((r.get(label) for label in ANSWER_LABELS if r.get(label)), "")
         elif r.kind == "question":
-            entry["state"] = "answered" if is_answered(r) else "open"
-            entry["states"] = ["open", "answered"]
+            state = question_state(r)
+            entry["state"] = "answered" if state == "answered" else "deferred" if state == "deferred" else "open"
+            entry["states"] = ["open", "deferred", "answered"]
             entry["answer"] = r.get("Answer") or r.get("So far")
         elif r.kind == "requirement":
-            met = parse_met(r.get("Met"))
-            entry["state"] = met[0].lower() if met else "unknown"
+            # The state bindings follow is how the design covers it: yes, partly or no, as it always was.
+            views = requirement_views(r)
+            covered = views["design"]
+            entry["state"] = DESIGN[covered[0]] if covered else "unknown"
             entry["states"] = [*VERDICT, "unknown"]
-            entry["answer"] = met[1] if met else ""
+            entry["answer"] = covered[1] if covered else ""
+            entry["today"] = views["today"][0] if views["today"] else None
+            entry["still"] = views["still"][0] if views["still"] else None
         else:
             entry["state"] = "found"
             entry["states"] = ["found"]
@@ -502,9 +537,12 @@ def design_model(design: Design) -> dict:
             "varies": r.get("Varies with"),
             "affected": split_list(r.get("Affected by")),
             "evidence": split_list(r.get("Evidence")),
+            "category": r.get("Category"),
+            "when": r.get("Applies when"),
         }
         for r in design.of("cost")
     ]
+    basis = {key: value.value for key, value in design.cost_basis.items()}
 
     flows = [{"id": r.id, "title": r.title, "fields": {n: (f.items or f.value) for n, f in r.fields.items() if n.lower() != PRIVATE}} for r in design.of("flow")]
 
@@ -515,16 +553,25 @@ def design_model(design: Design) -> dict:
         entry["unblocks"] = sorted((i for i, other in records.items() if entry is not other and any(records.get(f) is entry for f in other.get("follows", []))), key=lambda i: int(i[1:]))
 
     prose = {name: "\n".join(lines).strip() for name, lines in design.prose.items()}
-    return {"title": design.title, "records": records, "costs": costs, "flows": flows, "prose": prose}
+    return {"title": design.title, "records": records, "costs": costs, "costBasis": basis, "flows": flows, "prose": prose}
+
+
+def named(record: Record) -> str:
+    """How prose names a record: its Rail or Short, lower-cased to sit mid-sentence, else its title."""
+    name = record.get("Rail") or record.get("Short")
+    if name:
+        return name[:1].lower() + name[1:] if not re.match(r"^[A-Z]{2,}", name) else name
+    return f"“{record.title}”"
 
 
 def shapes_line(record: Record, design: Design) -> str:
-    """The line under a decision's question: "Needs D1 first." while it's put off until a decision it follows is settled, else its Shapes."""
+    """The line under a decision's question: "Needs where the workers run (D1) first." while it's put off until a decision
+    it follows is settled, else its Shapes. The name leads, so the line reads without knowing what D1 is."""
     known = design.by_id()
     later = (record.get("Status") or "").lower().startswith("later")
     pending = [d for d in split_list(record.get("Follows")) if d in known and (known[d].get("Status") or "Open").split()[0].lower() in UNSETTLED]
     if later and pending:
-        return f"Needs {' and '.join(pending)} first."
+        return f"Needs {' and '.join(f'{named(known[d])} ({d})' for d in pending)} first."
     return record.get("Shapes")
 
 
@@ -532,18 +579,60 @@ def is_answered(question: Record) -> bool:
     return bool(question.get("Answered by")) or question.get("Status").lower() == "answered"
 
 
+def is_deferred(question: Record) -> bool:
+    """Put off on someone's word: it still bears on what it blocks, but nothing waits on it now."""
+    return bool(question.get("Deferred")) and not is_answered(question)
+
+
+def question_state(question: Record) -> str:
+    if is_answered(question):
+        return "answered"
+    if is_deferred(question):
+        return "deferred"
+    return "partly" if question.get("So far") else "open"
+
+
+QUESTION_PILL = {"answered": ("Answered", ""), "deferred": ("Deferred", "outline"), "partly": ("Partly answered", "leaning"), "open": ("Open", "open")}
+
+
+def ask_name(question: Record) -> str:
+    """Who to ask, only when someone named them. An older design's 'Who' still shows, without its kind, except the
+    reader themselves ('(me)'), which means nothing to anyone else reading the doc."""
+    if question.get("Ask"):
+        return question.get("Ask")
+    match = re.match(r"^(.*?)\s*\(([^)]*)\)\s*$", question.get("Who"))
+    if match:
+        return "" if match.group(2).strip().lower() == "me" else match.group(1).strip()
+    return "" if question.get("Who").strip().lower() == "me" else question.get("Who").strip()
+
+
+def needed_key(question: Record, design: Design) -> str:
+    """The Needed by stage as a filter key: choose, build, later, or the phase's own name."""
+    value = question.get("Needed by").strip()
+    return NEEDED_BY.get(value.lower(), value)
+
+
 def check_question(record: Record, design: Design) -> None:
-    """A question says who can answer it, what it holds up, and when it was asked; what to ask next isn't recorded."""
+    """A question says what it holds up and, when it matters, when its answer is needed; what to ask next isn't recorded."""
     where = design.where(record.line)
-    if not is_answered(record) and not record.get("Explanation"):
+    if not is_answered(record) and not is_deferred(record) and record.field("Explanation") is None:
         design.warnings.append(f"{where}: open question '{record.id}' has no 'Explanation': {EXPLANATION_HINT}")
     if not record.get("Blocks"):
         design.warnings.append(f"{where}: question '{record.id}' blocks nothing; a question that holds up no decision, requirement or flow belongs in the effort's open questions")
+    needed = record.field("Needed by")
+    phases = {p.title.lower() for p in design.of("phase")}
+    if needed and needed.value.lower() not in NEEDED_BY and needed.value.lower() not in phases:
+        design.warnings.append(f"{design.where(needed.line)}: question '{record.id}' is needed by '{needed.value}'; use Choosing the design, Before building, Later phase, or a phase's title")
+    reopen = record.field("Could reopen")
+    if reopen and not record.get("Deferred"):
+        design.warnings.append(f"{design.where(reopen.line)}: question '{record.id}' has 'Could reopen' but isn't deferred; it's for what a deferred question could still change")
+    deferred = record.field("Deferred")
+    if deferred and not deferred.value:
+        design.errors.append(f"{design.where(deferred.line)}: question '{record.id}' is deferred with no reason; say why it can wait")
     status = record.field("Status")
     if status and status.value.lower() != "answered":
         design.warnings.append(
-            f"{design.where(status.line)}: question '{record.id}' has 'Status: {status.value}'; the doc records only whether it's answered. "
-            "When and how it was asked goes in 'Asked'"
+            f"{design.where(status.line)}: question '{record.id}' has 'Status: {status.value}'; the doc records whether it's answered, partly answered ('So far') or deferred ('Deferred'), and when its answer is needed ('Needed by')"
         )
     for key in ("Latest", "Page"):
         found = record.field(key)
@@ -564,7 +653,7 @@ def check_waiting(design: Design) -> None:
         waiting = decision.field("Waiting on")
         if state not in UNSETTLED:
             for question in design.of("question"):
-                if decision.id in split_list(question.get("Blocks")) and not is_answered(question):
+                if decision.id in split_list(question.get("Blocks")) and not is_answered(question) and not is_deferred(question):
                     design.warnings.append(
                         f"{design.where(question.line)}: {question.id} blocks {decision.id}, which is settled: take {decision.id} off its 'Blocks', "
                         f"or reopen {decision.id} if the answer could still change it"
@@ -575,10 +664,12 @@ def check_waiting(design: Design) -> None:
         listed = set(split_list(waiting.value))
         for ident in listed:
             question = known.get(ident)
-            if question and question.kind == "question" and not is_answered(question) and decision.id not in split_list(question.get("Blocks")):
+            if question and question.kind == "question" and is_deferred(question):
+                design.warnings.append(f"{design.where(waiting.line)}: {decision.id} is waiting on {ident}, which is deferred; take it off 'Waiting on'")
+            elif question and question.kind == "question" and not is_answered(question) and decision.id not in split_list(question.get("Blocks")):
                 design.warnings.append(f"{design.where(waiting.line)}: {decision.id} is waiting on {ident}, but {ident}'s 'Blocks' doesn't list {decision.id}")
         for question in design.of("question"):
-            if decision.id in split_list(question.get("Blocks")) and not is_answered(question) and question.id not in listed:
+            if decision.id in split_list(question.get("Blocks")) and not is_answered(question) and not is_deferred(question) and question.id not in listed:
                 design.warnings.append(f"{design.where(waiting.line)}: {question.id} blocks {decision.id}, but {decision.id}'s 'Waiting on' doesn't list it")
 
 
@@ -600,7 +691,7 @@ def check_decision(record: Record, design: Design) -> None:
     shapes = record.field("Shapes")
     if shapes and re.match(r"(needs|after|waits? (on|for)|blocked by)\b.*\bD\d+", shapes.value, re.IGNORECASE):
         design.warnings.append(
-            f"{design.where(shapes.line)}: '{record.id}' Shapes says what it waits on; put that in Follows (the build writes \"Needs D1 first.\" for a Later decision) and say what it settles here"
+            f"{design.where(shapes.line)}: '{record.id}' Shapes says what it waits on; put that in Follows (the build writes \"Needs where the workers run (D1) first.\" for a Later decision) and say what it settles here"
         )
     why = record.field("Why")
     if why and len(why.value) > WHY_LIMIT:
@@ -675,18 +766,89 @@ def split_list(text: str) -> list[str]:
     return [part.strip() for part in text.split(",") if part.strip()]
 
 
+def parse_verdict(text: str, verdicts: dict) -> tuple[str, str, list[str]] | None:
+    """'Partly covers · words [E1, D2]' -> ('partly covers', 'words', ['E1', 'D2']); the words and the IDs are optional."""
+    match = re.match(r"^(.+?)\s*(?:·\s*(.*?))?\s*(?:\[([^\]]*)\])?$", text.strip())
+    if not match or match.group(1).strip().lower() not in verdicts:
+        return None
+    return match.group(1).strip().lower(), (match.group(2) or "").strip(), split_list(match.group(3) or "")
+
+
+def requirement_views(record: Record, page: str | None = None) -> dict[str, tuple[str, str, list[str]] | None]:
+    """How a requirement measures up on a page: today (the same everywhere), the design's cover and what's still to show,
+    each the page's own when it has one. An older 'Met' stands in for the design's cover."""
+    def pick(key: str):
+        return (record.field(f"{key} on {page}") if page else None) or record.field(key)
+
+    design = pick("Design")
+    parsed_design = parse_verdict(design.value, DESIGN) if design else None
+    if design is None:
+        met = pick("Met")
+        legacy = parse_met(met.value) if met else None
+        parsed_design = (LEGACY_MET[legacy[0].lower()], legacy[1], legacy[2]) if legacy else None
+    today = record.field("Today")
+    still = pick("Still to show")
+    return {
+        "today": parse_verdict(today.value, TODAY) if today else None,
+        "design": parsed_design,
+        "still": parse_verdict(still.value, STILL) if still else None,
+    }
+
+
+def check_requirement(record: Record, design: Design) -> None:
+    """Today, Design and Still to show each hold a verdict from their own set; the older Met stays readable."""
+    shapes = {"today": (TODAY, "Meets|Doesn't meet|Unknown|Nothing today · what the system does now [E1]"),
+              "design": (DESIGN, "Covers|Partly covers|Not covered · how the design meets it [E1, D2]"),
+              "still to show": (STILL, "Demonstrated|Intended|Unconfirmed|Nothing left · what shows it holds [E1]")}
+    for name, value in record.fields.items():
+        lower = name.lower()
+        base = re.sub(r" on .+$", "", lower)
+        if base == "today" and lower != "today":
+            design.errors.append(f"{design.where(value.line)}: '{name}': Today describes the system as it is, for the whole requirement; it has no per-page form")
+        elif base in shapes and value.value and parse_verdict(value.value, shapes[base][0]) is None:
+            design.errors.append(f"{design.where(value.line)}: write '{name}' as '{shapes[base][1]}'")
+        elif base == "met" and value.value and not parse_met(value.value):
+            design.errors.append(f"{design.where(value.line)}: write '{name}' as 'Yes|Partly|No · how [E1, D2]', or split it into Today, Design and Still to show")
+        if base in ("design", "met") and NOT_BUILT.search(value.value):
+            design.warnings.append(
+                f"{design.where(value.line)}: '{record.id}' {name} says it isn't built; say how the design meets it, and put what remains to be shown in 'Still to show'"
+            )
+        if base == "still to show":
+            parsed = parse_verdict(value.value, STILL)
+            if parsed and parsed[0] == "demonstrated" and not any(i.startswith("E") for i in parsed[2] + MENTION.findall(parsed[1])):
+                design.warnings.append(f"{design.where(value.line)}: '{record.id}' is Demonstrated without the evidence that shows it; cite it [E1], or call it Intended")
+    if record.field("Met") and record.field("Design"):
+        design.warnings.append(f"{design.where(record.field('Met').line)}: '{record.id}' has both Met and Design; Design replaces Met, so drop Met")
+
+
+def explanation_parts(record: Record, design: Design | None = None) -> list[tuple[str, str]]:
+    """An Explanation as labelled parts: a plain one is a single part with no label; a list names each part."""
+    found = record.field("Explanation")
+    if found is None:
+        return []
+    if not found.items:
+        return [("", found.value)] if found.value else []
+    parts = []
+    for item in found.items:
+        key, _, text = item.partition(":")
+        label = next((label for prefix, label in EXPLAIN_PARTS if key.strip().lower().startswith(prefix)), None)
+        if label is None or not text.strip():
+            if design is not None:
+                design.errors.append(
+                    f"{design.where(found.line)}: '{record.id}' Explanation item '{item[:40]}'; write each part as 'Means here: …', 'Matters because: …', 'Answer changes: …' or 'Settled by: …'"
+                )
+            continue
+        parts.append((label, text.strip()))
+    order = [label for _, label in EXPLAIN_PARTS]
+    return sorted(parts, key=lambda p: order.index(p[0]))
+
+
 def parse_met(text: str) -> tuple[str, str, list[str]] | None:
     match = re.match(r"^(Yes|Partly|No)\s*·\s*(.*?)\s*(?:\[([^\]]*)\])?$", text, re.I)
     if not match:
         return None
     return match.group(1).capitalize(), match.group(2), split_list(match.group(3) or "")
 
-
-def who(text: str) -> tuple[str, str]:
-    match = re.match(r"^(.*?)\s*\(([^)]*)\)\s*$", text)
-    if match and match.group(2).lower() in WHO_KINDS:
-        return match.group(1).strip(), WHO_KINDS[match.group(2).lower()]
-    return text.strip(), ""
 
 
 # Rendering
@@ -845,28 +1007,42 @@ class Renderer:
             rows = self.local(page, records, 4, lambda r, lives_on: self.requirement_row(r, False, lives_on), "Applies here, lives elsewhere")
         return self.table(["ID", "Requirement", "Why it matters", "Priority"], rows)
 
+    def verdict_cell(self, view: tuple[str, str, list[str]] | None, classes: dict, labels: dict) -> str:
+        if view is None:
+            return '<td><span class="not-assessed">Not assessed</span></td>'
+        key, words, _ = view
+        note = f'<span class="sub">{self.inline(words)}</span>' if words else ""
+        return f'<td><span class="verdict {classes[key]}">{esc(labels[key])}</span>{note}</td>'
+
+    def still_cell(self, view: tuple[str, str, list[str]] | None) -> str:
+        if view is None:
+            return '<td><span class="not-assessed">Not assessed</span></td>'
+        label, cls = STILL[view[0]]
+        note = f'<span class="sub">{self.inline(view[1])}</span>' if view[1] else ""
+        return f'<td><span class="state{" " + cls if cls else ""}">{esc(label)}</span>{note}</td>'
+
     def measure_row(self, r: Record, page: str) -> str:
-        met_field = r.field(f"Met on {page}") or r.field("Met")
-        parsed = parse_met(met_field.value) if met_field else None
-        if parsed is None:
+        """Three views of a requirement: the system today, what this design covers, and what still has to be shown."""
+        views = requirement_views(r, page)
+        if not any(views.values()):
             return ""
-        verdict, how, rests = parsed
+        rests = list(dict.fromkeys(i for view in views.values() if view for i in view[2]))
         label = r.get("Short") or r.title
         return (
-            f'<tr><td>{self.ref(r.id)} {self.inline(label)}</td><td><span class="verdict {VERDICT[verdict.lower()]}">{verdict}</span></td>'
-            f'<td class="soft">{self.inline(how)}</td><td>{self.marks(rests)}</td></tr>'
+            f'<tr><td>{self.ref(r.id)} {self.inline(label)}</td>{self.verdict_cell(views["today"], TODAY, TODAY_LABEL)}'
+            f'{self.verdict_cell(views["design"], DESIGN, DESIGN_LABEL)}{self.still_cell(views["still"])}<td>{self.marks(rests)}</td></tr>'
         )
 
     def measure(self, page: str, ids: list[str] | None) -> str:
         records = [r for r in self.design.of("requirement") if ids is None or r.id in ids]
         if page == self.home and ids is None:
-            rows = self.gathered(records, 4, lambda r: self.measure_row(r, page))
+            rows = self.gathered(records, 5, lambda r: self.measure_row(r, page))
         elif ids is not None:
             rows = [self.measure_row(r, page) for r in records]
         else:
             own = [r for r in records if self.home_of(r) == page]
             rows = [self.measure_row(r, page) for r in own + [r for r in records if r not in own and self.reaches(r, page)]]
-        return self.table(["Requirement", "Met", "How", "Rests on"], [r for r in rows if r])
+        return self.table(["Requirement", "Today", "This design", "Still to show", "Rests on"], [r for r in rows if r])
 
     # Decisions
 
@@ -952,7 +1128,14 @@ class Renderer:
         return f'<div class="dm-head"><div class="dm-top"><div class="dm-title">{self.ref(r.id)}<h2>{self.inline(r.title)}</h2>{pill}</div>{close}</div>{line}</div>'
 
     def explanation(self, r: Record) -> list[str]:
-        return [f'<div class="dm-explain"><h4>Explanation</h4><p>{self.inline(r.get("Explanation"))}</p></div>'] if r.get("Explanation") else []
+        """What a record means in the design: one paragraph, or its labelled parts side by side with their labels."""
+        parts = explanation_parts(r)
+        if not parts:
+            return []
+        if len(parts) == 1 and not parts[0][0]:
+            return [f'<div class="dm-explain"><h4>Explanation</h4><p>{self.inline(parts[0][1])}</p></div>']
+        rows = "".join(f"<div><dt>{esc(label)}</dt><dd>{self.inline(text)}</dd></div>" for label, text in parts)
+        return [f'<div class="dm-explain"><h4>Explanation</h4><dl class="dm-parts">{rows}</dl></div>']
 
     def id_list(self, idents: list[str], soft: bool = False) -> str:
         """Records as a list, each ID beside its short title."""
@@ -965,27 +1148,44 @@ class Renderer:
 
     def details(self, records: list[Record]) -> str:
         """The modal details of records not written yet, hidden after the table that defines them."""
-        fresh = [r for r in records if r.id not in self.written]
-        self.written.update(r.id for r in fresh)
-        written = "".join(self.decision_detail(r) if r.kind == "decision" else self.question_detail(r) for r in fresh)
+        fresh = [r for r in records if self.detail_id(r) not in self.written]
+        self.written.update(self.detail_id(r) for r in fresh)
+        render = {"decision": self.decision_detail, "question": self.question_detail, "risk": self.risk_detail}
+        written = "".join(render[r.kind](r) for r in fresh)
         return f'<div class="record-details">{written}</div>' if written else ""
 
+    def detail_id(self, r: Record) -> str:
+        """The id of a record's modal. A risk has no ID of its own, so it takes its place among the risks."""
+        if r.kind == "risk":
+            return f"risk-{next(i for i, other in enumerate(self.design.of('risk'), start=1) if other is r)}-detail"
+        return f"{r.id}-detail"
+
+    def stage(self, q: Record) -> str:
+        value = q.get("Needed by")
+        if not value:
+            return ""
+        return f'<span class="stage {esc(NEEDED_BY.get(value.lower(), "phase"))}">{esc(value)}</span>'
+
     def question_detail(self, q: Record) -> str:
-        """What a question opens to: what it asks and where it fits, and what's known so far or its answer; beside them
-        who can answer it, when it was asked, what it blocks, the evidence behind it and where it lives."""
-        answered = is_answered(q)
-        pill = f'<span class="status{"" if answered else " open"}">{"Answered" if answered else "Open"}</span>'
+        """What a question opens to: what it asks and where it fits, and what's known so far, its answer, or why it can wait;
+        beside them when its answer is needed, who to ask when someone was named, what it blocks, its evidence and where it lives."""
+        state = question_state(q)
+        answered = state == "answered"
+        text, cls = QUESTION_PILL[state]
+        pill = f'<span class="status{" " + cls if cls else ""}">{text}</span>'
         main = self.explanation(q)
         label = "Answer" if answered else "So far"
         if q.get(label):
             main.append(f'<div class="dm-answer"><h4>{label}</h4><p>{self.inline(q.get(label))}</p></div>')
+        if state == "deferred":
+            reopen = f'<p class="note">Could reopen {self.inline(q.get("Could reopen"))}</p>' if q.get("Could reopen") else ""
+            main.append(f'<div class="dm-deferred"><h4>Deferred</h4><p>{self.inline(q.get("Deferred"))}</p>{reopen}</div>')
 
         side = []
-        name, kind = who(q.get("Who"))
-        if name:
-            side.append(f'<div><h4>Who can answer</h4><p>{esc(name)}{f" · {esc(kind)}" if kind else ""}</p></div>')
-        if q.get("Asked"):
-            side.append(f'<div><h4>Asked</h4><p>{self.inline(q.get("Asked"))}</p></div>')
+        if q.get("Needed by") and not answered:
+            side.append(f'<div><h4>Needed by</h4>{self.stage(q)}</div>')
+        if ask_name(q) and not answered:
+            side.append(f'<div><h4>Ask</h4><p>{self.inline(ask_name(q))}</p></div>')
         blocks = split_list(q.get("Blocks"))
         if blocks:
             others = [b for b in blocks if b not in self.known]
@@ -1001,6 +1201,30 @@ class Renderer:
 
         body = f'<div class="dm-body"><div class="dm-main">{"".join(main)}</div><div class="dm-side">{"".join(side)}</div></div>'
         return f'<div class="record-detail" id="{q.id}-detail" aria-label="{esc(q.id)} · {esc(q.title)}">{self.detail_head(q, pill, "")}{body}</div>'
+
+    def risk_detail(self, r: Record) -> str:
+        """What a risk opens to, when it has an Explanation: what it means and why it matters, what happens and what we'd do;
+        beside them what it's linked to and where it lives."""
+        likelihood = r.get("Likelihood").capitalize()
+        cls = LIKELIHOOD.get(likelihood.lower(), "")
+        pill = f'<span class="status{" " + cls if cls else ""}">{esc(likelihood)}</span>'
+        close = '<button type="button" class="dm-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'
+        head = f'<div class="dm-head"><div class="dm-top"><div class="dm-title"><span class="kind">Risk</span>{pill}</div>{close}</div><h2>{self.inline(r.title)}</h2></div>'
+        main = self.explanation(r)
+        for key in ("If it happens", "What we'd do"):
+            if r.get(key):
+                main.append(f'<div><h4>{esc(key)}</h4><p>{self.inline(r.get(key))}</p></div>')
+        side = []
+        linked = [i for i in split_list(r.get("Linked")) if i in self.known]
+        if linked:
+            side.append(f'<div><h4>Linked</h4>{self.id_list(linked)}</div>')
+        if self.home_of(r) != self.home:
+            side.append(f'<div><h4>Lives on</h4><div class="dm-chips">{self.area_chip(self.home_of(r))}</div></div>')
+        affects = [p for p in split_list(r.get("Applies to")) if p != self.home_of(r)]
+        if affects:
+            side.append(f'<div><h4>Also affects</h4><div class="dm-chips">{"".join(self.area_chip(p) for p in affects)}</div></div>')
+        body = f'<div class="dm-body"><div class="dm-main">{"".join(main)}</div><div class="dm-side">{"".join(side)}</div></div>'
+        return f'<div class="record-detail" id="{self.detail_id(r)}" aria-label="Risk · {esc(r.title)}">{head}{body}</div>'
 
     def decision_detail(self, r: Record) -> str:
         """What a decision opens to: what it asks and where it fits, its answer and reasoning, its options or alternatives,
@@ -1160,8 +1384,10 @@ class Renderer:
         cls = LIKELIHOOD.get(likelihood.lower(), "")
         happens = f'<span class="sub">If it happens: {self.inline(r.get("If it happens"))}</span>' if r.get("If it happens") else ""
         lives = self.lives("Lives on", [lives_on]) if lives_on else ""
+        # A risk with an Explanation opens in the modal, as decisions and questions do; the rest stay one line.
+        opens = f' class="opens" data-detail="{self.detail_id(r)}" tabindex="0"' if explanation_parts(r) else ""
         return (
-            f'<tr><td><span class="q">{self.inline(r.title)}</span>{happens}{lives}</td><td><span class="status{" " + cls if cls else ""}">{esc(likelihood)}</span></td>'
+            f'<tr{opens}><td><span class="q">{self.inline(r.title)}</span>{happens}{lives}</td><td><span class="status{" " + cls if cls else ""}">{esc(likelihood)}</span></td>'
             f'<td class="soft">{self.inline(r.get("What we\'d do"))}</td><td>{self.marks(split_list(r.get("Linked")))}</td></tr>'
         )
 
@@ -1171,7 +1397,9 @@ class Renderer:
             rows = self.gathered(records, 4, self.risk_row)
         else:
             rows = self.local(page, records, 4, self.risk_row, "Owned elsewhere, affects this area")
-        return self.table(["Risk", "Likelihood", "What we'd do", "Linked"], rows)
+        # Each explained risk's modal is written once, after the first table that shows it.
+        explained = [r for r in records if explanation_parts(r) and (page == self.home or self.home_of(r) == page or self.reaches(r, page))]
+        return self.table(["Risk", "Likelihood", "What we'd do", "Linked"], rows) + self.details(explained)
 
     # Cost
 
@@ -1191,6 +1419,17 @@ class Renderer:
         low, high = (f"${round(v):,}" for v in amount)
         return low if low == high else f"{low} → {high}"
 
+    def cost_tags(self, r: Record) -> str:
+        """A line's category, and when it applies: its own words, or the decision it varies with."""
+        tags = []
+        if r.get("Category"):
+            tags.append(f'<span class="cost-tag">{esc(r.get("Category"))}</span>')
+        varies = self.known.get(r.get("Varies with"))
+        when = r.get("Applies when") or (f"Varies with {named(varies)} ({varies.id})" if varies else "")
+        if when:
+            tags.append(f'<span class="cost-tag when">{self.inline(when)}</span>')
+        return f'<span class="cost-tags">{"".join(tags)}</span>' if tags else ""
+
     def cost_row(self, r: Record) -> str:
         amount = self.cost_amount(r)
         if amount is not None:
@@ -1198,33 +1437,61 @@ class Renderer:
         elif r.get("Varies with"):
             shown = esc(r.get("Monthly"))
         else:
-            shown = self.inline(r.get("Monthly"))
+            # Unknown is never $0: it says so, and stays out of the total.
+            label = "Per use" if "per use" in r.get("Monthly").lower() else "Unknown"
+            shown = f'<span class="unknown">{label}</span><span class="sub">Not in the total</span>'
         linked = split_list(r.get("Evidence")) + split_list(r.get("Varies with")) + split_list(r.get("Affected by"))
-        return f'<tr><td>{esc(r.title)}</td><td class="soft">{self.inline(r.get("Drives"))}</td><td class="num">{shown}</td><td>{self.marks(linked)}</td></tr>'
+        linked += [i for i in MENTION.findall(r.get("Monthly")) if i not in linked]
+        return (
+            f'<tr><td><span class="q">{esc(r.title)}</span>{self.cost_tags(r)}</td><td class="soft">{self.inline(r.get("Drives"))}</td>'
+            f'<td class="num">{shown}</td><td>{self.marks(linked)}</td></tr>'
+        )
 
-    def cost_total(self, records: list[Record]) -> tuple[str, str]:
-        known = [a for a in (self.cost_amount(r) for r in records) if a is not None]
-        total = (sum(a[0] for a in known), sum(a[1] for a in known))
-        missing = len(records) - len(known)
-        lines = f"{missing} line{'s' if missing > 1 else ''} not known yet"
+    def cost_total(self, records: list[Record]) -> tuple[str, list[Record]]:
+        """The sum of the lines that have a figure, and the lines left out of it."""
+        amounts = [(r, self.cost_amount(r)) for r in records]
+        known = [a for _, a in amounts if a is not None]
+        missing = [r for r, a in amounts if a is None]
         if not known:
-            return "Not known", lines if missing else ""
-        return self.money(total), (f"plus {lines}" if missing else "")
+            return "Not known", missing
+        return self.money((sum(a[0] for a in known), sum(a[1] for a in known))), missing
+
+    def cost_basis(self) -> str:
+        basis = self.design.cost_basis
+        if not basis:
+            return ""
+        rows = "".join(f"<div><dt>{esc(key)}</dt><dd>{self.inline(basis[key].value)}</dd></div>" for key in ("Assumes", "Leaves out") if key in basis)
+        return f'<dl class="cost-basis">{rows}</dl>'
 
     def cost(self, page: str, ids: list[str] | None) -> str:
-        """Every cost line, grouped by area with each area's subtotal, and the total per month."""
+        """What the figures assume and leave out, then every cost line grouped by area with each area's subtotal, the total
+        per month (only what's known, and labelled so), and the totals by category."""
         records = [r for r in self.design.of("cost") if page == self.home or self.home_of(r) == page]
         rows: list[str] = []
         if page == self.home and self.areas():
             for home, members in self.by_home(records):
-                subtotal, _ = self.cost_total(members)
-                rows.append(self.group_row(home, 4, extra=f'<span class="soft">{subtotal if subtotal == "Not known" else subtotal + " a month"}</span>'))
+                subtotal, missing = self.cost_total(members)
+                shown = subtotal if subtotal == "Not known" else subtotal + " a month"
+                if missing and subtotal != "Not known":
+                    shown += f", plus {'one' if len(missing) == 1 else len(missing)} unknown"
+                rows.append(self.group_row(home, 4, extra=f'<span class="soft">{shown}</span>'))
                 rows += [self.cost_row(r) for r in members]
         else:
             rows += [self.cost_row(r) for r in records]
-        total, note = self.cost_total(records)
-        rows.append(f'<tr class="total"><td>Total per month</td><td class="soft">{esc(note)}</td><td class="num">{total}</td><td></td></tr>')
-        return self.table(["Line item", "What drives it", "Monthly", "Evidence"], rows, {2: "num"})
+        total, missing = self.cost_total(records)
+        label = "Known total per month" if missing and total != "Not known" else "Total per month"
+        note = f"Leaves out {', '.join(r.title[:1].lower() + r.title[1:] for r in missing)}, not known yet." if missing and total != "Not known" else ""
+        rows.append(f'<tr class="total"><td>{label}</td><td class="soft">{esc(note)}</td><td class="num">{total}</td><td></td></tr>')
+        categories = list(dict.fromkeys(r.get("Category") for r in records if r.get("Category")))
+        if categories:
+            parts = []
+            for category in categories:
+                members = [r for r in records if r.get("Category") == category]
+                amount, unknown = self.cost_total(members)
+                shown = amount if not unknown or amount == "Not known" else f"{amount} + unknown"
+                parts.append(f'<span class="cat"><b>{esc(category)}</b> <span class="num">{shown}</span></span>')
+            rows.append(f'<tr class="by-category"><td colspan="4"><span class="k">By category</span>{"".join(parts)}</td></tr>')
+        return self.cost_basis() + self.table(["Line item", "What drives it", "Monthly", "Evidence"], rows, {2: "num"})
 
     def terms(self, page: str, ids: list[str] | None) -> str:
         chosen = [t for t in self.design.terms if not t.pages or page in t.pages]
@@ -1249,18 +1516,55 @@ class Renderer:
         return self.table(["ID", "Finding", "Cited on", "Found"], rows)
 
     def question_row(self, q: Record, define: bool, lives_on: str | None = None) -> str:
-        name, kind = who(q.get("Who"))
-        kind_html = f'<span class="kind">{esc(kind)}</span>' if kind else ""
-        so_far = f'<span class="sub">So far: <span data-ref-detail="So far">{self.inline(q.get("So far"))}</span></span>' if q.get("So far") else ""
+        """An open question: what it asks and how far it has got (open, partly answered, or deferred and why), when its
+        answer is needed, who to ask when someone was named, and what it blocks."""
+        state = question_state(q)
+        detail = ' data-ref-detail="So far"' if define else ""
+        if state == "partly":
+            status = f'<span class="q-state partly">Partly answered</span><span class="sub"{detail}>{self.inline(q.get("So far"))}</span>'
+        elif state == "deferred":
+            reopen = f" Could reopen {self.inline(q.get('Could reopen'))}" if q.get("Could reopen") else ""
+            status = f'<span class="q-state deferred">Deferred</span><span class="sub"{" data-ref-detail=" + chr(34) + "Deferred" + chr(34) if define else ""}>{self.inline(q.get("Deferred"))}{reopen}</span>'
+        else:
+            status = '<span class="q-state">Open</span>'
         lives = self.lives("Lives on", [lives_on]) if lives_on else ""
         ident = f'<td class="id">{q.id}</td>' if define else f'<td class="id">{self.ref(q.id)}</td>'
-        attrs = (f' id="{q.id}" data-ref="question"' if define else "") + f' class="opens" data-detail="{q.id}-detail" tabindex="0"'
+        filters = f' data-needed="{esc(needed_key(q, self.design))}" data-ask="{esc(ask_name(q))}"'
+        attrs = (f' id="{q.id}" data-ref="question"' if define else "") + f' class="opens{" deferred" if state == "deferred" else ""}" data-detail="{q.id}-detail" tabindex="0"' + filters
         text = f'<span{" data-ref-text" if define else ""}>{self.inline(q.title)}</span>'
-        who_attrs = f' data-ref-detail="Who can answer" data-ref-value="{esc(q.get("Who"))}"' if define else ""
+        stage = f'<td{" data-ref-detail=" + chr(34) + "Needed by" + chr(34) if define and q.get("Needed by") else ""}>{self.stage(q)}</td>'
+        ask = f'<td class="ask"{" data-ref-detail=" + chr(34) + "Ask" + chr(34) if define and ask_name(q) else ""}>{self.inline(ask_name(q))}</td>'
         return (
-            f'<tr{attrs}>{ident}<td>{text}{so_far}{lives}</td><td class="who"{who_attrs}>{kind_html}<span class="name">{esc(name)}</span></td>'
+            f'<tr{attrs}>{ident}<td>{text}<span class="q-status">{status}</span>{lives}</td>{stage}{ask}'
             f'<td>{self.marks(split_list(q.get("Blocks")), "Blocks" if define else "")}</td></tr>'
         )
+
+    def question_filters(self, questions: list[Record]) -> str:
+        """Filters for a long list of questions, by when each answer is needed and by who to ask. Each appears only when
+        the records say so for some question; nothing is grouped by a guess."""
+        groups = []
+        needed = [q.get("Needed by") for q in questions if q.get("Needed by")]
+        if needed:
+            stages = list(dict.fromkeys(needed))
+            order = list(NEEDED_BY)
+            stages.sort(key=lambda s: order.index(s.lower()) if s.lower() in order else len(order))
+            options = [("", "All", len(questions))] + [(NEEDED_BY.get(s.lower(), s), s, needed.count(s)) for s in stages]
+            groups.append(("needed", "Needed by", options))
+        asks = [ask_name(q) for q in questions if ask_name(q)]
+        if asks:
+            options = [("", "Anyone", None)] + [(a, a, asks.count(a)) for a in dict.fromkeys(asks)]
+            groups.append(("ask", "Ask", options))
+        if not groups:
+            return ""
+        html = []
+        for key, label, options in groups:
+            buttons = "".join(
+                f'<button type="button" data-value="{esc(value)}"{" aria-pressed=" + chr(34) + "true" + chr(34) if not value else ""}>{esc(text)}'
+                f'{f"<span class=" + chr(34) + "n" + chr(34) + f">{count}</span>" if count is not None else ""}</button>'
+                for value, text, count in options
+            )
+            html.append(f'<div class="q-filter" data-filter="{key}"><span class="k">{esc(label)}</span><div class="seg">{buttons}</div></div>')
+        return f'<div class="q-filters">{"".join(html)}</div>'
 
     def answered_row(self, q: Record, define: bool) -> str:
         evidence = split_list(q.get("Answered by"))
@@ -1292,30 +1596,31 @@ class Renderer:
             records = [q for q in records if set(split_list(q.get("Blocks"))) & set(blocks)]
         open_ = [q for q in records if not is_answered(q)]
         answered = [q for q in records if is_answered(q)]
-        head = ["ID", "Question", "Who can answer", "Blocks"]
+        head = ["ID", "Question", "Needed by", "Ask", "Blocks"]
 
         if page == self.home and not blocks:
-            rows = [self.question_row(q, True) for q in open_] if ids is not None else self.gathered(open_, 4, lambda q: self.question_row(q, True))
+            rows = [self.question_row(q, True) for q in open_] if ids is not None else self.gathered(open_, 5, lambda q: self.question_row(q, True))
             here = [q for q in answered if self.home_of(q) == page]
-            return (self.table(head, rows) + self.details(open_) if rows else "") + self.answered_group(here, True)
+            return (self.question_filters(open_) + self.table(head, rows) + self.details(open_) if rows else "") + self.answered_group(here, True)
         if blocks:
             define = page == self.home
             rows = [self.question_row(q, define, None if define else self.home_of(q)) for q in open_]
             return (self.table(head, rows) + (self.details(open_) if define else "") if rows else "") + self.answered_group(answered, define)
-        rows = self.local(page, open_, 4, lambda q, lives_on: self.question_row(q, False, lives_on), "Owned elsewhere, affects this area")
+        rows = self.local(page, open_, 5, lambda q, lives_on: self.question_row(q, False, lives_on), "Owned elsewhere, affects this area")
         here = [q for q in answered if self.home_of(q) == page]
         return (self.table(head, rows) if rows else "") + self.answered_group(here, True)
 
     # Progress
 
-    def counts(self, decisions: list[Record], questions: list[Record]) -> tuple[dict[str, int], int, int]:
+    def counts(self, decisions: list[Record], questions: list[Record]) -> tuple[dict[str, int], int, int, int]:
         states = {k: 0 for k in ("decided", "leaning", "open", "later")}
         # A Given decision was never the design's to make, so it doesn't count toward what's settled.
         for d in decisions:
             if not (d.get("Status") or "").lower().startswith("given"):
                 states[self.state(d)] += 1
         answered = sum(1 for q in questions if is_answered(q))
-        return states, len(questions) - answered, answered
+        deferred = sum(1 for q in questions if is_deferred(q))
+        return states, len(questions) - answered - deferred, answered, deferred
 
     def bar(self, parts: list[tuple[str, int]]) -> str:
         return '<span class="progress-bar">' + "".join(f'<i class="{k}" style="flex-grow:{n}"></i>' for k, n in parts if n) + "</span>"
@@ -1329,11 +1634,11 @@ class Renderer:
             for home in [self.home] + [a for a in self.areas() if a != self.home]:
                 ds = [d for d in decisions if self.home_of(d) == home]
                 qs = [q for q in questions if self.home_of(q) == home]
-                st, oq, aq = self.counts(ds, qs)
+                st, oq, aq, dq = self.counts(ds, qs)
                 icon = self.pages.get(home, {}).get("icon") or "i-box"
                 title = esc(self.page_title(home)) if home != self.home else "Across all areas"
                 name = f'<a href="#{esc(home)}">{title}</a>' if home != self.home else f"<span>{title}</span>"
-                answered_note = f'<span class="soft"> · {aq} answered</span>' if aq else ""
+                answered_note = "".join(f'<span class="soft"> · {n} {word}</span>' for n, word in ((dq, "deferred"), (aq, "answered")) if n)
                 tiles.append(
                     f'<div class="tile"><div class="tile-head"><svg><use href="#{esc(icon)}"/></svg>{name}</div>'
                     f'{self.marks(sorted((d.id for d in ds), key=lambda i: int(i[1:])))}'
@@ -1348,10 +1653,10 @@ class Renderer:
             ds = [d for d in decisions if self.home_of(d) == page]
             qs = [q for q in questions if self.home_of(q) == page]
             also_d = [d.id for d in decisions if self.home_of(d) != page and self.reaches(d, page) and self.state(d) in UNSETTLED]
-            also_q = [q.id for q in questions if self.home_of(q) != page and self.reaches(q, page) and not is_answered(q)]
-        st, oq, aq = self.counts(ds, qs)
+            also_q = [q.id for q in questions if self.home_of(q) != page and self.reaches(q, page) and not is_answered(q) and not is_deferred(q)]
+        st, oq, aq, dq = self.counts(ds, qs)
         d_note = f"also shaped by {', '.join(also_d)}" if also_d else ", ".join(f"{n} {k}" for k, n in st.items() if n and k != "decided")
-        q_note = ", ".join(x for x in (f"{aq} answered" if aq else "", f"{', '.join(also_q)} {'lives' if len(also_q) == 1 else 'live'} elsewhere" if also_q else "") if x)
+        q_note = " · ".join(x for x in (f"{dq} deferred" if dq else "", f"{aq} answered" if aq else "", f"{', '.join(also_q)} {'lives' if len(also_q) == 1 else 'live'} elsewhere" if also_q else "") if x)
         return (
             '<div class="progress-line">'
             f'<div class="metric"><span class="label">Decisions</span><span class="n"><b>{st["decided"]}</b> of {sum(st.values())} decided</span>'

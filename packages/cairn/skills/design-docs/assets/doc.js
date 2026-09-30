@@ -209,6 +209,53 @@
     if (opener !== null && opener === event.target) openDetail(opener);
   });
 
+  // Question filters narrow the table that follows them to one stage or one person to ask; a group heading hides with
+  // its last visible row. The filters only exist when the records name a stage or someone to ask.
+  const applyQuestionFilters = (filters) => {
+    const table = filters.nextElementSibling;
+
+    if (table === null) return;
+
+    const wanted = new Map();
+
+    for (const group of filters.querySelectorAll("[data-filter]")) {
+      const pressed = group.querySelector("button[aria-pressed='true']");
+
+      wanted.set(group.dataset.filter, pressed?.dataset.value ?? "");
+    }
+
+    let heading = null;
+    let headingShown = false;
+
+    for (const row of table.querySelectorAll("tbody > tr")) {
+      if (row.classList.contains("group")) {
+        if (heading !== null) heading.hidden = !headingShown;
+
+        heading = row;
+        headingShown = false;
+
+        continue;
+      }
+
+      const shown = [...wanted].every(([key, value]) => value === "" || row.dataset[key] === value);
+
+      row.hidden = !shown;
+      headingShown ||= shown;
+    }
+
+    if (heading !== null) heading.hidden = !headingShown;
+  };
+
+  document.addEventListener("click", (event) => {
+    const button = event.target instanceof Element ? event.target.closest(".q-filter button") : null;
+
+    if (button === null) return;
+
+    for (const other of button.parentElement.querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === button));
+
+    applyQuestionFilters(button.closest(".q-filters"));
+  });
+
   // Reveal a target: show its page, open any collapsed details around or inside it, scroll to it, and flash it.
   const reveal = (id) => {
     const target = document.getElementById(id);
@@ -230,6 +277,17 @@
     if (inner !== null) inner.open = true;
 
     if (outer !== null) outer.open = true;
+
+    // A row the question filters hid comes back with every filter cleared.
+    const filters = target.hidden ? target.closest(".table-wrap")?.previousElementSibling : null;
+
+    if (filters?.matches(".q-filters")) {
+      for (const group of filters.querySelectorAll(".q-filter")) {
+        for (const button of group.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.value === ""));
+      }
+
+      applyQuestionFilters(filters);
+    }
 
     target.scrollIntoView({ block: "start" });
     target.classList.remove("flash");

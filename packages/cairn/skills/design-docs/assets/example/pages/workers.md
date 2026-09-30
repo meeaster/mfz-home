@@ -40,20 +40,20 @@ Firewall logs already land in Shared Tooling, so that's the obvious home. The al
 :::
 
 ### What each option costs {#workers-d1-cost rail=Cost}
-Monthly, at us-gov-west-1 list prices. Lines that are the same for both options are grouped.
+Monthly. Lines that are the same for both options are grouped.
 
 ::: cost-options D1
 :::
 
 ## D2
 
-Today every site sends firewall logs to the syslog server. We can keep it as a relay, or point the firewalls straight at the workers. It matters most if D1 lands on B, because sending direct would need a VPN route into the new network.
+Today every site sends firewall logs to the syslog server. We can keep it as a relay, or point the firewalls straight at the workers. It matters most if the workers get their own network (D1), because sending direct would need a VPN route into it.
 
 ::: options D2 layout=row 1=d2-relay 2=d2-direct
 :::
 
 ::: callout title="What would settle it" icon=git-branch
-If Q1 and Q4 both come back yes, sending direct removes the weakest link, and we'd schedule the firewall changes for January. If either is no, keep the relay and move the syslog server to three zones instead.
+If the site VPNs can route to a new VPC (Q1) and OPW takes UDP syslog behind a load balancer (Q4), sending direct removes the weakest link, and we'd schedule the firewall changes for January. If either is no, keep the relay and move the syslog server to three zones instead.
 :::
 
 ## Open questions

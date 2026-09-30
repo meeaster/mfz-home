@@ -57,6 +57,7 @@ The chip's colour follows, first match wins: `warn` when the assessment is No, `
 - Vendor and service claims need the vendor's documentation or a confirmation. Our own configuration needs the account, the infrastructure code, or the owning team.
 - When it isn't known, the flow or store is `warn` or `partly`, with a question marker naming who can confirm it. The question blocks the flow (`Blocks: S-F5`) and the flow's Assessment cites it, so it has a place in the design even when no decision waits on it.
 - A missing control that nobody disputes, such as syslog with no TLS, is a finding. Mark it `no`, and say what would fix it and when.
+- A control the design adds is intended until something shows it working. The requirement it serves reads `Design: Covers` with `Still to show: Intended · <how it will be shown>`; only evidence (a test, a scan, the configuration read back) makes it `Demonstrated`. A security view may draw the control, labelled as added, but prose and tables don't say it's in place.
 
 ## Markup
 

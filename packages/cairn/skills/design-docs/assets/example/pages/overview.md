@@ -48,8 +48,6 @@ Workers in their own VPC in GovCloud, with the syslog server relaying firewall l
 
 ## Cost
 
-Monthly, at us-gov-west-1 list prices.
-
 ## Risks
 
 ## Phases

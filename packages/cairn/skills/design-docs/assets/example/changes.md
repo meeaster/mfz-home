@@ -16,3 +16,7 @@ Accepted changes to this design, oldest first. Each entry says where the change 
 - Added page: S3 archive
 - Added R8, R9, R10, D6, E8, E9, Q8, Q10
 - D6 leaning: a prefix and key per customer
+
+## 2026-09-29 · request
+- Q8 deferred to a later phase: the first three customers fit either way
+- Added R11

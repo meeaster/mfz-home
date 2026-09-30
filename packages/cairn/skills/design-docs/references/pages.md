@@ -54,7 +54,7 @@ An area page shows its own records under "This area", then the ones from elsewhe
 
 ## Progress
 
-The progress line under an overview's or area's header shows how much is settled; the build adds it. On an overview with areas: a tile per area with its decision markers (coloured by status), how many are decided, and its open questions. On an area page, or an overview without areas: one line with the decisions decided out of the total and the open and answered questions, naming the records from elsewhere that still shape it. It counts only the page's own records, so the areas add up to the overview, and leaves out Given decisions, which were never the design's to make.
+The progress line under an overview's or area's header shows how much is settled; the build adds it. On an overview with areas: a tile per area with its decision markers (coloured by status), how many are decided, and its open questions. On an area page, or an overview without areas: one line with the decisions decided out of the total and the open, deferred and answered questions, naming the records from elsewhere that still shape it. It counts only the page's own records, so the areas add up to the overview, and leaves out Given decisions, which were never the design's to make.
 
 ## The decisions table
 
@@ -68,7 +68,7 @@ One row per decision. Each row comes from the decision's record:
 
 Within each group, unsettled decisions come first. A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
 
-Question rows open the same way: the question's Explanation and So far (or its Answer), and beside them who can answer it, when it was asked, what it blocks, its evidence, and where it lives. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
+Question rows open the same way: the question's Explanation, then So far, its Answer, or why it was deferred and what it could reopen; beside them when its answer is needed, who to ask (only when someone was named), what it blocks, its evidence, and where it lives. Each row says how far the question has got (open, partly answered, deferred) apart from when its answer is needed, and the overview's table gets filters by Needed by and Ask when any question has them. A risk with an Explanation opens the same kind of modal; the rest stay one line. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
 
 ## Page files
 

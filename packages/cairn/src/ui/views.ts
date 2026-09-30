@@ -367,6 +367,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
     efforts: entry?.efforts ?? [],
     decisions: stats.decisions,
     open_questions: stats.open_questions,
+    deferred_questions: stats.deferred_questions,
     published:
       included === null
         ? { state: "unpublished" }

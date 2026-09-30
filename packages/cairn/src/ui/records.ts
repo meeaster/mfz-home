@@ -6,6 +6,7 @@ export type DesignStats = {
   readonly summary: string | null;
   readonly decisions: { readonly total: number; readonly decided: number };
   readonly open_questions: number;
+  readonly deferred_questions: number;
 };
 
 type Item = {
@@ -77,11 +78,14 @@ function leadParagraph(markdown: string): string | null {
   return paragraph.length === 0 ? null : paragraph.join(" ");
 }
 
-// A decision counts as settled when the team decided it or it was given from outside the design.
+// A decision counts as settled when the team decided it or it was given from outside the design. A question is open
+// until it's answered; one deferred on someone's word waits on nothing and counts apart.
 export function designStats(markdown: string): DesignStats {
   const found = sections(markdown);
   const decisions = found.get("Decisions") ?? [];
   const questions = found.get("Questions") ?? [];
+  const unanswered = questions.filter((question) => !question.fields.has("answer"));
+  const deferred = unanswered.filter((question) => (question.fields.get("deferred") ?? "") !== "").length;
   let decided = 0;
 
   for (const decision of decisions) {
@@ -96,7 +100,8 @@ export function designStats(markdown: string): DesignStats {
     title: firstHeading(markdown),
     summary: leadParagraph(markdown),
     decisions: { total: decisions.length, decided },
-    open_questions: questions.filter((question) => !question.fields.has("answer")).length
+    open_questions: unanswered.length - deferred,
+    deferred_questions: deferred
   };
 }
 

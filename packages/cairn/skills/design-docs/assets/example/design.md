@@ -50,7 +50,9 @@ Customers ──private endpoint────────────────
 - Why: Firewall logs are the main signal in security investigations.
 - Source: Security team
 - Page: firewall-intake
-- Met: Yes · Relayed by the syslog server over the Transit Gateway. [E1, D2]
+- Today: Meets · All 14 sites reach the syslog server. [E1]
+- Design: Covers · The relay forwards them over the Transit Gateway. [D2]
+- Still to show: Demonstrated · All 14 sites reach the syslog server today; the relay keeps that path. [E1]
 
 ### R2 · Receive logs from customer networks over a private connection.
 - Short: Customer logs over a private connection
@@ -58,7 +60,9 @@ Customers ──private endpoint────────────────
 - Why: The first three customers start in November, and their contracts rule out the public internet.
 - Source: Customer onboarding effort
 - Page: customer-intake
-- Met: Yes · A PrivateLink endpoint in the workers' VPC. [E6, D3]
+- Today: Nothing today · No customer intake today.
+- Design: Covers · A PrivateLink endpoint in the workers' VPC. [E6, D3]
+- Still to show: Intended · Confirm with the first customer's connection.
 
 ### R3 · Expose no log intake to the public internet.
 - Short: No public log intake
@@ -66,7 +70,9 @@ Customers ──private endpoint────────────────
 - Why: The security baseline for any new service.
 - Source: Security standard SEC-12
 - Applies to: customer-intake
-- Met: Yes · PrivateLink only; nothing listens on a public address. [E6]
+- Today: Meets · Firewall logs arrive over the site VPNs.
+- Design: Covers · PrivateLink only; nothing listens on a public address. [E6]
+- Still to show: Intended · Scan for public listeners after launch.
 
 ### R4 · Keep running if one AWS availability zone fails.
 - Short: Survives losing one zone
@@ -74,9 +80,12 @@ Customers ──private endpoint────────────────
 - Why: Incidents are when we need logs most.
 - Source: Platform standards
 - Applies to: firewall-intake, pipeline-workers
-- Met: Partly · Workers span three zones, but the syslog server is one instance in one zone. [E4, E5, D2]
-- Met on firewall-intake: Partly · The syslog server is one instance in one zone. [E5, D2]
-- Met on pipeline-workers: Yes · One worker per zone; two carry peak load. [E4, D4]
+- Today: Doesn't meet · The syslog server is one instance in one zone. [E5]
+- Design: Partly covers · Workers span three zones; the relay stays single until the firewall log path is chosen. [E4, D2]
+- Still to show: Unconfirmed · Zone-loss drill in the first phase.
+- Design on firewall-intake: Partly covers · The relay stays one instance in one zone until the firewall log path is chosen. [D2]
+- Design on pipeline-workers: Covers · One worker per zone; two carry peak load. [E4, D4]
+- Still to show on pipeline-workers: Intended · Zone-loss drill in the first phase.
 
 ### R5 · Add no new site VPN tunnels before January.
 - Short: No new VPN tunnels before January
@@ -84,7 +93,9 @@ Customers ──private endpoint────────────────
 - Why: The network team's change calendar is full for \Q4.
 - Source: Network team
 - Page: firewall-intake
-- Met: Yes · The relay keeps firewall traffic on the existing site VPNs. [E1, D2]
+- Today: Meets · No change to the tunnels today.
+- Design: Covers · Firewall traffic stays on the existing site VPNs. [E1, D2]
+- Still to show: Nothing left
 
 ### R6 · Keep log data inside the GovCloud partition, unless the destination is authorized to hold it.
 - Short: Logs stay in the GovCloud partition
@@ -92,9 +103,12 @@ Customers ──private endpoint────────────────
 - Why: Firewall and customer logs include controlled unclassified information (CUI).
 - Source: Compliance: GovCloud boundary
 - Applies to: pipeline-workers, s3-archive
-- Met: Partly · The archive stays inside. Datadog's government site still needs confirming. [Q6]
-- Met on pipeline-workers: Partly · Filtered logs go to Datadog, whose government site still needs confirming. [Q6]
-- Met on s3-archive: Yes · Both buckets and all keys are in us-gov-west-1. [E9]
+- Today: Unknown · Datadog's government site isn't confirmed. [Q6]
+- Design: Partly covers · The archive stays inside; the Datadog leg depends on its site.
+- Still to show: Unconfirmed · Security confirms the Datadog site.
+- Design on pipeline-workers: Partly covers · Filtered logs go to Datadog, whose government site still needs confirming.
+- Design on s3-archive: Covers · Both buckets and all keys are in us-gov-west-1. [E9]
+- Still to show on s3-archive: Intended · Check bucket and key regions after launch.
 
 ### R7 · Use FIPS-validated encryption for data in transit and at rest.
 - Short: FIPS-validated encryption
@@ -102,9 +116,13 @@ Customers ──private endpoint────────────────
 - Why: Required for every system inside the authorization boundary.
 - Source: Compliance: FIPS 140
 - Applies to: firewall-intake, s3-archive
-- Met: No · Syslog from the relay to the workers is unencrypted today. TLS on the relay fixes it. [E5, D2]
-- Met on firewall-intake: No · Syslog from the relay to the workers is unencrypted, and the tunnel ciphers aren't confirmed. [E5, Q7]
-- Met on s3-archive: Yes · Writes and reads use the S3 FIPS endpoint; objects are encrypted with KMS. [E9]
+- Today: Doesn't meet · Relay to workers is unencrypted syslog. [E5]
+- Design: Covers · TLS on the relay, with FIPS endpoints for AWS services. [D2]
+- Still to show: Intended · Check FIPS mode on relay and workers; VPN tunnel encryption is still an open question. [Q7]
+- Design on firewall-intake: Partly covers · TLS on the relay; the tunnel ciphers are still an open question. [Q7]
+- Still to show on firewall-intake: Unconfirmed · Confirm the tunnel ciphers, then check FIPS mode on the relay.
+- Design on s3-archive: Covers · Writes and reads use the S3 FIPS endpoint; objects are encrypted with KMS. [E9]
+- Still to show on s3-archive: Intended · Check the workers' S3 destination uses the FIPS endpoint.
 
 ### R8 · A customer's logs can be read only with that customer's role and key.
 - Short: Only that customer can read their logs
@@ -112,7 +130,9 @@ Customers ──private endpoint────────────────
 - Priority: Must
 - Why: Contracts promise each customer that nobody else can see their logs.
 - Source: Customer contracts
-- Met: Partly · A role and key per customer. Depends on OPW writing each customer's prefix with their own key. [Q10, D6]
+- Today: Nothing today · No customer data today.
+- Design: Partly covers · A role and key per customer, if OPW writes each prefix with its own key. [Q10, D6]
+- Still to show: Unconfirmed · Then test that one customer's role can't read another's logs.
 
 ### R9 · Keep every log for one year, then delete it.
 - Short: Kept one year, then deleted
@@ -120,7 +140,9 @@ Customers ──private endpoint────────────────
 - Priority: Must
 - Why: Security's retention rule; keeping logs longer adds risk without a use.
 - Source: Security team
-- Met: Yes · A lifecycle rule on both buckets deletes objects at 365 days. [D5]
+- Today: Nothing today · No archive today.
+- Design: Covers · A lifecycle rule on both buckets deletes objects at 365 days. [D5]
+- Still to show: Intended · Check the rule on both buckets.
 
 ### R10 · Give a customer all their logs for a date range within one working day.
 - Short: A customer's logs within a day
@@ -128,7 +150,19 @@ Customers ──private endpoint────────────────
 - Priority: Should
 - Why: Customers ask for their logs during their own investigations.
 - Source: Customer onboarding effort
-- Met: Yes · Their prefix is copied out with their export role; no other customer's data is touched. [E8]
+- Today: Nothing today · No archive today.
+- Design: Covers · Their prefix is copied out with their export role. [E8]
+- Still to show: Intended · Rehearse one export before the first customer.
+
+### R11 · Deliver filtered logs to Datadog within a minute.
+- Short: Filtered logs in Datadog within a minute
+- Page: pipeline-workers
+- Priority: Should
+- Why: Alerts are only useful while the problem is still happening.
+- Source: Security team
+- Today: Unknown · End-to-end delay isn't measured.
+- Design: Partly covers · Workers add seconds; Datadog's intake delay is outside the design.
+- Still to show: Unconfirmed · Measure end to end in the first phase.
 
 ## Parts
 
@@ -327,7 +361,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Evidence: Q4
 
 ### D3 · How do customers connect?
-- Explanation: From November, customers send us their own logs, and their contracts rule out the public internet (R2, R3). This decides the private way in: what customers connect to and how it reaches the workers. It waits because the endpoint lives in the workers' network, which D1 settles, and is sized by how much customers will send (Q3). Until then the design assumes a PrivateLink endpoint.
+- Explanation: From November, customers send us their own logs, and their contracts rule out the public internet (R2, R3). This decides the private way in: what customers connect to and how it reaches the workers. It waits because the endpoint lives in the workers' network, which where the workers run (D1) settles, and is sized by how much customers will send (Q3). Until then the design assumes a PrivateLink endpoint.
 - Rail: How customers connect
 - Shapes: How customers reach the workers, and what they connect to.
 - Page: customer-intake
@@ -344,8 +378,8 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - Page: s3-archive
 - Status: Open
 - Leaning: A prefix and KMS key per customer in one bucket.
-- Note: Depends on how many customers we expect.
-- Waiting on: Q8, Q10
+- Note: Depends on whether OPW can write each customer's logs with its own key.
+- Waiting on: Q10
 - Evidence: E8
 - Worked out in: s3-archive
 
@@ -398,7 +432,11 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 ### The syslog relay fails or restarts.
 - Likelihood: Medium
 - If it happens: Firewall logs stop until it's back; messages sent meanwhile are lost.
-- What we'd do: Run a second relay behind the load balancer, or send direct once D2 allows it.
+- What we'd do: Run a second relay behind the load balancer, or send direct if the firewall log path (D2) allows it.
+- Explanation:
+  - Means here: Every firewall log passes through one syslog server in one zone on its way to the workers, while firewall logs keep going through the relay (D2).
+  - Matters because: It has dropped messages twice this year (E5), and logs lost in an outage are the ones an investigation of that outage needs.
+  - Settled by: Choosing to send straight to the workers (D2), or running a second relay.
 - Linked: E5, D2
 - Page: firewall-intake
 
@@ -412,9 +450,13 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 
 ### Datadog's government site isn't authorized for CUI.
 - Likelihood: Unknown
-- If it happens: R6 fails, and logs can't leave the partition for Datadog.
+- If it happens: Logs can't leave the partition for Datadog, so logs staying in the GovCloud partition (R6) fails.
 - What we'd do: Keep the S3 archive as the record and hold customer onboarding until it's confirmed.
 - Linked: Q6
+- Explanation:
+  - Means here: Filtered logs leave GovCloud for Datadog, which is allowed only if Datadog's government site is authorized to hold them (R6).
+  - Matters because: It holds whichever way the workers' network goes, so no choice in this design avoids it.
+  - Settled by: Security confirming our Datadog organization's site and its authorization (Q6).
 - Applies to: pipeline-workers
 
 ### Nobody owns the new VPC.
@@ -422,18 +464,28 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 - If it happens: Route and security group changes stall between teams.
 - What we'd do: Name an owner before the VPC is built.
 - Linked: Q5, D1
+- Explanation:
+  - Means here: A VPC of the pipeline's own (D1, option B) is a network someone has to patch, watch and pay for.
+  - Matters because: Without an owner, every route and security group change waits for someone to agree to make it.
+  - Settled by: A team agreeing to own it (Q5), or the workers staying in Shared Tooling.
 - Applies to: firewall-intake, pipeline-workers
 
 ## Costs
 
+- Assumes: us-gov-west-1 list prices, 1.2 TB of firewall logs a month, and the first three customers.
+- Leaves out: The Datadog licence and ingest, priced on the Datadog contract; staff time; the syslog server, which exists today.
+
 ### Load balancer for the workers
 - Page: firewall-intake
+- Category: Network
 - Drives: Spreads firewall logs across the three workers.
 - Monthly: $26
 - Evidence: E7
 
 ### Transit Gateway data processing
 - Page: firewall-intake
+- Category: Network
+- Applies when: While firewall logs go through the relay
 - Drives: 1.2 TB of firewall logs a month crossing from the relay into the pipeline's VPC.
 - Monthly: A $0 · B $24
 - Varies with: D1
@@ -442,6 +494,8 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 
 ### Cross-zone transfer
 - Page: firewall-intake
+- Category: Network
+- Applies when: While firewall logs go through the relay
 - Drives: The syslog server is in one zone; two thirds of its traffic crosses to other zones.
 - Monthly: $16
 - Affected by: D2
@@ -449,13 +503,21 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 
 ### Customer endpoint
 - Page: customer-intake
+- Category: Network
 - Drives: Load balancer behind the PrivateLink endpoint service.
 - Monthly: $22
 - Affected by: D3
 - Evidence: E7
 
+### Customer data processing
+- Page: customer-intake
+- Category: Network
+- Drives: PrivateLink charges per GB of customer logs; their volume isn't known yet.
+- Monthly: unknown (Q3)
+
 ### Workers
 - Page: pipeline-workers
+- Category: Compute
 - Drives: 3 × c7g.large, one per availability zone.
 - Monthly: $159
 - Affected by: D4
@@ -463,6 +525,8 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 
 ### Transit Gateway attachment
 - Page: pipeline-workers
+- Category: Network
+- Applies when: Only if the workers get their own VPC
 - Drives: Joining a VPC of the pipeline's own to the Transit Gateway, billed by the hour.
 - Monthly: A $0 · B $36
 - Varies with: D1
@@ -470,6 +534,7 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 
 ### Archive storage
 - Page: s3-archive
+- Category: Storage
 - Drives: About 120 GB of compressed logs a month, kept for a year. Grows until the first year is full.
 - Monthly: $3 → $39
 - Affected by: D5
@@ -600,75 +665,84 @@ The brief compares A and B in full; C was set aside at the Sep 22 session.
 ## Questions
 
 ### Q1 · Can the site VPNs carry a route to a new VPC's address range without re-creating the tunnels?
-- Explanation: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If the workers get their own VPC (D1, option B), firewalls sending straight to them (D2) needs the tunnels to carry that VPC's range too. We need to know whether a route can be added to the tunnels as they are, or whether they'd have to be re-created, which R5 rules out before January.
+- Explanation:
+  - Means here: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If the workers get a VPC of their own (D1, option B), the tunnels need to carry its range too.
+  - Matters because: Re-created tunnels need a change window at every site, and the design must add no new VPN tunnels before January (R5).
+  - Answer changes: Yes, and the own-VPC option stays open, with firewall logs free to skip the relay later (D2). No, and the workers stay in Shared Tooling, or firewall logs keep going through the relay.
+  - Settled by: The network team confirms the tunnels accept an added route, or tries one on a single site.
 - Short: Can site VPNs reach a new VPC?
-- Who: Network team (other team)
+- Needed by: Choosing the design
+- Ask: Network team
+- So far: The VPNs already route to the Transit Gateway; a route to a new VPC hasn't been tried (E1).
 - Blocks: D1, D2
 
 ### Q2 · Does security standard SEC-12 allow customer traffic to end inside Shared Tooling?
 - Explanation: Customer connections have to end somewhere inside our network. SEC-12 is the security standard for Shared Tooling, the network that hosts our internal tools. If it doesn't allow customer traffic to end there, the workers can't go in Shared Tooling (D1, option A); that doubt is the main reason the design leans towards a VPC of their own.
 - Short: May customer traffic end in Shared Tooling?
-- Who: Security (GRC) (other team)
+- Needed by: Choosing the design
+- Ask: Security (GRC)
 - Blocks: D1
 
 ### Q3 · How much log volume will the first three customers send in their first 90 days?
 - Explanation: The customer endpoint and what sits behind it are sized for the traffic they carry. We don't know yet how much the first three customers will send in their first 90 days. The answer sizes the customer connection (D3).
 - Short: Customer log volume?
-- Who: Customer onboarding lead (other team)
+- Needed by: Before building
 - Blocks: D3
 
 ### Q4 · Can OPW receive UDP syslog behind a Network Load Balancer without dropping messages?
 - Explanation: If firewalls send straight to the workers (D2, option 2), a Network Load Balancer spreads their syslog across the workers. The firewalls send syslog over UDP, which has no delivery confirmation, and we don't know whether OPW behind a load balancer receives it without losing messages. Datadog can tell us; a no rules the direct path out.
 - Short: Syslog behind a load balancer?
-- Who: Datadog support (vendor)
+- Needed by: Choosing the design
+- Ask: Datadog support
 - Blocks: D2
 
 ### Q5 · If we create a new VPC, which team owns it: patching, alerts, and cost?
 - Explanation: A VPC of the pipeline's own (D1, option B) is a new network someone has to run: patch what's in it, answer its alerts, and pay for it. No team owns it yet, and option B isn't workable until one agrees to.
 - Short: Who owns a new VPC?
-- Who: Platform team (our team)
+- Needed by: Before building
 - Blocks: D1
 
 ### Q6 · Is our Datadog organization on Datadog's government site, and is that site authorized for this data?
-- Explanation: Log data stays in GovCloud unless where it goes is authorized to hold it (R6). Filtered logs go to Datadog, so we need to know whether our Datadog organization is on Datadog's government site, and whether that site is authorized for this data. If it isn't, sending logs to Datadog breaks R6 whichever way D1 goes.
+- Explanation: Log data stays in GovCloud unless where it goes is authorized to hold it (R6). Filtered logs go to Datadog, so we need to know whether our Datadog organization is on Datadog's government site, and whether that site is authorized for this data. If it isn't, sending logs to Datadog breaks that rule whichever network the workers get (D1).
 - Short: Is Datadog's government site authorized?
-- Who: Security (GRC) (other team)
+- Needed by: Choosing the design
+- Ask: Security (GRC)
+- So far: The org is on the government site; its authorization for CUI isn't confirmed.
 - Blocks: D1, R6
 
 ### Q7 · Do the site VPN tunnels use FIPS-validated encryption today?
-- Explanation: Every connection carrying these logs must use FIPS-validated encryption (R7). The site VPN tunnels carry firewall logs into AWS, and nobody has confirmed what encryption they use today. If it isn't FIPS-validated, R7 isn't met for firewall logs until the tunnels change.
-- Who: Network team (other team)
+- Explanation: Every connection carrying these logs must use FIPS-validated encryption (R7). The site VPN tunnels carry firewall logs into AWS, and nobody has confirmed what encryption they use today. If it isn't FIPS-validated, firewall logs don't meet that rule until the tunnels change.
+- Needed by: Before building
 - Blocks: R7
 
 ### Q8 · How many customers do we expect to onboard in the first year?
 - Explanation: How customer data is kept apart in S3 (D6) depends on how many customers there will be. One shared bucket's access rules fit about 60 customers (E8); past that, the design needs another way to keep them apart. The onboarding forecast for the first year tells us which fits.
-- Who: Customer onboarding lead (other team)
+- Needed by: Later phase
+- Deferred: It only sizes the archive after the first year, and the first three customers fit either way.
+- Could reopen: customer data separation (D6), if the count passes about 50.
 - Blocks: D6
 
 ### Q9 · Which kinds of log may OPW drop before Datadog, and which must always reach it?
-- Explanation: OPW can drop logs before Datadog to cut the bill, and S3 keeps everything regardless. Security decides which logs investigations depend on, so D7 needs their list of what may be dropped and what must always reach Datadog.
-- Who: Security (GRC) (other team)
+- Explanation: OPW can drop logs before Datadog to cut the bill, and S3 keeps everything regardless. Security decides which logs investigations depend on, so what OPW drops (D7) needs their list of what may be dropped and what must always reach Datadog.
+- Needed by: Before building
 - Blocks: D7
 
 ### Q10 · Can OPW's S3 destination write each customer's logs with a different KMS key?
-- Explanation: Keeping each customer's logs readable only with their own key (R8) is simplest if OPW encrypts each customer's logs with that customer's KMS key as it writes them. We don't know whether OPW's S3 destination can choose a key per customer. If it can't, the shared bucket in D6 needs another way to apply the keys.
-- Who: Datadog support (vendor)
+- Explanation: Keeping each customer's logs readable only with their own key (R8) is simplest if OPW encrypts each customer's logs with that customer's KMS key as it writes them. We don't know whether OPW's S3 destination can choose a key per customer. If it can't, the shared bucket for customer data (D6) needs another way to apply the keys.
+- Needed by: Choosing the design
 - Blocks: D6, R8
 
 ### Q11 · Which address ranges do the site VPNs carry today?
-- Who: Network team (other team)
 - Blocks: D2
 - Answer: Only 10.40.0.0/16.
 - Answered by: E1
 
 ### Q12 · How much firewall log data do the 14 sites send?
-- Who: Me (me)
 - Blocks: D2
 - Answer: About 1.2 TB a month.
 - Answered by: E2
 
 ### Q13 · How many workers does peak load need?
-- Who: Platform team (our team)
 - Blocks: D4
 - Answer: Three c7g.large, even with one zone down.
 - Answered by: E4

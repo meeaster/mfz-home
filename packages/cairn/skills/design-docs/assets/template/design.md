@@ -32,7 +32,9 @@ A DIAGRAM IN TEXT OF THE PARTS AND FLOWS, FOR AGENTS. THE PAGES DRAW THEIR OWN.
 - Priority: Must
 - Why: WHY IT MATTERS.
 - Source: WHO OR WHAT SAYS SO
-- Met: Yes · HOW THE DESIGN MEETS IT. [E1]
+- Today: Doesn't meet · WHAT THE SYSTEM DOES NOW. [E1]
+- Design: Covers · HOW THE DESIGN MEETS IT. [D1]
+- Still to show: Intended · WHAT HAS TO BE SHOWN BEFORE IT HOLDS.
 - Recorded from: request
 
 Once the design has areas, a record that belongs to one gets "Page: <area id>", and "Applies to: <ids>" names the other areas it reaches. Records without a Page live on the overview.
@@ -104,12 +106,17 @@ Once the design has areas, a record that belongs to one gets "Page: <area id>", 
 
 ## Costs
 
+- Assumes: PRICES, REGION AND VOLUMES THE FIGURES USE.
+- Leaves out: WHAT ISN'T COUNTED, SUCH AS LICENCES PRICED ELSEWHERE OR STAFF TIME.
+
 ### LINE ITEM
+- Category: Compute
 - Drives: WHAT DRIVES IT.
 - Monthly: $0
 - Evidence: E1
 
 ### A LINE THAT DEPENDS ON AN OPTION
+- Category: Network
 - Drives: WHAT DRIVES IT.
 - Monthly: A $0 · B $0
 - Varies with: D1
@@ -129,12 +136,11 @@ Once the design has areas, a record that belongs to one gets "Page: <area id>", 
 
 ### Q1 · QUESTION?
 - Explanation: WHAT WE'RE TRYING TO FIND OUT, IN PLAIN WORDS, AND WHY WHAT IT BLOCKS (D1) NEEDS THE ANSWER.
-- Who: NAME (other team)
+- Needed by: Choosing the design
 - Blocks: D1
 - So far: A PARTIAL ANSWER, IF THERE IS ONE (E1).
 
 ### Q2 · AN ANSWERED QUESTION?
-- Who: NAME (our team)
 - Blocks: D2
 - Answer: THE ANSWER, IN A FEW WORDS.
 - Answered by: E1

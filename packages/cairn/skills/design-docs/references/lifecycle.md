@@ -25,7 +25,7 @@ designs/<slug>/
 
 - **Link an effort to each design it changes** by making `design.md` a member of it: `catalog_describe` with the path and `efforts: {include: [<effort slug>]}`. The session that creates a design links it to its own effort automatically. A session that only reads a design for background doesn't link it.
 - **Split the knowledge by what it describes.** What is being built and why (the problem, goals, how it works, requirements, phases, decisions, parts, evidence, questions) goes in the design. What already exists around it, such as the AWS environment it runs in or a vendor's product, goes in a knowledge article under `<root>/knowledge/`, kept by the effort-context skill; the design's evidence cites it. Where the work stands (its phase, decisions about the work itself, the user's views, its own open questions, tickets and PRs) goes in the effort's `effort.md`. Neither holds next steps, to-dos, or agendas; an agent proposes those from the records when asked.
-- **Record it where it lands, refer to it everywhere else.** A settled question or decision about the design goes in design.md with a changes.md entry citing the session or meeting; the effort cites it by ID and changes only when where the work stands changed. A phase's status lives only in the design. A question put to someone keeps who was asked, when, and through what in its `Asked` field. When an effort picks the design up, the changes.md entries since its last session show what changed, and anything in the effort citing a changed ID gets checked.
+- **Record it where it lands, refer to it everywhere else.** A settled question or decision about the design goes in design.md with a changes.md entry citing the session or meeting; the effort cites it by ID and changes only when where the work stands changed. A phase's status lives only in the design. When an effort picks the design up, the changes.md entries since its last session show what changed, and anything in the effort citing a changed ID gets checked.
 - **Small work keeps its design in the effort.** A feature built in a session or two, or the detail below a stable design (a module's layout under "OPW runs on EC2"), goes in a local `design.md` in the effort's folder: one connected document for agents and the user, described in the effort-context skill's storage reference, not this format.
 - **Promote a local design by writing it up** when others need to see it, another effort needs it, or it outlives the effort: start a design here from it, turning its prose into the problem, goals and how it works and its decisions into records with their evidence, and link the local file to the new design with `supersedes`. The readers change from agents and the user to reviewers and approvers, so this is a write-up, not a move.
 
@@ -46,6 +46,7 @@ When a session starts work on a design, or on an effort linked to one:
 - **Decisions and requirements change when the user says so.** Change a decision's status, add or drop a requirement, or set an option aside only on the user's word or a meeting's accepted outcome. The page can still say what the evidence favours.
 - **Log every accepted change** in `changes.md` under today's date and its source (`session <your catalog id>`, `request`, `meeting <date>`, `email <date> · <sender>`). One entry per source per sitting is enough; [records](records.md#changesmd) says which source a change belongs to.
 - **Bring the pages along** when records change: tables, option cards, decision maps, costs, flows and bound diagram parts follow on their own; prose, and any part of a picture that isn't bound, don't. Redraw a picture when what was chosen differs from what it shows; update "In short", the dek, and the "Updated" date on each page that changed.
+- **Sweep for the same fact everywhere it appears.** A change is finished when every place that states the fact agrees: each page's prose and dek, the design's own components and diagram labels, option cards, other records' Explanations and Reasoning, and the effort's files that cite the ID. Search the folder for the ID and for the words of the old claim, not only the page you were on. When you find a place that already disagreed before your change, fix it the same way or, if the right version isn't clear, ask.
 
 ## After a meeting
 
@@ -83,7 +84,7 @@ Pages and components render with Node (`scripts/render.mjs`, no packages to inst
 - **`check` errors:**
   - references to missing IDs, in design.md or on any page
   - records missing required fields or using an unknown status, including a Leaning or Decided decision with no Why and a Given one with no Source
-  - questions with no one to answer them
+  - verdicts in Today, Design or Still to show outside their sets, a per-page Today, and an Explanation list with parts it doesn't know
   - duplicate IDs across the whole doc
   - an R, D, Q or E defined on a page instead of in design.md
   - pages or sections named in records that don't exist
@@ -97,6 +98,9 @@ Pages and components render with Node (`scripts/render.mjs`, no packages to inst
   - a Decided decision whose options aren't all Chosen, Not chosen or Set aside, a leaning that names an unmarked option, a Why longer than a sentence or two
   - the published doc behind changes.md
   - uncited evidence and unreferenced questions
+  - a Design verdict that says "not built yet", and a Demonstrated one that cites no evidence
+  - a deferred question still in a decision's Waiting on, and an unknown Needed by
+  - cost lines without a Category when others have one, and Costs with no Assumes or Leaves out
   - pages with no rail content
   - marker classes that don't match the ID
   - external resources other than Google Fonts
@@ -123,6 +127,19 @@ node <skill>/scripts/shot.mjs <built>.html dark.png --page s3-archive --dark --f
 ```
 
 The built doc also accepts `?page=`, `?card=` and `?view=security` in its URL, which is what the helper uses.
+
+## Reviewing what it says
+
+`check` proves the doc's structure: IDs resolve, fields are well formed, statuses agree with each other. It can't tell whether a sentence is true, so a clean check and build say nothing about whether the doc is right. After building, read what changed, and every page it could touch, against the records, as a reviewer who knows only what the records say:
+
+- **Existing versus proposed:** a diagram or sentence shows what exists today as existing and what the design adds as added. Nothing the design adds reads as though it already runs.
+- **Confirmed versus unconfirmed:** a claim with a finding behind it reads as fact; one resting on an open question says so, and cites it.
+- **Open versus chosen:** prose and pictures follow each decision's status; an open decision's option isn't described as the plan, and a settled one isn't still weighed.
+- **Intended versus demonstrated:** a security or compliance control the design adds reads as intended until evidence shows it working; nothing claims FIPS validation, an authorization, or encryption without that evidence.
+- **Contradictions and freshness:** the same record reads the same on every page (titles, verdicts, figures, who to ask), hand-written text agrees with what the build generates, and nothing describes a state the records have moved past.
+- **Names over IDs:** prose names each thing and cites its ID, as [writing](writing.md#identifiers) says.
+
+Fix what you find and rebuild. Report the review in your reply: what you read, what you changed, and anything you couldn't settle, rather than presenting the build as proof.
 
 ## Publishing
 

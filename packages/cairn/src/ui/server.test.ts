@@ -53,12 +53,15 @@ Where OPW runs in AWS and what it may access.
 ## Questions
 
 ### Q1 · Can the site VPNs carry a route to a new VPC?
-- Who: Network team (other team)
+- Ask: Network team
 
 ### Q2 · Who owns the S3 account?
-- Who: Platform lead (other team)
 - Answer: Platform
 - Answered by: E2
+
+### Q3 · How many customers in the first year?
+- Needed by: Later phase
+- Deferred: Only sizes the archive after the first year.
 `;
 
 const changes = `# Changes
@@ -248,7 +251,7 @@ describe("cairn ui server", () => {
     expect(page.attachments.map((attachment) => attachment.slug)).toEqual(["opw-deployment-on-aws"]);
   });
 
-  test("a design reports its settled decisions, open questions, and how far its published doc is behind", async () => {
+  test("a design reports its settled decisions, open and deferred questions, and how far its published doc is behind", async () => {
     const { root } = catalog();
     const { json } = await serve(root);
     const [opw] = await json<DesignItem[]>("/api/designs");
@@ -259,6 +262,7 @@ describe("cairn ui server", () => {
       efforts: ["opw-deployment-on-aws"],
       decisions: { total: 3, decided: 2 },
       open_questions: 1,
+      deferred_questions: 1,
       published: { state: "behind", changes: 1 },
       doc_url: "/docs/opw-deployment/"
     });

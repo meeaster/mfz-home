@@ -62,8 +62,11 @@ Text in record fields and terms takes `code`, links to sections (`[text](#id)`),
 | Source | Who or what requires it (shown in the doc) |
 | Page | The area page it lives on, when it isn't the overview |
 | Applies to | Other areas it also applies to; they list it under "Applies here, lives elsewhere" |
-| Met | `Yes`, `Partly` or `No`, then `·` and how, then the IDs it rests on in brackets: `Partly · Workers span three zones, but the relay is one instance. [E4, E5, D2]` |
-| Met on s3-archive | The same, for how one area page meets it |
+| Today | The system as it stands, for the whole requirement: `Meets`, `Doesn't meet`, `Unknown` or `Nothing today`, then `·` and what it does now, then the IDs it rests on in brackets: `Doesn't meet · The syslog server is one instance in one zone. [E5]` |
+| Design | How this design meets it: `Covers`, `Partly covers` or `Not covered` · how [IDs]. Never "not built yet": that goes in Still to show. |
+| Still to show | What has to be demonstrated before it holds: `Demonstrated` (cite the evidence), `Intended` (a control the design adds, not yet tested), `Unconfirmed` (rests on something not known) or `Nothing left` · what [IDs] |
+| Design on s3-archive, Still to show on s3-archive | The same, for one area page. Today has no per-page form. |
+| Met, Met on s3-archive | The older single verdict (`Yes`, `Partly`, `No` · how [IDs]). It renders as Design, with Today and Still to show "Not assessed"; replace it with the three when you next change the requirement. |
 
 **Parts** (`### Syslog server`): one per box in a design diagram. A piece the design sets up that isn't a box of its own (IAM roles, a bucket policy) is a part too; draw it as a label on the box or edge it governs.
 
@@ -88,7 +91,7 @@ Text in record fields and terms takes `code`, links to sections (`[text](#id)`),
 | Also considered | A list of `Name: why not` for alternatives that were plainly worse and never got a full option |
 | Source | For a Given decision, who or what set it (required). A Given decision needs no options or Worked out in; the decision map shows its source under it. |
 | Note | A sentence more, such as what it's waiting for |
-| Shapes | What the decision settles, in a few words, shown under the question. What it waits on stays out, in Follows: while a Later decision follows an unsettled one, the build writes "Needs D1 first." in its place, and Shapes returns once D1 is settled. |
+| Shapes | What the decision settles, in a few words, shown under the question. What it waits on stays out, in Follows: while a Later decision follows an unsettled one, the build writes "Needs where the workers run (D1) first." in its place, from the other decision's Rail, and Shapes returns once D1 is settled. |
 | Page | The area page it lives on, when it isn't the overview. A decision about the whole design has none. |
 | Applies to | Other areas it shapes; they show it under "Decided elsewhere, shapes this area" |
 | Rail | A short title for the rail ("Where the workers run") |
@@ -136,7 +139,7 @@ Options sit under their decision as `####` items. Keep every option ever conside
 - Why not: Five worker groups to run and patch.
 ```
 
-`Short` names the option in comparison and cost headers. Each `Evidence` item says what that finding shows for this option; a bare `E2, E6` uses each finding's own title. `Meets R2` is the option's verdict on a requirement, written like Met, for the comparison table.
+`Short` names the option in comparison and cost headers. Each `Evidence` item says what that finding shows for this option; a bare `E2, E6` uses each finding's own title. `Meets R2` is the option's verdict on a requirement, `Yes`, `Partly` or `No` · how [IDs], for the comparison table.
 
 Option statuses:
 
@@ -150,13 +153,22 @@ Option statuses:
 
 When a decision is made, mark the winner Chosen and each other option Not chosen or Set aside, each with its `Why not`. `check` warns when a Decided decision's options aren't all settled that way, when a Leaning decision names an option that isn't marked Current leaning, and when a brief's option cards don't match these options: letter, title, or class.
 
-**Risks** (`### The syslog relay fails or restarts.`): Likelihood (High, Medium, Low, Unknown), If it happens, What we'd do, Linked, Page when it lives on an area, and Applies to for the other areas it affects.
+**Risks** (`### The syslog relay fails or restarts.`): Likelihood (High, Medium, Low, Unknown), If it happens, What we'd do, Linked, Page when it lives on an area, Applies to for the other areas it affects, and an Explanation when it's consequential or easy to misread (written as for a question; the risk then opens in a modal).
 
-**Costs** (`### Transit Gateway attachment`): one per line item.
+**Costs** (`### Transit Gateway attachment`): one per line item. Before the first line, the section says what every figure assumes and leaves out:
+
+```markdown
+## Costs
+
+- Assumes: us-gov-west-1 list prices, 1.2 TB of firewall logs a month, and the first three customers.
+- Leaves out: The Datadog licence, priced on the Datadog contract; staff time.
+```
 
 | Field | Holds |
 | --- | --- |
-| Monthly | `$36`; `$3 → $39` for a cost that grows; `unknown (Q8)` or `per use` when it can't be priced yet. When it varies with a decision, each option's figure: `A $0 · B $36`. |
+| Category | One of a small set used across the design (Compute, Network, Storage, Licences…); totals break down by it |
+| Monthly | `$36`; `$3 → $39` for a cost that grows; `unknown (Q8)` or `per use` when it can't be priced yet, which shows as Unknown and stays out of the total. When it varies with a decision, each option's figure: `A $0 · B $36`. |
+| Applies when | When the line applies at all, in a few words ("While firewall logs go through the relay"); shown as a tag on the line |
 | Varies with | The decision whose options change it. The overview counts the chosen or leaned-towards option's figure; the brief's cost comparison shows each. |
 | Drives | What drives it, with the rate when volumes aren't known |
 | Affected by | Other decisions that would change it |
@@ -171,16 +183,18 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 
 | Field | Holds |
 | --- | --- |
-| Who | A person, team or vendor, with `(me)`, `(our team)`, `(other team)` or `(vendor)` last: `Security GRC (other team)`. Text after the tag drops it. |
+| Needed by | When the answer is needed: `Choosing the design`, `Before building`, `Later phase`, or a phase's title |
+| Ask | Who to ask, only when a person or a meeting named them: `Network team`. Left out otherwise. |
 | Short | A few words for the decision map ("Who owns a new VPC?"), up to about 40 characters; its box grows to fit |
 | Blocks | The decisions, requirements and flows it blocks. It decides where the question lives: with them, or on the overview when they're on different pages or it blocks only flows. |
-| So far | A partial answer and the evidence it rests on, while it's still open |
+| So far | A partial answer and the evidence it rests on, while it's still open; the question reads "Partly answered" |
+| Deferred | Why it can wait, on the user's word or a meeting's outcome. Nothing waits on a deferred question. |
+| Could reopen | For a deferred question, what its answer could still change: `customer data separation (D6), if the count passes about 50` |
 | Answer | Once answered: the answer in a few words |
 | Answered by | Once answered: the evidence it became |
-| Explanation | What the question asks and how it fits into the design, as for a decision: what we're trying to find out in plain words, and what it feeds and why that needs it. `check` warns when an open question has none. It opens the question's modal; tables and cards leave it out. |
-| Asked | Who it was put to, when, and through what, such as `Security GRC · 2026-10-03 · email`. Shown in the question's modal. |
+| Explanation | What the question asks and how it fits into the design, as for a decision: what we're trying to find out in plain words, and what it feeds and why that needs it. For a consequential one, a list of parts: `Means here:`, `Matters because:`, `Answer changes:`, `Settled by:` (see [writing](writing.md#explanations)). `check` warns when an open question has none. It opens the question's modal; tables and cards leave it out. |
 
-A question has no status: it's open until it has an Answer and Answered by. When and how it was asked goes in `Asked`; what to ask next is proposed when someone asks for a plan, and `check` warns about `Status`, `Latest` or `Page` on a question.
+A question has no status field: it's open, partly answered (`So far`), deferred (`Deferred`), or answered (`Answer` and `Answered by`). The doc doesn't track when or how a question was put to anyone; what to ask next is proposed when someone asks for a plan. `check` warns about `Status`, `Latest` or `Page` on a question. An older design's `Who` still shows as Ask (without its `(other team)` kind, and never `(me)`), and its `Asked` isn't shown; when you next change such a question, drop `Asked`, and leave `Who` as it is unless you know how it was set: rename it `Ask` when the user or a meeting named them, drop it when you know it was a guess. Don't turn it into `Ask` on your own, as though someone had named them.
 
 **Evidence** (`### E1 · Firewall logs from all 14 sites reach the syslog server over site VPNs.`): Found (a date), How we know, and Gathered from as a list of `Kind: portable description` items, such as `AWS account: prod-network · Transit Gateway route tables` or `Email: Security GRC, Oct 3`.
 
@@ -193,7 +207,8 @@ Every record can carry `- Recorded from:` naming its sources: `session claude-co
 ## Writing values
 
 - Mention another item by its ID in any text: "blocked by Q2". It renders as a link that opens the item's card. Write `\Q4` for text that only looks like an ID, such as a quarter.
-- Brackets are for what a verdict rests on: `Met`, `Meets R#` and a flow's `Assessment` end with `[E4, Q2, D2]`, drawn as markers after the verdict. In any other field, write the ID bare; brackets there stay as text.
+- Brackets are for what a verdict rests on: `Today`, `Design`, `Still to show`, `Meets R#` and a flow's `Assessment` end with `[E4, Q2, D2]`, drawn as markers after the verdict. In any other field, write the ID bare; brackets there stay as text.
+- In prose fields, name the thing and cite the ID after it ("the firewall log path (D2)"); an ID isn't the subject of a sentence. See [writing](writing.md#identifiers).
 - Link to a page or section with `[their brief](#workers)`.
 - Keep IDs stable. An answered question keeps its record, with Answer and Answered by. A dropped decision keeps its record too.
 
@@ -227,11 +242,11 @@ A page's standard sections render these on their own (see [components](component
 | Placeholder | On the overview | On an area page |
 | --- | --- | --- |
 | `<!-- records requirements -->` | Every requirement, grouped by where it lives | Its own, then "Applies here, lives elsewhere" |
-| `<!-- records measure -->` | How the design meets every requirement, from Met | Its requirements and those that apply, from Met on `<page>` or Met |
+| `<!-- records measure -->` | Every requirement: Today, Design and Still to show | Its requirements and those that apply, with the page's own Design and Still to show where it has them |
 | `<!-- records decisions -->` | Every decision, grouped by where it lives, unsettled first. A row with a Why, Reasoning, options or alternatives opens to show them. | Its own, then "Decided elsewhere, shapes this area" |
 | `<!-- records risks -->` | Every risk, grouped | Its own, then "Owned elsewhere, affects this area" |
-| `<!-- records cost -->` | Every cost line, grouped by area with subtotals, and the total | Its own lines and their total |
-| `<!-- records questions -->` | Every open question, grouped, then the overview's own answered ones | Its own, those from elsewhere that reach it, then its answered ones |
+| `<!-- records cost -->` | The basis, every cost line grouped by area with subtotals, the known total and the totals by category | Its own lines and their total |
+| `<!-- records questions -->` | Every open question, grouped, with filters by Needed by and Ask when any question has them, then the overview's own answered ones | Its own, those from elsewhere that reach it, then its answered ones |
 | `<!-- records progress -->` | A tile per area with its decisions and open questions; one line when there are no areas | One line: its decisions and questions, and what reaches it from elsewhere |
 | `<!-- records parts -->` | The page's parts table | The page's parts table |
 | `<!-- records decisions-rail -->` | Rail items for every open decision | The page's own open decisions; `ids=D6,D5` picks and orders them anywhere |

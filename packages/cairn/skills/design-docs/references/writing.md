@@ -4,9 +4,6 @@ A design doc is read together on a shared screen, and someone who doesn't know t
 
 ## Headers
 
-An ID written as an example rather than a reference, such as "D4 decided" in a design about change logs, needs its escape (`\D4`); otherwise it links to the doc's own D4 if there is one.
-
-
 Every page starts with a header: the title (about ten words at most), a one-sentence dek, a context line, and the last-updated date. The dek says what the title can't: the page's answer or where it stands, never a list of what the page covers. The overview's says what the system does, more concretely than its title. A brief's says where the decision stands and what it turns on. An area's says what the part guarantees and what's still open in it. On shared pages, Meetings says what the meetings so far settled, and Evidence says when and where the findings came from. A brief's title is its question ("Where should the log pipeline workers run?"). The overview's names what's being built ("Log ingestion in our cloud"). On pages other than the overview, the context line starts with a link back to it ("Overview / area", "Overview / brief"). Under an overview's or area's header, the progress line shows how much is settled (see [pages](pages.md)). Leave out parts that don't exist rather than inventing names. No owner, audience, or status fields. The rail's short title is two or three words.
 
 ## Section intros
@@ -22,11 +19,11 @@ Most sections need only their heading. Add an intro under a heading only when it
 | Requirements | Every requirement, with a reason and a source, grouped by where it lives. Priority is Must or Should. |
 | How it fits together | Once there are areas: one box per area, each linking to its page, drawn the way the areas relate. See [diagrams](diagrams.md). |
 | The whole system | The design as it stands, in one picture with architecture and security views. See below. |
-| How it measures up | Each requirement, whether the design meets it (yes, partly, no), how, and the evidence, questions or decisions it rests on. |
-| Cost | One line per cost, what drives it, the monthly figure, and its pricing evidence, grouped by area with each area's subtotal: Costs records, with the basis of the figures as the section's intro. When volumes aren't known yet, put the rate in What drives it and "unknown (Q8)" in Monthly, with the question that would settle it; the total then says how many lines aren't known rather than inventing one. A line that would change if a decision went another way names it in `Affected by`, or gives each option's figure with `Varies with`. A cost that grows over time is a range ("$3 → $39"), and says so in What drives it. |
-| Risks | What could go wrong once it's running: likelihood, what happens, what we'd do, and what it's linked to. |
+| How it measures up | Each requirement three ways: what the system does today, what this design covers, and what still has to be shown, with the evidence, questions or decisions each rests on. See below. |
+| Cost | What the figures assume and leave out, then one line per cost with its category, what drives it, the monthly figure and its pricing evidence, grouped by area with each area's subtotal. See below. |
+| Risks | What could go wrong once it's running: likelihood, what happens, what we'd do, and what it's linked to. A consequential risk carries an Explanation and opens in a modal. |
 | Decisions | Every decision the design depends on, open or made, with its status and where it's worked out. Each row opens the decision in a modal with its explanation, reasoning and alternatives, all from design.md. See [pages](pages.md). |
-| Open questions | Every open question, who can answer it and what it blocks. Each row opens the question in a modal with its explanation. Answered ones collapse under their home page's list. |
+| Open questions | Every open question, how far it has got, when its answer is needed, who to ask when someone was named, and what it blocks. Each row opens the question in a modal with its explanation. Answered ones collapse under their home page's list. |
 
 Leave out a section with nothing real in it: cost for a process change, the security view when no data crosses a boundary, the map until there are areas.
 
@@ -42,6 +39,26 @@ Leave out a section with nothing real in it: cost for a process change, the secu
 - **Choose the picture the design needs:** components and networks for infrastructure, the phases side by side for a migration, the steps and hand-offs for a process. The security view applies whenever data crosses a boundary.
 - **When a decision is made,** the bound parts turn solid on the next build. Redraw only when what was chosen differs from what was drawn; a part drawn for one option can carry `data-when="D1=B"` so it shows only while that option is chosen or leaned towards.
 - **The parts table** has one row per box: what it does, the decisions that shaped it (including settled ones, so each part links back to why it's that way), and its evidence. It sits under this diagram until the design has areas; then each part lives on its area's page, under that area's diagram.
+
+## How it measures up
+
+Each requirement is judged three separate ways, because a reader needs to tell what's true now from what the design intends and from what's actually been shown:
+
+- **Today** is the system as it stands, for the whole requirement: Meets, Doesn't meet, Unknown, or Nothing today when what it's about doesn't exist yet. It's the same on every page.
+- **Design** is how this design meets it: Covers, Partly covers, or Not covered, and how. It judges the design's fit, so "not built yet" is never an answer here; say what the design does, and put what remains in Still to show. An area page can give its own (`Design on <page>`).
+- **Still to show** is what has to be demonstrated before anyone can say it holds: Demonstrated (evidence shows it, cited), Intended (the design adds a control nobody has tested, rendered "Intended, not tested"), Unconfirmed (it rests on something not yet known, such as an open question), or Nothing left. A control the design plans stays Intended until evidence shows it working; a security control is never Demonstrated by being designed.
+
+Keep the words consistent with the pages: if a diagram shows TLS on the relay as added by the design, the requirement it serves reads Covers with Intended, not Meets. Older designs have a single `Met`; it still renders as the Design verdict, with Today and Still to show left "Not assessed". Split it when you next change that requirement, not in bulk.
+
+## Cost
+
+Leave cost out when it doesn't bear on the design (a process change, a choice every option prices the same). When it does, make the figures comparable:
+
+- **The basis:** under `## Costs`, `- Assumes:` (prices, region, volumes) and `- Leaves out:` (licences priced elsewhere, staff time, what exists today). Every total is read against them, and a brief's cost comparison shows them too.
+- **Categories:** give every line a `Category` from one small set used across the design (Compute, Network, Storage, Licences…). The totals break down by category, so a network-only figure is labelled as one rather than passing for the whole.
+- **Unknown is never $0:** when a volume isn't known, put the rate in What drives it and "unknown (Q8)" in Monthly, with the question that would settle it. The line shows Unknown and stays out of the total, which is then labelled "Known total" and names what it leaves out.
+- **Conditional costs:** a line that applies only in some circumstances says so in `Applies when` ("While firewall logs go through the relay"). A line whose figure depends on a decision gives each option's figure with `Varies with`; one it would merely change names the decision in `Affected by`.
+- A cost that grows over time is a range ("$3 → $39"), and says so in What drives it. Cite pricing evidence on every line.
 
 ## Area page sections
 
@@ -100,29 +117,42 @@ When a requirement is implied by how the question was asked but nobody stated it
 
 ## Explanations
 
-Each open decision and question carries an `Explanation`: what it asks and how it fits into the design, for the reader who sees the question and doesn't follow it. It's the first thing their modal shows, before the answer or options.
+Each open decision and question carries an `Explanation`: what it asks and how it fits into the design, for the reader who sees the question and doesn't follow it. It's the first thing their modal shows, before the answer or options. A risk takes one too when it's consequential or easy to misread, and then opens in the same modal.
 
 - Say what's being asked in plain words, and spell out any term the title leans on ("the flags", "pick-up", "the relay").
-- Place it: which part of the design it's about, what it follows or feeds, and the goal or requirement it serves, by ID.
+- Place it: which part of the design it's about, what it follows or feeds, and the goal or requirement it serves.
 - Keep to what the question is. Options, the leaning and why each have their own fields.
-- Three to five sentences that make sense on their own, without the options or the evidence.
+- A few sentences that make sense on their own, without the options or the evidence. Match the length to the stakes: a routine question needs two sentences, not four headings.
+
+When the item is consequential or ambiguous, write the explanation in parts, each a sentence or two; leave out a part with nothing to say:
+
+- `Means here`: what it is in this system.
+- `Matters because`: what rides on it.
+- `Answer changes`: what each likely answer does to the design (for a risk, what it changes if it happens).
+- `Settled by`: what would settle it: the evidence, ruling or test.
 
 ```markdown
-### Q2 · Does security standard SEC-12 allow customer traffic to end inside Shared Tooling?
-- Explanation: Customer connections have to end somewhere inside our network. SEC-12 is the security standard for Shared Tooling, the network that hosts our internal tools. If it doesn't allow customer traffic to end there, the workers can't go in Shared Tooling (D1, option A); that doubt is the main reason the design leans towards a VPC of their own.
-- Short: May customer traffic end in Shared Tooling?
-- Who: Security (GRC) (other team)
-- Blocks: D1
-- Asked: Security GRC · 2026-10-03 · email
+### Q1 · Can the site VPNs carry a route to a new VPC's address range without re-creating the tunnels?
+- Explanation:
+  - Means here: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If the workers get a VPC of their own (D1, option B), the tunnels need to carry its range too.
+  - Matters because: Re-created tunnels need a change window at every site, and the design must add no new VPN tunnels before January (R5).
+  - Answer changes: Yes, and the own-VPC option stays open. No, and the workers stay in Shared Tooling, or firewall logs keep going through the relay.
+  - Settled by: The network team confirms the tunnels accept an added route, or tries one on a single site.
+- Short: Can site VPNs reach a new VPC?
+- Needed by: Choosing the design
+- Ask: Network team
+- Blocks: D1, D2
 ```
 
 ## Open questions
 
 - Phrase each as a question someone could answer with a fact or a ruling. If it's really a choice between options with tradeoffs, it's a decision; a question is something we find out, a decision something we choose. A ruling someone else makes (what security allows) is a question for us; what we do within it is our decision.
-- Who can answer: name a person, team, or vendor, and say whether that's me, our team, another team, or a vendor. A question nobody can answer isn't ready to be listed; say what would find the answer instead.
+- **Ask** names who to ask, and only when a person said so or a meeting settled it ("ask the network team"). Naming who wants something ("Security wants rotation") or who set a requirement isn't naming who to ask. Otherwise leave it out: don't guess an owner from job titles, and don't name the reader ("me") or a generic team. There's no separate owner, answerer or approver. A person's name is fine when that's who was named; it publishes with the doc.
+- **Needed by** says when the answer matters: `Choosing the design` (a decision can't be made without it), `Before building` (the design can be chosen, but not built), `Later phase` (or a phase's title). It's when the answer is needed, not an agenda: who chases it and when to ask are left for whoever plans the work. You can set it from what the question blocks (an open decision the design needs makes it Choosing the design), log it under your session, and let the user change it; "after launch" is Later phase.
+- **Deferred** holds the reason a question can wait, set only on the user's word or a meeting's outcome; a question is never deferred because nobody has answered it. Add `Could reopen` for what its answer could still change ("customer data separation (D6), if the count passes about 50"). A deferred question stays on its page, marked Deferred, and nothing waits on it: take it off each decision's `Waiting on`.
 - Say which decisions, requirements or flows it blocks. A security unknown blocks the flow whose Assessment can't be settled without it (`Blocks: S-F5`), and that Assessment cites it. A question that blocks nothing is about the work, not the design: it goes in the effort's open questions. The decisions it blocks list it in `Waiting on`.
-- Record who it was put to, when, and through what in `Asked`, and leave out what to ask next. A partial answer goes in `So far`, with the evidence it rests on.
-- **When it's answered,** the answer becomes evidence (a new E#, with its source). Give the question `Answer` (a few words) and `Answered by` (the evidence); it moves to its page's collapsed Answered list. Then update what it blocked: take it off each decision's `Waiting on`, move the decision if the answer settles it or rules an option out (citing the evidence), update any requirement's `Met`, and bring the pages along. An answer that is really a rule someone set is a candidate requirement or Given decision, with them as its source: propose it, and add it on the user's word like any other requirement. An answer that raises new questions gets new Q numbers.
+- A partial answer goes in `So far`, with the evidence it rests on; the question then reads "Partly answered". The doc doesn't track when or how a question was put to anyone, and leaves out what to ask next.
+- **When it's answered,** the answer becomes evidence (a new E#, with its source). Give the question `Answer` (a few words) and `Answered by` (the evidence); it moves to its page's collapsed Answered list. Then update what it blocked: take it off each decision's `Waiting on`, move the decision if the answer settles it or rules an option out (citing the evidence), update any requirement's Today, Design or Still to show, and bring the pages along. An answer that is really a rule someone set is a candidate requirement or Given decision, with them as its source: propose it, and add it on the user's word like any other requirement. An answer that raises new questions gets new Q numbers.
 - **When a decision is settled without it,** take the decision off the question's `Blocks` and `Waiting on`. The question stays while it still blocks a requirement or another decision. If it now blocks nothing, `check` says so; ask the user whether it still matters to the design or moves to the effort's open questions. If its answer could still overturn the decision, say so in the decision's `Revisit if`.
 
 ## Identifiers
@@ -130,6 +160,9 @@ Each open decision and question carries an `Explanation`: what it asks and how i
 - E (evidence), Q (question), D (decision) and R (requirement) numbers are unique across the doc and stable. Never renumber: meeting notes and conversations refer to them.
 - When something is answered, superseded, or dropped, update it in place and say so rather than reusing its number.
 - When a brief joins a design doc, keep its numbers if they're free; otherwise renumber once, at that moment, and note it in the next meeting summary.
+- IDs are for markers and citations; people read names. In prose, name the thing and cite its ID after it: "if the workers get their own network (D1)", "logs staying in the GovCloud partition (R6) fails". An ID never stands in for the thing as the subject of a sentence ("if D1 lands on B", "R6 fails", "once Q1 and Q4 come back"). Chips in tables and rails stay the short ID.
+- An ID written as an example rather than a reference, such as "D4 decided" in a design about change logs, needs its escape (`\D4`); otherwise it links to the doc's own D4 if there is one.
+- An ID from another system, such as an ADR number, is provenance: cite it in `Source` or `Recorded from`, not as the name a reader has to decode.
 
 ## Language
 

@@ -19,7 +19,7 @@ How customers connect is settled after where the workers run (D1, D3), and sized
 ## Design
 
 ::: design-card title="From customers to the workers" diagram=ci-design
-A PrivateLink endpoint in the workers' VPC, assumed until D3 is settled.
+A PrivateLink endpoint in the workers' VPC, assumed until how customers connect (D3) is settled.
 :::
 
 ## How it measures up

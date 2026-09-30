@@ -19,7 +19,7 @@ What's open is the last step: keep the syslog server as a relay to the workers, 
 ## Design
 
 ::: design-card title="From the sites to the workers" diagram=fw-design
-Today's path, with the relay as the last hop until D2 is settled.
+Today's path, with the relay as the last hop until the firewall log path (D2) is settled.
 :::
 
 ## How it measures up

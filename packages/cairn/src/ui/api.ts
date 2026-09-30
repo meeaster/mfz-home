@@ -105,6 +105,8 @@ export type DesignItem = {
   readonly efforts: readonly string[];
   readonly decisions: { readonly total: number; readonly decided: number };
   readonly open_questions: number;
+  // Questions put off on someone's word; they wait on nothing, so they aren't open.
+  readonly deferred_questions: number;
   // Whether the built doc includes every change in changes.md.
   readonly published: { readonly state: "current" } | { readonly state: "behind"; readonly changes: number } | { readonly state: "unpublished" };
   // Where the UI serves the built doc, or null until it's built.

@@ -14,7 +14,7 @@ Every log the workers receive is also written to S3 and kept for a year (D5). Th
 
 Our own logs and customer logs go to separate buckets. Inside the customer bucket, each customer gets their own prefix and their own KMS key, so a role or key for one customer can't read another customer's logs.
 
-Whether one customer bucket is enough, or each customer needs a bucket of their own, is still open (D6). It depends on how many customers we expect in the first year (Q8).
+Whether one customer bucket is enough, or each customer needs a bucket of their own, is still open (D6). The first three customers fit one bucket either way, so how many join in the first year (Q8) can wait until after launch.
 
 ## Requirements
 
