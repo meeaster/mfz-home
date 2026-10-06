@@ -13,6 +13,7 @@ import type {
   KnowledgeItem,
   SessionListItem,
   SessionPage,
+  LinksPage,
   SidebarData,
   SourceItem
 } from "./api.ts";
@@ -23,6 +24,7 @@ import {
   effortPage,
   filePage,
   folderToOpen,
+  jiraAndConfluence,
   knowledgeList,
   sessionList,
   sessionPage,
@@ -60,6 +62,7 @@ type Payload =
   | KnowledgeItem[]
   | DesignItem[]
   | SourceItem[]
+  | LinksPage
   | FilePage;
 
 type Body = Payload | { readonly error: string } | { readonly opened: string };
@@ -75,6 +78,7 @@ const routes: readonly (readonly [RegExp, Route])[] = [
   [/^\/api\/knowledge$/, (cairn) => knowledgeList(cairn)],
   [/^\/api\/designs$/, (cairn) => designList(cairn)],
   [/^\/api\/sources$/, (cairn) => sourceList(cairn)],
+  [/^\/api\/links$/, (cairn) => jiraAndConfluence(cairn)],
   [/^\/api\/file$/, (cairn, params) => filePage(cairn, params.get("path") ?? "")]
 ];
 

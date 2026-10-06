@@ -111,6 +111,27 @@ export const fileEventInput = z.object({
   session: sessionKey
 });
 
+export const issueKey = z.string().regex(/^[A-Z][A-Z0-9_]*-\d+$/, "Expected a Jira key such as OBS-220");
+
+// What an agent read about a Jira item, for a url whose pointer type is jira_issue.
+export const jiraDetails = z.object({
+  key: issueKey,
+  type: optionalText,
+  status: optionalText,
+  category: z.enum(["todo", "progress", "done"]).optional(),
+  parent: issueKey.optional(),
+  blocks: z.array(issueKey).default([]),
+  read_at: optionalText
+});
+
+// What an agent read about a Confluence page, for a url whose pointer type is confluence_page.
+export const confluenceDetails = z.object({
+  space: optionalText,
+  version: z.number().int().positive().optional(),
+  updated: optionalText,
+  read_at: optionalText
+});
+
 export const describeInput = z
   .object({
     path: absolutePath.optional(),
@@ -127,9 +148,12 @@ export const describeInput = z
       })
       .default({ include: [], exclude: [] }),
     informs: z.array(artifactReference).default([]),
-    supersedes: z.array(artifactReference).default([])
+    supersedes: z.array(artifactReference).default([]),
+    jira: jiraDetails.optional(),
+    confluence: confluenceDetails.optional()
   })
-  .refine((input) => (input.path === undefined) !== (input.url === undefined), "Give exactly one of path or url");
+  .refine((input) => (input.path === undefined) !== (input.url === undefined), "Give exactly one of path or url")
+  .refine((input) => input.url !== undefined || (input.jira === undefined && input.confluence === undefined), "jira and confluence describe a url");
 
 export const findInput = z.object({
   target: z.enum(["efforts", "sessions", "artifacts"]),

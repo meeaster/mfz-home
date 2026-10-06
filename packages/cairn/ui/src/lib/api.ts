@@ -5,6 +5,7 @@ import type {
   EffortPage,
   FilePage,
   KnowledgeItem,
+  LinksPage,
   SessionListItem,
   SessionPage,
   SidebarData,
@@ -54,6 +55,7 @@ export const api = {
   knowledge: (signal?: AbortSignal) => get<KnowledgeItem[]>("/api/knowledge", signal),
   designs: (signal?: AbortSignal) => get<DesignItem[]>("/api/designs", signal),
   sources: (signal?: AbortSignal) => get<SourceItem[]>("/api/sources", signal),
+  links: (signal?: AbortSignal) => get<LinksPage>("/api/links", signal),
   file: (path: string, signal?: AbortSignal) => get<FilePage>(`/api/file?path=${encodeURIComponent(path)}`, signal)
 };
 

@@ -234,6 +234,44 @@ function addArtifactLink(cairn: Cairn, srcId: number, rel: "informs" | "supersed
   `;
 }
 
+// What an agent read about a Jira item or a Confluence page. Each read replaces the last: Jira and Confluence own these
+// facts, and read_at says when they held.
+function recordDetails(cairn: Cairn, id: number, input: DescribeInput): void {
+  const type = input.url === undefined ? null : pointerType(input.url);
+  const readAt = (given: string | undefined): string => given ?? timestamp(cairn);
+
+  if (input.jira !== undefined) {
+    if (type !== "jira_issue") {
+      throw new CairnError("invalid", `jira describes a Jira item's url; ${input.url ?? "this"} isn't one`);
+    }
+
+    const { key, type: issueType, status, category, parent, blocks, read_at } = input.jira;
+
+    cairn.sql.run`
+      INSERT INTO jira_item (artifact_id, issue_key, issue_type, status, status_category, parent_key, blocks, read_at)
+      VALUES (${id}, ${key}, ${issueType ?? null}, ${status ?? null}, ${category ?? null}, ${parent ?? null}, ${JSON.stringify(blocks)}, ${readAt(read_at)})
+      ON CONFLICT (artifact_id) DO UPDATE SET issue_key = excluded.issue_key, issue_type = excluded.issue_type,
+        status = excluded.status, status_category = excluded.status_category, parent_key = excluded.parent_key,
+        blocks = excluded.blocks, read_at = excluded.read_at
+    `;
+  }
+
+  if (input.confluence !== undefined) {
+    if (type !== "confluence_page") {
+      throw new CairnError("invalid", `confluence describes a Confluence page's url; ${input.url ?? "this"} isn't one`);
+    }
+
+    const { space, version, updated, read_at } = input.confluence;
+
+    cairn.sql.run`
+      INSERT INTO confluence_page (artifact_id, space, version, page_updated, read_at)
+      VALUES (${id}, ${space ?? null}, ${version ?? null}, ${updated ?? null}, ${readAt(read_at)})
+      ON CONFLICT (artifact_id) DO UPDATE SET space = excluded.space, version = excluded.version,
+        page_updated = excluded.page_updated, read_at = excluded.read_at
+    `;
+  }
+}
+
 export function describe(cairn: Cairn, input: DescribeInput, actor: string): ArtifactEntry {
   return transaction(cairn, () => {
     const producerId = input.session === undefined ? null : ensureSession(cairn, input.session, {});
@@ -255,6 +293,8 @@ export function describe(cairn: Cairn, input: DescribeInput, actor: string): Art
       WHERE id = ${id} AND status = 'undescribed' AND category IS NOT NULL
         AND (title IS NOT NULL OR description IS NOT NULL)
     `;
+
+    recordDetails(cairn, id, input);
 
     for (const slug of input.efforts.include) {
       setMembership(cairn, id, slug, "include", actor);

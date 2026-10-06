@@ -32,6 +32,16 @@ Records describe state: what is settled, the human's views, what was said and by
 
 A file's efforts come from the session that first wrote it, so nothing is copied or moved to join an effort. A design, knowledge article, or source that bears on another effort joins it through `catalog_describe` with `efforts.include`. `catalog_find` returns pointers with titles and descriptions; read the files you need.
 
+## Jira items, Confluence pages and other links
+
+The pages and tickets around the work are pointers, not files: Jira owns the work's tracking and Confluence its shared documents, and Cairn records where they are, how they relate to the work, and what an agent last read about them. The UI shows an effort's Jira items as one lane per epic and its Confluence pages as created or referenced, and lists them all on its Jira and Confluence page.
+
+- **Register one when it bears on the work:** a ticket or page created in a session, one the human names, or one a source or design cites. Use `catalog_describe` with its `url`; `category` `deliverable` when the work created it, `source` when it's someone else's the work relies on; a short `title`; a `description` of one sentence saying why it's here; and `efforts.include` for the efforts it bears on. Including it needs no approval, as with sources.
+- **Say what you read.** Having read a Jira item through the Atlassian MCP server, pass `jira`: its `key`, `type`, `status`, `category` (`todo`, `progress` or `done`), `parent` epic and the keys it `blocks`. For a Confluence page, pass `confluence`: its `space`, `version` and when it was last `updated`. Each read replaces the last, timed when you made it.
+- **Refresh when asked.** For "refresh the Jira items" on an effort, list them with `catalog_find` (`pointer_type` `jira_issue`, the effort), read each through Atlassian, register the stories now under its epics, and describe each again with what you read. Jira's status stays in Jira and in these reads; never copy it into `effort.md`.
+- **Content goes through intake.** A page or ticket whose words settle something (a requirement, a ruling, a decision) is saved as a source like a message thread, at `sources/confluence/<page>.md` or `sources/tickets/<key>.md`, naming the version or comment it was read through, and its candidates go through intake. A page that's only referred to stays a pointer.
+- **The plan is the design's.** Which Jira items deliver which plan deliverable is recorded in the design (`design-docs`), never in Cairn or `effort.md`; the UI works it out from the design.
+
 ## Sources
 
 Meetings, emails, chats, tickets, and documents someone shared come from outside the work. They live under `sources/`, so any session can find them and cite them by date and subject. Include each one in the efforts it bears on. The raw output of our own investigations stays with the evidence it supports.

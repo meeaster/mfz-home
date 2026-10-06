@@ -423,7 +423,8 @@ const commandTable = {
   describe: {
     usage:
       "cairn describe <path|url> [--category <category>] [--title <text>] [--description <text>] [--origin <ref>] " +
-      "[--session <harness>:<id>] [--include <effort>]... [--exclude <effort>]... [--informs <path|url>]... [--supersedes <path|url>]...",
+      "[--session <harness>:<id>] [--include <effort>]... [--exclude <effort>]... [--informs <path|url>]... [--supersedes <path|url>]... " +
+      "[--jira <json>] [--confluence <json>]",
     options: {
       category: { type: "string" },
       title: { type: "string" },
@@ -433,11 +434,15 @@ const commandTable = {
       include: { type: "string", multiple: true },
       exclude: { type: "string", multiple: true },
       informs: { type: "string", multiple: true },
-      supersedes: { type: "string", multiple: true }
+      supersedes: { type: "string", multiple: true },
+      jira: { type: "string" },
+      confluence: { type: "string" }
     },
     mode: "write",
     run: (cairn, values, positionals) => {
       const target = reference(positional(positionals, 0, "path|url"));
+      const jira = one(values, "jira");
+      const confluence = one(values, "confluence");
 
       const input = schemas.describeInput.parse({
         path: isUrl(target) ? undefined : target,
@@ -449,7 +454,9 @@ const commandTable = {
         session: one(values, "session"),
         efforts: { include: many(values, "include"), exclude: many(values, "exclude") },
         informs: many(values, "informs").map(reference),
-        supersedes: many(values, "supersedes").map(reference)
+        supersedes: many(values, "supersedes").map(reference),
+        jira: jira === undefined ? undefined : schemas.jiraDetails.parse(JSON.parse(jira)),
+        confluence: confluence === undefined ? undefined : schemas.confluenceDetails.parse(JSON.parse(confluence))
       });
 
       const entry = describe(cairn, input, one(values, "session") ?? "cli");

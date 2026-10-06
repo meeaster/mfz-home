@@ -13,7 +13,7 @@ import {
   type ArtifactEntry,
   type EffortSummary
 } from "../core/find.ts";
-import { findArtifactId, findSessionId, requireSessionId } from "../core/lookup.ts";
+import { findArtifactId, findSessionId, requireEffortId, requireSessionId } from "../core/lookup.ts";
 import { relativeInsideRoot } from "../core/root.ts";
 import { articlesInformed, effortView, knowledgeArticles, type ArticleReference } from "../core/views.ts";
 import * as schemas from "../schemas.ts";
@@ -25,11 +25,13 @@ import type {
   EffortPage,
   FilePage,
   KnowledgeItem,
+  LinksPage,
   SessionListItem,
   SessionPage,
   SidebarData,
   SourceItem
 } from "./api.ts";
+import { effortWork, linkCount, linksPage } from "./work.ts";
 import { countChanges, type DesignStats, designStats, docSlug, jsonDesignStats, meetingIntake, publishedMark, threadState } from "./records.ts";
 
 // Files larger than this are listed but not shown in the viewer.
@@ -136,23 +138,6 @@ function latestBackup(cairn: Cairn): string | null {
 
 export function sidebar(cairn: Cairn): SidebarData {
   const efforts = effortList(cairn);
-  const byInitiative = new Map<string | null, EffortListItem[]>();
-
-  for (const effort of efforts) {
-    const initiatives = effort.tags.filter((tag) => tag.startsWith("initiative:"));
-
-    for (const initiative of initiatives.length === 0 ? [null] : initiatives) {
-      const members = byInitiative.get(initiative) ?? [];
-
-      members.push(effort);
-      byInitiative.set(initiative, members);
-    }
-  }
-
-  const initiatives = [...byInitiative.entries()]
-    .sort(([left], [right]) => (left === null ? 1 : right === null ? -1 : left.localeCompare(right)))
-    .map(([initiative, members]) => ({ initiative, efforts: members.sort((a, b) => a.title.localeCompare(b.title)) }));
-
   const roots = cairn.sql.get`SELECT count(*) AS count FROM session WHERE parent_session_id IS NULL`;
 
   const home = homedir();
@@ -162,12 +147,13 @@ export function sidebar(cairn: Cairn): SidebarData {
     last_backup: latestBackup(cairn),
     counts: {
       efforts: efforts.length,
+      designs: designList(cairn).length,
+      links: linkCount(cairn),
       sessions: roots === undefined ? 0 : integer(roots, "count"),
       knowledge: knowledgeArticles(cairn).length,
-      designs: designList(cairn).length,
       sources: sourceList(cairn).length
     },
-    initiatives
+    efforts: efforts.map((effort) => ({ slug: effort.slug, title: effort.title }))
   };
 }
 
@@ -205,8 +191,13 @@ export function effortPage(cairn: Cairn, slug: string): EffortPage {
     records: view.records,
     links: view.links,
     sessions,
-    groups
+    groups,
+    work: effortWork(cairn, requireEffortId(cairn, view.slug), view.slug, designList(cairn))
   };
+}
+
+export function jiraAndConfluence(cairn: Cairn): LinksPage {
+  return linksPage(cairn, designList(cairn));
 }
 
 export function sessionPage(cairn: Cairn, key: string): SessionPage {

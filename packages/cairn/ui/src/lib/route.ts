@@ -7,6 +7,7 @@ export type Route =
   | { readonly view: "session"; readonly key: string }
   | { readonly view: "knowledge" }
   | { readonly view: "designs" }
+  | { readonly view: "links" }
   | { readonly view: "sources" };
 
 export type Location = {
@@ -26,7 +27,7 @@ function parseRoute(path: string): Route {
     return { view: "session", key: second };
   }
 
-  if (first === "sessions" || first === "knowledge" || first === "designs" || first === "sources") {
+  if (first === "sessions" || first === "knowledge" || first === "designs" || first === "sources" || first === "links") {
     return { view: first };
   }
 

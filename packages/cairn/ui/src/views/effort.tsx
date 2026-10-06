@@ -14,6 +14,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { ArtifactTable } from "@/components/artifact-table";
+import { EffortOverview } from "@/components/effort-overview";
 import { EmptyList, Loaded, PageBody, PageHeader } from "@/components/page";
 import { SessionTable } from "@/components/session-table";
 import { api, openFolder, useResource, type ArtifactGroupItem, type EffortPage, type EffortStatus } from "@/lib/api";
@@ -28,14 +29,6 @@ export const statusBadge: Readonly<Record<EffortStatus, "ok" | "warn" | "seconda
   paused: "secondary",
   done: "secondary",
   archived: "secondary"
-};
-
-const relationLabels: Readonly<Record<EffortPage["links"][number]["relation"], string>> = {
-  depends_on: "depends on",
-  needed_by: "needed by",
-  split_from: "split from",
-  split_into: "split into",
-  related: "related to"
 };
 
 // The same artifacts regrouped by the session that produced them.
@@ -95,37 +88,6 @@ function Artifacts({ effort, route }: { readonly effort: EffortPage; readonly ro
         </DropdownMenu>
       </div>
       <ArtifactTable groups={shown} route={route} colored={grouping === "category"} />
-    </div>
-  );
-}
-
-function Links({ effort }: { readonly effort: EffortPage }) {
-  if (effort.links.length === 0) {
-    return <EmptyList title="No linked efforts" description="Links record when one effort depends on, splits from, or relates to another." />;
-  }
-
-  return (
-    <div className="flex flex-col gap-3">
-      {effort.links.map((link) => (
-        <Card key={`${link.relation}-${link.slug}`} size="sm">
-          <CardHeader>
-            <CardTitle className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="font-mono">
-                {relationLabels[link.relation]}
-              </Badge>
-              <a href={effortHref(link.slug)} className="hover:underline">
-                {link.title}
-              </a>
-              <Badge variant={statusBadge[link.status]}>{link.status}</Badge>
-            </CardTitle>
-          </CardHeader>
-          {link.summary !== null && (
-            <CardContent>
-              <p className="text-sm text-muted-foreground">{link.summary}</p>
-            </CardContent>
-          )}
-        </Card>
-      ))}
     </div>
   );
 }
@@ -214,7 +176,7 @@ export function EffortView({ slug, route }: { readonly slug: string; readonly ro
         const artifactCount = value.groups.reduce((sum, group) => sum + group.artifacts.length, 0);
 
         return (
-          <Tabs defaultValue="artifacts" className="gap-0">
+          <Tabs defaultValue="overview" className="gap-0">
             <PageHeader
               crumbs={[
                 { label: "Efforts", href: routeHref({ view: "efforts" }) },
@@ -242,30 +204,30 @@ export function EffortView({ slug, route }: { readonly slug: string; readonly ro
               }
             >
               <TabsList className="mt-1">
-                <TabsTrigger value="artifacts">Artifacts {artifactCount}</TabsTrigger>
+                <TabsTrigger value="overview">Overview</TabsTrigger>
+                <TabsTrigger value="material">Material {artifactCount}</TabsTrigger>
                 <TabsTrigger value="sessions">Sessions {value.sessions.length}</TabsTrigger>
-                <TabsTrigger value="links">Links {value.links.length}</TabsTrigger>
               </TabsList>
             </PageHeader>
             <PageBody>
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
-                <div className="min-w-0 flex-1">
-                  <TabsContent value="artifacts">
+              <TabsContent value="overview">
+                <EffortOverview effort={value} route={route} />
+              </TabsContent>
+              <TabsContent value="material">
+                <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+                  <div className="min-w-0 flex-1">
                     <Artifacts effort={value} route={route} />
-                  </TabsContent>
-                  <TabsContent value="sessions">
-                    {value.sessions.length === 0 ? (
-                      <EmptyList title="No sessions attached" description="Sessions attach to an effort when you approve it." />
-                    ) : (
-                      <SessionTable sessions={value.sessions} />
-                    )}
-                  </TabsContent>
-                  <TabsContent value="links">
-                    <Links effort={value} />
-                  </TabsContent>
+                  </div>
+                  <Details effort={value} route={route} />
                 </div>
-                <Details effort={value} route={route} />
-              </div>
+              </TabsContent>
+              <TabsContent value="sessions">
+                {value.sessions.length === 0 ? (
+                  <EmptyList title="No sessions attached" description="Sessions attach to an effort when you approve it." />
+                ) : (
+                  <SessionTable sessions={value.sessions} />
+                )}
+              </TabsContent>
             </PageBody>
           </Tabs>
         );

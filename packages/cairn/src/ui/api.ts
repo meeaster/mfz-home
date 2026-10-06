@@ -39,13 +39,80 @@ export type SidebarData = {
   readonly last_backup: string | null;
   readonly counts: {
     readonly efforts: number;
+    readonly designs: number;
+    // Jira items and Confluence pages registered across the efforts.
+    readonly links: number;
     readonly sessions: number;
     readonly knowledge: number;
-    readonly designs: number;
     readonly sources: number;
   };
-  // Efforts grouped by their initiative: tag, then the ones without one.
-  readonly initiatives: readonly { readonly initiative: string | null; readonly efforts: readonly EffortListItem[] }[];
+  // Every effort's title by slug, for naming efforts wherever a page lists them.
+  readonly efforts: readonly { readonly slug: string; readonly title: string }[];
+};
+
+// Whether the work created a page or ticket (category deliverable) or relies on someone else's (source).
+export type LinkRole = "created" | "referenced" | null;
+
+// A plan deliverable a Jira item delivers, worked out from the design whose plan links the item or its epic.
+export type DeliverableRef = {
+  readonly design: string;
+  readonly design_title: string;
+  readonly id: string;
+  readonly title: string;
+};
+
+// A Jira item as an agent last read it. Jira owns these facts; read_at says when they held.
+export type JiraItem = {
+  readonly url: string;
+  readonly key: string;
+  readonly title: string | null;
+  readonly description: string | null;
+  readonly type: string | null;
+  readonly status: string | null;
+  readonly category: "todo" | "progress" | "done" | null;
+  readonly parent: string | null;
+  readonly blocks: readonly string[];
+  readonly read_at: string | null;
+  readonly role: LinkRole;
+  readonly efforts: readonly string[];
+  readonly delivers: DeliverableRef | null;
+};
+
+// A Confluence page, pull request or other page registered as a link.
+export type PageLink = {
+  readonly url: string;
+  readonly title: string | null;
+  readonly description: string | null;
+  readonly pointer_type: string | null;
+  readonly role: LinkRole;
+  readonly space: string | null;
+  readonly version: number | null;
+  readonly updated: string | null;
+  readonly efforts: readonly string[];
+};
+
+// A design an effort delivers part of, with where its plan stands.
+export type DeliveredDesign = {
+  readonly slug: string;
+  readonly title: string;
+  readonly doc_url: string | null;
+  // The design's deliverables whose Jira items the effort includes.
+  readonly deliverables: readonly { readonly id: string; readonly title: string; readonly status: string }[];
+  readonly plan: { readonly total: number; readonly done: number; readonly in_progress: number };
+};
+
+export type EffortWork = {
+  readonly designs: readonly DeliveredDesign[];
+  readonly jira: readonly JiraItem[];
+  readonly confluence: readonly PageLink[];
+  readonly other: readonly PageLink[];
+};
+
+// Every registered Jira item and Confluence page, across efforts.
+export type LinksPage = {
+  readonly efforts: readonly { readonly slug: string; readonly title: string }[];
+  readonly jira: readonly JiraItem[];
+  readonly confluence: readonly PageLink[];
 };
 
 export type EffortPage = EffortListItem & {
@@ -62,6 +129,7 @@ export type EffortPage = EffortListItem & {
   }[];
   readonly sessions: readonly SessionListItem[];
   readonly groups: readonly ArtifactGroupItem[];
+  readonly work: EffortWork;
 };
 
 // What a session cost at models.dev rates. total is own plus subagents plus cli_runs: its main agent, every

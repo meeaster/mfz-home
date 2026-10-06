@@ -78,6 +78,12 @@ These are the human's own examples. The design is checked against them.
 | What is known about a subject is kept in a knowledge article: one Markdown document per existing subject (an AWS environment, a vendor product, a codebase), written for a reader who never saw the evidence and edited in place as evidence arrives. Evidence stays organized by the question each assignment answered; the article reorganizes it by subject. See [knowledge articles](#knowledge-articles). | Human, 2026-09-29, replacing the assistant's proposal of per-claim findings in the effort |
 | Knowledge articles live at the root in `knowledge/`, beside `designs/`, and join efforts through membership, because several efforts rely on one subject and it outlives each of them. Cairn generates `knowledge/index.md`. | Human, 2026-09-29 |
 | External input lives at the root in `sources/`: a folder per meeting holding its transcripts and summary, and one file per email, chat, or ticket thread that grows as replies arrive. | Human, 2026-09-29, replacing the session-folder placement and one file per thread per session |
+| Cairn is the system for managing the human's work, and the UI is organized around what the human reads: efforts, designs, and the Jira items and Confluence pages around them. Sessions, knowledge and sources are agent material, one step away. See [work tracking](#work-tracking-jira-confluence-and-the-plan). | Human, 2026-10-06 |
+| Cairn holds pointers, relationships and descriptions, and nothing that needs curating. Anything curated (the plan, which Jira epic delivers which deliverable) lives in a design, which agents maintain and other people read. | Human, 2026-10-06 |
+| A Confluence page or Jira item is a URL pointer: `deliverable` when the work created it, `source` when it's someone else's the work relies on. A page's content goes through intake only when it states something the work must take in. | Human, 2026-10-06 |
+| Jira owns work tracking. Cairn stores each registered item's key, type, title, status, parent epic and blocks links as read by an agent, with the time it was read, and never treats them as its own state. | Human, 2026-10-06 |
+| A design's phases become its plan: deliverables with what each follows, an optional group, the goals they serve and their Jira items. The plan is a breakdown, not a mirror of Jira: a deliverable can have no Jira item or several. Efforts have no phases, and a design never names an effort. | Human, 2026-10-06 |
+| A design doc is published, so nothing in it names or links to an effort, an initiative tag or anything else local to Cairn. | Human, 2026-10-06 |
 
 ## Domain model
 
@@ -292,6 +298,8 @@ link        src_kind(artifact|effort|session), src_id, rel, dst_kind, dst_id,
             -- artifact rels: informs|supersedes|related|read_in
             -- effort rels:   depends_on|split_from|related
 tag         effort_id, namespace, value                           -- unique triple
+jira_item   artifact_id, issue_key, issue_type?, status?, status_category?, parent_key?, blocks, read_at
+confluence_page artifact_id, space?, version?, page_updated?, read_at   -- what an agent last read
 ```
 
 An artifact's efforts are the attached efforts of the nearest attached session in its producer's ancestry, plus the effort whose folder holds it, plus `include` memberships, minus `exclude` memberships. The `artifact_effort` view computes this.
@@ -370,6 +378,23 @@ Material from before an effort had records, such as earlier sessions' notes, evi
 3. **Sources and knowledge**, in parallel: meetings and threads into `sources/` with their candidates, and evidence written up into knowledge articles.
 4. **Design:** options, decisions, open questions, and phases, citing the articles and accepted sources.
 
+## Work tracking: Jira, Confluence and the plan
+
+Decided with the human on 2026-10-06, from the redesign mocked in `cairn_design.pen` ("Cairn redesign" and the design doc's Plan and Links pages).
+
+**The split.** Cairn records where things are and how they relate; a design records what has been agreed. Cairn's share must stay cheap for agents to keep current: registering a link is one `catalog_describe`, and Jira details are re-read only when someone asks. The design's share is curated, because its agents maintain it carefully and other people read it.
+
+**Confluence pages and Jira items** are URL artifacts with a pointer type, as before. The category says the role: `deliverable` for what the work created (a design published for review, a runbook, a ticket you opened), `source` for someone else's page or ticket the work relies on. Each carries a description of why it's there. A page's content becomes evidence or goes through intake only when it states something the work has to take in; most pages are just listed.
+
+**Jira details.** When an agent reads a Jira item (through the Atlassian MCP server, since Cairn can't reach Atlassian), it records on the pointer the item's key, type (epic, story, task, bug), title, status and status category, parent epic, and the keys it blocks, with the time it read them. Cairn shows these as read, labelled with that time, and never as its own state. Dependencies between items use Jira's own "blocks" links.
+
+**The plan.** A design's phases become its plan: deliverables `P1`, `P2`… each with scope, exit criteria, status, the deliverables it follows, an optional group, the goals it serves, and its Jira items (usually an epic, any number, or none). The plan is how the work is broken down, not a copy of Jira, and stories come and go under their epics as the work is found. The design names no effort. Which deliverables an effort works on is derived: a deliverable whose Jira items are included in the effort. The design doc gets a Plan page (goals, the dependency map of deliverables, and the deliverables table, each opening in a modal) and a shared Links page (Confluence pages by role, the Jira items grouped by deliverable as last read, and other links).
+
+**The UI.**
+- **Sidebar.** Work: Efforts, Designs, Jira and Confluence. Agent material: Sessions, Knowledge, Sources. No list of initiatives and no usage page; a session's cost shows on the session.
+- **Effort page.** An Overview tab first: where the effort stands, the designs it delivers with their plan progress, its Jira items as a canvas with one lane per epic (stories inside, "blocks" arrows between them, a lane for stories with no epic), its Confluence pages as created and referenced, other links, and related efforts. A lane names the plan deliverable its epic delivers when a design links that epic, worked out at display time. The Material tab holds the effort's files as before, and Sessions its sessions.
+- **Jira and Confluence.** One page, tabbed, listing every registered Confluence page and Jira item across efforts, filtered by created or referenced and grouped by effort.
+
 ## Durability
 
 The database is the only place descriptions, attachments, links, and tags exist. If it were lost, the files would survive, and `cairn check` could rediscover them, but only as undescribed files with no efforts. Once a day, on the first write of the day, Cairn runs `VACUUM INTO backups/catalog-<yyyy-mm-dd>.db` and keeps about seven copies. `cairn backup` makes a copy on demand. `cairn restore <file>` copies a backup back into place after checking its integrity. A text snapshot (sorted JSONL) is deferred. It only pays off once the root is tracked by git or a sync service.
@@ -381,7 +406,7 @@ The database is the only place descriptions, attachments, links, and tags exist.
 | Tool | Purpose | Returns |
 | --- | --- | --- |
 | `catalog_session` | Describe a session and set its attachments. Inputs: `session`, optional `title`, `description`, `attach[]` (effort IDs, or `{ create: { title, description, tags[] }, confirm_new? }`), `detach[]`, `workstream`, `subject`. | Session, attached efforts, close-match efforts when creating |
-| `catalog_describe` | Describe an artifact, or register a URL or external file. Inputs: `path` or `url`, `category`, `title`, `description`, optional `origin`, `efforts` (`include[]`, `exclude[]`), `informs[]`, `supersedes[]`. Idempotent on path or URL. | Artifact with its efforts |
+| `catalog_describe` | Describe an artifact, or register a URL or external file. Inputs: `path` or `url`, `category`, `title`, `description`, optional `origin`, `efforts` (`include[]`, `exclude[]`), `informs[]`, `supersedes[]`, and for a Jira item's or Confluence page's URL what an agent read about it: `jira` (key, type, status, category, parent, blocks, read_at) or `confluence` (space, version, updated). Idempotent on path or URL; each read replaces the last. | Artifact with its efforts |
 | `catalog_find` | Pointers. Target `efforts`, `sessions`, or `artifacts`. Filters: `effort`, `session`, `tag`, `category`, `pointer_type`, `workstream`, `subject`, `status`, `text`, `group_by` (`category` or `session`), `limit`. | Pointer entries, never contents. Undescribed artifacts are flagged. |
 | `catalog_location` | A collision-free write path. Inputs: `session`, `topic`, optional `effort`. | Absolute path |
 | `catalog_effort` | `create` or `show` an effort, or `update` its title, description, status, or tags. Also `rename`, `split` (a new effort with a `split_from` link and chosen sessions and files included, removing nothing from the original), and `merge`. One flat input object, because MCP tool inputs must be objects. | The effort, or for `show` the effort view |
@@ -551,6 +576,11 @@ These proposals were made and then replaced. Don't re-propose them without new e
 32. **`approach.md`, then a local design in the stable design's record format so promotion would be a move.** The record format splits the connected understanding into records and pages, and agents read only the records. Replaced by a local `design.md` written as one connected document, with promotion as a write-up (human, 2026-09-29).
 33. **Every effort that builds something links a stable design.** The assistant proposed this to remove the two homes for design material. The human pointed out that efforts range from a single-session feature to an approval-heavy initiative, and the stable design is for the latter. Replaced by stable and local designs.
 34. **A separate preferences file for the human's views.** Considered and not adopted: firm preferences become requirements or constraints, leanings sit on the decisions they bear on, ruled-out options sit in the design's Also considered, and views about the work sit in `effort.md`.
+
+35. **Confluence pages as their own kind of source, like meetings.** Replaced by URL pointers with a role (created or referenced); only a page whose content has to be taken in goes through intake (human, 2026-10-06).
+36. **Grouping an effort's Jira items by plan deliverable, stored in Cairn.** Replaced by grouping by epic, as Jira does, with the deliverable worked out from the design, so Cairn stores no mapping it would have to maintain (human, 2026-10-06).
+37. **Phases on efforts.** Rejected: the design's plan holds the breakdown, as deliverables in a dependency map rather than sequential phases, and an effort just works on some of them (human, 2026-10-06).
+38. **A usage and cost page, and initiatives listed in the sidebar.** Dropped from the redesign: cost shows on each session, and the sidebar keeps to the work (human, 2026-10-06).
 
 ## Deferred ideas
 

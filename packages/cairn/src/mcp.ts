@@ -130,6 +130,10 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
         "Describe each file you write after its capture note. Register pull requests, issues, and published pages by url, " +
         "with session set to yours so they join your efforts. Paths are absolute. " +
         "efforts.include adds the item to an effort; efforts.exclude keeps it out of one. " +
+        "category deliverable marks a page or ticket the work created, source one someone else's that it relies on. " +
+        "For a Jira item you read through Atlassian, pass jira with its key, type, status, category (todo, progress or done), " +
+        "parent epic and the keys it blocks; for a Confluence page, confluence with its space, version and last update. " +
+        "Each read replaces the last. " +
         "Returns the catalog entry with its efforts, never file contents.",
       inputSchema: schemas.describeInput
     },

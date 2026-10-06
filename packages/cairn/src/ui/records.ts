@@ -118,6 +118,46 @@ const designJson = z.object({
   questions: z.array(z.object({ Answer: z.string().optional(), Deferred: z.string().optional() })).default([])
 });
 
+// A design's plan: its deliverables with their status and the Jira keys they link (format 4).
+const planJson = z.object({
+  title: z.string().optional(),
+  plan: z
+    .array(
+      z.object({
+        id: z.string(),
+        title: z.string(),
+        Status: z.string().default("Planned"),
+        // A list of URLs, or one string of them separated by commas.
+        Jira: z.union([z.array(z.string()), z.string().transform((value) => value.split(/,\s*/))]).default([])
+      })
+    )
+    .default([])
+});
+
+export type PlanDeliverable = { readonly id: string; readonly title: string; readonly status: string; readonly keys: readonly string[] };
+
+const issueKey = /(?:\/browse\/|[?&]selectedIssue=)([A-Z][A-Z0-9_]*-\d+)/;
+
+// The keys of a deliverable's Jira items, from their URLs.
+function jiraKeys(urls: readonly string[]): string[] {
+  return urls.flatMap((url) => {
+    const key = issueKey.exec(url)?.[1];
+
+    return key === undefined ? [] : [key];
+  });
+}
+
+export type DesignPlan = { readonly title: string | null; readonly plan: readonly PlanDeliverable[] };
+
+export function designPlan(designText: string): DesignPlan {
+  const design = parseJson(planJson, designText);
+
+  return {
+    title: design?.title ?? null,
+    plan: (design?.plan ?? []).map((deliverable) => ({ id: deliverable.id, title: deliverable.title, status: deliverable.Status, keys: jiraKeys(deliverable.Jira) }))
+  };
+}
+
 const meetingsJson = z.object({
   meetings: z.array(z.object({ Proposals: z.array(z.object({ status: z.string() })).default([]) })).default([])
 });

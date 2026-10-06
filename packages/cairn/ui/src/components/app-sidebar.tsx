@@ -3,13 +3,13 @@ import {
   DraftingCompassIcon,
   InboxIcon,
   LayersIcon,
+  LinkIcon,
   MessagesSquareIcon,
   MoonIcon,
   MountainIcon,
   SunIcon,
   type LucideIcon
 } from "lucide-react";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Sidebar,
@@ -19,46 +19,47 @@ import {
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarHeader,
-  SidebarInput,
   SidebarMenu,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem
 } from "@/components/ui/sidebar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import type { EffortStatus, Resource, SidebarData } from "@/lib/api";
+import type { Resource, SidebarData } from "@/lib/api";
 import { shortDate } from "@/lib/format";
-import { effortHref, routeHref, type Route } from "@/lib/route";
+import { routeHref, type Route } from "@/lib/route";
 import type { Theme } from "@/lib/theme";
 
 type BrowseItem = {
-  readonly view: "efforts" | "sessions" | "knowledge" | "designs" | "sources";
+  readonly view: "efforts" | "designs" | "links" | "sessions" | "knowledge" | "sources";
   readonly label: string;
   readonly icon: LucideIcon;
 };
 
-const browse: readonly BrowseItem[] = [
-  { view: "efforts", label: "Efforts", icon: LayersIcon },
-  { view: "sessions", label: "Sessions", icon: MessagesSquareIcon },
-  { view: "knowledge", label: "Knowledge", icon: BookOpenIcon },
-  { view: "designs", label: "Designs", icon: DraftingCompassIcon },
-  { view: "sources", label: "Sources", icon: InboxIcon }
+// The work the human reads first, then the material agents keep for it.
+const groups: readonly { readonly label: string; readonly items: readonly BrowseItem[] }[] = [
+  {
+    label: "Work",
+    items: [
+      { view: "efforts", label: "Efforts", icon: LayersIcon },
+      { view: "designs", label: "Designs", icon: DraftingCompassIcon },
+      { view: "links", label: "Jira and Confluence", icon: LinkIcon }
+    ]
+  },
+  {
+    label: "Agent material",
+    items: [
+      { view: "sessions", label: "Sessions", icon: MessagesSquareIcon },
+      { view: "knowledge", label: "Knowledge", icon: BookOpenIcon },
+      { view: "sources", label: "Sources", icon: InboxIcon }
+    ]
+  }
 ];
 
-const statusDots: Readonly<Record<EffortStatus, string>> = {
-  active: "bg-ok",
-  provisional: "bg-warn",
-  paused: "bg-muted-foreground",
-  done: "bg-muted-foreground/50",
-  archived: "bg-muted-foreground/30"
-};
-
-// Which browse item a route belongs to, so an effort's page highlights the effort rather than the list.
-function browseView(route: Route): BrowseItem["view"] | null {
+// Which browse item a route belongs to: an effort's page sits under Efforts, a session's under Sessions.
+function browseView(route: Route): BrowseItem["view"] {
   switch (route.view) {
     case "effort":
-      return null;
+      return "efforts";
     case "session":
       return "sessions";
     default:
@@ -74,9 +75,7 @@ type Props = {
 };
 
 export function AppSidebar({ data, route, theme, onTheme }: Props) {
-  const [query, setQuery] = useState("");
   const current = browseView(route);
-  const needle = query.trim().toLowerCase();
 
   return (
     <Sidebar>
@@ -87,64 +86,31 @@ export function AppSidebar({ data, route, theme, onTheme }: Props) {
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold">Cairn</span>
-            <span className="text-xs text-muted-foreground">Catalog</span>
+            <span className="text-xs text-muted-foreground">Your work</span>
           </div>
         </div>
-        <SidebarInput placeholder="Filter efforts" value={query} onChange={(event) => setQuery(event.target.value)} />
       </SidebarHeader>
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Browse</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {browse.map((item) => (
-                <SidebarMenuItem key={item.view}>
-                  <SidebarMenuButton asChild isActive={current === item.view}>
-                    <a href={routeHref({ view: item.view })}>
-                      <item.icon />
-                      <span>{item.label}</span>
-                    </a>
-                  </SidebarMenuButton>
-                  {data.state === "ready" && <SidebarMenuBadge>{data.value.counts[item.view]}</SidebarMenuBadge>}
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        {data.state === "loading" && (
-          <div className="flex flex-col gap-2 px-4">
-            <Skeleton className="h-4 w-40" />
-            <Skeleton className="h-4 w-32" />
-          </div>
-        )}
-        {data.state === "ready" &&
-          data.value.initiatives.map((group) => {
-            const efforts = group.efforts.filter((effort) => needle === "" || effort.title.toLowerCase().includes(needle));
-
-            if (efforts.length === 0) {
-              return null;
-            }
-
-            return (
-              <SidebarGroup key={group.initiative ?? "none"}>
-                <SidebarGroupLabel>{group.initiative ?? "No initiative tag"}</SidebarGroupLabel>
-                <SidebarGroupContent>
-                  <SidebarMenu>
-                    {efforts.map((effort) => (
-                      <SidebarMenuItem key={effort.slug}>
-                        <SidebarMenuButton asChild isActive={route.view === "effort" && route.slug === effort.slug}>
-                          <a href={effortHref(effort.slug)} title={`${effort.title} · ${effort.status}`}>
-                            <span className={cn("size-2 shrink-0 rounded-full", statusDots[effort.status])} />
-                            <span className="truncate">{effort.title}</span>
-                          </a>
-                        </SidebarMenuButton>
-                      </SidebarMenuItem>
-                    ))}
-                  </SidebarMenu>
-                </SidebarGroupContent>
-              </SidebarGroup>
-            );
-          })}
+        {groups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {group.items.map((item) => (
+                  <SidebarMenuItem key={item.view}>
+                    <SidebarMenuButton asChild isActive={current === item.view}>
+                      <a href={routeHref({ view: item.view })}>
+                        <item.icon />
+                        <span>{item.label}</span>
+                      </a>
+                    </SidebarMenuButton>
+                    {data.state === "ready" && <SidebarMenuBadge>{data.value.counts[item.view]}</SidebarMenuBadge>}
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
       <SidebarFooter>
         <div className="flex items-center gap-2 px-2 py-1.5">

@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { main } from "../cli.ts";
-import type { DesignItem, EffortPage, FilePage, SessionListItem, SessionPage, SidebarData, SourceItem } from "./api.ts";
+import type { DesignItem, EffortPage, FilePage, LinksPage, SessionListItem, SessionPage, SidebarData, SourceItem } from "./api.ts";
 import { startUiServer } from "./server.ts";
 
 const cleanups: (() => void)[] = [];
@@ -159,7 +159,7 @@ function catalog() {
   write(join(root, "sources", "meetings", "2026-09-29-kickoff", "transcript.md"), "# Kickoff\n");
   write(join(root, "sources", "email", "opw-exposure.md"), thread);
 
-  return { root, evidence, article, designFolder };
+  return { root, evidence, article, designFolder, run };
 }
 
 type Response = { readonly status: number; readonly body: string };
@@ -215,15 +215,58 @@ async function serve(root: string) {
 }
 
 describe("cairn ui server", () => {
-  test("the sidebar counts each part of the catalog and groups efforts by initiative", async () => {
+  test("the sidebar counts each part of the catalog", async () => {
     const { root } = catalog();
     const { json } = await serve(root);
     const sidebar = await json<SidebarData>("/api/sidebar");
 
-    expect(sidebar.counts).toEqual({ efforts: 1, sessions: 1, knowledge: 1, designs: 1, sources: 3 });
-    expect(sidebar.initiatives.map((group) => [group.initiative, group.efforts.map((effort) => effort.title)])).toEqual([
-      ["initiative:observability-pipeline", ["OPW deployment on AWS"]]
-    ]);
+    expect(sidebar.counts).toEqual({ efforts: 1, designs: 1, links: 0, sessions: 1, knowledge: 1, sources: 3 });
+  });
+
+  test("an effort's Jira items deliver the plan deliverable their epic is linked to, and its pages keep their role", async () => {
+    const { root, run } = catalog();
+    const jira = "https://example.atlassian.net/browse/";
+
+    write(
+      join(root, "designs", "log-ingestion", "design.json"),
+      JSON.stringify({
+        format: 4,
+        title: "Log ingestion in our cloud",
+        plan: [
+          { id: "P1", title: "AWS foundation", Status: "Done", Jira: [`${jira}OBS-210`] },
+          { id: "P2", title: "OPW workers running", Status: "In progress", Jira: [`${jira}OBS-220`] }
+        ]
+      })
+    );
+    run("describe", `${jira}OBS-220`, "--category", "deliverable", "--title", "Run the OPW workers", "--include", "opw-deployment-on-aws",
+      "--jira", JSON.stringify({ key: "OBS-220", type: "Epic", status: "In Progress", category: "progress", read_at: "2026-10-11T09:20:00Z" }));
+    run("describe", `${jira}OBS-222`, "--category", "deliverable", "--title", "Pipeline config for firewall logs", "--include", "opw-deployment-on-aws",
+      "--jira", JSON.stringify({ key: "OBS-222", type: "Story", status: "To Do", category: "todo", parent: "OBS-220", blocks: ["OBS-231"] }));
+    run("describe", "https://example.atlassian.net/wiki/spaces/SEC/pages/21004/SEC-12", "--category", "source", "--title", "SEC-12 Shared Tooling standard",
+      "--include", "opw-deployment-on-aws", "--confluence", JSON.stringify({ space: "SEC", version: 7 }));
+
+    const { json } = await serve(root);
+    const effort = await json<EffortPage>("/api/efforts/opw-deployment-on-aws");
+    const story = effort.work.jira.find((item) => item.key === "OBS-222");
+
+    expect(effort.work.jira.map((item) => item.key)).toEqual(["OBS-220", "OBS-222"]);
+    expect(story).toMatchObject({ parent: "OBS-220", blocks: ["OBS-231"], category: "todo", role: "created", delivers: { design: "log-ingestion", id: "P2" } });
+    // The design its Jira items deliver, and the design whose records belong to it.
+    expect(effort.work.designs.map((delivered) => delivered.slug)).toEqual(["log-ingestion", "opw-deployment"]);
+    expect(effort.work.designs[0]).toEqual({
+      slug: "log-ingestion",
+      title: "Log ingestion in our cloud",
+      doc_url: null,
+      deliverables: [{ id: "P2", title: "OPW workers running", status: "In progress" }],
+      plan: { total: 2, done: 1, in_progress: 1 }
+    });
+    expect(effort.work.confluence).toMatchObject([{ title: "SEC-12 Shared Tooling standard", role: "referenced", space: "SEC", version: 7 }]);
+
+    const links = await json<LinksPage>("/api/links");
+
+    expect(links.jira).toHaveLength(2);
+    expect(links.confluence[0]?.efforts).toEqual(["opw-deployment-on-aws"]);
+    expect((await json<SidebarData>("/api/sidebar")).counts.links).toBe(3);
   });
 
   test("an effort's artifacts are grouped in view order and evidence names the article it was written up in", async () => {

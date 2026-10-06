@@ -303,6 +303,28 @@ const migrations: readonly string[] = [
     unpriced_calls INTEGER NOT NULL,
     PRIMARY KEY (session_id, provider, model)
   ) STRICT;
+  `,
+  `
+  -- What an agent last read about a Jira item or a Confluence page, through the Atlassian MCP server: Cairn can't reach
+  -- Atlassian itself. Jira owns these facts; read_at says when they were true. blocks is a JSON array of issue keys.
+  CREATE TABLE jira_item (
+    artifact_id INTEGER PRIMARY KEY REFERENCES artifact (id),
+    issue_key TEXT NOT NULL,
+    issue_type TEXT,
+    status TEXT,
+    status_category TEXT CHECK (status_category IN ('todo', 'progress', 'done')),
+    parent_key TEXT,
+    blocks TEXT NOT NULL DEFAULT '[]',
+    read_at TEXT NOT NULL
+  ) STRICT;
+  CREATE INDEX jira_item_key ON jira_item (issue_key);
+  CREATE TABLE confluence_page (
+    artifact_id INTEGER PRIMARY KEY REFERENCES artifact (id),
+    space TEXT,
+    version INTEGER,
+    page_updated TEXT,
+    read_at TEXT NOT NULL
+  ) STRICT;
   `
 ];
 

@@ -8,6 +8,7 @@ import { api, useResource } from "@/lib/api";
 import { fileHref, useLocation, type Route } from "@/lib/route";
 import { useTheme } from "@/lib/theme";
 import { EffortView } from "@/views/effort";
+import { LinksView } from "@/views/links";
 import { DesignsView, EffortsView, KnowledgeView, SessionsView, SourcesView } from "@/views/lists";
 import { SessionView } from "@/views/session";
 
@@ -31,6 +32,8 @@ function Page({ route }: { readonly route: Route }) {
       return <DesignsView route={route} />;
     case "sources":
       return <SourcesView route={route} />;
+    case "links":
+      return <LinksView />;
   }
 }
 
@@ -43,10 +46,8 @@ export function App() {
     const map = new Map<string, string>();
 
     if (sidebar.state === "ready") {
-      for (const group of sidebar.value.initiatives) {
-        for (const effort of group.efforts) {
-          map.set(effort.slug, effort.title);
-        }
+      for (const effort of sidebar.value.efforts) {
+        map.set(effort.slug, effort.title);
       }
     }
 
