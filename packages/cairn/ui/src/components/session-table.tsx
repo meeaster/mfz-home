@@ -2,8 +2,8 @@ import { MessagesSquareIcon } from "lucide-react";
 import { Fragment } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import type { SessionListItem } from "@/lib/api";
-import { groupByDay, time } from "@/lib/format";
+import type { SessionCost, SessionListItem } from "@/lib/api";
+import { groupByDay, money, time } from "@/lib/format";
 import { sessionHref } from "@/lib/route";
 import { EffortBadges } from "./effort-badges";
 
@@ -28,13 +28,38 @@ function SessionCell({ session }: { readonly session: SessionListItem }) {
             {session.title ?? "Untitled"}
           </a>
           {session.agent !== null && <Badge variant="outline">{session.agent}</Badge>}
+          {session.origin === "cli" && <Badge variant="secondary">CLI run</Badge>}
         </div>
         <p className="text-sm text-muted-foreground">
           {session.description ?? [session.cwd, session.key].filter((part) => part !== null).join("  ·  ")}
         </p>
         {session.description !== null && <p className="font-mono text-xs text-muted-foreground">{nativeId}</p>}
+        {session.spawned_by !== null && (
+          <p className="text-xs text-muted-foreground">
+            Run from{" "}
+            <a href={sessionHref(session.spawned_by.key)} className="hover:underline">
+              {session.spawned_by.title ?? session.spawned_by.key}
+            </a>
+          </p>
+        )}
       </div>
     </div>
+  );
+}
+
+// A cost, marked when some calls went to models without a models.dev price and so aren't in it.
+export function CostText({ cost, part = "total" }: { readonly cost: SessionCost | null; readonly part?: "total" | "own" }) {
+  if (cost === null) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+
+  const unpriced = cost.unpriced_calls > 0;
+
+  return (
+    <span title={unpriced ? `Leaves out ${cost.unpriced_calls} calls to models without a models.dev price` : undefined}>
+      {money(cost[part])}
+      {unpriced && <span className="text-muted-foreground">+</span>}
+    </span>
   );
 }
 
@@ -57,6 +82,7 @@ export function SessionTable({ sessions, byDay = false }: Props) {
             <TableHead className="w-60">Efforts</TableHead>
             <TableHead className="w-16 text-right">Files</TableHead>
             <TableHead className="w-20 text-right">Children</TableHead>
+            <TableHead className="w-20 text-right">Cost</TableHead>
             <TableHead className="w-24 text-right">Last active</TableHead>
           </TableRow>
         </TableHeader>
@@ -65,7 +91,7 @@ export function SessionTable({ sessions, byDay = false }: Props) {
             <Fragment key={group.day}>
               {byDay && (
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableCell colSpan={6} className="py-2 text-sm font-semibold">
+                  <TableCell colSpan={7} className="py-2 text-sm font-semibold">
                     {group.day}
                   </TableCell>
                 </TableRow>
@@ -81,6 +107,9 @@ export function SessionTable({ sessions, byDay = false }: Props) {
                   </TableCell>
                   <TableCell className="text-right align-top">{session.file_count}</TableCell>
                   <TableCell className="text-right align-top">{session.child_count === 0 ? "—" : session.child_count}</TableCell>
+                  <TableCell className="text-right align-top">
+                    <CostText cost={session.cost} />
+                  </TableCell>
                   <TableCell className="text-right align-top text-muted-foreground">{time(session.last_activity_at)}</TableCell>
                 </TableRow>
               ))}

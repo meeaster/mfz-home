@@ -9,6 +9,10 @@ const sessionList = z.object({
   sessions: z.array(z.object({ key: z.string(), title: z.string().nullable(), agent: z.string().nullable(), parent: z.string().nullable() }))
 });
 
+const sessionOrigins = z.object({
+  sessions: z.array(z.object({ key: z.string(), origin: z.string().nullable(), spawned_by: z.string().nullable(), parent: z.string().nullable() }))
+});
+
 const artifactList = z.object({
   artifacts: z.array(z.object({ path: z.string(), producer: z.object({ session: z.string() }).nullable() }))
 });
@@ -38,10 +42,12 @@ function workspace() {
   mkdirSync(join(base, "projects", "-work"), { recursive: true });
   writeFileSync(transcript, "");
 
+  let env: Readonly<Record<string, string>> = {};
+
   const run = (stdin: string, ...args: string[]) => {
     let stdout = "";
 
-    const code = main(args, { CAIRN_ROOT: root }, {
+    const code = main(args, { ...env, CAIRN_ROOT: root }, {
       stdout: (text) => {
         stdout += text;
       },
@@ -50,7 +56,8 @@ function workspace() {
       now: () => new Date("2026-09-25T10:00:00"),
       launchIndex: (session, path, lastMessage) => {
         launches.push({ session, transcript: path, lastMessage });
-      }
+      },
+      pricing: () => null
     });
 
     return { code, stdout };
@@ -76,6 +83,10 @@ function workspace() {
     launches,
     run,
     hook,
+    // The environment Claude Code gives the hook process.
+    environment: (variables: Readonly<Record<string, string>>) => {
+      env = variables;
+    },
     cli,
     context: (event: HookEvent) => hookOutput.parse(JSON.parse(hook(event).stdout)).hookSpecificOutput.additionalContext
   };
@@ -123,6 +134,67 @@ describe("Claude Code hooks", () => {
     expect(sessions).toContainEqual({ key: "claude-code:a17", title: "Price the buckets", agent: "Explore", parent: "claude-code:ses-main" });
     expect(sessions).toContainEqual({ key: "claude-code:a18", title: "Describe the price note", agent: "general-purpose", parent: "claude-code:a17" });
     expect(artifacts).toEqual([{ path: evidence, producer: { session: "claude-code:a17" } }]);
+  });
+
+  test("subagent events without Claude Code's subagent metadata are the main session's, not child sessions", () => {
+    const cairn = workspace();
+    const note = join(cairn.root, "notes", "internal.md");
+
+    mkdirSync(join(cairn.root, "notes"), { recursive: true });
+    writeFileSync(note, "Written by internal work.\n");
+
+    cairn.hook({ hook_event_name: "SessionStart", source: "startup" });
+    cairn.hook({ hook_event_name: "SubagentStart", agent_id: "a99", agent_type: "claude" });
+    cairn.hook({ hook_event_name: "PostToolUse", tool_name: "Write", tool_input: { file_path: note }, agent_id: "a99", agent_type: "claude" });
+    cairn.hook({ hook_event_name: "SubagentStop", agent_id: "a99", agent_type: "claude" });
+
+    const { sessions } = cairn.cli(sessionList, "find", "sessions");
+    const { artifacts } = cairn.cli(artifactList, "find", "artifacts");
+
+    expect(sessions.map((session) => session.key)).toEqual(["claude-code:ses-main"]);
+    expect(artifacts).toEqual([{ path: note, producer: { session: "claude-code:ses-main" } }]);
+  });
+
+  test("a session started by another session's shell records it as its spawner and exports its own ID to its shells", () => {
+    const cairn = workspace();
+    const envFile = join(cairn.base, "env-file.sh");
+
+    cairn.environment({
+      CAIRN_SESSION: "claude-code:lead",
+      OPENCODE_SESSION_ID: "ses_further_up",
+      CLAUDE_CODE_ENTRYPOINT: "sdk-cli",
+      CLAUDE_ENV_FILE: envFile
+    });
+    cairn.hook({ hook_event_name: "SessionStart", source: "startup" });
+
+    // A resume from another shell keeps the session's first spawner.
+    cairn.environment({ CAIRN_SESSION: "claude-code:someone-else", CLAUDE_CODE_ENTRYPOINT: "cli" });
+    cairn.hook({ hook_event_name: "SessionStart", source: "resume" });
+
+    const { sessions } = cairn.cli(sessionOrigins, "find", "sessions");
+
+    expect(sessions).toContainEqual({ key: "claude-code:ses-main", origin: "cli", spawned_by: "claude-code:lead", parent: null });
+    expect(readFileSync(envFile, "utf8").split("\n")[0]).toBe("export CAIRN_SESSION='claude-code:ses-main'");
+  });
+
+  test("an interactive session that no session started has no spawner, even when its own ID is in its environment", () => {
+    const cairn = workspace();
+
+    cairn.environment({ CAIRN_SESSION: "claude-code:ses-main", CLAUDE_CODE_ENTRYPOINT: "cli" });
+    cairn.hook({ hook_event_name: "SessionStart", source: "resume" });
+
+    const { sessions } = cairn.cli(sessionOrigins, "find", "sessions");
+
+    expect(sessions).toEqual([{ key: "claude-code:ses-main", origin: "interactive", spawned_by: null, parent: null }]);
+  });
+
+  test("a Remote Control session is interactive, though its entrypoint is the SDK's", () => {
+    const cairn = workspace();
+
+    cairn.environment({ CLAUDE_CODE_ENTRYPOINT: "sdk-cli", CLAUDE_CODE_ENVIRONMENT_KIND: "bridge" });
+    cairn.hook({ hook_event_name: "SessionStart", source: "startup" });
+
+    expect(cairn.cli(sessionOrigins, "find", "sessions").sessions.map((session) => session.origin)).toEqual(["interactive"]);
   });
 
   test("the main agent's Stop exports the conversation in a detached process, and a resume reconciles it", () => {

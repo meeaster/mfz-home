@@ -18,12 +18,16 @@ import { find, type ArtifactEntry, type EffortSummary, type FindResult, type Ses
 import { link } from "./core/links.ts";
 import { isUrl } from "./core/lookup.ts";
 import { failureMessage, logFailure, withCairn, type Mode } from "./core/operation.ts";
-import { resolveRoot } from "./core/root.ts";
+import { resolveRoot, rootPaths } from "./core/root.ts";
 import { describeSession, location, sessionContext, startSession } from "./core/sessions.ts";
 import { effortView, regenerateDirty, renderIndex } from "./core/views.ts";
 import { claudeCodeHook, type IndexLauncher } from "./harness/claude-code.ts";
 import * as schemas from "./schemas.ts";
 import { openInFileManager, startUiServer } from "./ui/server.ts";
+import { readClaudeCodeUsage } from "./usage/claude-code.ts";
+import { readOpenCodeUsage } from "./usage/opencode.ts";
+import { loadAliases, loadCatalog, pricer, type Catalog } from "./usage/pricing.ts";
+import { recordUsage, type SessionUsage } from "./usage/store.ts";
 
 type Output = {
   readonly json: schemas.Json;
@@ -38,7 +42,7 @@ type Command = {
   readonly mode: Mode;
   // A harness hook must never fail the harness action, so its failures are logged and it exits 0.
   readonly hook?: true;
-  readonly run: (cairn: Cairn, values: Values, positionals: readonly string[], io: CliIo) => Output;
+  readonly run: (cairn: Cairn, values: Values, positionals: readonly string[], io: CliIo, env: NodeJS.ProcessEnv) => Output;
 };
 
 const common: ParseArgsOptionsConfig = {
@@ -229,6 +233,28 @@ function conversationSource(session: schemas.SessionKey, values: Values, io: Cli
   }
 }
 
+// The usage of a root session and its subagents, from the same source as its conversation.
+function usageSource(session: schemas.SessionKey, values: Values): () => SessionUsage[] {
+  const source = one(values, "source");
+
+  switch (session.harness) {
+    case "opencode": {
+      const database = openCodeDatabase(source);
+
+      return () => readOpenCodeUsage(database, session.nativeId);
+    }
+
+    case "claude-code": {
+      const transcript = claudeCodeTranscript(source, session.nativeId);
+
+      return () => readClaudeCodeUsage(transcript, session.nativeId);
+    }
+
+    default:
+      throw new CairnError("invalid", `Usage indexing supports opencode and claude-code sessions, not ${session.harness}`);
+  }
+}
+
 // The detached index outlives the hook, including a claude -p run that ends right after its last turn.
 function detachedIndex(env: NodeJS.ProcessEnv): IndexLauncher {
   return (session, transcript, lastMessage) => {
@@ -247,13 +273,24 @@ function detachedIndex(env: NodeJS.ProcessEnv): IndexLauncher {
 
 const commandTable = {
   "session start": {
-    usage: "cairn session start <harness>:<id> [--parent <harness>:<id>] [--cwd <dir>] [--agent <name>] [--title <text>]",
-    options: { parent: { type: "string" }, cwd: { type: "string" }, agent: { type: "string" }, title: { type: "string" } },
+    usage:
+      "cairn session start <harness>:<id> [--parent <harness>:<id>] [--spawned-by <harness>:<id>] [--origin interactive|cli] " +
+      "[--cwd <dir>] [--agent <name>] [--title <text>]",
+    options: {
+      parent: { type: "string" },
+      "spawned-by": { type: "string" },
+      origin: { type: "string" },
+      cwd: { type: "string" },
+      agent: { type: "string" },
+      title: { type: "string" }
+    },
     mode: "hot",
     run: (cairn, values, positionals) => {
       const input = schemas.sessionStartInput.parse({
         session: positional(positionals, 0, "session"),
         parent: one(values, "parent"),
+        spawned_by: one(values, "spawned-by"),
+        origin: one(values, "origin"),
         cwd: optionalPath(one(values, "cwd")),
         agent: one(values, "agent"),
         title: one(values, "title")
@@ -340,6 +377,13 @@ const commandTable = {
       const { session } = schemas.sessionContextInput.parse({ session: positional(positionals, 0, "session") });
       const result = indexConversation(cairn, session, conversationSource(session, values, io), flag(values, "full"));
 
+      // A root session's export also refreshes its own and its subagents' usage, priced at models.dev rates.
+      if (result.indexed) {
+        const paths = rootPaths(cairn.root);
+
+        recordUsage(cairn, usageSource(session, values)(), pricer(io.pricing(paths.pricing, io.now()), loadAliases(paths.aliases)));
+      }
+
       return { json: result, text: indexText(result) };
     }
   },
@@ -348,8 +392,8 @@ const commandTable = {
     options: {},
     mode: "hot",
     hook: true,
-    run: (cairn, _values, _positionals, io) => {
-      const output = claudeCodeHook(cairn, io.stdin(), io.launchIndex);
+    run: (cairn, _values, _positionals, io, env) => {
+      const output = claudeCodeHook(cairn, io.stdin(), io.launchIndex, env);
 
       return { json: output, text: output === null ? "" : JSON.stringify(output) };
     }
@@ -707,6 +751,8 @@ export type CliIo = {
   readonly stdin: () => string;
   readonly now: () => Date;
   readonly launchIndex: IndexLauncher;
+  // The models.dev catalog that prices usage, from the cache at path or fetched once it's stale.
+  readonly pricing: (path: string, now: Date) => Catalog | null;
 };
 
 const processIo: CliIo = {
@@ -714,7 +760,8 @@ const processIo: CliIo = {
   stderr: (text) => process.stderr.write(text),
   stdin: () => readFileSync(0, "utf8"),
   now: () => new Date(),
-  launchIndex: detachedIndex(process.env)
+  launchIndex: detachedIndex(process.env),
+  pricing: loadCatalog
 };
 
 function restoreCommand(root: string, rest: readonly string[], json: boolean, io: CliIo): void {
@@ -815,7 +862,7 @@ export function main(args: readonly string[], env: NodeJS.ProcessEnv, io: CliIo 
       return 0;
     }
 
-    const output = withCairn(root, io.now, command.mode, (cairn) => command.run(cairn, parsed.values, parsed.positionals, io));
+    const output = withCairn(root, io.now, command.mode, (cairn) => command.run(cairn, parsed.values, parsed.positionals, io, env));
 
     if (json) {
       io.stdout(`${JSON.stringify(output.json, null, 2)}\n`);

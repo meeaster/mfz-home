@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
+import type { RunClient } from "./run-client.ts";
 import { createCairn, type CompletedTool, type SessionFacts } from "./server.ts";
 
 const root = "/home/user/workspace/artifacts/cairn";
 
 const sessionFolder = `${root}/sessions/opencode/2026-09/ses_lead`;
 
-function harness(sessions: ReadonlyMap<string, SessionFacts>) {
+// runs maps a root session to the opencode run process that created it.
+function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<string, RunClient> = new Map()) {
   const fired: string[][] = [];
   const logged: string[] = [];
   let printed: Promise<string> = Promise.resolve(JSON.stringify({ note: "Attached efforts: logs-archived-to-s3." }));
@@ -27,6 +29,7 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>) {
 
       return facts;
     },
+    runClient: (session) => runs.get(session.id) ?? null,
     log: (message) => {
       logged.push(message);
     }
@@ -46,9 +49,11 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>) {
   };
 }
 
-const lead: SessionFacts = { agent: "build", title: "New session", directory: "/home/user/repo" };
+const created = Date.parse("2026-09-25T10:00:00Z");
 
-const explore: SessionFacts = { parentID: "ses_lead", agent: "explore", title: "Map the AWS accounts", directory: "/home/user/repo" };
+const lead: SessionFacts = { agent: "build", title: "New session", directory: "/home/user/repo", created };
+
+const explore: SessionFacts = { parentID: "ses_lead", agent: "explore", title: "Map the AWS accounts", directory: "/home/user/repo", created };
 
 const sessions = new Map([
   ["ses_lead", lead],
@@ -77,7 +82,40 @@ describe("cairn plugin", () => {
         "--title",
         "Map the AWS accounts"
       ],
-      ["session", "start", "opencode:ses_lead", "--cwd", "/home/user/repo", "--agent", "build"]
+      ["session", "start", "opencode:ses_lead", "--cwd", "/home/user/repo", "--agent", "build", "--origin", "interactive"]
+    ]);
+  });
+
+  it("registers a root session that an opencode run created as a CLI run, linked to the session that ran it", async () => {
+    const app = harness(
+      new Map([
+        ["ses_run", lead],
+        ["ses_script", lead]
+      ]),
+      new Map<string, RunClient>([
+        ["ses_run", { spawnedBy: { harness: "claude-code", nativeId: "lead-session" } }],
+        ["ses_script", { spawnedBy: undefined }]
+      ])
+    );
+
+    await app.cairn.context("ses_run");
+    await app.cairn.context("ses_script");
+
+    expect(app.fired).toEqual([
+      [
+        "session",
+        "start",
+        "opencode:ses_run",
+        "--cwd",
+        "/home/user/repo",
+        "--agent",
+        "build",
+        "--origin",
+        "cli",
+        "--spawned-by",
+        "claude-code:lead-session"
+      ],
+      ["session", "start", "opencode:ses_script", "--cwd", "/home/user/repo", "--agent", "build", "--origin", "cli"]
     ]);
   });
 

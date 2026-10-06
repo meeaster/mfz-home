@@ -118,7 +118,8 @@ function catalog() {
       },
       stdin: () => "",
       now: () => now,
-      launchIndex: () => {}
+      launchIndex: () => {},
+      pricing: () => null
     });
 
     if (code !== 0) {

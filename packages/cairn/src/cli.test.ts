@@ -72,7 +72,8 @@ function workspace() {
       },
       stdin: () => "",
       now: () => now,
-      launchIndex: () => {}
+      launchIndex: () => {},
+      pricing: () => null
     });
 
     return { code, stdout, stderr };

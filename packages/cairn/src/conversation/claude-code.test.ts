@@ -12,6 +12,8 @@ const indexResult = z.union([
 
 const artifactList = z.object({ artifacts: z.array(z.object({ path: z.string(), category: z.string().nullable(), title: z.string().nullable() })) });
 
+const sessionList = z.object({ sessions: z.array(z.object({ key: z.string(), title: z.string().nullable(), origin: z.string().nullable() })) });
+
 type Block = { readonly type: "text" | "thinking" | "tool_use"; readonly text: string };
 
 type ToolResult = { readonly type: "tool_result"; readonly tool_use_id: string; readonly content: string };
@@ -21,6 +23,7 @@ type EntryFields = {
   readonly type: "user" | "assistant" | "system";
   readonly subtype?: string;
   readonly turnOrigin?: string;
+  readonly entrypoint?: string;
   readonly isCompactSummary?: boolean;
   readonly logicalParentUuid?: string | null;
   readonly toolUseResult?: Record<string, never>;
@@ -77,7 +80,8 @@ function workspace() {
       },
       stdin: () => "",
       now: () => new Date("2026-09-25T10:00:00"),
-      launchIndex: () => {}
+      launchIndex: () => {},
+      pricing: () => null
     });
 
     if (code !== 0) {
@@ -105,7 +109,10 @@ function workspace() {
       return index("--last-message", file);
     },
     // A prompt typed in the terminal is human; one given to claude -p is sdk.
-    human: (text: string, turnOrigin: "human" | "sdk" = "human") => entry({ type: "user", turnOrigin, message: { role: "user", content: text } }),
+    human: (text: string, turnOrigin: "human" | "sdk" = "human") =>
+      entry({ type: "user", turnOrigin, entrypoint: turnOrigin === "sdk" ? "sdk-cli" : "cli", message: { role: "user", content: text } }),
+    // Remote Control runs the session through the SDK, but a person types its prompts.
+    remotePrompt: (text: string) => entry({ type: "user", turnOrigin: "human", entrypoint: "sdk-cli", message: { role: "user", content: text } }),
     notification: (text: string) => entry({ type: "user", turnOrigin: "task_notification", message: { role: "user", content: text } }),
     toolResult: (text: string) =>
       entry({ type: "user", message: { role: "user", content: [{ type: "tool_result", tool_use_id: "t1", content: text }] }, toolUseResult: {} }),
@@ -188,6 +195,41 @@ describe("Claude Code conversation export", () => {
     const { artifacts } = cairn.cli(artifactList, "find", "artifacts");
 
     expect(artifacts).toEqual([{ path: second.indexed ? second.path : "", category: "conversation", title: "Log pipeline research" }]);
+  });
+
+  test("the session takes the harness's title or its first prompt, and a title set in the catalog wins", () => {
+    const cairn = workspace();
+    const title = () => cairn.cli(sessionList, "find", "sessions").sessions.map((session) => session.title);
+
+    cairn.human("\nUse the design-docs skill located at /home/mark/workspace/scratch/design-docs to review the access design.", "sdk");
+    cairn.assistant("m1", { type: "text", text: "Reviewing." });
+    cairn.index();
+
+    expect(title()).toEqual(["Use the design-docs skill located at…"]);
+    // A claude -p run is a CLI run.
+    expect(cairn.cli(sessionList, "find", "sessions").sessions.map((session) => session.origin)).toEqual(["cli"]);
+
+    cairn.title({ type: "agent-name", agentName: "Access design review" });
+    cairn.index();
+
+    expect(title()).toEqual(["Access design review"]);
+
+    cairn.cli(z.unknown(), "session", "describe", "claude-code:ses-main", "--title", "Access review, round 2");
+    cairn.title({ type: "ai-title", aiTitle: "design review" });
+    cairn.index();
+
+    expect(title()).toEqual(["Access review, round 2"]);
+    expect(cairn.cli(artifactList, "find", "artifacts").artifacts.map((artifact) => artifact.title)).toEqual(["Access review, round 2"]);
+  });
+
+  test("a Remote Control session is interactive, though Claude Code runs it through the SDK like claude -p", () => {
+    const cairn = workspace();
+
+    cairn.remotePrompt("Where should the logs go?");
+    cairn.assistant("m1", { type: "text", text: "Archive them to S3." });
+    cairn.index();
+
+    expect(cairn.cli(sessionList, "find", "sessions").sessions.map((session) => session.origin)).toEqual(["interactive"]);
   });
 
   test("a final message the transcript lacks is a provisional tail until the transcript holds it", () => {

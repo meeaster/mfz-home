@@ -6,6 +6,8 @@ import type { Plugin } from "@opencode/plugin";
 import type { Result } from "@opencode/plugin/promise/tool";
 import { z } from "zod";
 import { isCairnOwned, isEffortRecord, relativeInsideRoot, resolveRoot } from "../core/root.ts";
+import { formatSessionKey } from "../schemas.ts";
+import { findRunClient, type RunClient, type RunSession } from "./run-client.ts";
 
 type Content = Exclude<NonNullable<Result["content"]>, string>[number];
 
@@ -21,12 +23,16 @@ export type SessionFacts = {
   readonly agent?: string;
   readonly title?: string;
   readonly directory: string;
+  // When OpenCode created the session, in milliseconds since the epoch.
+  readonly created: number;
 };
 
 export type CairnPluginOptions = {
   readonly root: string;
   readonly cli: CairnCli;
   readonly session: (sessionID: string) => Promise<SessionFacts>;
+  // The opencode run process that created a root session, or null when it came from the TUI or another client.
+  readonly runClient: (session: RunSession) => RunClient | null;
   readonly log: (message: string, error: Error) => void;
 };
 
@@ -141,6 +147,17 @@ export function createCairn(options: CairnPluginOptions) {
 
       if (info.agent !== undefined) {
         args.push("--agent", info.agent);
+      }
+
+      // A root session started by opencode run is a CLI run, linked to the session whose shell ran the command.
+      if (info.parentID === undefined) {
+        const client = options.runClient({ id: sessionID, directory: info.directory, created: info.created });
+
+        args.push("--origin", client === null ? "interactive" : "cli");
+
+        if (client?.spawnedBy !== undefined) {
+          args.push("--spawned-by", formatSessionKey(client.spawnedBy));
+        }
       }
 
       // A root session's title is a placeholder until OpenCode generates one; a child's is its task description.
@@ -286,8 +303,15 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
     session: async (sessionID) => {
       const session = await ctx.session.get({ sessionID });
 
-      return { parentID: session.parentID, agent: session.agent, title: session.title, directory: session.location.directory };
+      return {
+        parentID: session.parentID,
+        agent: session.agent,
+        title: session.title,
+        directory: session.location.directory,
+        created: session.time.created
+      };
     },
+    runClient: (session) => findRunClient("/proc", session),
     log: (message, error) => console.error(`[cairn] ${message}`, error)
   });
 
@@ -333,7 +357,15 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
     event.system.push({ type: "text", text: await cairn.context(event.sessionID) });
   });
 
+  // A shell inherits CAIRN_SESSION from the command that started an opencode run, which names a session further
+  // up. Removing it leaves OPENCODE_SESSION_ID, which OpenCode sets afterward, to name this session to any
+  // claude -p or opencode run the shell starts.
+  const shellHook = await ctx.shell.hook("create.before", (shell) => {
+    delete shell.env.CAIRN_SESSION;
+  });
+
   return async () => {
+    await shellHook.dispose();
     await contextHook.dispose();
     await toolHook.dispose();
     await events.return?.();

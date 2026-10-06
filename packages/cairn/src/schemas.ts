@@ -61,9 +61,13 @@ export const artifactReference = z.union([url, absolutePath]);
 
 const optionalText = z.string().min(1).optional();
 
+export const sessionOrigin = z.enum(["interactive", "cli"]);
+
 export const sessionStartInput = z.object({
   session: sessionKey,
   parent: sessionKey.optional(),
+  spawned_by: sessionKey.optional(),
+  origin: sessionOrigin.optional(),
   cwd: absolutePath.optional(),
   agent: optionalText,
   title: optionalText
@@ -192,6 +196,8 @@ export const moveInput = z.object({
   artifact: absolutePath,
   to: absolutePath
 });
+
+export type SessionOrigin = z.infer<typeof sessionOrigin>;
 
 export type SessionStartInput = z.infer<typeof sessionStartInput>;
 

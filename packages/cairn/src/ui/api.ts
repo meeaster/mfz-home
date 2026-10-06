@@ -64,6 +64,16 @@ export type EffortPage = EffortListItem & {
   readonly groups: readonly ArtifactGroupItem[];
 };
 
+// What a session cost at models.dev rates. total is own plus subagents plus cli_runs: its main agent, every
+// session under it, and every CLI run it started, with theirs. unpriced_calls went to models without a price.
+export type SessionCost = {
+  readonly total: number;
+  readonly own: number;
+  readonly subagents: number;
+  readonly cli_runs: number;
+  readonly unpriced_calls: number;
+};
+
 export type SessionListItem = {
   readonly key: string;
   readonly harness: string;
@@ -72,9 +82,15 @@ export type SessionListItem = {
   readonly agent: string | null;
   readonly cwd: string | null;
   readonly parent: string | null;
+  // interactive for a person's session, cli for a headless run such as claude -p, null when unknown.
+  readonly origin: "interactive" | "cli" | null;
+  // The session whose shell started this one, when it was a CLI run.
+  readonly spawned_by: { readonly key: string; readonly title: string | null } | null;
   readonly efforts: readonly string[];
   readonly file_count: number;
   readonly child_count: number;
+  // Null until an export has recorded usage for the session or anything it reaches.
+  readonly cost: SessionCost | null;
   readonly started_at: string;
   readonly last_activity_at: string;
 };
@@ -89,6 +105,8 @@ export type SessionPage = SessionListItem & {
   // The session and each session under it, with the files each produced.
   readonly tree: readonly { readonly session: SessionListItem; readonly depth: number; readonly files: readonly ArtifactItem[] }[];
   readonly reads: readonly ArtifactItem[];
+  // CLI runs this session's shell started, which keep their own files and efforts.
+  readonly spawned: readonly SessionListItem[];
 };
 
 export type KnowledgeItem = ArtifactItem & {

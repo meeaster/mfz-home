@@ -127,6 +127,9 @@ export function SessionsView() {
   const sessions = useResource("sessions", (signal) => api.sessions(signal));
   const [attachment, setAttachment] = useState("all");
   const [harness, setHarness] = useState("all");
+  // CLI runs, such as claude -p and opencode run, are hidden until asked for. A session whose origin is
+  // unknown counts as interactive.
+  const [origin, setOrigin] = useState("interactive");
 
   return (
     <>
@@ -136,10 +139,13 @@ export function SessionsView() {
           {(list) => {
             const attached = list.filter((session) => session.efforts.length > 0).length;
             const harnesses = [...new Set(list.map((session) => session.harness))].sort();
+            const cliRuns = list.filter((session) => session.origin === "cli").length;
 
             const shown = list.filter(
               (session) =>
-                (attachment === "all" || (attachment === "attached") === session.efforts.length > 0) && (harness === "all" || session.harness === harness)
+                (attachment === "all" || (attachment === "attached") === session.efforts.length > 0) &&
+                (harness === "all" || session.harness === harness) &&
+                (origin === "all" || (origin === "cli") === (session.origin === "cli"))
             );
 
             return (
@@ -158,6 +164,15 @@ export function SessionsView() {
                     value={harness}
                     onChange={setHarness}
                     options={[{ value: "all", label: "All harnesses" }, ...harnesses.map((name) => ({ value: name, label: harnessName(name) }))]}
+                  />
+                  <Filter
+                    value={origin}
+                    onChange={setOrigin}
+                    options={[
+                      { value: "interactive", label: `Interactive ${list.length - cliRuns}` },
+                      { value: "cli", label: `CLI runs ${cliRuns}` },
+                      { value: "all", label: "Both" }
+                    ]}
                   />
                 </div>
                 {shown.length === 0 ? (

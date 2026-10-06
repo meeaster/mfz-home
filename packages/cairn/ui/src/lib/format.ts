@@ -17,6 +17,17 @@ function toDate(value: string): Date {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? new Date(`${value}T00:00:00`) : new Date(value);
 }
 
+const dollars = new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+// A cost in dollars, with amounts under a cent shown as such rather than rounded to $0.00.
+export function money(value: number): string {
+  if (value === 0) {
+    return dollars.format(0);
+  }
+
+  return value < 0.01 ? `<${dollars.format(0.01)}` : dollars.format(value);
+}
+
 export function shortDate(value: string): string {
   return toDate(value).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }

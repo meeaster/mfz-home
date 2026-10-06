@@ -9,7 +9,9 @@ import {
   type Category,
   type EffortStatus,
   type FindInput,
-  type PointerType
+  sessionOrigin,
+  type PointerType,
+  type SessionOrigin
 } from "../schemas.ts";
 import { integer, optionalText, text, type Cairn, type Row } from "./db.ts";
 import { findSessionId, requireEffortId } from "./lookup.ts";
@@ -42,6 +44,8 @@ export type SessionSummary = {
   readonly workstream: string | null;
   readonly subject: string | null;
   readonly parent: string | null;
+  readonly origin: SessionOrigin | null;
+  readonly spawned_by: string | null;
   readonly root: string;
   readonly folder: string;
   readonly efforts: readonly string[];
@@ -158,7 +162,7 @@ export function loadArtifacts(cairn: Cairn, ids: readonly number[]): ArtifactEnt
 
   for (const row of cairn.sql.all`
     SELECT artifact.*, producer.harness AS producer_harness, producer.native_id AS producer_native_id,
-      producer.title AS producer_title
+      COALESCE(producer.title, producer.harness_title) AS producer_title
     FROM artifact LEFT JOIN session AS producer ON producer.id = artifact.producer_session_id
     WHERE artifact.id IN (SELECT value FROM json_each(${idList(ids)}))
   `) {
@@ -220,11 +224,14 @@ export function loadArtifact(cairn: Cairn, id: number): ArtifactEntry {
 
 export function loadSession(cairn: Cairn, id: number): SessionSummary {
   const row = cairn.sql.get`
-    SELECT session.*, parent.harness AS parent_harness, parent.native_id AS parent_native_id,
+    SELECT session.*, COALESCE(session.title, session.harness_title) AS shown_title,
+      parent.harness AS parent_harness, parent.native_id AS parent_native_id,
+      spawner.harness AS spawner_harness, spawner.native_id AS spawner_native_id,
       root.harness AS root_harness, root.native_id AS root_native_id, root.started_at AS root_started_at,
       conversation.path_or_url AS conversation_path
     FROM session
     LEFT JOIN session AS parent ON parent.id = session.parent_session_id
+    LEFT JOIN session AS spawner ON spawner.id = session.spawned_by_session_id
     JOIN session AS root ON root.id = session.root_session_id
     LEFT JOIN artifact AS conversation ON conversation.id = session.export_artifact_id
     WHERE session.id = ${id}
@@ -245,13 +252,15 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
 
   const parentHarness = optionalText(row, "parent_harness");
   const parentNativeId = optionalText(row, "parent_native_id");
+  const spawnerHarness = optionalText(row, "spawner_harness");
+  const spawnerNativeId = optionalText(row, "spawner_native_id");
   const rootHarness = text(row, "root_harness");
   const rootNativeId = text(row, "root_native_id");
   const conversation = optionalText(row, "conversation_path");
 
   return {
     key: formatSessionKey({ harness: text(row, "harness"), nativeId: text(row, "native_id") }),
-    title: optionalText(row, "title"),
+    title: optionalText(row, "shown_title"),
     description: optionalText(row, "description"),
     agent: optionalText(row, "agent"),
     cwd: optionalText(row, "cwd"),
@@ -261,6 +270,11 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
       parentHarness === null || parentNativeId === null
         ? null
         : formatSessionKey({ harness: parentHarness, nativeId: parentNativeId }),
+    origin: sessionOrigin.nullable().parse(optionalText(row, "origin")),
+    spawned_by:
+      spawnerHarness === null || spawnerNativeId === null
+        ? null
+        : formatSessionKey({ harness: spawnerHarness, nativeId: spawnerNativeId }),
     root: formatSessionKey({ harness: rootHarness, nativeId: rootNativeId }),
     folder: sessionFolder(cairn.root, rootHarness, text(row, "root_started_at").slice(0, 7), rootNativeId),
     efforts,
@@ -339,7 +353,7 @@ export function findSessions(cairn: Cairn, input: FindInput): SessionSummary[] {
   const tag = splitTag(input.tag);
 
   const score = textScore(
-    "coalesce(session.title, '') || ' ' || coalesce(session.description, '') || ' ' || session.native_id",
+    "coalesce(session.title, session.harness_title, '') || ' ' || coalesce(session.description, '') || ' ' || session.native_id",
     input.text
   );
 

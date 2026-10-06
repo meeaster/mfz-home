@@ -6,6 +6,7 @@ import {
   type SessionContextInput,
   type SessionDescribeInput,
   type SessionKey,
+  type SessionOrigin,
   type SessionStartInput
 } from "../schemas.ts";
 import { CairnError, insertedId, integer, optionalInteger, optionalText, timestamp, transaction, type Cairn } from "./db.ts";
@@ -17,6 +18,8 @@ import { effortView, markSessionDirty } from "./views.ts";
 
 export type SessionDetails = {
   readonly parent?: SessionKey | undefined;
+  readonly spawnedBy?: SessionKey | undefined;
+  readonly origin?: SessionOrigin | undefined;
   readonly cwd?: string | undefined;
   readonly agent?: string | undefined;
   readonly title?: string | undefined;
@@ -87,9 +90,9 @@ export function ensureSession(cairn: Cairn, key: SessionKey, details: SessionDet
 
     if (existing === undefined) {
       sessionId = insertedId(cairn.sql.run`
-        INSERT INTO session (harness, native_id, cwd, agent, title, started_at, last_activity_at)
+        INSERT INTO session (harness, native_id, cwd, agent, title, origin, started_at, last_activity_at)
         VALUES (${key.harness}, ${key.nativeId}, ${details.cwd ?? null}, ${details.agent ?? null},
-          ${details.title ?? null}, ${now}, ${now})
+          ${details.title ?? null}, ${details.origin ?? null}, ${now}, ${now})
       `);
       cairn.sql.run`UPDATE session SET root_session_id = id WHERE id = ${sessionId}`;
     } else {
@@ -98,9 +101,21 @@ export function ensureSession(cairn: Cairn, key: SessionKey, details: SessionDet
         UPDATE session SET last_activity_at = ${now},
           cwd = COALESCE(cwd, ${details.cwd ?? null}),
           agent = COALESCE(agent, ${details.agent ?? null}),
-          title = COALESCE(title, ${details.title ?? null})
+          title = COALESCE(title, ${details.title ?? null}),
+          origin = COALESCE(origin, ${details.origin ?? null})
         WHERE id = ${sessionId}
       `;
+    }
+
+    // The first spawner seen stays: a resumed session keeps the one that started it.
+    if (details.spawnedBy !== undefined) {
+      const spawnerId = ensureSession(cairn, details.spawnedBy, {});
+
+      if (spawnerId !== sessionId) {
+        cairn.sql.run`
+          UPDATE session SET spawned_by_session_id = COALESCE(spawned_by_session_id, ${spawnerId}) WHERE id = ${sessionId}
+        `;
+      }
     }
 
     if (details.parent !== undefined) {
@@ -121,7 +136,7 @@ export function ensureSession(cairn: Cairn, key: SessionKey, details: SessionDet
 }
 
 export function startSession(cairn: Cairn, input: SessionStartInput): SessionSummary {
-  const sessionId = ensureSession(cairn, input.session, input);
+  const sessionId = ensureSession(cairn, input.session, { ...input, spawnedBy: input.spawned_by });
 
   return loadSession(cairn, sessionId);
 }

@@ -46,7 +46,7 @@ function workspace() {
 
   roots.push(root);
   opencode.exec(`
-    CREATE TABLE session_v2 (id TEXT PRIMARY KEY, title TEXT, parent_id TEXT);
+    CREATE TABLE session_v2 (id TEXT PRIMARY KEY, title TEXT, parent_id TEXT, time_viewed INTEGER);
     CREATE TABLE session_message (
       id TEXT PRIMARY KEY, session_id TEXT NOT NULL, type TEXT NOT NULL, seq INTEGER NOT NULL,
       time_created INTEGER NOT NULL, time_updated INTEGER NOT NULL, data TEXT NOT NULL
@@ -75,7 +75,8 @@ function workspace() {
       },
       stdin: () => "",
       now: () => new Date("2026-09-25T10:00:00"),
-      launchIndex: () => {}
+      launchIndex: () => {},
+      pricing: () => null
     });
 
     if (code !== 0) {
@@ -88,8 +89,9 @@ function workspace() {
   return {
     root,
     cli,
-    session: (id: string, title: string, parent: string | null = null) => {
-      opencode.prepare("INSERT INTO session_v2 VALUES (?, ?, ?)").run(id, title, parent);
+    // viewed is when the TUI last showed the session; opencode run never does.
+    session: (id: string, title: string, parent: string | null = null, viewed: number | null = null) => {
+      opencode.prepare("INSERT INTO session_v2 VALUES (?, ?, ?, ?)").run(id, title, parent, viewed);
     },
     user: (session: string, text: string, files = 0) => message(session, "user", { text, files: Array.from({ length: files }, () => ({})) }),
     // One model call that reads prompt tokens, most of them cached, and writes 50.
@@ -158,6 +160,25 @@ describe("conversation export", () => {
       "## Assistant · seq 7 · msg_7 · final_answer · context 20,050"
     ]);
     expect(exported).not.toMatch(/PRIVATE REASONING|TOOL OUTPUT|SYNTHETIC NOTICE/);
+  });
+
+  test("a session still named with OpenCode's placeholder takes its title from its first prompt, and one never viewed is a CLI run", () => {
+    const cairn = workspace();
+
+    const sessions = () =>
+      cairn.cli(z.object({ sessions: z.array(z.object({ title: z.string().nullable(), origin: z.string().nullable() })) }), "find", "sessions").sessions;
+
+    cairn.session("ses_a", "New session - 2026-09-25T10:00:00.000Z");
+    cairn.user("ses_a", "Where should the logs go?");
+    cairn.index("opencode:ses_a");
+
+    expect(sessions()).toEqual([{ title: "Where should the logs go?", origin: "cli" }]);
+
+    cairn.session("ses_b", "Log retention options", null, 1790000000000);
+    cairn.user("ses_b", "Where should the logs go?");
+    cairn.index("opencode:ses_b");
+
+    expect(sessions()).toContainEqual({ title: "Log retention options", origin: "interactive" });
   });
 
   test("a revert rewrites the export without the reverted messages", () => {

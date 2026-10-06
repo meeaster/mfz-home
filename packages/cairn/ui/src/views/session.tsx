@@ -10,9 +10,9 @@ import { ArtifactIcon, ArtifactSummary } from "@/components/artifact-row";
 import { useEffortTitle } from "@/components/effort-badges";
 import { Markdown } from "@/components/markdown";
 import { EmptyList, Loaded, PageBody, PageHeader } from "@/components/page";
-import { harnessName } from "@/components/session-table";
+import { CostText, harnessName, SessionTable } from "@/components/session-table";
 import { api, openFolder, useResource, type ArtifactItem, type SessionPage } from "@/lib/api";
-import { categoryDot, dateTime, shortDate } from "@/lib/format";
+import { categoryDot, dateTime, money, shortDate } from "@/lib/format";
 import { effortHref, fileHref, routeHref, sessionHref, type Route } from "@/lib/route";
 
 function FileRows({ files, route }: { readonly files: readonly ArtifactItem[]; readonly route: Route }) {
@@ -68,6 +68,11 @@ function Files({ session, route }: { readonly session: SessionPage; readonly rou
                     {node.session.agent !== null && <Badge variant="outline">{node.session.agent}</Badge>}
                     <span className="font-mono text-xs text-muted-foreground">{node.session.key.slice(node.session.key.indexOf(":") + 1, node.session.key.indexOf(":") + 13)}</span>
                     {node.depth === 0 && <span className="text-xs text-muted-foreground">this session</span>}
+                    {node.session.cost !== null && (
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        <CostText cost={node.session.cost} part="own" />
+                      </span>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -103,6 +108,38 @@ function Conversation({ path, route }: { readonly path: string; readonly route: 
   );
 }
 
+function CostCard({ cost }: { readonly cost: NonNullable<SessionPage["cost"]> }) {
+  const rows: readonly (readonly [string, number])[] = [
+    ["This session", cost.own],
+    ["Subagents", cost.subagents],
+    ["CLI runs", cost.cli_runs]
+  ];
+
+  return (
+    <Card size="sm">
+      <CardHeader>
+        <CardTitle>Cost</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-3">
+        <dl className="grid grid-cols-[1fr_auto] gap-x-6 gap-y-2 text-sm">
+          {rows.map(([label, value]) => (
+            <div key={label} className="contents">
+              <dt className="text-muted-foreground">{label}</dt>
+              <dd className="text-right tabular-nums">{money(value)}</dd>
+            </div>
+          ))}
+          <dt className="border-t pt-2 font-medium">Total</dt>
+          <dd className="border-t pt-2 text-right font-medium tabular-nums">{money(cost.total)}</dd>
+        </dl>
+        <p className="text-xs text-muted-foreground">
+          At models.dev API rates.
+          {cost.unpriced_calls > 0 && ` Leaves out ${cost.unpriced_calls} calls to models without a models.dev price.`}
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
 function Details({ session, route }: { readonly session: SessionPage; readonly route: Route }) {
   const effortTitle = useEffortTitle();
 
@@ -135,6 +172,7 @@ function Details({ session, route }: { readonly session: SessionPage; readonly r
           </dl>
         </CardContent>
       </Card>
+      {session.cost !== null && <CostCard cost={session.cost} />}
       <Card size="sm">
         <CardHeader>
           <CardTitle>Attached efforts</CardTitle>
@@ -189,6 +227,7 @@ export function SessionView({ sessionKey, route }: { readonly sessionKey: string
                 <>
                   <Badge variant="secondary">{harnessName(value.harness)}</Badge>
                   <Badge variant="outline">{value.parent === null ? "root session" : "child session"}</Badge>
+                  {value.origin === "cli" && <Badge variant="outline">CLI run</Badge>}
                 </>
               }
               actions={
@@ -211,6 +250,15 @@ export function SessionView({ sessionKey, route }: { readonly sessionKey: string
               meta={
                 <>
                   <span className="font-mono text-xs">{value.key}</span>
+                  {value.spawned_by !== null && <span aria-hidden>·</span>}
+                  {value.spawned_by !== null && (
+                    <span>
+                      Run from{" "}
+                      <a href={sessionHref(value.spawned_by.key)} className="hover:underline">
+                        {value.spawned_by.title ?? value.spawned_by.key}
+                      </a>
+                    </span>
+                  )}
                   {value.efforts.length > 0 && <span aria-hidden>·</span>}
                   {value.efforts.length > 0 && <span>Attached to</span>}
                   {value.efforts.map((slug) => (
@@ -224,6 +272,7 @@ export function SessionView({ sessionKey, route }: { readonly sessionKey: string
               <TabsList className="mt-1">
                 <TabsTrigger value="files">Files {fileCount}</TabsTrigger>
                 <TabsTrigger value="reads">Reads {value.reads.length}</TabsTrigger>
+                {value.spawned.length > 0 && <TabsTrigger value="spawned">CLI runs {value.spawned.length}</TabsTrigger>}
                 <TabsTrigger value="conversation" disabled={value.conversation === null}>
                   Conversation
                 </TabsTrigger>
@@ -247,6 +296,9 @@ export function SessionView({ sessionKey, route }: { readonly sessionKey: string
                         </Table>
                       </div>
                     )}
+                  </TabsContent>
+                  <TabsContent value="spawned">
+                    <SessionTable sessions={value.spawned} />
                   </TabsContent>
                   <TabsContent value="conversation">{value.conversation !== null && <Conversation path={value.conversation} route={route} />}</TabsContent>
                 </div>

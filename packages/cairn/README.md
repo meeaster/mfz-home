@@ -48,7 +48,23 @@ After each turn of a root OpenCode session, the plugin runs `cairn session index
 
 For a Claude Code session, `cairn session index claude-code:<id>` reads the session's transcript. `--source` names the transcript file; without it, Cairn looks for `projects/*/<id>.jsonl` under `CLAUDE_CONFIG_DIR` or `~/.claude`. `--last-message <file|->` supplies the turn's final message when the transcript may not hold it yet.
 
-## Claude Code hooks
+Each export also refreshes the session's harness title, which the catalog shows when nobody has set a title through `session describe` or `catalog_session`. For OpenCode it's the session's title, unless OpenCode still has its `New session - <time>` placeholder. For Claude Code it's a custom title (a `custom-title` entry), then the name the session was started with, then the title Claude Code generates for an interactive session. A session with none of these, such as a `claude -p` run, takes the first line of its first prompt.
+
+## CLI runs
+
+A session started by a headless command, `claude -p` or `opencode run`, is a CLI run: its origin is `cli`, where a session a person works in is `interactive`. When the command ran in another session's shell, the run records that session as its spawner. A spawner is a link, not a parent: the run keeps its own folder, files, and efforts.
+
+- **The marker.** Every agent shell names its session. The Claude Code hook appends `export CAIRN_SESSION=claude-code:<id>` to `CLAUDE_ENV_FILE`, which Claude Code sources before each Bash command. OpenCode sets `OPENCODE_SESSION_ID` in every shell itself, and the plugin removes any `CAIRN_SESSION` an OpenCode shell inherited from further up. A run's spawner is its `CAIRN_SESSION` if set, otherwise its `OPENCODE_SESSION_ID`.
+- **Claude Code runs.** The `SessionStart` hook reads the spawner from its own environment, and the origin from `CLAUDE_CODE_ENTRYPOINT`: `sdk-*` is a CLI run. Remote Control sessions are the exception: they also run through the SDK, but `CLAUDE_CODE_ENVIRONMENT_KIND=bridge` marks them, and they're interactive.
+- **OpenCode runs.** `opencode run` hands its prompt to the OpenCode service, where the plugin runs, so the plugin reads the command's process under `/proc` instead: an OpenCode executable running `run` in the session's directory, started around when the session was created. A session with no such process came from the TUI or another client and is interactive. Without `/proc`, as on Windows outside WSL, every OpenCode session counts as interactive.
+- **Earlier sessions.** `cairn session index` fills in an unknown origin: from the transcript for Claude Code (a prompt a person typed, with `turnOrigin: "human"`, makes it interactive whatever its `entrypoint`), and for OpenCode from whether the TUI ever showed the session (`time_viewed`). Spawners can't be recovered for sessions recorded before this.
+
+## Session cost
+
+Each `cairn session index` of a root session also records the model usage of the session and its subagents: Claude Code's transcript and the subagent transcripts beside it, or OpenCode's session and its child sessions. Usage is kept per session and model, and each call is priced on its own at models.dev API rates, so a context tier applies to the calls that crossed it. Claude Code's one-hour cache writes are priced at twice the input rate, as Anthropic bills them; models.dev lists only the five-minute rate. Calls to a model models.dev doesn't price are counted but left out of the dollars.
+
+The catalog is cached at `pricing/models-dev.json` under the root and fetched again once it's a day old; a failed fetch keeps the cached copy. A model that models.dev knows under another name, such as a LiteLLM gateway's name for the model behind it, is mapped in `pricing/aliases.json`: `{"gateway/opus": "anthropic/claude-opus-5-5"}`, keys as the harness records them, and targets as `<provider>/<model>` or the `session-cost-tui` plugin's `{ providerID, modelID }` form. Re-index after changing it. To bring an older catalog up to date, see [scripts/upgrade/README.md](scripts/upgrade/README.md). A session's cost is worked out when it's shown: its own calls, its subagents' (every session under it), and its CLI runs' (every run its tree started, with their subagents and runs). These are estimates at current API rates, not what a subscription or plan actually bills.
+
 
 `cairn hook claude-code` reads one Claude Code hook event on stdin and prints the context to add, if any. Point the `SessionStart`, `SubagentStart`, `SubagentStop`, `PostToolUse`, and `Stop` hooks at it:
 
@@ -56,8 +72,8 @@ For a Claude Code session, `cairn session index claude-code:<id>` reads the sess
 cairn hook claude-code
 ```
 
-- `SessionStart` registers the session and adds its catalog ID to the context. After a compaction it adds the session's efforts and records instead. On a resume it re-exports the conversation.
-- `SubagentStart` registers the subagent as a child session keyed by its `agent_id` and adds that ID to the subagent's context.
+- `SessionStart` registers the session, with its origin and spawner (see [CLI runs](#cli-runs)), exports its ID to its shells, and adds its catalog ID to the context. After a compaction it adds the session's efforts and records instead. On a resume it re-exports the conversation.
+- `SubagentStart` adds the subagent's `agent_id` to its context as its catalog ID. A subagent becomes a child session, keyed by that ID, once Claude Code has written its `agent-<id>.meta.json`, which happens just after `SubagentStart`; any later event registers it. Claude Code also sends subagent events for internal work that has no metadata file; those events belong to the main session.
 - `PostToolUse` records files written with `Write`, `Edit`, `MultiEdit`, or `NotebookEdit`, and files read with `Read`, when they are under the root. The first write of a file adds a note asking the writer to describe it.
 - `Stop` exports the conversation in a separate process that outlives the hook.
 
@@ -87,7 +103,7 @@ The OpenCode plugin and the Claude Code hooks record sessions and files as they 
 
 The plugin in `src/opencode/` records OpenCode sessions and the files they write or read.
 
-- **Sessions.** Before a session's first model request, the plugin registers it, with its parent, agent, and directory. It adds `This session's catalog ID is opencode:<id>.` to the system text, so the agent can pass its ID to the `catalog_*` tools.
+- **Sessions.** Before a session's first model request, the plugin registers it, with its parent, agent, and directory, and for a root session its origin and spawner (see [CLI runs](#cli-runs)). It adds `This session's catalog ID is opencode:<id>.` to the system text, so the agent can pass its ID to the `catalog_*` tools.
 - **Files.** When `write`, `edit`, or `patch` changes a file under the Cairn root, the plugin runs `cairn capture`. The first time a session writes a given file, the plugin adds a note to the tool result that asks for a description through `catalog_describe`. When `read` opens a file under the root, the plugin runs `cairn read`. Files outside the root are ignored, and so are writes from the shell. A shell write to a path from `catalog_location` is credited to the session that asked for the path once anything records the file; `cairn check` finds the rest.
 - **Conversations.** After each turn of a root session, the plugin runs `cairn session index`, which appends the turn's messages to `conversation.md` in the session's folder. Subagent sessions get no export.
 - **Compaction.** After a compaction, every request carries the session's compaction note: its efforts and the records to read.
@@ -104,7 +120,7 @@ Each catalog update is a detached `node` process running the CLI from the same p
 cairn ui
 ```
 
-It has a page for each effort and session and lists of efforts, sessions, knowledge articles, designs, and sources. The sidebar groups efforts by their `initiative:` tag. An effort's page groups its files by category, shows its records and linked efforts, and marks each file that has been written up in a knowledge article. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. A built doc opens in its own tab from the list: the UI serves `designs/<name>/published/<slug>.html` at `/docs/<name>/`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. Clicking a file opens it, rendered or raw.
+It has a page for each effort and session and lists of efforts, sessions, knowledge articles, designs, and sources. The sessions list hides CLI runs until its filter asks for them; a session's page lists the CLI runs its shell started. Session lists show each session's total cost; a session's page breaks it down into the session itself, its subagents, and its CLI runs, and shows each subagent's own cost beside its files. The sidebar groups efforts by their `initiative:` tag. An effort's page groups its files by category, shows its records and linked efforts, and marks each file that has been written up in a knowledge article. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. A built doc opens in its own tab from the list: the UI serves `designs/<name>/published/<slug>.html` at `/docs/<name>/`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. Clicking a file opens it, rendered or raw.
 
 The UI only reads. Its one action, Open folder, opens a folder under the root in the desktop's file manager (Explorer from WSL). The server listens on 127.0.0.1 and answers only requests addressed to `localhost`. The file viewer shows files under the root, and outside it only files the catalog records.
 

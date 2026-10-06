@@ -69,6 +69,8 @@ const integerColumn = z.union([z.number().int(), z.bigint()]).transform(Number);
 
 const optionalIntegerColumn = integerColumn.nullable().default(null);
 
+const numberColumn = z.number();
+
 function column<Parser extends z.ZodType>(parser: Parser, row: Row, name: string): z.output<Parser> {
   const parsed = parser.safeParse(row[name]);
 
@@ -93,6 +95,10 @@ export function integer(row: Row, name: string): number {
 
 export function optionalInteger(row: Row, name: string): number | null {
   return column(optionalIntegerColumn, row, name);
+}
+
+export function number(row: Row, name: string): number {
+  return column(numberColumn, row, name);
 }
 
 export function insertedId(result: { lastInsertRowid: number | bigint }): number {

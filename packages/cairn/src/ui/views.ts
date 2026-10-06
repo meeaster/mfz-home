@@ -17,6 +17,7 @@ import { findArtifactId, findSessionId, requireSessionId } from "../core/lookup.
 import { relativeInsideRoot } from "../core/root.ts";
 import { articlesInformed, effortView, knowledgeArticles, type ArticleReference } from "../core/views.ts";
 import * as schemas from "../schemas.ts";
+import { sessionCost } from "../usage/rollup.ts";
 import type {
   ArtifactItem,
   DesignItem,
@@ -70,6 +71,10 @@ export function effortList(cairn: Cairn): EffortListItem[] {
   return findEfforts(cairn, schemas.findInput.parse({ target: "efforts", limit: 500 })).map(effortListItem);
 }
 
+function sessionTitle(cairn: Cairn, key: string): string | null {
+  return loadSession(cairn, requireSessionId(cairn, schemas.sessionKey.parse(key))).title;
+}
+
 function sessionListItem(cairn: Cairn, id: number): SessionListItem {
   const session = loadSession(cairn, id);
 
@@ -90,9 +95,12 @@ function sessionListItem(cairn: Cairn, id: number): SessionListItem {
     agent: session.agent,
     cwd: session.cwd,
     parent: session.parent,
+    origin: session.origin,
+    spawned_by: session.spawned_by === null ? null : { key: session.spawned_by, title: sessionTitle(cairn, session.spawned_by) },
     efforts: session.efforts,
     file_count: counts === undefined ? 0 : integer(counts, "file_count"),
     child_count: counts === undefined ? 0 : integer(counts, "child_count"),
+    cost: sessionCost(cairn, id),
     started_at: session.started_at,
     last_activity_at: session.last_activity_at
   };
@@ -235,6 +243,12 @@ export function sessionPage(cairn: Cairn, key: string): SessionPage {
     reads.push(integer(row, "id"));
   }
 
+  const spawned: SessionListItem[] = [];
+
+  for (const row of cairn.sql.all`SELECT id FROM session WHERE spawned_by_session_id = ${id} ORDER BY started_at, id`) {
+    spawned.push(sessionListItem(cairn, integer(row, "id")));
+  }
+
   const attachments: SessionPage["attachments"][number][] = [];
 
   for (const row of cairn.sql.all`
@@ -259,7 +273,8 @@ export function sessionPage(cairn: Cairn, key: string): SessionPage {
     conversation: session.conversation,
     attachments,
     tree,
-    reads: artifactItems(cairn, reads)
+    reads: artifactItems(cairn, reads),
+    spawned
   };
 }
 

@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { z } from "zod";
-import type { ConversationRecord, ConversationSnapshot, MessageRecord } from "./export.ts";
+import type { SessionOrigin } from "../schemas.ts";
+import { claudeCodeOrigin } from "../harness/spawner.ts";
+import { promptTitle, type ConversationRecord, type ConversationSnapshot, type MessageRecord } from "./export.ts";
 
 const chainEntry = z.object({
   uuid: z.string(),
@@ -9,10 +11,19 @@ const chainEntry = z.object({
   isSidechain: z.boolean().optional()
 });
 
+// A title the human set, the name the session was started with, and the title Claude Code generates for an
+// interactive session, in that order of precedence. A later entry of the same kind replaces an earlier one.
 const titleEntry = z.union([
   z.object({ type: z.literal("custom-title"), customTitle: z.string() }),
+  z.object({ type: z.literal("agent-name"), agentName: z.string() }),
   z.object({ type: z.literal("ai-title"), aiTitle: z.string() })
 ]);
+
+// Every message entry records how the session was started; the first one is enough.
+const entrypointEntry = z.object({ entrypoint: z.string() });
+
+// A prompt a person typed, in the terminal or through Remote Control. claude -p prompts are sdk instead.
+const typedPrompt = z.object({ type: z.literal("user"), turnOrigin: z.literal("human") });
 
 const block = z.object({ type: z.string(), text: z.string().optional() });
 
@@ -76,12 +87,16 @@ type ChainEntry = z.infer<typeof chainEntry> & { readonly line: number; readonly
 type Parsed = {
   readonly entries: readonly ChainEntry[];
   readonly title: string | null;
+  readonly origin: SessionOrigin | null;
 };
 
 function parseLines(transcript: string): Parsed {
   const entries: ChainEntry[] = [];
   let custom: string | null = null;
+  let named: string | null = null;
   let generated: string | null = null;
+  let origin: SessionOrigin | null = null;
+  let typed = false;
 
   for (const [index, line] of readFileSync(transcript, "utf8").split("\n").entries()) {
     if (line.trim() === "") {
@@ -97,13 +112,27 @@ function parseLines(transcript: string): Parsed {
       continue;
     }
 
+    if (origin === null) {
+      const entrypoint = entrypointEntry.safeParse(value);
+
+      origin = entrypoint.success ? (claudeCodeOrigin(entrypoint.data.entrypoint) ?? null) : null;
+    }
+
+    typed ||= typedPrompt.safeParse(value).success;
+
     const title = titleEntry.safeParse(value);
 
     if (title.success) {
-      if (title.data.type === "custom-title") {
-        custom = title.data.customTitle;
-      } else {
-        generated = title.data.aiTitle;
+      switch (title.data.type) {
+        case "custom-title":
+          custom = title.data.customTitle;
+          break;
+        case "agent-name":
+          named = title.data.agentName;
+          break;
+        case "ai-title":
+          generated = title.data.aiTitle;
+          break;
       }
 
       continue;
@@ -116,7 +145,8 @@ function parseLines(transcript: string): Parsed {
     }
   }
 
-  return { entries, title: custom ?? generated };
+  // A Remote Control session's entrypoint is sdk-cli, like claude -p, but a person typed its prompts.
+  return { entries, title: custom ?? named ?? generated, origin: typed ? "interactive" : origin };
 }
 
 // The live conversation is the parentUuid chain back from the last entry. Branches left by a rewind aren't on it,
@@ -275,10 +305,12 @@ export function readClaudeCodeTranscript(transcript: string, lastMessage: string
   const parsed = parseLines(transcript);
   const { others, assistant } = records(liveChain(parsed.entries));
   const all = [...others, ...assistant.map((part) => part.record)];
+  const firstPrompt = others.find((record): record is MessageRecord => record.role === "user");
 
   return {
     parent: null,
-    title: parsed.title,
+    title: parsed.title ?? promptTitle(firstPrompt?.text ?? null),
+    origin: parsed.origin,
     records: all.sort((a, b) => a.seq - b.seq || (a.contentIndex ?? -1) - (b.contentIndex ?? -1)),
     provisional: provisionalTail(assistant, lastMessage)
   };

@@ -1,10 +1,15 @@
 import { DatabaseSync } from "node:sqlite";
 import { z } from "zod";
-import type { ConversationRecord, ConversationSnapshot } from "./export.ts";
+import { promptTitle, type ConversationRecord, type ConversationSnapshot } from "./export.ts";
 
 const columnInfo = z.object({ name: z.string() });
 
-const sessionRow = z.object({ title: z.string().nullable(), parent_id: z.string().nullable() });
+const sessionRow = z.object({ title: z.string().nullable(), parent_id: z.string().nullable(), viewed: z.number().nullable() });
+
+const promptRow = z.object({ text: z.string().nullable() });
+
+// OpenCode names a session this way until it generates a title, and keeps the name if generation never runs.
+const placeholderTitle = /^(New session|Child session) - \d{4}-\d{2}-\d{2}T/;
 
 const userRow = z.object({
   seq: z.number().int(),
@@ -41,13 +46,32 @@ const promptSql = (alias: string) =>
 
 const contextSql = (alias: string) => `${promptSql(alias)} + json_extract(${alias}.data, '$.tokens.output')`;
 
+function columns(db: DatabaseSync, table: string): Set<string> {
+  return new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((row) => columnInfo.parse(row).name));
+}
+
+function hasColumn(db: DatabaseSync, table: string, column: string): boolean {
+  return columns(db, table).has(column);
+}
+
 function requireColumns(db: DatabaseSync, table: string, required: readonly string[]): void {
-  const actual = new Set(db.prepare(`PRAGMA table_info(${table})`).all().map((row) => columnInfo.parse(row).name));
+  const actual = columns(db, table);
   const missing = required.filter((name) => !actual.has(name));
 
   if (missing.length > 0) {
     throw new Error(`Unsupported OpenCode schema: ${table} lacks ${missing.join(", ")}`);
   }
+}
+
+function firstPromptTitle(db: DatabaseSync, sessionId: string): string | null {
+  const row = db
+    .prepare(
+      `SELECT json_extract(data, '$.text') AS text FROM session_message
+      WHERE session_id = ? AND type = 'user' ORDER BY seq LIMIT 1`
+    )
+    .get(sessionId);
+
+  return row === undefined ? null : promptTitle(promptRow.parse(row).text);
 }
 
 // One read transaction over OpenCode's durable message projection: user text, assistant text parts, and completed
@@ -61,7 +85,10 @@ export function readOpenCodeSession(database: string, sessionId: string, fromSeq
     requireColumns(db, "session_v2", ["id", "title", "parent_id"]);
     requireColumns(db, "session_message", ["id", "session_id", "type", "seq", "time_created", "data"]);
 
-    const found = db.prepare("SELECT title, parent_id FROM session_v2 WHERE id = ?").get(sessionId);
+    // The TUI marks a session viewed when it shows it; opencode run never does. An OpenCode without the column
+    // leaves the origin unknown.
+    const viewed = hasColumn(db, "session_v2", "time_viewed") ? "time_viewed" : "NULL";
+    const found = db.prepare(`SELECT title, parent_id, ${viewed} AS viewed FROM session_v2 WHERE id = ?`).get(sessionId);
 
     if (found === undefined) {
       throw new Error(`OpenCode has no session ${sessionId}`);
@@ -152,7 +179,11 @@ export function readOpenCodeSession(database: string, sessionId: string, fromSeq
 
     const records = [...users, ...parts, ...compactions].sort((a, b) => a.seq - b.seq || (a.contentIndex ?? -1) - (b.contentIndex ?? -1));
 
-    return { parent: session.parent_id, title: session.title, records, provisional: null };
+    const title = session.title === null || placeholderTitle.test(session.title) ? null : session.title;
+
+    const origin = viewed === "NULL" ? null : session.viewed === null ? "cli" : "interactive";
+
+    return { parent: session.parent_id, title: title ?? firstPromptTitle(db, sessionId), origin, records, provisional: null };
   } finally {
     if (db.isTransaction) {
       db.exec("ROLLBACK");

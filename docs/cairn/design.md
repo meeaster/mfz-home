@@ -94,7 +94,7 @@ These are the human's own examples. The design is checked against them.
 
 ### Sessions
 
-Every session is recorded when it starts, with its parent if it's a child session. Files written anywhere in a session tree have their home in the root session's folder. The root session is described (title and description) once it has substance, and that description labels its conversation export.
+Every session is recorded when it starts, with its parent if it's a child session. Files written anywhere in a session tree have their home in the root session's folder. The root session is described (title and description) once it has substance, and that description labels its conversation export. Until then, the title the harness gives the session, or the first line of its first prompt, stands in; each conversation export refreshes it. A session started by `claude -p` or `opencode run` is a CLI run, linked to the session whose shell started it. That link isn't parentage: the run keeps its own folder and efforts, and the sessions list hides CLI runs by default. Each export also records the session's and its subagents' model usage, priced at models.dev API rates, so a session's cost can be totaled with its subagents and CLI runs.
 
 The harnesses identify child sessions differently. An OpenCode subagent runs in its own session with a `parentID`. A Claude Code subagent has no session of its own: it shares the parent's `session_id`, and hooks identify it by `agent_id`. The catalog records a Claude Code subagent as a child session `claude-code:<agent_id>` whose parent is `claude-code:<session_id>`, so both harnesses produce the same session tree.
 

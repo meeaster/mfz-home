@@ -8,6 +8,10 @@ export type RootPaths = {
   readonly logs: string;
   readonly sessions: string;
   readonly efforts: string;
+  // The models.dev catalog that prices model usage, refreshed daily.
+  readonly pricing: string;
+  // Model names a harness records, mapped to the models.dev models that price them.
+  readonly aliases: string;
 };
 
 export type StoredPath = {
@@ -32,7 +36,9 @@ export function rootPaths(root: string): RootPaths {
     backups: join(absolute, "backups"),
     logs: join(absolute, "logs"),
     sessions: join(absolute, "sessions"),
-    efforts: join(absolute, "efforts")
+    efforts: join(absolute, "efforts"),
+    pricing: join(absolute, "pricing", "models-dev.json"),
+    aliases: join(absolute, "pricing", "aliases.json")
   };
 }
 
@@ -93,6 +99,7 @@ export function isCairnOwned(inside: string): boolean {
     inside.startsWith("backups/") ||
     inside.startsWith("logs/") ||
     inside.startsWith("locks/") ||
+    inside.startsWith("pricing/") ||
     inside === "knowledge/index.md" ||
     /^efforts\/[^/]+\/index\.md$/.test(inside)
   );

@@ -271,6 +271,38 @@ const migrations: readonly string[] = [
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'include'
   EXCEPT
   SELECT artifact_id, effort_id FROM membership WHERE mode = 'exclude';
+  `,
+  `
+  -- The title the harness gives a session, refreshed by each conversation export. title, set by an agent or
+  -- the human, takes precedence.
+  ALTER TABLE session ADD COLUMN harness_title TEXT;
+  `,
+  `
+  -- origin is how a session was started: interactive, by a person in a terminal or app, or cli, by a headless
+  -- command such as claude -p or opencode run. spawned_by_session_id is the session whose shell ran that
+  -- command. Unlike a parent, a spawner shares no folder or efforts with the session.
+  ALTER TABLE session ADD COLUMN origin TEXT CHECK (origin IN ('interactive', 'cli'));
+  ALTER TABLE session ADD COLUMN spawned_by_session_id INTEGER REFERENCES session (id);
+  CREATE INDEX session_spawned_by ON session (spawned_by_session_id);
+  `,
+  `
+  -- A session's own model usage, one row per model: what its main agent's calls used, not its subagents' or CLI
+  -- runs', which have their own rows. cost_usd prices the calls at models.dev rates and is null when the model has
+  -- no price there; unpriced_calls counts those calls.
+  CREATE TABLE session_usage (
+    session_id INTEGER NOT NULL REFERENCES session (id),
+    provider TEXT NOT NULL,
+    model TEXT NOT NULL,
+    calls INTEGER NOT NULL,
+    input_tokens INTEGER NOT NULL,
+    output_tokens INTEGER NOT NULL,
+    reasoning_tokens INTEGER NOT NULL,
+    cache_read_tokens INTEGER NOT NULL,
+    cache_write_tokens INTEGER NOT NULL,
+    cost_usd REAL,
+    unpriced_calls INTEGER NOT NULL,
+    PRIMARY KEY (session_id, provider, model)
+  ) STRICT;
   `
 ];
 

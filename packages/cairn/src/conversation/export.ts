@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { z } from "zod";
-import { formatSessionKey, type SessionKey } from "../schemas.ts";
+import { formatSessionKey, type SessionKey, type SessionOrigin } from "../schemas.ts";
 import { fileFacts, recordManagedFile } from "../core/artifacts.ts";
 import { optionalText, timestamp, transaction, type Cairn } from "../core/db.ts";
 import { loadSession } from "../core/find.ts";
@@ -39,13 +39,37 @@ export type CompactionRecord = RecordBase & {
 
 export type ConversationRecord = MessageRecord | CompactionRecord;
 
+// title is the harness's title for the session, or one from its first prompt. origin is how the harness says
+// the session was started, which fills it in for sessions recorded before Cairn tracked it.
 export type ConversationSnapshot = {
   readonly parent: string | null;
   readonly title: string | null;
+  readonly origin: SessionOrigin | null;
   readonly records: readonly ConversationRecord[];
   // The final assistant text the harness reported but hadn't saved to its source yet.
   readonly provisional: string | null;
 };
+
+const promptTitleLength = 60;
+
+// A title from the session's first prompt, for a harness that gave the session none: its first line, cut at a
+// word boundary.
+export function promptTitle(prompt: string | null): string | null {
+  const line = prompt?.split("\n").map((part) => part.trim()).find((part) => part !== "");
+
+  if (line === undefined) {
+    return null;
+  }
+
+  if (line.length <= promptTitleLength) {
+    return line;
+  }
+
+  const cut = line.slice(0, promptTitleLength);
+  const space = cut.lastIndexOf(" ");
+
+  return `${(space > promptTitleLength / 2 ? cut.slice(0, space) : cut).trimEnd()}…`;
+}
 
 // Reads a harness session's records with seq at or after fromSeq.
 export type ConversationSource = (fromSeq: number) => ConversationSnapshot;
@@ -316,17 +340,19 @@ export function indexConversation(cairn: Cairn, key: SessionKey, source: Convers
 
     transaction(cairn, () => {
       const { id } = recordManagedFile(cairn, storedPath(cairn.root, path).stored, facts, sessionId);
-      const title = session.title ?? probe.title ?? "Untitled session";
 
-      cairn.sql.run`
-        UPDATE artifact SET category = 'conversation', title = ${title}, description = ${session.description},
-          status = 'active', updated_at = ${timestamp(cairn)}
-        WHERE id = ${id}
-      `;
+      // The harness may rename the session as it goes, so every export refreshes its title.
       cairn.sql.run`
         UPDATE session SET export_artifact_id = ${id}, watermark_json = ${JSON.stringify(written.watermark)},
-          indexed_at = ${timestamp(cairn)}, last_error = NULL
+          indexed_at = ${timestamp(cairn)}, last_error = NULL, harness_title = COALESCE(${probe.title}, harness_title),
+          origin = COALESCE(origin, ${probe.origin})
         WHERE id = ${sessionId}
+      `;
+      cairn.sql.run`
+        UPDATE artifact SET category = 'conversation', description = ${session.description},
+          title = (SELECT COALESCE(title, harness_title, 'Untitled session') FROM session WHERE id = ${sessionId}),
+          status = 'active', updated_at = ${timestamp(cairn)}
+        WHERE id = ${id}
       `;
       markArtifactDirty(cairn, id);
     });

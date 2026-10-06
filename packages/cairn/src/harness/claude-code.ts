@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { z } from "zod";
 import { formatSessionKey, type SessionKey } from "../schemas.ts";
@@ -6,6 +6,7 @@ import { capture, read } from "../core/artifacts.ts";
 import type { Cairn } from "../core/db.ts";
 import { isEffortRecord, relativeInsideRoot } from "../core/root.ts";
 import { ensureSession, sessionContext } from "../core/sessions.ts";
+import { claudeCodeProcessOrigin, spawnerFromEnvironment, type Environment } from "./spawner.ts";
 
 // Starts `cairn session index` in a process that outlives the hook. lastMessage goes to its stdin.
 export type IndexLauncher = (session: string, transcript: string, lastMessage: string | null) => void;
@@ -66,14 +67,14 @@ type SubagentFacts = {
 };
 
 // The Agent tool's description and, for a nested subagent, the subagent that spawned it, from the metadata
-// Claude Code keeps beside the subagent's transcript. The file can appear after SubagentStart, so every
-// subagent event reads it; registration fills a missing title and moves the session under its real parent.
-function subagentFacts(input: HookInput, agentId: string): SubagentFacts {
+// Claude Code keeps beside the subagent's transcript. Only Agent tool subagents get this file; Claude Code
+// also fires subagent events with an agent_id for internal work that has none, so null means not a subagent.
+function subagentFacts(input: HookInput, agentId: string): SubagentFacts | null {
   const meta = join(dirname(input.transcript_path), input.session_id, "subagents", `agent-${agentId}.meta.json`);
   const root = claudeKey(input.session_id);
 
   if (!existsSync(meta)) {
-    return { title: undefined, parent: root };
+    return null;
   }
 
   const parsed = subagentMeta.safeParse(JSON.parse(readFileSync(meta, "utf8")));
@@ -87,18 +88,31 @@ function subagentFacts(input: HookInput, agentId: string): SubagentFacts {
   return { title: description, parent: parentAgentId === undefined ? root : claudeKey(parentAgentId) };
 }
 
+function mainSession(cairn: Cairn, input: HookInput): SessionKey {
+  const key = claudeKey(input.session_id);
+
+  ensureSession(cairn, key, { cwd: input.cwd });
+
+  return key;
+}
+
 // A subagent shares its parent's session_id; the catalog records it as a child session keyed by agent_id.
+// The metadata file appears just after SubagentStart, so a subagent is registered by its first event that
+// finds the file. Events from internal work without the file belong to the main session.
 function actingSession(cairn: Cairn, input: HookInput): SessionKey {
   if (input.agent_id === undefined) {
-    ensureSession(cairn, claudeKey(input.session_id), { cwd: input.cwd });
+    return mainSession(cairn, input);
+  }
 
-    return claudeKey(input.session_id);
+  const facts = subagentFacts(input, input.agent_id);
+
+  if (facts === null) {
+    return mainSession(cairn, input);
   }
 
   const key = claudeKey(input.agent_id);
-  const { title, parent } = subagentFacts(input, input.agent_id);
 
-  ensureSession(cairn, key, { parent, cwd: input.cwd, agent: input.agent_type, title });
+  ensureSession(cairn, key, { parent: facts.parent, cwd: input.cwd, agent: input.agent_type, title: facts.title });
 
   return key;
 }
@@ -138,8 +152,17 @@ function toolUsed(cairn: Cairn, input: Extract<HookInput, { hook_event_name: "Po
   return context("PostToolUse", captureNote(formatSessionKey(session), path));
 }
 
-// Handles one Claude Code hook event and returns the context to add, if any.
-export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLauncher): HookOutput | null {
+// Exports the session's catalog ID to every shell command the session runs, so a claude -p or opencode run it
+// starts can name it as its spawner. Claude Code sources CLAUDE_ENV_FILE before each Bash command.
+function exportToShells(env: Environment, key: SessionKey): void {
+  if (env.CLAUDE_ENV_FILE !== undefined && env.CLAUDE_ENV_FILE !== "") {
+    appendFileSync(env.CLAUDE_ENV_FILE, `export CAIRN_SESSION='${formatSessionKey(key)}'\n`);
+  }
+}
+
+// Handles one Claude Code hook event and returns the context to add, if any. env is the hook's environment,
+// which Claude Code passes on from the process that started it.
+export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLauncher, env: Environment): HookOutput | null {
   const raw: unknown = JSON.parse(stdin);
   const name = eventName.parse(raw).hook_event_name;
 
@@ -153,7 +176,14 @@ export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLa
     case "SessionStart": {
       const key = claudeKey(input.session_id);
 
-      ensureSession(cairn, key, { cwd: input.cwd, agent: input.agent_type, title: input.session_title });
+      ensureSession(cairn, key, {
+        cwd: input.cwd,
+        agent: input.agent_type,
+        title: input.session_title,
+        spawnedBy: spawnerFromEnvironment(env),
+        origin: claudeCodeProcessOrigin(env)
+      });
+      exportToShells(env, key);
 
       // A resumed session may have turns the last export missed.
       if (input.source === "resume") {
@@ -168,8 +198,11 @@ export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLa
       return context("SessionStart", `This session's catalog ID is ${formatSessionKey(key)}.`);
     }
 
+    // The subagent's ID is its catalog ID even before its metadata file lets it be registered.
     case "SubagentStart":
-      return context("SubagentStart", `This session's catalog ID is ${formatSessionKey(actingSession(cairn, input))}.`);
+      actingSession(cairn, input);
+
+      return context("SubagentStart", `This session's catalog ID is ${formatSessionKey(claudeKey(input.agent_id))}.`);
     case "SubagentStop":
       actingSession(cairn, input);
 
