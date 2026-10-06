@@ -4,7 +4,7 @@
 //
 //   export default ({ props, body, ref, status, table, inline }) => table(["ID", "Note"], rows)
 
-const KIND_CLASS = { E: "ref-e", Q: "ref-q", D: "ref-d", R: "ref-r" };
+const KIND_CLASS = { E: "ref-e", Q: "ref-q", D: "ref-d", R: "ref-r", P: "ref-p" };
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -47,7 +47,7 @@ export function money(amount) {
 export function ids(value) {
   const items = Array.isArray(value) ? value : String(value ?? "").split(",");
 
-  return items.map((item) => item.trim()).filter((item) => /^[EQDR]\d+$/.test(item));
+  return items.map((item) => item.trim()).filter((item) => /^[EQDRP]\d+$/.test(item));
 }
 
 export function makeKit(model, inline) {
@@ -108,7 +108,7 @@ export function makeKit(model, inline) {
 
   // What a cited record says: the citing field's own words ("E1: text"), else the record's Short or title.
   const cite = (item) => {
-    const match = /^([EQDR]\d+)(?::\s*(.*))?$/.exec(item.trim());
+    const match = /^([EQDRP]\d+)(?::\s*(.*))?$/.exec(item.trim());
 
     if (match === null) return null;
 

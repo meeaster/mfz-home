@@ -111,7 +111,7 @@ export default function costOptions({ props, model, field, marks, money, esc, in
       return `<td class="num">${shown(amount)}</td>`;
     });
 
-    const cited = [...line.evidence, ...line.affected, ...(String(line.monthly).match(/\b[EQDR]\d+\b/g) ?? [])];
+    const cited = [...line.evidence, ...line.affected, ...(String(line.monthly).match(/\b[EQDRP]\d+\b/g) ?? [])];
 
     return `<tr><td><span class="q">${esc(line.title)}</span>${tags(line)}</td><td class="soft">${inline(line.drives)}</td>${cells.join("")}<td>${marks([...new Set(cited)])}</td></tr>`;
   };

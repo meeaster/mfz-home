@@ -45,7 +45,7 @@ async function card(option, props, row, recommendedBy, context) {
     views = `    <div class="view-panel" data-view-panel="architecture">\n${diagram}\n    </div>\n    <div class="view-panel" data-view-panel="security">\n${await component(security)}\n    </div>`;
   }
 
-  const cites = asList(field(fields, "Evidence")).flatMap((value) => String(value).split(/,\s*(?=[EQDR]\d+\b)/)).map(cite).filter((item) => item !== null);
+  const cites = asList(field(fields, "Evidence")).flatMap((value) => String(value).split(/,\s*(?=[EQDRP]\d+\b)/)).map(cite).filter((item) => item !== null);
   const citeItems = cites.map((item) => `${ref(item.id)}${inline(item.text)}`);
   const good = list("Works well", "good", asList(field(fields, "Works well")), inline);
   const risk = list("Costs and risks", "risk", asList(field(fields, "Costs and risks")), inline);

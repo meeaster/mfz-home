@@ -31,9 +31,9 @@ import { esc, ids, longDate, makeKit } from "./kit.mjs";
 
 const SKILL_COMPONENTS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/components");
 
-const MENTION = /(?<![\w#/\\-])([EQDR]\d+)\b/g;
+const MENTION = /(?<![\w#/\\-])([EQDRP]\d+)\b/g;
 
-const ESCAPED_ID = /\\([EQDR]\d+)\b/g;
+const ESCAPED_ID = /\\([EQDRP]\d+)\b/g;
 
 const COMPONENT_COMMENT = /<!--\s*component\s+([\w-]+)((?:\s+[\w-]+(?:="[^"]*"|=\S+)?)*)\s*-->/g;
 
@@ -42,7 +42,7 @@ const BOUND_TAG = /<([a-zA-Z][\w:-]*)(\s[^<>]*?\bdata-(?:pending|when|text|state
 const DECISION_HEADING = /^D\d+$/;
 
 // Record tables doc.py renders; ::: <kind> asks for one, and a design's own component of that name replaces it.
-const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "progress", "phases"]);
+const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "progress", "plan", "confluence", "jira", "other-links"]);
 
 const STANDARD_SECTIONS = {
   "in short": { suffix: "short", layout: "short" },
@@ -56,7 +56,14 @@ const STANDARD_SECTIONS = {
   cost: { suffix: "cost", records: "cost" },
   risks: { suffix: "risks", records: "risks" },
   decisions: { suffix: "decisions", records: "decisions" },
-  phases: { suffix: "phases", records: "phases" },
+  plan: { suffix: "plan", records: "plan" },
+  deliverables: { suffix: "deliverables", records: "plan" },
+  goals: { suffix: "goals" },
+  "the plan": { suffix: "map" },
+  confluence: { suffix: "confluence", records: "confluence" },
+  jira: { suffix: "jira", records: "jira" },
+  "pull requests and other links": { suffix: "other", records: "other-links" },
+  "other links": { suffix: "other", records: "other-links" },
   "open questions": { suffix: "questions", records: "questions" },
 };
 
@@ -542,7 +549,7 @@ async function renderPages(request) {
 function holds(condition, model) {
   if (condition.startsWith("!")) return !holds(condition.slice(1), model);
 
-  const option = /^([EQDR]\d+)=(\w+)$/.exec(condition);
+  const option = /^([EQDRP]\d+)=(\w+)$/.exec(condition);
 
   if (option !== null) {
     const record = model.records[option[1]];
@@ -562,8 +569,8 @@ function holds(condition, model) {
 
 function checkCondition(condition, model) {
   const bare = condition.replace(/^!/, "");
-  const option = /^([EQDR]\d+)=(\w+)$/.exec(bare);
-  const stated = /^([EQDR]\d+):(\w+)$/.exec(bare);
+  const option = /^([EQDRP]\d+)=(\w+)$/.exec(bare);
+  const stated = /^([EQDRP]\d+):(\w+)$/.exec(bare);
   const id = (option ?? stated)?.[1];
   const record = model.records[id];
 

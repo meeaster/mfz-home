@@ -1,5 +1,5 @@
 {
-  "format": 3,
+  "format": 4,
   "title": "Log ingestion in our cloud",
   "summary": "How firewall and customer logs are collected, filtered and kept in GovCloud.",
   "problem": "Firewall logs from our {fact:sites} sites, {fact:monthly-volume} (E2), go straight to Datadog, and we pay to index all of them, including the noise nobody searches. We keep no copy of our own, so a year-long investigation or a customer's request for their logs depends on what Datadog still holds. Customers want to send us their own logs, and there is no private way in for them.\n\nSolving it cuts the Datadog bill for logs nobody reads, gives us a year of every log that we control, and lets us offer customer log intake from November.",
@@ -339,27 +339,97 @@
       "Evidence": "E8"
     }
   ],
-  "phases": [
+  "plan": [
     {
-      "title": "Firewall logs through OPW",
-      "Scope": "Workers running, firewall logs relayed to them, filtered logs in Datadog.",
-      "Exit criteria": "All 14 sites' logs reach Datadog through the workers for a week, and the direct forwarding is switched off.",
+      "id": "P1",
+      "title": "AWS foundation",
+      "Group": "Firewall logs through OPW",
+      "Scope": "The Observability VPC, its Transit Gateway attachment, and IAM for the workers.",
+      "Exit criteria": "The VPC routes to Shared Tooling and the workers' instance role exists, checked from a test instance.",
+      "Status": "Done",
+      "Serves": "1",
+      "Jira": [
+        "https://example.atlassian.net/browse/OBS-210"
+      ]
+    },
+    {
+      "id": "P2",
+      "title": "OPW workers running",
+      "Group": "Firewall logs through OPW",
+      "Scope": "Three workers across availability zones, sending filtered logs to Datadog.",
+      "Exit criteria": "Test firewall traffic from the syslog server shows up in Datadog, filtered, within a minute, with one zone down.",
       "Status": "In progress",
-      "Effort": "opw-deployment"
+      "Follows": "P1",
+      "Serves": "1, 2",
+      "Jira": [
+        "https://example.atlassian.net/browse/OBS-220"
+      ]
     },
     {
-      "title": "The S3 archive",
-      "Scope": "Every firewall log kept in S3 for a year, encrypted, with the security read role.",
-      "Exit criteria": "A date range of logs handed over within one working day, in a test run.",
+      "id": "P3",
+      "title": "Firewall logs relayed",
+      "Group": "Firewall logs through OPW",
+      "Scope": "The syslog server relays all 14 sites' logs to the workers.",
+      "Exit criteria": "All 14 sites' logs reach Datadog through the workers for a week.",
       "Status": "Planned",
-      "Effort": "logs-archived-to-s3"
+      "Follows": "P2",
+      "Serves": "1",
+      "Jira": [
+        "https://example.atlassian.net/browse/OBS-230"
+      ]
     },
     {
-      "title": "Customer intake",
-      "Scope": "The private endpoint, per-customer buckets and keys, and export roles.",
-      "Exit criteria": "The first three customers sending logs, each readable only with its own role and key.",
+      "id": "P4",
+      "title": "Direct forwarding switched off",
+      "Group": "Firewall logs through OPW",
+      "Scope": "Firewall logs reach Datadog only through the workers.",
+      "Exit criteria": "The direct forwarding is off and Datadog's ingest drops to the filtered volume.",
       "Status": "Planned",
-      "Effort": "customer-log-ingestion"
+      "Follows": "P3",
+      "Serves": "2"
+    },
+    {
+      "id": "P5",
+      "title": "Archive buckets and keys",
+      "Group": "The S3 archive",
+      "Scope": "Buckets, KMS keys and the security read role, keeping a year of logs.",
+      "Exit criteria": "Logs land in the archive, encrypted, and only the security read role can read them.",
+      "Status": "Planned",
+      "Follows": "P1",
+      "Serves": "4",
+      "Jira": [
+        "https://example.atlassian.net/browse/OBS-240"
+      ]
+    },
+    {
+      "id": "P6",
+      "title": "Handover test run",
+      "Group": "The S3 archive",
+      "Scope": "A date range of logs handed over from the archive.",
+      "Exit criteria": "A test handover is done within one working day.",
+      "Status": "Planned",
+      "Follows": "P2, P5",
+      "Serves": "4"
+    },
+    {
+      "id": "P7",
+      "title": "Private customer endpoint",
+      "Group": "Customer intake",
+      "Scope": "The PrivateLink endpoint customers send their logs through.",
+      "Exit criteria": "A test customer account sends logs through the endpoint into the workers.",
+      "Status": "Planned",
+      "Follows": "P2",
+      "Serves": "3"
+    },
+    {
+      "id": "P8",
+      "title": "First three customers sending",
+      "Group": "Customer intake",
+      "Scope": "The first three customers' logs, each kept apart with its own role and key.",
+      "Exit criteria": "The first three customers send logs, each readable only with its own role and key.",
+      "Status": "Planned",
+      "Follows": "P5, P7",
+      "Serves": "3"
     }
   ],
   "decisions": [
@@ -1026,6 +1096,169 @@
       "Blocks": "D4",
       "Answer": "Three c7g.large, even with one zone down.",
       "Answered by": "E4"
+    }
+  ],
+  "links": [
+    {
+      "title": "OPW security review",
+      "URL": "https://example.atlassian.net/wiki/spaces/OBS/pages/40112/OPW+security+review",
+      "Role": "Published",
+      "Why": "This design as security reviewed it.",
+      "Space": "OBS",
+      "Updated": "Oct 3"
+    },
+    {
+      "title": "OPW on-call runbook",
+      "URL": "https://example.atlassian.net/wiki/spaces/OBS/pages/40388/OPW+on-call+runbook",
+      "Role": "Published",
+      "Why": "Restarting, scaling and checking the workers. Draft.",
+      "Space": "OBS",
+      "Updated": "Oct 10"
+    },
+    {
+      "title": "SEC-12 Shared Tooling standard",
+      "URL": "https://example.atlassian.net/wiki/spaces/SEC/pages/21004/SEC-12",
+      "Role": "Referenced",
+      "Why": "Where customer traffic may end; open question Q2 turns on it.",
+      "Space": "SEC",
+      "Updated": "Sep 2"
+    },
+    {
+      "title": "AWS network standards",
+      "URL": "https://example.atlassian.net/wiki/spaces/NET/pages/18890/AWS+network+standards",
+      "Role": "Referenced",
+      "Why": "Transit Gateway and VPC conventions the Observability VPC follows.",
+      "Space": "NET",
+      "Updated": "Aug 20"
+    },
+    {
+      "title": "infra#88 · Terraform module for OPW",
+      "URL": "https://github.com/example/infra/pull/88",
+      "Role": "Published",
+      "Why": "The workers' Terraform module, merged Oct 9."
+    },
+    {
+      "title": "Datadog OPW documentation",
+      "URL": "https://docs.datadoghq.com/observability_pipelines/",
+      "Role": "Referenced",
+      "Why": "How OPW is sized and deployed; evidence E4 cites it."
+    }
+  ],
+  "jira": [
+    {
+      "id": "OBS-210",
+      "title": "AWS foundation for OPW",
+      "URL": "https://example.atlassian.net/browse/OBS-210",
+      "Type": "Epic",
+      "Status": "Done",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-212",
+      "title": "Provision EC2 for OPW",
+      "URL": "https://example.atlassian.net/browse/OBS-212",
+      "Type": "Story",
+      "Status": "Done",
+      "Parent": "OBS-210",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-213",
+      "title": "Networking in the shared services VPC",
+      "URL": "https://example.atlassian.net/browse/OBS-213",
+      "Type": "Story",
+      "Status": "Done",
+      "Parent": "OBS-210",
+      "Blocks": "OBS-221",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-214",
+      "title": "IAM instance profile for the workers",
+      "URL": "https://example.atlassian.net/browse/OBS-214",
+      "Type": "Story",
+      "Status": "Done",
+      "Parent": "OBS-210",
+      "Blocks": "OBS-222",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-220",
+      "title": "Run the OPW workers",
+      "URL": "https://example.atlassian.net/browse/OBS-220",
+      "Type": "Epic",
+      "Status": "In Progress",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-221",
+      "title": "Terraform module for OPW",
+      "URL": "https://example.atlassian.net/browse/OBS-221",
+      "Type": "Story",
+      "Status": "Done",
+      "Parent": "OBS-220",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-222",
+      "title": "Pipeline config for firewall logs",
+      "URL": "https://example.atlassian.net/browse/OBS-222",
+      "Type": "Story",
+      "Status": "In Progress",
+      "Parent": "OBS-220",
+      "Blocks": "OBS-231",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-223",
+      "title": "Datadog destination and API key",
+      "URL": "https://example.atlassian.net/browse/OBS-223",
+      "Type": "Story",
+      "Status": "To Do",
+      "Parent": "OBS-220",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-230",
+      "title": "Relay firewall logs to OPW",
+      "URL": "https://example.atlassian.net/browse/OBS-230",
+      "Type": "Epic",
+      "Status": "To Do",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-231",
+      "title": "Syslog relay forwards to the workers",
+      "URL": "https://example.atlassian.net/browse/OBS-231",
+      "Type": "Story",
+      "Status": "To Do",
+      "Parent": "OBS-230",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-232",
+      "title": "Cut over all 14 sites",
+      "URL": "https://example.atlassian.net/browse/OBS-232",
+      "Type": "Story",
+      "Status": "To Do",
+      "Parent": "OBS-230",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-240",
+      "title": "S3 archive for firewall logs",
+      "URL": "https://example.atlassian.net/browse/OBS-240",
+      "Type": "Epic",
+      "Status": "To Do",
+      "Read": "2026-10-11 09:20"
+    },
+    {
+      "id": "OBS-250",
+      "title": "Runbook for OPW on-call",
+      "URL": "https://example.atlassian.net/browse/OBS-250",
+      "Type": "Story",
+      "Status": "To Do",
+      "Read": "2026-10-11 09:20"
     }
   ]
 }

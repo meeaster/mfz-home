@@ -8,8 +8,8 @@ updated: YYYY-MM-DD
 <!-- Overview: the problem, the goals, the whole system, and every record's status, grouped by the area it lives on
      (cross-area records first). The header, rail, section numbers and record tables come from the skill: an empty
      "## Requirements" section shows the requirements table, and prose written under it becomes its intro.
-     Write the prose here; draw pictures as components in components/. When the design belongs to an effort, add
-     `context: initiative / effort-slug` to the front matter; without one the context line shows only the date. -->
+     Write the prose here; draw pictures as components in components/. Add `context: <design-slug>` to the front
+     matter for the context line; never an effort or initiative, since the doc is published. -->
 
 WHAT THE SYSTEM DOES, MORE CONCRETELY THAN THE TITLE.
 
@@ -64,8 +64,9 @@ THE BASIS OF THE FIGURES: MONTHLY, AT WHICH PRICES.
 
 ## Risks
 
-<!-- Phases shows design.md's phases. Leave the section out while the design is delivered in one go. -->
-## Phases
+<!-- Plan shows the deliverables; the Plan page (assets/pages/plan.md) maps them. Leave the section out while the
+     design is delivered in one go. -->
+## Plan
 
 ## Decisions
 

@@ -48,11 +48,11 @@ from records import fill_facts, FORMAT, LOCAL_PATH_PATTERNS, OPTION_STATUS, Desi
 
 SKILL_ASSETS = Path(__file__).resolve().parent.parent / "assets"
 RENDER = Path(__file__).resolve().parent / "render.mjs"
-REF_ID = re.compile(r"^[EQDR]\d+$")
+REF_ID = re.compile(r"^[EQDRP]\d+$")
 FLOW_ID = re.compile(r"^[A-Z][A-Z0-9]*-F\d+$")
-KIND_FOR_PREFIX = {"E": "evidence", "Q": "question", "D": "decision", "R": "requirement"}
-PAGE_GROUPS = {"overview": "", "area": "Areas", "brief": "Briefs", "shared": "Shared"}
-DEFAULT_ICONS = {"overview": "i-layout-dashboard", "area": "i-box", "brief": "i-signpost", "shared": "i-file-check"}
+KIND_FOR_PREFIX = {"E": "evidence", "Q": "question", "D": "decision", "R": "requirement", "P": "deliverable"}
+PAGE_GROUPS = {"overview": "", "plan": "", "area": "Areas", "brief": "Briefs", "shared": "Shared"}
+DEFAULT_ICONS = {"overview": "i-layout-dashboard", "plan": "i-route", "area": "i-box", "brief": "i-signpost", "shared": "i-file-check"}
 ALLOWED_HOSTS = ("fonts.googleapis.com", "fonts.gstatic.com")
 INCLUDE = re.compile(r"<!--\s*include\s+(\S+?)\s*-->")
 COMPONENT = re.compile(r'<!--\s*component\s+([\w-]+)((?:\s+[\w-]+(?:="[^"]*"|=\S+)?)*)\s*-->')
@@ -405,7 +405,7 @@ def check_pages(p: DocParser, text: str, where) -> tuple[list[str], list[str]]:
         if not page.title:
             errors.append(f"{where(page.line)}: page '{page.id}' needs data-page-title")
         if page.group not in PAGE_GROUPS:
-            errors.append(f"{where(page.line)}: page '{page.id}' has data-page-group=\"{page.group}\"; use overview, area, brief or shared")
+            errors.append(f"{where(page.line)}: page '{page.id}' has data-page-group=\"{page.group}\"; use overview, plan, area, brief or shared")
         if len(p.pages) > 1:
             if not page.has_rail:
                 warnings.append(f"{where(page.line)}: page '{page.id}' has no <nav class=\"page-rail\">; the rail will be empty on it")

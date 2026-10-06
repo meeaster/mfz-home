@@ -2,7 +2,7 @@
 title: Overview
 heading: Log ingestion in our cloud
 group: overview
-context: observability-pipeline / opw-deployment
+context: log-ingestion
 updated: 2026-09-29
 ---
 
@@ -50,7 +50,9 @@ Workers in their own VPC in GovCloud, with the syslog server relaying firewall l
 
 ## Risks
 
-## Phases
+## Plan
+
+Eight deliverables in three groups; the plan page maps what each follows.
 
 ## Decisions
 

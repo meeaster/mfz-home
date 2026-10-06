@@ -6,6 +6,7 @@
     question: "Question",
     decision: "Decision",
     requirement: "Requirement",
+    deliverable: "Deliverable",
     flow: "Data flow",
   };
 
@@ -574,6 +575,102 @@
     }
 
     cell.replaceChildren(tags);
+  }
+
+  // Canvases: a map the reader pans by dragging and zooms with the buttons or Ctrl/⌘ and the wheel. It opens fitted to its
+  // width; without the script it scrolls instead.
+  for (const canvas of document.querySelectorAll("[data-canvas]")) {
+    const viewport = canvas.querySelector(".canvas-viewport");
+    const stage = canvas.querySelector(".diagram");
+    const controls = canvas.querySelector(".canvas-controls");
+    const level = canvas.querySelector(".zoom-level");
+
+    if (viewport === null || stage === null || controls === null) continue;
+
+    const width = Number(stage.style.getPropertyValue("--w"));
+    const height = Number(stage.style.getPropertyValue("--h"));
+    const view = { scale: 1, x: 0, y: 0 };
+
+    controls.hidden = false;
+    viewport.style.height = `${Math.min(height + 24, 640)}px`;
+
+    const apply = () => {
+      stage.style.transform = `translate(${view.x}px, ${view.y}px) scale(${view.scale})`;
+      level.textContent = `${Math.round(view.scale * 100)}%`;
+    };
+
+    const zoomAt = (scale, cx, cy) => {
+      const next = Math.min(2, Math.max(0.3, scale));
+
+      view.x = cx - ((cx - view.x) / view.scale) * next;
+      view.y = cy - ((cy - view.y) / view.scale) * next;
+      view.scale = next;
+      apply();
+    };
+
+    const fit = () => {
+      const scale = Math.min(1, viewport.clientWidth / width, viewport.clientHeight / height);
+
+      view.scale = scale;
+      view.x = (viewport.clientWidth - width * scale) / 2;
+      view.y = Math.max(0, (viewport.clientHeight - height * scale) / 2);
+      apply();
+    };
+
+    controls.addEventListener("click", (event) => {
+      const button = event.target instanceof Element ? event.target.closest("[data-zoom]") : null;
+
+      if (button === null) return;
+
+      const centre = [viewport.clientWidth / 2, viewport.clientHeight / 2];
+
+      if (button.dataset.zoom === "fit") fit();
+      else zoomAt(view.scale * (button.dataset.zoom === "in" ? 1.2 : 1 / 1.2), ...centre);
+    });
+
+    viewport.addEventListener("wheel", (event) => {
+      if (!event.ctrlKey && !event.metaKey) return;
+
+      event.preventDefault();
+
+      const box = viewport.getBoundingClientRect();
+
+      zoomAt(view.scale * (event.deltaY < 0 ? 1.1 : 1 / 1.1), event.clientX - box.left, event.clientY - box.top);
+    }, { passive: false });
+
+    let drag = null;
+
+    viewport.addEventListener("pointerdown", (event) => {
+      if (event.target instanceof Element && event.target.closest("a, button, [data-detail]") !== null) return;
+
+      drag = { x: event.clientX - view.x, y: event.clientY - view.y };
+      viewport.setPointerCapture(event.pointerId);
+      viewport.classList.add("dragging");
+    });
+
+    viewport.addEventListener("pointermove", (event) => {
+      if (drag === null) return;
+
+      view.x = event.clientX - drag.x;
+      view.y = event.clientY - drag.y;
+      apply();
+    });
+
+    const stop = () => {
+      drag = null;
+      viewport.classList.remove("dragging");
+    };
+
+    viewport.addEventListener("pointerup", stop);
+    viewport.addEventListener("pointercancel", stop);
+
+    // Fit once the canvas has a size: its page may be hidden until the reader opens it.
+    new ResizeObserver((entries, observer) => {
+      if (viewport.clientWidth === 0) return;
+
+      fit();
+      observer.disconnect();
+    }).observe(viewport);
   }
 
   // Theme toggle: follows the system until the reader picks one

@@ -34,7 +34,7 @@ from pathlib import Path
 
 # The format a design folder is written in: design.md's first line says "<!-- design-docs format 2 -->".
 # doc.py migrate brings an older folder up to date; a folder with no line is format 1 (pages written in HTML).
-FORMAT = 3
+FORMAT = 4
 FORMAT_LINE = re.compile(r"^<!--\s*design-docs format (\d+)\s*-->\s*$")
 
 SECTIONS = {
@@ -48,22 +48,24 @@ SECTIONS = {
     "questions": "question",
     "evidence": "evidence",
     "meetings": "meeting",
-    "phases": "phase",
+    "plan": "deliverable",
+    "links": "link",
+    "jira": "jira",
     "facts": "fact",
 }
 # design.md holds what an update reads every time; Evidence and Meetings may sit in their own files beside it.
 SPLIT_FILES = ("design.md", "evidence.md", "meetings.md")
 FACT_REF = re.compile(r"\{fact:([a-z0-9][a-z0-9-]*)\}")
 # A meeting's Outcomes: one line per thing it settled, '<Kind> · <what> → <record IDs, fact:key or a phase title>'.
-OUTCOME_KINDS = {"decided", "leaning", "later", "answer", "so far", "deferred", "new question", "requirement", "phase", "fact", "evidence", "scope", "risk", "follow-on"}
+OUTCOME_KINDS = {"decided", "leaning", "later", "answer", "so far", "deferred", "new question", "requirement", "deliverable", "phase", "fact", "evidence", "scope", "risk", "follow-on"}
 OUTCOME = re.compile(r"^(?P<kind>[^·]+?)\s+·\s+(?P<what>.+?)\s+(?:→|->)\s+(?P<to>.+)$")
 # Prose sections an agent reads to understand the design; a page shows them with the design-section component.
 PROSE_SECTIONS = {"problem": "problem", "goals": "goals", "how it works": "how-it-works"}
-PREFIX = {"requirement": "R", "decision": "D", "question": "Q", "evidence": "E"}
-ID_TOKEN = re.compile(r"^[EQDR]\d+$")
+PREFIX = {"requirement": "R", "decision": "D", "question": "Q", "evidence": "E", "deliverable": "P"}
+ID_TOKEN = re.compile(r"^[EQDRP]\d+$")
 FLOW_ID = re.compile(r"^[A-Z][A-Z0-9]*-F\d+$")
-MENTION = re.compile(r"(?<![\w#/\\-])([EQDR]\d+)\b")
-ESCAPED = re.compile(r"\\([EQDR]\d+)\b")
+MENTION = re.compile(r"(?<![\w#/\\-])([EQDRP]\d+)\b")
+ESCAPED = re.compile(r"\\([EQDRP]\d+)\b")
 LINK = re.compile(r"\[([^\]]+)\]\((#[\w.-]+)\)")
 PLACEHOLDER = re.compile(r"<!--\s*records\s+([\w-]+)((?:\s+[\w-]+=[^\s>]+)*)\s*-->")
 MONEY = re.compile(r"\$([\d,]+(?:\.\d+)?)(?:\s*(?:→|->)\s*\$([\d,]+(?:\.\d+)?))?")
@@ -79,7 +81,9 @@ REQUIRED = {
     "risk": ["Likelihood"],
     "cost": ["Monthly"],
     "flow": ["Data", "Crosses", "Assessment"],
-    "phase": ["Scope", "Exit criteria", "Status"],
+    "deliverable": ["Scope", "Exit criteria", "Status"],
+    "link": ["URL"],
+    "jira": ["URL", "Type", "Status"],
 }
 ANSWER_LABELS = ("Answer", "Leaning", "For now", "Assuming", "So far")
 DECISION_STATUS = {"open": "open", "leaning": "leaning", "decided": "decided", "later": "", "given": ""}
@@ -96,11 +100,18 @@ MEETING_STATUS = {"awaiting review": "open", "summarised": ""}
 PROPOSAL_STATUS = {"proposed": "open", "accepted": "decided", "changed": "decided", "rejected": "", "deferred": "leaning"}
 PROPOSAL_LABEL = {"proposed": "To review", "accepted": "Accepted", "changed": "Accepted with changes", "rejected": "Rejected", "deferred": "Deferred"}
 # Proposals that change what the design says come first and in full; record-keeping ones fold into one group.
-PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"]
+PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far", "deliverable", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"]
 ROUTINE_KINDS = {"evidence", "risk", "follow-on"}
 FIELD_TALK = re.compile(r"\b(Needed by|Answer from|Blocks|Waiting on|Status|Recorded from|Answered by|Explanation|Still to show)\s*:", re.I)
 RECOMMEND = {"accept": "decided", "accept as leaning": "leaning", "ask": "open", "defer": "leaning", "reject": ""}
-PHASE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
+# A deliverable's Status, and the class its pill takes.
+DELIVERABLE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
+# The roles a link plays: something the design published, or someone else's page it relies on.
+LINK_ROLES = {"published": "Published from here", "referenced": "Referenced"}
+# A Jira item's status as Jira's three categories, from its Category or, without one, from the status words.
+JIRA_DONE = re.compile(r"\b(done|closed|resolved|complete|completed|released|shipped)\b", re.IGNORECASE)
+JIRA_TODO = re.compile(r"\b(to ?do|open|backlog|new|selected for development|not started)\b", re.IGNORECASE)
+JIRA_KEY = re.compile(r"(?:/browse/|[?&]selectedIssue=)([A-Z][A-Z0-9_]*-\d+)")
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
 VERDICT = {"yes": "yes", "partly": "partly", "no": "no"}
 # How a requirement measures up, three ways: the system as it is today, what this design covers, and what still has to
@@ -386,6 +397,11 @@ def read_heading(kind: str, text: str, number: int, design: Design) -> Record:
         if not sep or not FLOW_ID.match(ident.strip()):
             design.errors.append(f"{design.where(number)}: a flow heading is '### <view>-F<n> · <from> → <to>', such as 'B-F2 · Syslog server → OPW workers'; got '{text}'")
         return Record(kind, ident.strip(), title.strip(), number)
+    if kind == "jira":
+        key, sep, title = text.partition(" · ")
+        if not sep or not re.fullmatch(r"[A-Z][A-Z0-9_]*-\d+", key.strip()):
+            design.errors.append(f"{design.where(number)}: a Jira item's heading is '### <KEY> · <title>', such as 'OBS-220 · Run the OPW workers'; got '{text}'")
+        return Record(kind, key.strip(), title.strip(), number)
     if kind == "meeting":
         date, sep, title = text.partition(" · ")
         if not sep or not MEETING_HEAD.match(date.strip()):
@@ -434,8 +450,12 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
             design.errors.append(f"{design.where(record.line)}: meeting status '{status}'; use Awaiting review or Summarised. The doc records meetings that happened, not the next one")
         if record.kind == "meeting" and record.field("Agenda"):
             design.warnings.append(f"{design.where(record.field('Agenda').line)}: meeting '{record.id}' has an 'Agenda'; the doc records meetings that happened, and an agenda is drafted when someone asks")
-        if record.kind == "phase" and status and status.lower() not in PHASE_STATUS:
-            design.errors.append(f"{design.where(record.line)}: phase status '{status}'; use Proposed, Planned, In progress or Done")
+        if record.kind == "deliverable":
+            check_deliverable(record, design)
+        if record.kind == "link":
+            check_link(record, design)
+        if record.kind == "jira":
+            check_jira(record, design)
         if record.kind == "requirement" and record.get("Priority").lower() not in PRIORITY:
             design.errors.append(f"{design.where(record.line)}: priority '{record.get('Priority')}'; use Must or Should")
         if record.kind == "decision":
@@ -496,6 +516,7 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
     check_facts(design)
     check_proposals(design)
     check_outcomes(design)
+    check_plan_order(design)
 
     costs = design.of("cost")
     categorised = [c for c in costs if c.get("Category")]
@@ -594,7 +615,7 @@ def check_proposals(design: Design) -> None:
 def check_outcomes(design: Design) -> None:
     """Each meeting outcome points at what it changed; the latest meeting's statuses must still hold."""
     known = design.by_id()
-    phases = {p.title.lower(): p for p in design.of("phase")}
+    phases = {p.title.lower(): p for p in design.of("deliverable")}
     meetings = design.of("meeting")
     latest = max((m.id for m in meetings), default=None)
     for meeting in meetings:
@@ -607,7 +628,7 @@ def check_outcomes(design: Design) -> None:
         for item in found.items:
             m = OUTCOME.match(item)
             if not m or m.group("kind").strip().lower() not in OUTCOME_KINDS:
-                design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}'; write '<Kind> · <what> → <IDs, fact:key or phase title>' with Kind one of {', '.join(sorted(OUTCOME_KINDS))}")
+                design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}'; write '<Kind> · <what> → <IDs, fact:key or deliverable title>' with Kind one of {', '.join(sorted(OUTCOME_KINDS))}")
                 continue
             kind = m.group("kind").strip().lower()
             targets = [t.strip() for t in re.split(r",\s*", m.group("to")) if t.strip()]
@@ -620,7 +641,7 @@ def check_outcomes(design: Design) -> None:
                 elif t.lower() in phases:
                     resolved.append(phases[t.lower()])
                 else:
-                    design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}' points at '{t}', which is no record ID, fact:key or phase title")
+                    design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}' points at '{t}', which is no record ID, fact:key or deliverable title")
             if meeting.id != latest:
                 continue
             for r in resolved:
@@ -698,7 +719,7 @@ def option_state(option: Record) -> str:
 def design_model(design: Design) -> dict:
     """The records as data for components and bindings: fields, plus the state each is in.
 
-    Only E, Q, D and R records, and never the private Recorded from field or notes,
+    Only E, Q, D, R and P records, and never the private Recorded from field or notes,
     since the model is published inside the built doc.
     """
     records: dict[str, dict] = {}
@@ -739,6 +760,19 @@ def design_model(design: Design) -> dict:
             entry["answer"] = covered[1] if covered else ""
             entry["today"] = views["today"][0] if views["today"] else None
             entry["still"] = views["still"][0] if views["still"] else None
+        elif r.kind == "deliverable":
+            status = (r.get("Status") or "Planned").lower()
+            entry["state"] = {"in progress": "progress", "done": "done", "proposed": "proposed"}.get(status, "planned")
+            entry["states"] = ["proposed", "planned", "progress", "done"]
+            entry["follows"] = split_list(r.get("Follows"))
+            entry["group"] = r.get("Group")
+            entry["serves"] = split_list(r.get("Serves"))
+            jira = {j.id: j for j in design.of("jira")}
+            entry["jira"] = [
+                {"key": jira_key(u), "url": u, "state": jira_category(jira[jira_key(u)]) if jira_key(u) in jira else None,
+                 "type": jira[jira_key(u)].get("Type").lower() if jira_key(u) in jira else ""}
+                for u in (r.items("Jira") or split_list(r.get("Jira")))
+            ]
         else:
             entry["state"] = "found"
             entry["states"] = ["found"]
@@ -770,7 +804,8 @@ def design_model(design: Design) -> dict:
         entry["unblocks"] = sorted((i for i, other in records.items() if entry is not other and any(records.get(f) is entry for f in other.get("follows", []))), key=lambda i: int(i[1:]))
 
     prose = {name: "\n".join(lines).strip() for name, lines in design.prose.items()}
-    return {"title": design.title, "records": records, "costs": costs, "costBasis": basis, "flows": flows, "prose": prose}
+    groups = list(dict.fromkeys(d.get("Group") for d in design.of("deliverable") if d.get("Group")))
+    return {"title": design.title, "records": records, "costs": costs, "costBasis": basis, "flows": flows, "prose": prose, "groups": groups}
 
 
 def named(record: Record) -> str:
@@ -829,6 +864,108 @@ def answer_from(question: Record) -> tuple[str, str]:
     return kind.strip().lower(), where.strip()
 
 
+def goal_lines(design: Design) -> list[str]:
+    """The goals, one per bullet of the Goals prose, numbered from 1 in the order written."""
+    return [line.strip()[2:].strip() for line in design.prose.get("goals", []) if line.strip().startswith("- ")]
+
+
+def jira_key(url: str) -> str:
+    """A Jira item's key from its URL ('…/browse/OBS-220'), or the URL itself when it has none."""
+    found = JIRA_KEY.search(url)
+    return found.group(1) if found else url.strip()
+
+
+def jira_category(item: Record) -> str:
+    """Where a Jira item stands as Jira's three categories: todo, progress or done."""
+    category = item.get("Category").lower()
+    if category:
+        return "done" if "done" in category else "todo" if "do" in category else "progress"
+    status = item.get("Status")
+    return "done" if JIRA_DONE.search(status) else "todo" if JIRA_TODO.search(status) else "progress"
+
+
+def link_kind(url: str) -> str:
+    """What a link points at, from its URL, as Cairn's pointer types name them."""
+    from urllib.parse import urlparse
+    parsed = urlparse(url)
+    path, host = parsed.path, parsed.netloc.lower()
+    if re.search(r"/(pull|pulls|merge_requests|pull-requests)/\d+", path):
+        return "pull_request"
+    if JIRA_KEY.search(url):
+        return "jira_issue"
+    if (host.endswith("atlassian.net") and path.startswith("/wiki/")) or re.search(r"/(confluence|display)/", path):
+        return "confluence_page"
+    return "url"
+
+
+def check_deliverable(record: Record, design: Design) -> None:
+    """A deliverable says what it delivers and how everyone knows it's done, what must come first, and which goals and Jira
+    items it ties to. It never names an effort: the doc is published, and efforts are local to whoever keeps them."""
+    where = design.where(record.line)
+    status = record.get("Status")
+    if status and status.lower() not in DELIVERABLE_STATUS:
+        design.errors.append(f"{where}: deliverable '{record.id}' status '{status}'; use Proposed, Planned, In progress or Done")
+    known = {d.id for d in design.of("deliverable")}
+    for follows in split_list(record.get("Follows")):
+        if follows == record.id or follows not in known:
+            design.errors.append(f"{where}: '{record.id}' follows '{follows}', which isn't another deliverable")
+    goals = len(goal_lines(design))
+    for serves in split_list(record.get("Serves")):
+        if not serves.isdigit() or not 1 <= int(serves) <= goals:
+            design.warnings.append(f"{where}: '{record.id}' serves goal '{serves}'; name goals by their number in the Goals list (1 to {goals})")
+    for url in record.items("Jira") or split_list(record.get("Jira")):
+        if not url.startswith("http"):
+            design.warnings.append(f"{where}: '{record.id}' Jira '{url}'; give the item's URL, so the doc can link to it")
+    if record.field("Effort"):
+        design.warnings.append(f"{design.where(record.field('Effort').line)}: '{record.id}' names an effort; a published doc names no effort. Record in the effort which deliverables it works on, and drop it here")
+
+
+def check_plan_order(design: Design) -> None:
+    """Deliverables follow one another without going round in a circle."""
+    follows = {d.id: split_list(d.get("Follows")) for d in design.of("deliverable")}
+    state: dict[str, int] = {}
+
+    def visit(ident: str, trail: list[str]) -> None:
+        if state.get(ident) == 2:
+            return
+        if state.get(ident) == 1:
+            loop = trail[trail.index(ident):] + [ident]
+            design.errors.append(f"the plan goes round in a circle: {' → '.join(loop)}")
+            return
+        state[ident] = 1
+        for parent in follows.get(ident, []):
+            if parent in follows:
+                visit(parent, trail + [ident])
+        state[ident] = 2
+
+    for ident in follows:
+        visit(ident, [])
+
+
+def check_link(record: Record, design: Design) -> None:
+    where = design.where(record.line)
+    url = record.get("URL")
+    if url and not url.startswith("http"):
+        design.errors.append(f"{where}: link '{record.title}' URL '{url}'; give the full address")
+    role = record.get("Role")
+    if role and role.lower() not in LINK_ROLES:
+        design.warnings.append(f"{where}: link '{record.title}' role '{role}'; use Published or Referenced")
+    if not record.get("Why"):
+        design.warnings.append(f"{where}: link '{record.title}' doesn't say why it's here; add 'Why', one sentence")
+
+
+def check_jira(record: Record, design: Design) -> None:
+    where = design.where(record.line)
+    keys = {j.id for j in design.of("jira")}
+    if record.get("URL") and jira_key(record.get("URL")) != record.id:
+        design.warnings.append(f"{where}: Jira item '{record.id}' has the URL of '{jira_key(record.get('URL'))}'")
+    parent = record.get("Parent")
+    if parent and parent not in keys:
+        design.warnings.append(f"{where}: Jira item '{record.id}' has parent '{parent}', which isn't in the design's Jira items")
+    if not record.get("Read"):
+        design.warnings.append(f"{where}: Jira item '{record.id}' doesn't say when it was read from Jira; add 'Read: YYYY-MM-DD HH:MM'")
+
+
 def check_question(record: Record, design: Design) -> None:
     """A question says what it holds up and, when it matters, when its answer is needed; what to ask next isn't recorded."""
     where = design.where(record.line)
@@ -837,9 +974,9 @@ def check_question(record: Record, design: Design) -> None:
     if not record.get("Blocks"):
         design.warnings.append(f"{where}: question '{record.id}' blocks nothing; a question that holds up no decision, requirement or flow belongs in the effort's open questions")
     needed = record.field("Needed by")
-    phases = {p.title.lower() for p in design.of("phase")}
-    if needed and needed.value.lower() not in NEEDED_BY and needed.value.lower() not in phases:
-        design.warnings.append(f"{design.where(needed.line)}: question '{record.id}' is needed by '{needed.value}'; use Choosing the design, Before building, Later phase, or a phase's title")
+    planned = {p.title.lower() for p in design.of("deliverable")} | {p.id.lower() for p in design.of("deliverable")}
+    if needed and needed.value.lower() not in NEEDED_BY and needed.value.lower() not in planned:
+        design.warnings.append(f"{design.where(needed.line)}: question '{record.id}' is needed by '{needed.value}'; use Choosing the design, Before building, Later phase, or a deliverable (P3, or its title)")
     source = record.field("Answer from")
     if source:
         kind, where_to_look = answer_from(record)
@@ -1433,7 +1570,7 @@ class Renderer:
         """The modal details of records not written yet, hidden after the table that defines them."""
         fresh = [r for r in records if self.detail_id(r) not in self.written]
         self.written.update(self.detail_id(r) for r in fresh)
-        render = {"decision": self.decision_detail, "question": self.question_detail, "risk": self.risk_detail}
+        render = {"decision": self.decision_detail, "question": self.question_detail, "risk": self.risk_detail, "deliverable": self.deliverable_detail}
         written = "".join(render[r.kind](r) for r in fresh)
         return f'<div class="record-details">{written}</div>' if written else ""
 
@@ -1694,16 +1831,153 @@ class Renderer:
             )
         return self.table(["Part", "What it does", "Decided by", "Evidence"], rows)
 
-    def phases(self, page: str, ids: list[str] | None) -> str:
+    # The plan
+
+    def plan_home(self) -> str:
+        """The page that defines the deliverables: the plan page when the doc has one, otherwise the home page."""
+        return next((page for page, info in self.pages.items() if info["group"] == "plan"), self.home)
+
+    def group_class(self, r: Record) -> str:
+        """A colour for the deliverable's group, the same on every page: groups in the order they first appear."""
+        groups = list(dict.fromkeys(d.get("Group") for d in self.design.of("deliverable") if d.get("Group")))
+        return f"grp-{groups.index(r.get('Group')) % 6 + 1}" if r.get("Group") in groups else ""
+
+    def jira_items(self) -> dict[str, Record]:
+        return {j.id: j for j in self.design.of("jira")}
+
+    def jira_chip(self, url: str) -> str:
+        """A Jira item as its key, linking to Jira, with the item's status as last read when the design holds it."""
+        key = jira_key(url)
+        item = self.jira_items().get(key)
+        kind = "epic" if item and item.get("Type").lower() == "epic" else "item"
+        state = f' data-state="{jira_category(item)}"' if item else ""
+        title = f' title="{esc(item.title)} · {esc(item.get("Status"))}"' if item else ""
+        return f'<a class="jira-key {kind}" href="{esc(url)}"{state}{title}>{esc(key)}</a>'
+
+    def deliverable_jira(self, r: Record) -> list[str]:
+        return r.items("Jira") or split_list(r.get("Jira"))
+
+    def deliverable_status(self, r: Record) -> str:
+        status = r.get("Status")
+        cls = DELIVERABLE_STATUS.get(status.lower(), "")
+        return f'<span class="status{" " + cls if cls else ""}" data-ref-status>{esc(status)}</span>'
+
+    def plan(self, page: str, ids: list[str] | None) -> str:
+        """The deliverables, each opening in its modal: what it delivers, what comes first, its status and Jira items."""
+        records = [r for r in self.design.of("deliverable") if ids is None or r.id in ids]
+        define = page == self.plan_home()
         rows = []
-        for r in self.design.of("phase"):
-            status = r.get("Status")
-            cls = PHASE_STATUS.get(status.lower(), "")
+        for r in records:
+            attrs = (f' id="{r.id}" data-ref="deliverable"' if define else "") + f' class="opens" data-detail="{r.id}-detail" tabindex="0"'
+            group = f'<span class="grp-dot {self.group_class(r)}"></span>' if self.group_class(r) else ""
+            ident = f'<td class="id">{group}{r.id if define else self.ref(r.id)}</td>'
+            scope = f'<span class="sub"{" data-ref-detail=" + chr(34) + "Scope" + chr(34) if define else ""}>{self.inline(r.get("Scope"))}</span>'
+            jira = "".join(self.jira_chip(u) for u in self.deliverable_jira(r)) or '<span class="soft">–</span>'
             rows.append(
-                f'<tr><td class="q">{self.inline(r.title)}</td><td class="soft">{self.inline(r.get("Scope"))}</td>'
-                f'<td class="soft">{self.inline(r.get("Exit criteria"))}</td><td><span class="status{" " + cls if cls else ""}">{esc(status)}</span></td></tr>'
+                f'<tr{attrs}>{ident}<td><span class="q"{" data-ref-text" if define else ""}>{self.inline(r.title)}</span>{scope}</td>'
+                f'<td>{self.marks(split_list(r.get("Follows")))}</td><td>{self.deliverable_status(r)}</td><td><div class="jira-keys">{jira}</div></td></tr>'
             )
-        return self.table(["Phase", "Scope", "Done when", "Status"], rows)
+        if not rows:
+            return ""
+        return self.table(["ID", "Deliverable", "Follows", "Status", "Jira"], rows) + (self.details(records) if define else "")
+
+    def deliverable_detail(self, r: Record) -> str:
+        """What a deliverable opens to: what it delivers and how everyone knows it's done, the goals it serves and its Jira
+        items as last read; beside them what comes first and what it unblocks."""
+        head = self.detail_head(r, self.deliverable_status(r), r.get("Group"))
+        goals = goal_lines(self.design)
+        served = [goals[int(n) - 1] for n in split_list(r.get("Serves")) if n.isdigit() and 1 <= int(n) <= len(goals)]
+        main = [f'<div><h4>Scope</h4><p>{self.inline(r.get("Scope"))}</p></div>',
+                f'<div><h4>Exit criteria</h4><p data-ref-detail="Exit criteria">{self.inline(r.get("Exit criteria"))}</p></div>']
+        if served:
+            main.append("<div><h4>Serves</h4><ul class=\"served\">" + "".join(f"<li>{self.inline(g)}</li>" for g in served) + "</ul></div>")
+        jira = self.jira_tree(self.deliverable_jira(r))
+        if jira:
+            main.append(f'<div><h4>Jira items <span class="soft">{esc(self.jira_read())}</span></h4>{jira}</div>')
+        side = []
+        follows = [i for i in split_list(r.get("Follows")) if i in self.known]
+        if follows:
+            side.append(f'<div><h4>Follows</h4>{self.id_list(follows)}</div>')
+        unblocks = [d.id for d in self.design.of("deliverable") if r.id in split_list(d.get("Follows"))]
+        if unblocks:
+            side.append(f'<div><h4>Unblocks</h4>{self.id_list(unblocks)}</div>')
+        body = f'<div class="dm-body"><div class="dm-main">{"".join(main)}</div><div class="dm-side">{"".join(side)}</div></div>'
+        return f'<div class="record-detail" id="{r.id}-detail" aria-label="{esc(r.id)} · {esc(r.title)}">{head}{body}</div>'
+
+    def jira_read(self) -> str:
+        reads = sorted(j.get("Read") for j in self.design.of("jira") if j.get("Read"))
+        return f"as read {short_date(reads[-1][:10])}{reads[-1][10:]}" if reads else ""
+
+    def jira_tree(self, urls: list[str]) -> str:
+        """Jira items with the stories under each, as last read, each linking to Jira."""
+        items = self.jira_items()
+        rows = []
+        for url in urls:
+            key = jira_key(url)
+            item = items.get(key)
+            rows.append(self.jira_row(item, url, nested=False))
+            for child in (c for c in items.values() if c.get("Parent") == key):
+                rows.append(self.jira_row(child, child.get("URL"), nested=True))
+        return f'<ul class="jira-tree">{"".join(rows)}</ul>' if rows else ""
+
+    def jira_row(self, item: Record | None, url: str, nested: bool) -> str:
+        key = item.id if item else jira_key(url)
+        epic = item is not None and item.get("Type").lower() == "epic"
+        title = self.inline(item.title) if item else '<span class="soft">Not read from Jira yet</span>'
+        state = f'<span class="jira-state js-{jira_category(item)}">{esc(item.get("Status"))}</span>' if item else ""
+        return (f'<li class="{"ji-epic" if epic else "ji-item"}{" nested" if nested else ""}"><a class="jira-key{" epic" if epic else ""}" href="{esc(url)}">{esc(key)}</a>'
+                f'<span class="t">{title}</span>{state}</li>')
+
+    # Links
+
+    def links_of(self, kinds: set[str]) -> list[Record]:
+        return [r for r in self.design.of("link") if link_kind(r.get("URL")) in kinds]
+
+    def confluence(self, page: str, ids: list[str] | None) -> str:
+        """Confluence pages: the ones published from this design, then the ones it relies on."""
+        order = {"published": 0, "referenced": 1}
+        records = sorted(self.links_of({"confluence_page"}), key=lambda r: order.get(r.get("Role").lower(), 2))
+        rows = []
+        for r in records:
+            role = r.get("Role").lower()
+            pill = f'<span class="status{" new" if role == "published" else " outline"}">{esc(LINK_ROLES.get(role, r.get("Role")))}</span>' if role else ""
+            meta = " · ".join(filter(None, [r.get("Space"), r.get("Updated")]))
+            rows.append(
+                f'<tr><td><a class="link-title" href="{esc(r.get("URL"))}">{self.inline(r.title)}</a><span class="sub">{self.inline(r.get("Why"))}</span></td>'
+                f'<td>{pill}</td><td class="soft mono">{esc(meta)}</td></tr>'
+            )
+        return self.table(["Page", "Role", "Space · updated"], rows) if rows else '<p class="soft">No Confluence pages yet.</p>'
+
+    def other_links(self, page: str, ids: list[str] | None) -> str:
+        labels = {"pull_request": "Pull request", "url": "Link", "jira_issue": "Jira item"}
+        rows = [
+            f'<tr><td><a class="link-title" href="{esc(r.get("URL"))}">{self.inline(r.title)}</a><span class="sub">{self.inline(r.get("Why"))}</span></td>'
+            f'<td class="soft">{labels.get(link_kind(r.get("URL")), "Link")}</td></tr>'
+            for r in self.links_of({"pull_request", "url", "jira_issue"})
+        ]
+        return self.table(["Link", "Kind"], rows) if rows else '<p class="soft">No other links yet.</p>'
+
+    def jira(self, page: str, ids: list[str] | None) -> str:
+        """Every Jira item the design holds, under the deliverable that links it, then those no deliverable links."""
+        items = self.jira_items()
+        placed: set[str] = set()
+        blocks = []
+        for d in self.design.of("deliverable"):
+            urls = self.deliverable_jira(d)
+            if not urls:
+                continue
+            keys = [jira_key(u) for u in urls]
+            placed.update(keys)
+            placed.update(c.id for c in items.values() if c.get("Parent") in keys)
+            blocks.append(f'<div class="jira-group"><h3>{self.ref(d.id)} {self.inline(d.title)}</h3>{self.jira_tree(urls)}</div>')
+        rest = [i for i in items.values() if i.id not in placed and i.get("Parent") not in placed]
+        tops = [i for i in rest if not i.get("Parent") or i.get("Parent") not in items]
+        if tops:
+            blocks.append(f'<div class="jira-group"><h3>Not in the plan</h3>{self.jira_tree([i.get("URL") for i in tops])}</div>')
+        if not blocks:
+            return '<p class="soft">No Jira items yet.</p>'
+        read = self.jira_read()
+        return (f'<p class="soft jira-read">{esc(read[0].upper() + read[1:])}.</p>' if read else "") + "".join(blocks)
 
     def risk_row(self, r: Record, lives_on: str | None = None) -> str:
         likelihood = r.get("Likelihood").capitalize()
@@ -2084,7 +2358,10 @@ class Renderer:
             "reasoning": self.reasoning,
             "parts": self.parts,
             "risks": self.risks,
-            "phases": self.phases,
+            "plan": self.plan,
+            "confluence": self.confluence,
+            "other-links": self.other_links,
+            "jira": self.jira,
             "cost": self.cost,
             "terms": self.terms,
             "evidence": self.evidence,

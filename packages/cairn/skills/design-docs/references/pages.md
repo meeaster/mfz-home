@@ -8,10 +8,11 @@ The doc records where the design stands. It doesn't say what to do next: who to 
 
 | Group | Page | Holds |
 | --- | --- | --- |
-| `overview` | Overview | The problem, the goals, the whole system, and every record's current state: requirements, how the design measures up, cost, risks, phases, decisions and open questions, grouped by the area each lives on with the ones that span areas first. Progress sits under its header. |
+| `overview` | Overview | The problem, the goals, the whole system, and every record's current state: requirements, how the design measures up, cost, risks, the plan, decisions and open questions, grouped by the area each lives on with the ones that span areas first. Progress sits under its header. |
+| `plan` | Plan, once the design has deliverables | Goals, the plan as a map of deliverables (each in a column by what must come first, so those in one column can run in parallel, in its group's colour, with its Jira items), and the deliverables table. Each deliverable opens in a modal with its scope, exit criteria, the goals it serves, what it follows and unblocks, and its Jira items as last read. Copy `assets/pages/plan.md`. |
 | `area` | One per part of the design that has records of its own | That part in detail: its own requirements, design diagram and parts, how it measures up, risks, decisions and questions, then the ones from elsewhere that reach it. |
 | `brief` | One per decision that needs its options weighed side by side | The question, a decision map, the options with diagrams, comparison and cost, and the open questions that block it. See [writing](writing.md). |
-| `shared` | Evidence, Meetings | Every finding and every meeting, for the whole doc. A new design has no Meetings page until its first meeting is recorded: leave its include out of doc.html until then. |
+| `shared` | Evidence, Meetings, Links | Every finding, every meeting, and the Confluence pages, Jira items and other links around the design. A new design has no Meetings page until its first meeting is recorded, and no Links page until it has links: leave their includes out of doc.html until then. Copy `assets/pages/links.md`. |
 
 ## Scope
 
@@ -25,7 +26,7 @@ The skill is for designing something that will be built or changed. A vendor or 
 - **How to split:** choose areas so most records live in one of them. Pipeline stages, layers (UI, API, infrastructure), capabilities (sign-up, billing), migration phases, or systems all work when they keep records apart. If most records would reach two areas, the split is wrong; try another.
 - **A brief that grows into a design:** add an overview, and delete the brief's Requirements and Decisions sections, and move its `context`, if any, to the overview. The records don't move; only where they're shown does.
 - **When to write a brief:** when a decision has at least two real options that need comparing in a meeting, with diagrams. Many decisions don't: one settled in a meeting, or with an obvious answer and a finding behind it, is a row in the decisions table and nothing more. In between, an area page can weigh a small decision about its own part in a comparison table or compact option cards.
-- Phases are the design's delivery units: each with its scope, exit criteria, status, and the effort doing it, in design.json's Phases section and the overview's Phases table. Leave implementation plans and task lists out; how an effort builds its phase goes in its local `design.json`.
+- The plan is the design's delivery units: deliverables with scope, exit criteria, status, what each follows, a group, the goals they serve and their Jira items, in design.json's `plan`, the overview's Plan table and the Plan page. Leave implementation plans and task lists out; how an effort builds a deliverable goes in its local `design.json`, and its stories in Jira.
 
 ## Where each record lives
 

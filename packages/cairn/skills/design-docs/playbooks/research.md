@@ -30,7 +30,7 @@ Apply directly; this is the session's own work, logged like any other.
 - **Partly answered** when it narrows the question but doesn't settle it, or rests on something indirect (a vendor page that doesn't name our version, a repository that may not be what's deployed): `So far`, citing the evidence. An `Answer` is for evidence that settles the question directly.
 - **Not found**: leave it open and say what you searched in the report. When it turns out only a person can answer it, change `Answer from` to `Person` or `Approval`.
 
-Everything else in the design stays as it is: a decision's status, a requirement's verdicts, an option, a phase and the scope change on the user's word (see [lifecycle](../references/lifecycle.md#working-on-it)). When a finding bears on one of them (it favours an option, breaks a requirement, makes a risk moot), say so in the report.
+Everything else in the design stays as it is: a decision's status, a requirement's verdicts, an option, a deliverable and the scope change on the user's word (see [lifecycle](../references/lifecycle.md#working-on-it)). When a finding bears on one of them (it favours an option, breaks a requirement, makes a risk moot), say so in the report.
 
 ## 5. Log it, bring the pages along, check
 

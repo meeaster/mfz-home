@@ -28,26 +28,26 @@ Add the meeting to `meetings.json` with status `Awaiting review`, who attended, 
  "Summary": ["One line per thing discussed, in the meeting's words."]}
 ```
 
-Write one proposal for each thing the source settled: a decision, leaning, deferral, answer or partial answer, new question, requirement, phase or scope change, or changed figure. One outcome is one proposal, however many records it writes: a decision made on a quote is one proposal whose `also` lists the evidence, facts and option changes it records ("the quote as evidence (E20)", "price facts", "option A set aside"). Don't split one outcome across proposals, and don't repeat it under another kind. Evidence the source brings that no outcome rests on gets its own Evidence proposal.
+Write one proposal for each thing the source settled: a decision, leaning, deferral, answer or partial answer, new question, requirement, deliverable or scope change, or changed figure. One outcome is one proposal, however many records it writes: a decision made on a quote is one proposal whose `also` lists the evidence, facts and option changes it records ("the quote as evidence (E20)", "price facts", "option A set aside"). Don't split one outcome across proposals, and don't repeat it under another kind. Evidence the source brings that no outcome rests on gets its own Evidence proposal.
 
 Propose only what the source itself says, at the strength it said it: a preference stays a preference, "decide later" is a Later decision and not a decision to keep things as they are.
 
 Then look at what the outcomes leave inconsistent: a risk or question the outcome answers or makes moot, a question whose "needed by" no longer fits, a part or requirement that still describes the old state. Each fix that follows directly from an outcome, with no judgment needed, is a `Follow-on` proposal (recommend Accept, saying which outcome it follows from). What needs a judgment call nobody made (whether a deadline now matters, whether a figure explains something) goes under the meeting's `Worth a look`, one short sentence each, and isn't applied. Keep it to the three that matter most; leave out what's merely interesting. Every decision, leaning or deferral the source states is a proposal on a decision record; if none exists, the proposal creates one (`"new": true`, target the next free ID). Also propose, recommending Reject or Ask, anything someone might take for agreed that wasn't (a suggestion, one person's preference, a question nobody picked up), so it's settled once.
 
-The person reading these wasn't necessarily in the meeting and is deciding quickly, often with someone else looking on. The doc shows decisions, leanings, deferrals, answers, phase and scope changes, requirements, figures and new questions as full cards, in that order, and folds evidence, risk updates and follow-ons into one "Record keeping" group the user can settle with "accept the rest". Number the proposals in that order, so the numbers read top to bottom.
+The person reading these wasn't necessarily in the meeting and is deciding quickly, often with someone else looking on. The doc shows decisions, leanings, deferrals, answers, deliverable and scope changes, requirements, figures and new questions as full cards, in that order, and folds evidence, risk updates and follow-ons into one "Record keeping" group the user can settle with "accept the rest". Number the proposals in that order, so the numbers read top to bottom.
 
-- `proposal`: one plain sentence, under 30 words, saying what would change, as an action ("Decide…", "Lean towards…", "Record that…"). No field names (Needed by, Blocks, Status) or JSON; say what they mean ("needed before Phase 2").
+- `proposal`: one plain sentence, under 30 words, saying what would change, as an action ("Decide…", "Lean towards…", "Record that…"). No field names (Needed by, Blocks, Status) or JSON; say what they mean ("needed before the workers run (P2)").
 - `before` and `after`: the state now and if accepted, under 14 words each, in plain words ("open" → "decided: Datadog US1-FED for metrics and APM"; "420 hosts" → "380 hosts: prod and staging"). The detail goes in the record when it's applied, not here.
 - `from`: the source's own words behind it, quoted or closely paraphrased; enough to judge without the summary.
 - `also`: a list of the other records the proposal writes, a few words each with their IDs; leave it out when there are none.
 - `recommend`: `Accept`, `Accept as leaning`, `Ask`, `Defer` or `Reject`; `why`: one sentence on why, naming what was actually agreed or what's missing.
-- `kind`: Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Phase, Fact, Scope, Risk, Evidence or Follow-on. `status`: `Proposed`.
+- `kind`: Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Deliverable, Fact, Scope, Risk, Evidence or Follow-on. `status`: `Proposed`.
 
 Run `check` and `build` (`check` warns about long or field-worded proposals; fix them), then reply with the proposals as a numbered list: number, the proposal sentence, and your recommendation, the record-keeping ones last. Stop there until the user settles them. "Accept the rest" means every proposal not otherwise settled takes your recommendation.
 
 ## 3. Apply what the user settled
 
-The user settles proposals by number: accept, reject, defer, or accept with a change. For each, set `status` to `Accepted`, `Changed`, `Rejected` or `Deferred`, and for anything but a plain accept put what the user said in `note`. Then apply every accepted and changed proposal (as changed) to the records, as below, and list each in the meeting's `Outcomes`: `<Kind> · <what> → <record IDs, fact:key or phase title>`. Set the meeting's status to `Summarised` once nothing is left `Proposed`. `check` fails when an accepted proposal has no outcome, or the latest meeting's outcomes don't match the records.
+The user settles proposals by number: accept, reject, defer, or accept with a change. For each, set `status` to `Accepted`, `Changed`, `Rejected` or `Deferred`, and for anything but a plain accept put what the user said in `note`. Then apply every accepted and changed proposal (as changed) to the records, as below, and list each in the meeting's `Outcomes`: `<Kind> · <what> → <record IDs, fact:key or deliverable title>`. Set the meeting's status to `Summarised` once nothing is left `Proposed`. `check` fails when an accepted proposal has no outcome, or the latest meeting's outcomes don't match the records.
 
 ### Applying each change
 
@@ -59,7 +59,7 @@ The user settles proposals by number: accept, reject, defer, or accept with a ch
 
 **Requirement** (`requirements[]`): `Priority` Must or Should, `Why`, `Source`, and three verdicts, each `Verdict · words [IDs]`: `Today` (Meets, Doesn't meet, Unknown, Nothing today), `Design` (Covers, Partly covers, Not covered), `Still to show` (Demonstrated, Intended, Unconfirmed, Nothing left).
 
-**Phase** (`phases[]`, in order): `Scope`, `Exit criteria`, `Status` (Proposed, Planned, In progress, Done). Reorder the array when the order changes.
+**Deliverable** (`plan[]`): `id` (`P4`, the next free number), `Scope`, `Exit criteria`, `Status` (Proposed, Planned, In progress, Done), `Follows`, `Group`, `Serves` (goal numbers) and `Jira` (URLs). It names no effort. Keep IDs stable; a change in order is a change to `Follows`.
 
 **Fact** (`facts`): `"hosts": {"value": "380", "source": "E25"}`. Any number, cost, count or date stated in more than one place is a fact; everywhere else writes `{fact:hosts}`. Change a figure by changing its fact.
 
@@ -75,7 +75,7 @@ In `changes.md`, at the bottom:
 ## 2026-09-22 · meeting 2026-09-22
 - D4 decided
 - Q4 partly answered
-- Phases reordered: APM into Phase 1
+- P3 now follows P1: APM moves into the first deliverables
 ```
 
 ## 5. Bring the pages along

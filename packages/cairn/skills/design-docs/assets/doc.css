@@ -324,10 +324,11 @@ html:not(.js) .page + .page { padding-top: 56px; border-top: 2px solid var(--for
   text-decoration: none;
 }
 
-/* On wide screens the page's "On this page" list moves out of the rail to a column on the right. */
+/* On wide screens the page's "On this page" list moves out of the rail to a column on the right, and the content
+   widens to meet it. Below that width the list folds back into the rail. */
 @media (min-width: 1600px) {
   .doc { grid-template-columns: 272px minmax(0, 1fr) 232px; }
-  .main { padding-right: 48px; }
+  .main { padding-right: 48px; max-width: none; }
   .doc:not(.multi) .rail-nav, html.js .doc.multi .page-rail.current .rail-nav {
     position: fixed;
     top: var(--toc-top, 56px);
@@ -382,7 +383,7 @@ html:not(.js) .page + .page { padding-top: 56px; border-top: 2px solid var(--for
 
 /* "In short": the summary, then the page's terms under it in two columns, so a long list adds rows instead of height beside the text. */
 .short-row { display: flex; flex-direction: column; gap: 28px; }
-.short-row .prose { max-width: none; }
+.short-row .prose { max-width: 760px; }
 
 .terms { display: flex; flex-direction: column; padding-top: 16px; border-top: 1px solid var(--border); }
 .terms h3 { font-size: 12.5px; color: var(--muted-foreground); margin-bottom: 2px; }
@@ -1293,3 +1294,62 @@ a.flow:hover, a.flow[aria-expanded="true"] { box-shadow: 0 0 0 1px currentColor;
 .pr-also { margin-top: -4px; font-size: 13.5px; line-height: 1.5; color: var(--muted-foreground); }
 .pr-also span { font-weight: 600; }
 .pr-row .pr-also { margin-top: 2px; font-size: 13px; }
+
+/* The plan: deliverables (P markers), their groups' colours, Jira keys, and the plan map in its canvas. */
+.ref-p {
+  --icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='6' cy='19' r='3'/%3E%3Cpath d='M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15'/%3E%3Ccircle cx='18' cy='5' r='3'/%3E%3C/svg%3E");
+}
+.grp-1 { --grp: var(--opt-a); }
+.grp-2 { --grp: #ea580c; }
+.grp-3 { --grp: var(--opt-c); }
+.grp-4 { --grp: #059669; }
+.grp-5 { --grp: #7c3aed; }
+.grp-6 { --grp: #ca8a04; }
+.grp-dot { display: inline-block; width: 8px; height: 8px; margin-right: 6px; border-radius: 2px; background: var(--grp, var(--muted-foreground)); vertical-align: 1px; }
+.jira-keys { display: flex; flex-wrap: wrap; gap: 6px; }
+.jira-key { font-family: var(--font-mono); font-size: 11.5px; font-weight: 600; color: var(--foreground); text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; white-space: nowrap; }
+.jira-key.epic { color: #7c3aed; }
+.jira-key:hover { text-decoration-color: currentColor; }
+.jira-tree { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; list-style: none; padding: 0; }
+.dm-main .jira-tree li::before { display: none; }
+.jira-tree li { padding-left: 12px; }
+.jira-tree li { display: flex; gap: 10px; align-items: center; padding: 8px 12px; font-size: 13.5px; }
+.jira-tree li + li { border-top: 1px solid var(--border); }
+.jira-tree li.ji-epic { background: color-mix(in srgb, #7c3aed 8%, var(--card)); font-weight: 600; }
+.jira-tree li.nested { padding-left: 32px; }
+.jira-tree .t { flex: 1; min-width: 0; }
+.jira-state { padding: 1px 6px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; background: var(--muted); color: var(--muted-foreground); }
+.jira-state.js-done { background: var(--ok-bg); color: var(--ok); }
+.jira-state.js-progress { background: var(--lean-bg); color: var(--lean); }
+.jira-group { display: flex; flex-direction: column; gap: 10px; }
+.jira-group + .jira-group { margin-top: 24px; }
+.jira-group h3 { display: flex; gap: 8px; align-items: center; font-size: 14px; }
+.jira-read { margin-bottom: 12px; font-size: 13px; }
+.link-title { font-weight: 500; text-decoration: underline; text-decoration-color: var(--border); text-underline-offset: 3px; }
+.link-title:hover { text-decoration-color: currentColor; }
+.dm-main ul.served { display: flex; flex-direction: column; gap: 4px; }
+.goals.served .goal-text { display: flex; flex-direction: column; gap: 8px; }
+.served-by { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; font-weight: 400; color: var(--muted-foreground); }
+.served-by .ref { margin-left: 2px; }
+
+.plan-canvas { position: relative; display: flex; flex-direction: column; gap: 14px; padding: 18px; border-radius: 12px; border: 1px solid var(--border); background: var(--muted); }
+.plan-groups { display: flex; flex-wrap: wrap; gap: 18px; font-size: 12.5px; font-weight: 500; }
+.plan-groups span { display: inline-flex; gap: 6px; align-items: center; }
+.plan-groups i { width: 10px; height: 10px; border-radius: 3px; background: var(--grp); }
+.canvas-viewport { overflow: auto; }
+html.js .plan-canvas .canvas-viewport { overflow: hidden; cursor: grab; touch-action: none; }
+html.js .plan-canvas .canvas-viewport.dragging { cursor: grabbing; }
+.plan-canvas .diagram { transform-origin: 0 0; }
+.node.deliverable { flex-direction: column; align-items: stretch; gap: 6px; padding: 10px 12px 10px 14px; border-left: 4px solid var(--grp, var(--border)); cursor: pointer; }
+.node.deliverable .top { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted-foreground); }
+.node.deliverable .q { font-size: 13.5px; font-weight: 600; line-height: 1.3; }
+.node.deliverable .foot { margin-top: auto; font-size: 12px; color: var(--muted-foreground); }
+.node.deliverable:hover, .node.deliverable:focus-visible { box-shadow: 0 0 0 1px var(--foreground); }
+.canvas-controls { position: absolute; right: 18px; bottom: 18px; display: flex; gap: 2px; align-items: center; padding: 3px; border-radius: 8px; border: 1px solid var(--border); background: var(--background); }
+.canvas-controls[hidden] { display: none; }
+.canvas-controls button { min-width: 28px; padding: 4px 8px; border: 0; border-radius: 5px; background: transparent; color: var(--foreground); font: 500 12.5px var(--font-ui); cursor: pointer; }
+.canvas-controls button:hover { background: var(--muted); }
+.canvas-controls .zoom-level { min-width: 44px; text-align: center; font-size: 12.5px; color: var(--foreground); }
+.dm-main .jira-tree { gap: 0; }
+.dm-main .jira-tree li { padding: 8px 12px; }
+.jira-tree li.nested, .dm-main .jira-tree li.nested { padding-left: 32px; }

@@ -39,19 +39,19 @@ Framing: what's being chosen and what stays the same.
 | --- | --- |
 | `title` | The page's name in the page list and top bar |
 | `heading` | The h1, when it differs from the title (a brief's question, the overview's "what we're building") |
-| `group` | `overview`, `area`, `brief` or `shared` |
+| `group` | `overview`, `plan`, `area`, `brief` or `shared` |
 | `icon` | A symbol from `doc.html`'s definitions, without `i-` (`database`) |
 | `prefix` | What section ids start with (`s3` gives `s3-design`); the page id when left out |
 | `meta` | A short note in the page list; on a brief, the decisions it covers (`D1 D2`), which also picks the open questions it shows |
 | `updated` | `YYYY-MM-DD` |
-| `context` | The context line on the doc's home page (the overview, or the brief of a brief-only doc): the effort's slug, after the value of its `initiative:` tag and a `/` when it has one (`observability-pipeline / opw-deployment`). Without it, the home page shows only its date and other pages link home. |
+| `context` | The context line on the doc's home page (the overview, or the brief of a brief-only doc): the design's slug (`log-ingestion`). Never an effort's slug or an initiative tag: the doc is published and they're local. Without it, the home page shows only its date and other pages link home. |
 | `rail-note` | A note in the rail: `Requirements: This brief is measured against the overview's R1 to R7.` |
 | `shows` | On a shared page, `evidence` or `meetings`: the page is that list |
 | `progress` | `none` leaves out the progress line an overview or area gets |
 
 **Sections** are `##` headings, numbered in order and listed in the rail. The rail holds only the page list, the page's sections and its `rail-note`; record lists and filters stay in the page.
 
-- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Phases", "Decisions" and "Open questions" render from design.json when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Phases `phases`, Decisions `decisions`, Open questions `questions` (so `#overview-system`).
+- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Plan" and "Deliverables" (the deliverables), "Decisions", "Open questions", and on the Links page "Confluence", "Jira" and "Pull requests and other links" render from design.json when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Plan `plan`, Deliverables `deliverables`, Goals `goals`, The plan `map`, Decisions `decisions`, Open questions `questions`, Confluence `confluence`, Jira `jira`, Pull requests and other links `other` (so `#overview-system`).
 - `## D1` is a decision's section: its title and marker, its relations (from Follows and Waiting on), and its reasoning once it has a Why come from the record. The paragraphs under the heading are the framing.
 - Any other heading is a section of the page's own; `{#id}` after a heading sets its id.
 - Opening prose followed by something else (a component, a table) becomes the section's intro; a section of prose alone stays prose.
@@ -77,11 +77,12 @@ Framing: what's being chosen and what stays the same.
 | `decision-map [D1 D2]` | The page's decisions, the ones they follow and the ones waiting on them, in columns by what must be decided first, with each one's open questions under it. |
 | `flows <view>` | A security view's data flows table, from the Flows records whose ID starts with the view (`B` for B-F1). |
 | `diagram-key items="today \| new: label \| …" [title=…] [design]` | A legend from named entries: `today`, `outside`, `new`, `pending`, `sketch`, `retired`, `area`, `context`, `covered`, `blocking`, `first`, `decision`, `evidence`, `question`, `boundary`, `crosses`, `attention`, `protected`, `transit`. `name: label` changes an entry's words and `name(sample)` its sample, as in `boundary: Our AWS account` or `transit(TLS · IAM)`. Give the flow entries the view's own numbers: `crosses(F1) \| attention(F2) \| protected(F3)`. |
-| `goals` | The body's lines as the numbered goals; with an empty body, the bullets of design.json's Goals. |
+| `goals [served]` | The body's lines as the numbered goals; with an empty body, the bullets of design.json's Goals. With `served`, each goal lists the deliverables that serve it. |
 | `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.json's Goals. |
 | `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.json, with its fenced diagrams in text left out. |
 | `callout title="…" icon=<symbol>` | An aside with an icon, such as "What would settle it". |
-| `requirements`, `measure`, `decisions`, `risks`, `phases`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning` | The record tables, the same as `<!-- records … -->`. |
+| `requirements`, `measure`, `decisions`, `risks`, `plan`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning`, `confluence`, `jira`, `other-links` | The record tables, the same as `<!-- records … -->`. |
+| `plan-map` | The plan as a map: deliverables in columns by what they follow, arrows to the ones that follow, group colours and Jira keys, in a canvas the reader pans and zooms. Each card opens its deliverable's modal. |
 
 ## The doc's own components
 

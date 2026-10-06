@@ -36,7 +36,7 @@ Leave out a section with nothing real in it: cost for a process change, the secu
 ## The whole system and its parts
 
 - **Draw the current best picture,** at the level where decisions that span areas are argued. Where a decision is still open, draw what's leaned towards or assumed, bind the parts that depend on it (`data-pending="D1"`, which dashes them until it's decided), and put that decision's marker on them. Don't draw the alternatives; they belong in the decision's brief.
-- **Choose the picture the design needs:** components and networks for infrastructure, the phases side by side for a migration, the steps and hand-offs for a process. The security view applies whenever data crosses a boundary.
+- **Choose the picture the design needs:** components and networks for infrastructure, the deliverables side by side for a migration, the steps and hand-offs for a process. The security view applies whenever data crosses a boundary.
 - **When a decision is made,** the bound parts turn solid on the next build. Redraw only when what was chosen differs from what was drawn; a part drawn for one option can carry `data-when="D1=B"` so it shows only while that option is chosen or leaned towards.
 - **The parts table** has one row per box: what it does, the decisions that shaped it (including settled ones, so each part links back to why it's that way), and its evidence. It sits under this diagram until the design has areas; then each part lives on its area's page, under that area's diagram.
 

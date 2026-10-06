@@ -1,5 +1,5 @@
 {
-  "format": 3,
+  "format": 4,
   "title": "WHAT WE'RE BUILDING",
   "summary": "ONE SENTENCE ON WHAT THE SYSTEM DOES.",
   "problem": "THE PROBLEM TODAY, WHO IT AFFECTS, AND WHAT IT COSTS. THE VALUE OF SOLVING IT.",
@@ -45,13 +45,18 @@
       "Evidence": "E1"
     }
   ],
-  "phases": [
+  "plan": [
     {
-      "title": "PHASE NAME",
-      "Scope": "WHAT THIS PHASE DELIVERS.",
+      "id": "P1",
+      "title": "DELIVERABLE NAME",
+      "Scope": "WHAT IT DELIVERS.",
       "Exit criteria": "HOW EVERYONE KNOWS IT'S DONE.",
-      "Status": "Planned",
-      "Effort": "THE EFFORT DOING IT (ITS SLUG)"
+      "Status": "Proposed",
+      "Group": "OPTIONAL STREAM OF THE WORK",
+      "Serves": "1",
+      "Jira": [
+        "https://YOUR-SITE.atlassian.net/browse/KEY-1"
+      ]
     }
   ],
   "decisions": [

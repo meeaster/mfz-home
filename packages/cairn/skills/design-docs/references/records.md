@@ -20,17 +20,20 @@ The records are JSON, in three files. `design.json` holds the design; `evidence.
   "facts": {"sites": {"value": "14", "source": "E1"}},
   "requirements": [{"id": "R1", "title": "Receive syslog from all sites.", "Priority": "Must", "Why": "…", "Source": "…"}],
   "parts": [{"title": "OPW workers", "Does": "…"}],
-  "phases": [{"title": "Firewall logs through OPW", "Scope": "…", "Exit criteria": "…", "Status": "Planned"}],
+  "plan": [{"id": "P1", "title": "AWS foundation", "Scope": "…", "Exit criteria": "…", "Status": "Planned", "Group": "Firewall logs through OPW",
+            "Serves": "1", "Jira": ["https://example.atlassian.net/browse/OBS-210"]}],
   "decisions": [{"id": "D1", "title": "Where do the workers run?", "Status": "Leaning B", "Explanation": "…",
                  "options": [{"id": "A", "title": "Workers in Shared Tooling", "Status": "Set aside Sep 22", "Why not": "…"}]}],
   "risks": [{"title": "…", "Likelihood": "Medium"}],
   "costs": {"Assumes": "…", "Leaves out": "…", "lines": [{"title": "OPW workers", "Monthly": "$36"}]},
   "flows": [{"id": "B-F1", "title": "Syslog server → OPW workers", "Data": "…", "Crosses": "No · …", "Assessment": "Yes · …"}],
-  "questions": [{"id": "Q1", "title": "Can the site VPNs carry a new route?", "Explanation": "…", "Needed by": "Choosing the design"}]
+  "questions": [{"id": "Q1", "title": "Can the site VPNs carry a new route?", "Explanation": "…", "Needed by": "Choosing the design"}],
+  "links": [{"title": "OPW security review", "URL": "https://…/wiki/…", "Role": "Published", "Why": "…"}],
+  "jira": [{"id": "OBS-220", "title": "Run the OPW workers", "URL": "https://…/browse/OBS-220", "Type": "Epic", "Status": "In Progress", "Read": "2026-10-11 09:20"}]
 }
 ```
 
-A record is an object. Its identity is `id` and `title` (requirements, decisions, questions, evidence, flows), `date` and `title` (meetings), or `title` alone (parts, phases, risks, cost lines). Every other key is a field, named exactly as this reference names it ("Status", "Why", "Recorded from"): a string; a list of strings when the field is a list (Summary, Gathered from, Reasoning, Outcomes); or `{"value": "…", "items": ["…"]}` when it has both. A decision's options are in `options`, each with `id` (A, B, …), `title` and fields. Notes for whoever works on the design next, never rendered, go in `notes`, a list of strings.
+A record is an object. Its identity is `id` and `title` (requirements, deliverables, decisions, questions, evidence, flows, and Jira items, whose `id` is the item's key), `date` and `title` (meetings), or `title` alone (parts, risks, cost lines, links). Every other key is a field, named exactly as this reference names it ("Status", "Why", "Recorded from"): a string; a list of strings when the field is a list (Summary, Gathered from, Reasoning, Outcomes); or `{"value": "…", "items": ["…"]}` when it has both. A decision's options are in `options`, each with `id` (A, B, …), `title` and fields. Notes for whoever works on the design next, never rendered, go in `notes`, a list of strings.
 
 The rest of this reference describes each field as `Field: value`; in JSON that is the key `"Field"` with that value. `assets/example/` has the complete JSON for a real design and `assets/template/` the starting point. Sections can be empty or missing. A small design can be `design.json` alone, with no pages yet.
 
@@ -44,7 +47,7 @@ Problem, Goals and How it works are prose, the connected understanding an agent 
 
 ## Items
 
-Text in record fields and terms takes `code`, links to sections (`[text](#id)`), and ID mentions. Page prose takes **bold** and *emphasis* too. A requirement or phase an agent proposes from research stays proposed until the user accepts it: a requirement's Source says `Proposed from research`, and a phase's Status is Proposed.
+Text in record fields and terms takes `code`, links to sections (`[text](#id)`), and ID mentions. Page prose takes **bold** and *emphasis* too. A requirement or deliverable an agent proposes from research stays proposed until the user accepts it: a requirement's Source says `Proposed from research`, and a deliverable's Status is Proposed.
 
 **Terms** are one line each, with the pages they appear on:
 
@@ -178,13 +181,29 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 
 **Flows** (`### B-F2 · Syslog server → OPW workers`): one per data flow in a security view, with Path, Data, In transit, Auth, Crosses (`Yes · Partition boundary` when it crosses the compliance boundary) and Assessment (`No · Add TLS on the relay [D2]`). See [security](security.md).
 
-**Phases** (`### Firewall logs through OPW`): the design's delivery units, in order. Scope (what it delivers), Exit criteria (how everyone knows it's done), Status (Proposed until the user accepts it, then Planned, In progress, Done), and Effort (the slug of the effort doing it). The overview's Phases table shows them; a phase's status lives only here.
+**The plan** (`### P1 · AWS foundation`, in design.json's `plan`): how the work breaks into deliverables, each a piece that can be delivered and checked on its own. Not a task list, and not a copy of Jira: how a deliverable gets built stays with whoever builds it, and Jira's stories come and go under its epic.
+
+| Field | Holds |
+| --- | --- |
+| Scope | What it delivers |
+| Exit criteria | How everyone knows it's done |
+| Status | Proposed until the user accepts it, then Planned, In progress, Done. A deliverable's status lives only here. |
+| Follows | The deliverables that must be done first (`P1, P5`). The Plan page draws them as a map, those in one column free to run in parallel. `check` fails on a loop. |
+| Group | A few words naming a stream of the work ("Firewall logs through OPW"); deliverables in a group share a colour |
+| Serves | The goals it serves, by their number in the Goals list (`1, 2`) |
+| Jira | The URLs of the Jira items tracking it, usually its epic; any number, or none |
+
+A deliverable never names an effort: the doc is published, and efforts are local to whoever keeps them. Which deliverables an effort works on follows from the Jira items the effort includes.
+
+**Links** (`### OPW security review`, in `links`): the Confluence pages, pull requests and other pages around the design. URL, Role (`Published` for what the design or its work produced, `Referenced` for someone else's page it relies on), Why (one sentence on why it's here), and for a Confluence page optionally Space and Updated. The Links page lists them by kind. A page whose content changes the design goes through intake like any source; a link just says where it is.
+
+**Jira items** (`### OBS-220 · Run the OPW workers`, in `jira`): the epics and stories tracking the plan, as an agent last read them through the Atlassian MCP server. URL, Type (Epic, Story, Task, Bug), Status as Jira words it, Category when the status words don't say (To do, In progress, Done), Parent (the epic's key), Blocks (keys), and Read (`YYYY-MM-DD HH:MM`, when it was read). Refresh them all at once when asked; the doc shows them as read, never as the design's own state.
 
 **Questions** (`### Q1 · Can the site VPNs carry a route to a new VPC?`)
 
 | Field | Holds |
 | --- | --- |
-| Needed by | When the answer is needed: `Choosing the design`, `Before building`, `Later phase`, or a phase's title |
+| Needed by | When the answer is needed: `Choosing the design`, `Before building`, `Later phase`, or a deliverable (`P3`, or its title) |
 | Answer from | How the answer can be got: `Research · where to look` when an agent could find it in documentation, a repository or a read-only account (`Research · Datadog's OPW syslog source docs`); `Person` when someone has to tell us; `Approval` when someone has to sign it off. The questions table shows it with where to look, or with Ask. `check` warns when an open question has none. |
 | Ask | Who to ask, only when a person or a meeting named them: `Network team`. Left out otherwise. |
 | Short | A few words for the decision map ("Who owns a new VPC?"), up to about 40 characters; its box grows to fit |
@@ -203,7 +222,7 @@ A question has no status field: it's open, partly answered (`So far`), deferred 
 
 **Facts** are an object of `"key": {"value": "…", "source": "E2"}`, with a lowercase key. Any number, cost, count or date stated in more than one place is a fact, and everywhere else (records, pages, components) writes `{fact:key}`; the build puts the value in. Change a figure by changing its fact.
 
-**Meetings** (`### 2026-09-22 · Network working session`, in meetings.json): Status (Awaiting review while it has proposals to settle, then Summarised), Who, Proposals, Worth a look (a list: what the meeting's outcomes imply for things nobody discussed, for the user to look at; never applied on its own), Outcomes, and Summary as a list. Proposals are what the meeting could change in the design, each settled with the user before anything changes; their format and how to write them are in [the update playbook](../playbooks/update.md#2-propose-dont-apply). The Meetings page shows each meeting's proposal count, and clicking it opens them, in the published doc too. Outcomes is a list with one string for each thing the meeting settled: `<Kind> · <what> → <record IDs, fact:key or phase title>`, with Kind one of Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Phase, Fact, Evidence, Scope, Risk. Every decision, leaning or deferral a meeting states gets a decision record with that status, created when none exists. `check` fails when an outcome points at nothing, and when the latest meeting's Decided, Leaning or Later doesn't match the decision's status, or its Answer or So far doesn't match the question. Only meetings that happened are recorded; a planned one and its agenda aren't. The meeting's "Changed in this doc" chips come from changes.md.
+**Meetings** (`### 2026-09-22 · Network working session`, in meetings.json): Status (Awaiting review while it has proposals to settle, then Summarised), Who, Proposals, Worth a look (a list: what the meeting's outcomes imply for things nobody discussed, for the user to look at; never applied on its own), Outcomes, and Summary as a list. Proposals are what the meeting could change in the design, each settled with the user before anything changes; their format and how to write them are in [the update playbook](../playbooks/update.md#2-propose-dont-apply). The Meetings page shows each meeting's proposal count, and clicking it opens them, in the published doc too. Outcomes is a list with one string for each thing the meeting settled: `<Kind> · <what> → <record IDs, fact:key or deliverable title>`, with Kind one of Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Deliverable, Fact, Evidence, Scope, Risk (Phase still reads, for meetings recorded before the plan). Every decision, leaning or deferral a meeting states gets a decision record with that status, created when none exists. `check` fails when an outcome points at nothing, and when the latest meeting's Decided, Leaning or Later doesn't match the decision's status, or its Answer or So far doesn't match the question. Only meetings that happened are recorded; a planned one and its agenda aren't. The meeting's "Changed in this doc" chips come from changes.md.
 
 ## Where a record came from
 

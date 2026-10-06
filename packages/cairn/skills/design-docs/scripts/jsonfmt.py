@@ -1,6 +1,6 @@
 """design.json, evidence.json and meetings.json: the records as JSON.
 
-Each record is an object. Its identity is "id" and "title" (a meeting has "date" and "title"; a part, risk, phase or cost
+Each record is an object. Its identity is "id" and "title" (a meeting has "date" and "title"; a part, risk, link or cost
 line has only "title"). Every other key is a field with the same name as in the Markdown form ("Status", "Recorded from"):
 a string, a list of strings when the field is a list, or {"value": ..., "items": [...]} when it has both. A decision's
 options are in "options"; notes for whoever works on the design next are in "notes".
@@ -13,9 +13,9 @@ import json
 from pathlib import Path
 
 SECTION_KEYS = [  # (json key, Markdown section)
-    ("terms", "Terms"), ("facts", "Facts"), ("requirements", "Requirements"), ("parts", "Parts"), ("phases", "Phases"),
+    ("terms", "Terms"), ("facts", "Facts"), ("requirements", "Requirements"), ("parts", "Parts"), ("plan", "Plan"),
     ("decisions", "Decisions"), ("risks", "Risks"), ("costs", "Costs"), ("flows", "Flows"), ("questions", "Questions"),
-    ("evidence", "Evidence"), ("meetings", "Meetings")]
+    ("links", "Links"), ("jira", "Jira"), ("evidence", "Evidence"), ("meetings", "Meetings")]
 PROSE_KEYS = [("problem", "Problem"), ("goals", "Goals"), ("howItWorks", "How it works")]
 JSON_FILES = ("design.json", "evidence.json", "meetings.json")
 IDENTITY = ("id", "title", "date", "options", "notes")
@@ -127,7 +127,7 @@ def from_design(design) -> dict[str, dict]:
         out: dict = {}
         if kind == "meeting":
             out["date"], out["title"] = r.id.removeprefix("meeting-"), r.title
-        elif kind in ("requirement", "decision", "question", "evidence", "flow"):
+        elif kind in ("requirement", "decision", "question", "evidence", "flow", "deliverable", "jira"):
             out["id"], out["title"] = r.id, r.title
         else:
             out["title"] = r.title
@@ -153,9 +153,9 @@ def from_design(design) -> dict[str, dict]:
     if design.facts:
         design_json["facts"] = {k: ({"value": v, "source": design.fact_sources[k]} if design.fact_sources.get(k) else {"value": v})
                                 for k, (v, _line) in design.facts.items()}
-    order = ["requirement", "part", "phase", "decision", "risk", "cost", "flow", "question"]
-    keys = {"requirement": "requirements", "part": "parts", "phase": "phases", "decision": "decisions", "risk": "risks",
-            "cost": "costs", "flow": "flows", "question": "questions"}
+    order = ["requirement", "part", "deliverable", "decision", "risk", "cost", "flow", "question", "link", "jira"]
+    keys = {"requirement": "requirements", "part": "parts", "deliverable": "plan", "decision": "decisions", "risk": "risks",
+            "cost": "costs", "flow": "flows", "question": "questions", "link": "links", "jira": "jira"}
     for kind in order:
         records = [rec(r, kind) for r in design.of(kind)]
         if kind == "cost":
