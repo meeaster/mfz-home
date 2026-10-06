@@ -48,9 +48,9 @@ export function knowledgeFolder(root: string): string {
   return join(root, "knowledge");
 }
 
-// A stable design's record: designs/<slug>/design.md under the root.
+// A stable design's record: designs/<slug>/design.json under the root, or design.md before format 3.
 export function isStableDesign(root: string, path: string): boolean {
-  return /^[^/]+\/design\.md$/.test(relative(join(root, "designs"), path));
+  return /^[^/]+\/design\.(json|md)$/.test(relative(join(root, "designs"), path));
 }
 
 export function sessionFolder(root: string, harness: string, month: string, rootNativeId: string): string {

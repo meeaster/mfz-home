@@ -1,5 +1,8 @@
-// Reads the parts of design and source files the UI summarises. The formats are owned by the design-docs and
-// effort-context skills; these readers take only what the lists show and ignore everything else.
+// Reads the parts of design and source files the UI summarises: design.json and meetings.json, or design.md for a
+// design not yet migrated to format 3. The formats are owned by the design-docs and effort-context skills; these
+// readers take only what the lists show and ignore everything else.
+
+import { z } from "zod";
 
 export type DesignStats = {
   readonly title: string | null;
@@ -7,6 +10,7 @@ export type DesignStats = {
   readonly decisions: { readonly total: number; readonly decided: number };
   readonly open_questions: number;
   readonly deferred_questions: number;
+  readonly proposals_to_review: number;
 };
 
 type Item = {
@@ -101,7 +105,68 @@ export function designStats(markdown: string): DesignStats {
     summary: leadParagraph(markdown),
     decisions: { total: decisions.length, decided },
     open_questions: unanswered.length - deferred,
-    deferred_questions: deferred
+    deferred_questions: deferred,
+    proposals_to_review: 0
+  };
+}
+
+// The parts of design.json and meetings.json the counts need, parsed at the boundary; zod drops the rest.
+const designJson = z.object({
+  title: z.string().optional(),
+  summary: z.string().optional(),
+  decisions: z.array(z.object({ Status: z.string().optional() })).default([]),
+  questions: z.array(z.object({ Answer: z.string().optional(), Deferred: z.string().optional() })).default([])
+});
+
+const meetingsJson = z.object({
+  meetings: z.array(z.object({ Proposals: z.array(z.object({ status: z.string() })).default([]) })).default([])
+});
+
+function parseJson<T>(schema: z.ZodType<T>, text: string | null): T | null {
+  if (text === null) {
+    return null;
+  }
+
+  try {
+    const parsed = schema.safeParse(JSON.parse(text));
+
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+// The same counts for a design kept as JSON (format 3), plus the proposals its meetings still wait on the user for.
+export function jsonDesignStats(designText: string, meetingsText: string | null): DesignStats {
+  const design = parseJson(designJson, designText);
+  const meetings = parseJson(meetingsJson, meetingsText)?.meetings ?? [];
+  const decisions = design?.decisions ?? [];
+  const unanswered = (design?.questions ?? []).filter((question) => question.Answer === undefined);
+  const deferred = unanswered.filter((question) => (question.Deferred ?? "") !== "").length;
+  let decided = 0;
+  let proposals = 0;
+
+  for (const decision of decisions) {
+    if (/^(decided|given)\b/i.test(decision.Status ?? "")) {
+      decided += 1;
+    }
+  }
+
+  for (const meeting of meetings) {
+    for (const proposal of meeting.Proposals) {
+      if (proposal.status.toLowerCase() === "proposed") {
+        proposals += 1;
+      }
+    }
+  }
+
+  return {
+    title: design?.title ?? null,
+    summary: design?.summary === undefined || design.summary === "" ? null : design.summary,
+    decisions: { total: decisions.length, decided },
+    open_questions: unanswered.length - deferred,
+    deferred_questions: deferred,
+    proposals_to_review: proposals
   };
 }
 

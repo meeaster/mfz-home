@@ -29,7 +29,7 @@ import type {
   SidebarData,
   SourceItem
 } from "./api.ts";
-import { countChanges, designStats, docSlug, meetingIntake, publishedMark, threadState } from "./records.ts";
+import { countChanges, type DesignStats, designStats, docSlug, jsonDesignStats, meetingIntake, publishedMark, threadState } from "./records.ts";
 
 // Files larger than this are listed but not shown in the viewer.
 const viewerLimit = 2 * 1024 * 1024;
@@ -342,15 +342,29 @@ export function builtDoc(root: string, name: string): string | null {
   return path.startsWith(`${published}${sep}`) && existsSync(path) ? path : null;
 }
 
-function designItem(cairn: Cairn, folder: string): DesignItem | null {
-  const designPath = join(folder, "design.md");
-  const design = readIfPresent(designPath);
+// A design's records: design.json (format 3), or design.md for one not yet migrated.
+function designStatsOf(folder: string): { readonly path: string; readonly stats: DesignStats } | null {
+  const jsonPath = join(folder, "design.json");
+  const json = readIfPresent(jsonPath);
 
-  if (design === null) {
+  if (json !== null) {
+    return { path: jsonPath, stats: jsonDesignStats(json, readIfPresent(join(folder, "meetings.json"))) };
+  }
+
+  const markdownPath = join(folder, "design.md");
+  const markdown = readIfPresent(markdownPath);
+
+  return markdown === null ? null : { path: markdownPath, stats: designStats(markdown) };
+}
+
+function designItem(cairn: Cairn, folder: string): DesignItem | null {
+  const found = designStatsOf(folder);
+
+  if (found === null) {
     return null;
   }
 
-  const stats = designStats(design);
+  const { path: designPath, stats } = found;
   const changesPath = join(folder, "changes.md");
   const changes = countChanges(readIfPresent(changesPath) ?? "");
   const doc = builtDoc(cairn.root, basename(folder));
@@ -368,6 +382,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
     decisions: stats.decisions,
     open_questions: stats.open_questions,
     deferred_questions: stats.deferred_questions,
+    proposals_to_review: stats.proposals_to_review,
     published:
       included === null
         ? { state: "unpublished" }
@@ -375,7 +390,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
           ? { state: "behind", changes: changes - included }
           : { state: "current" },
     doc_url: doc === null ? null : `/docs/${encodeURIComponent(basename(folder))}/`,
-    updated_at: modifiedAt([designPath, changesPath])
+    updated_at: modifiedAt([designPath, join(folder, "evidence.json"), join(folder, "meetings.json"), changesPath])
   };
 }
 

@@ -285,6 +285,11 @@ export function DesignsView({ route }: { readonly route: Route }) {
                               {design.open_questions === 0 ? "No open questions" : plural(design.open_questions, "open question")}
                               {design.deferred_questions > 0 && ` · ${design.deferred_questions} deferred`}
                             </span>
+                            {design.proposals_to_review > 0 && (
+                              <Badge variant="warn" className="w-fit">
+                                {plural(design.proposals_to_review, "proposal")} to review
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="align-top">

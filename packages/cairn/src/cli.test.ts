@@ -485,7 +485,7 @@ describe("compaction note", () => {
 
     cairn.run("session", "describe", "opencode:root", "--create", "Cisco ASA log ingestion");
 
-    const design = cairn.write(join(cairn.root, "designs", "log-ingestion", "design.md"), "# Log ingestion\n");
+    const design = cairn.write(join(cairn.root, "designs", "log-ingestion", "design.json"), '{"format": 3, "title": "Log ingestion"}\n');
     const changes = cairn.write(join(cairn.root, "designs", "log-ingestion", "changes.md"), "# Changes\n");
 
     cairn.run("capture", design, "--session", "opencode:root");

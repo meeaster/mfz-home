@@ -263,8 +263,55 @@ describe("cairn ui server", () => {
       decisions: { total: 3, decided: 2 },
       open_questions: 1,
       deferred_questions: 1,
+      proposals_to_review: 0,
       published: { state: "behind", changes: 1 },
       doc_url: "/docs/opw-deployment/"
+    });
+  });
+
+  test("a design kept as JSON reports its counts and the proposals still to review", async () => {
+    const { root } = catalog();
+    const folder = join(root, "designs", "opw-deployment");
+
+    rmSync(join(folder, "design.md"));
+    write(
+      join(folder, "design.json"),
+      JSON.stringify({
+        format: 3,
+        title: "OPW deployment",
+        summary: "Where OPW runs in AWS and what it may access.",
+        decisions: [
+          { id: "D1", title: "Where do the workers run?", Status: "Decided" },
+          { id: "D2", title: "How do logs reach them?", Status: "Leaning A" }
+        ],
+        questions: [
+          { id: "Q1", title: "Who owns the VPC?" },
+          { id: "Q2", title: "How much volume?", Deferred: "Only sizes the second year." },
+          { id: "Q3", title: "Which ranges?", Answer: "10.40.0.0/16" }
+        ]
+      })
+    );
+    write(
+      join(folder, "meetings.json"),
+      JSON.stringify({
+        meetings: [
+          { date: "2026-10-02", title: "Infra working session", Status: "Awaiting review", Proposals: [{ n: 1, status: "Proposed" }, { n: 2, status: "Accepted" }, { n: 3, status: "Proposed" }] },
+          { date: "2026-09-22", title: "Kickoff", Status: "Summarised", Proposals: [{ n: 1, status: "Rejected" }] }
+        ]
+      })
+    );
+
+    const { json } = await serve(root);
+    const [opw] = await json<DesignItem[]>("/api/designs");
+
+    expect(opw).toMatchObject({
+      title: "OPW deployment",
+      summary: "Where OPW runs in AWS and what it may access.",
+      design_path: join(folder, "design.json"),
+      decisions: { total: 2, decided: 1 },
+      open_questions: 1,
+      deferred_questions: 1,
+      proposals_to_review: 2
     });
   });
 
