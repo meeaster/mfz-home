@@ -28,13 +28,14 @@ from __future__ import annotations
 
 import datetime as dt
 import html as htmllib
+import json
 import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
 # The format a design folder is written in: design.md's first line says "<!-- design-docs format 2 -->".
 # doc.py migrate brings an older folder up to date; a folder with no line is format 1 (pages written in HTML).
-FORMAT = 2
+FORMAT = 3
 FORMAT_LINE = re.compile(r"^<!--\s*design-docs format (\d+)\s*-->\s*$")
 
 SECTIONS = {
@@ -49,7 +50,14 @@ SECTIONS = {
     "evidence": "evidence",
     "meetings": "meeting",
     "phases": "phase",
+    "facts": "fact",
 }
+# design.md holds what an update reads every time; Evidence and Meetings may sit in their own files beside it.
+SPLIT_FILES = ("design.md", "evidence.md", "meetings.md")
+FACT_REF = re.compile(r"\{fact:([a-z0-9][a-z0-9-]*)\}")
+# A meeting's Outcomes: one line per thing it settled, '<Kind> · <what> → <record IDs, fact:key or a phase title>'.
+OUTCOME_KINDS = {"decided", "leaning", "later", "answer", "so far", "deferred", "new question", "requirement", "phase", "fact", "evidence", "scope", "risk", "follow-on"}
+OUTCOME = re.compile(r"^(?P<kind>[^·]+?)\s+·\s+(?P<what>.+?)\s+(?:→|->)\s+(?P<to>.+)$")
 # Prose sections an agent reads to understand the design; a page shows them with the design-section component.
 PROSE_SECTIONS = {"problem": "problem", "goals": "goals", "how it works": "how-it-works"}
 PREFIX = {"requirement": "R", "decision": "D", "question": "Q", "evidence": "E"}
@@ -85,6 +93,14 @@ EXPLANATION_HINT = "a few sentences on what it asks and where it fits, for a rea
 DECISION_STATE = {"open": "open", "leaning": "leaning", "later": "later", "decided": "decided", "given": "decided"}
 UNSETTLED = ("open", "leaning", "later")
 MEETING_STATUS = {"awaiting review": "open", "summarised": ""}
+# A meeting's proposals: what the meeting could change in the design, each gone through with the user.
+PROPOSAL_STATUS = {"proposed": "open", "accepted": "decided", "changed": "decided", "rejected": "", "deferred": "leaning"}
+PROPOSAL_LABEL = {"proposed": "To review", "accepted": "Accepted", "changed": "Accepted with changes", "rejected": "Rejected", "deferred": "Deferred"}
+# Proposals that change what the design says come first and in full; record-keeping ones fold into one group.
+PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"]
+ROUTINE_KINDS = {"evidence", "risk", "follow-on"}
+FIELD_TALK = re.compile(r"\b(Needed by|Blocks|Waiting on|Status|Recorded from|Answered by|Explanation|Still to show)\s*:", re.I)
+RECOMMEND = {"accept": "decided", "accept as leaning": "leaning", "ask": "open", "defer": "leaning", "reject": ""}
 PHASE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
 VERDICT = {"yes": "yes", "partly": "partly", "no": "no"}
@@ -176,6 +192,13 @@ class Design:
     changes: list[Change] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
+    # Named values defined once under '## Facts' and written as {fact:key} anywhere else: key -> (value, line).
+    facts: dict[str, tuple[str, int]] = field(default_factory=dict)
+    # Where each read line came from, for messages: (first line number, file name, that file's first line).
+    spans: list[tuple[int, str, int]] = field(default_factory=list)
+    fact_sources: dict[str, str] = field(default_factory=dict)
+    # For a design kept as JSON: where each generated line came from ("design.json › decisions › D1 › Status").
+    labels: list[str] = field(default_factory=list)
 
     def of(self, kind: str) -> list[Record]:
         return [r for r in self.records if r.kind == kind]
@@ -184,6 +207,11 @@ class Design:
         return {r.id: r for r in self.records}
 
     def where(self, line: int) -> str:
+        if self.labels and 0 < line <= len(self.labels):
+            return self.labels[line - 1]
+        for start, name, first in reversed(self.spans):
+            if line >= start:
+                return f"{name}:{line - start + first}"
         return f"{self.path.name}:{line}"
 
 
@@ -199,7 +227,20 @@ def read_design(path: Path) -> Design:
     prose: list[str] = []
     title_seen = False
 
-    for number, raw in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1):
+    lines: list[str] = []
+    from jsonfmt import to_markdown
+    generated = to_markdown(path.parent)
+    if generated is not None:
+        lines, design.labels = generated
+        design.path = path.parent / "design.json"
+    for name in SPLIT_FILES if generated is None else ():
+        part = path if name == "design.md" else path.parent / name
+        if not part.exists():
+            continue
+        design.spans.append((len(lines) + 1, part.name, 1))
+        lines += part.read_text(encoding="utf-8").splitlines()
+
+    for number, raw in enumerate(lines, start=1):
         line = raw.rstrip()
         stripped = line.strip()
 
@@ -224,6 +265,20 @@ def read_design(path: Path) -> Design:
         if section is None:
             if title_seen and stripped and not design.dek and not stripped.startswith(("-", "#")):
                 design.dek = stripped
+            continue
+
+        if section == "fact":
+            fact = re.match(r"^- ([a-z0-9][a-z0-9-]*):\s*(.+)$", stripped)
+            if fact:
+                key, value = fact.group(1), re.split(r"\s+·\s+Source:", fact.group(2))[0].strip()
+                source = re.search(r"·\s+Source:\s*(.+)$", fact.group(2))
+                if source:
+                    design.fact_sources[key] = source.group(1).strip()
+                if key in design.facts:
+                    design.errors.append(f"{design.where(number)}: fact '{key}' is defined twice")
+                design.facts[key] = (value, number)
+            elif stripped:
+                design.errors.append(f"{design.where(number)}: write a fact as '- key: value · Source: E1'")
             continue
 
         if section == "term":
@@ -281,12 +336,22 @@ def read_design(path: Path) -> Design:
 
 
 def read_format(path: Path) -> int:
+    if path.suffix == ".json" or (path.parent / "design.json").exists():
+        import json
+        return int(json.loads((path.parent / "design.json").read_text(encoding="utf-8")).get("format", FORMAT))
     first = path.read_text(encoding="utf-8").split("\n", 1)[0] if path.exists() else ""
     found = FORMAT_LINE.match(first)
     return int(found.group(1)) if found else 1
 
 
 def write_format(path: Path, number: int) -> None:
+    json_path = path.parent / "design.json"
+    if json_path.exists():
+        import json
+        data = json.loads(json_path.read_text(encoding="utf-8"))
+        data["format"] = number
+        json_path.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        return
     text = path.read_text(encoding="utf-8")
     first, _, rest = text.partition("\n")
     body = rest if FORMAT_LINE.match(first) else text
@@ -419,6 +484,9 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
                     design.errors.append(f"{design.where(term.line)}: term '{term.name}' names page '{page}', which isn't in the doc")
 
     check_waiting(design)
+    check_facts(design)
+    check_proposals(design)
+    check_outcomes(design)
 
     costs = design.of("cost")
     categorised = [c for c in costs if c.get("Category")]
@@ -434,6 +502,143 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
             design.warnings.append(f"changes.md:{change.line}: change source '{change.source}' has no meeting in design.md")
         if change.source.startswith("email") and not re.match(r"^email \d{4}-\d{2}-\d{2} · \S", change.source):
             design.warnings.append(f"changes.md:{change.line}: write an email source as 'email YYYY-MM-DD · <sender>'; got '{change.source}'")
+
+
+def check_facts(design: Design) -> None:
+    """Every {fact:key} in a record names a defined fact."""
+    for record in design.records:
+        for text, line in record_texts(record):
+            for key in FACT_REF.findall(text):
+                if key not in design.facts:
+                    design.errors.append(f"{design.where(line)}: '{{fact:{key}}}' names no fact under '## Facts'")
+
+
+def proposals_of(meeting: Record) -> list[dict]:
+    """A meeting's proposals, each an object (see records.md)."""
+    out = []
+    for item in meeting.items("Proposals"):
+        try:
+            value = json.loads(item)
+        except json.JSONDecodeError:
+            continue
+        if isinstance(value, dict):
+            out.append(value)
+    return out
+
+
+def check_proposals(design: Design) -> None:
+    """Each proposal names what it changes and how it was settled; the meeting's status and Outcomes agree with them."""
+    known = design.by_id()
+    for meeting in design.of("meeting"):
+        found = meeting.field("Proposals")
+        if found is None:
+            continue
+        where = design.where(found.line)
+        items = proposals_of(meeting)
+        if len(items) != len(found.items):
+            design.errors.append(f"{where}: every proposal is an object with n, kind, proposal, recommend and status")
+        numbers = [p.get("n") for p in items]
+        if len(set(numbers)) != len(numbers):
+            design.errors.append(f"{where}: proposal numbers repeat; number them 1, 2, 3 …")
+        pending = 0
+        outcomes = " ".join(meeting.items("Outcomes"))
+        for p in items:
+            label = f"{where} › proposal {p.get('n', '?')}"
+            for key in ("n", "kind", "proposal", "recommend", "status"):
+                if not p.get(key):
+                    design.errors.append(f"{label}: no '{key}'")
+            status = str(p.get("status", "")).lower()
+            if status and status not in PROPOSAL_STATUS:
+                design.errors.append(f"{label}: status '{p.get('status')}'; use Proposed, Accepted, Changed, Rejected or Deferred")
+            rec = str(p.get("recommend", "")).lower()
+            if rec and rec not in RECOMMEND:
+                design.errors.append(f"{label}: recommend '{p.get('recommend')}'; use Accept, Accept as leaning, Ask, Defer or Reject, and say why in 'why'")
+            if p.get("recommend") and not p.get("why"):
+                design.errors.append(f"{label}: give the recommendation's reason in 'why'")
+            for t in split_list(str(p.get("target", ""))):
+                if ID_TOKEN.match(t) and t not in known and not p.get("new"):
+                    design.errors.append(f"{label}: target '{t}' is no record; for a record the proposal would create, set \"new\": true")
+            for key, limit in (("proposal", 30), ("before", 14), ("after", 14)):
+                words = len(str(p.get(key, "")).split())
+                if words > limit:
+                    design.warnings.append(f"{label}: '{key}' is {words} words; keep it under {limit} so it reads at a glance")
+            for key in ("proposal", "before", "after"):
+                if FIELD_TALK.search(str(p.get(key, ""))):
+                    design.warnings.append(f"{label}: '{key}' uses field names ('{FIELD_TALK.search(str(p.get(key, ''))).group(0)}'); say it in plain words")
+            if status == "proposed":
+                pending += 1
+            if status in ("accepted", "changed"):
+                targets = [t for t in split_list(str(p.get("target", ""))) if t]
+                if targets and not any(t in outcomes for t in targets):
+                    design.errors.append(f"{label} is {p.get('status')}, but no Outcome points at {', '.join(targets)}; apply it and list it in Outcomes")
+            if status in ("changed", "rejected", "deferred") and not p.get("note"):
+                design.warnings.append(f"{label} is {p.get('status')}; say what the user decided in 'note'")
+        if len(meeting.items("Worth a look")) > 3:
+            design.warnings.append(f"{design.where(meeting.line)}: meeting '{meeting.id}' has {len(meeting.items('Worth a look'))} 'Worth a look' notes; keep the three that matter most")
+        status = meeting.get("Status").lower()
+        if pending and status != "awaiting review":
+            design.errors.append(f"{design.where(meeting.line)}: meeting '{meeting.id}' has {pending} proposal(s) still to review; its status is Awaiting review until they're all settled")
+        if not pending and items and status == "awaiting review":
+            design.warnings.append(f"{design.where(meeting.line)}: every proposal of '{meeting.id}' is settled; set its status to Summarised")
+
+
+def check_outcomes(design: Design) -> None:
+    """Each meeting outcome points at what it changed; the latest meeting's statuses must still hold."""
+    known = design.by_id()
+    phases = {p.title.lower(): p for p in design.of("phase")}
+    meetings = design.of("meeting")
+    latest = max((m.id for m in meetings), default=None)
+    for meeting in meetings:
+        found = meeting.field("Outcomes")
+        if found is None and meeting.get("Status").lower() == "awaiting review":
+            continue
+        if found is None:
+            design.warnings.append(f"{design.where(meeting.line)}: meeting '{meeting.id}' has no 'Outcomes'; list each thing it settled and the record it changed")
+            continue
+        for item in found.items:
+            m = OUTCOME.match(item)
+            if not m or m.group("kind").strip().lower() not in OUTCOME_KINDS:
+                design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}'; write '<Kind> · <what> → <IDs, fact:key or phase title>' with Kind one of {', '.join(sorted(OUTCOME_KINDS))}")
+                continue
+            kind = m.group("kind").strip().lower()
+            targets = [t.strip() for t in re.split(r",\s*", m.group("to")) if t.strip()]
+            resolved = []
+            for t in targets:
+                if t in known:
+                    resolved.append(known[t])
+                elif t.startswith("fact:") and t[5:] in design.facts:
+                    resolved.append(None)
+                elif t.lower() in phases:
+                    resolved.append(phases[t.lower()])
+                else:
+                    design.errors.append(f"{design.where(found.line)}: outcome '{item[:60]}' points at '{t}', which is no record ID, fact:key or phase title")
+            if meeting.id != latest:
+                continue
+            for r in resolved:
+                if r is None:
+                    continue
+                if kind in ("decided", "leaning", "later") and r.kind == "decision":
+                    status = r.get("Status").split()[0].lower() if r.get("Status") else ""
+                    if status != kind:
+                        design.errors.append(f"{design.where(found.line)}: the latest meeting records '{kind}' for {r.id}, but {r.id}'s status is '{r.get('Status')}'")
+                if kind == "answer" and r.kind == "question" and not r.get("Answer"):
+                    design.errors.append(f"{design.where(found.line)}: the latest meeting answered {r.id}, but {r.id} has no 'Answer'")
+                if kind == "so far" and r.kind == "question" and (not r.get("So far") or r.get("Answer")):
+                    design.errors.append(f"{design.where(found.line)}: the latest meeting partly answered {r.id}; give it 'So far' and no 'Answer'")
+
+
+def fill_facts(text: str, design: Design) -> tuple[str, list[str]]:
+    """Put each fact's value where a page, component or record writes {fact:key}."""
+    missing: list[str] = []
+
+    def value(match: re.Match) -> str:
+        key = match.group(1)
+        if key not in design.facts:
+            missing.append(key)
+            return match.group(0)
+        return design.facts[key][0]
+
+    return FACT_REF.sub(value, text), missing
 
 
 def parse_money(text: str) -> tuple[float, float] | None:
@@ -1679,6 +1884,9 @@ class Renderer:
                 body.append("<ul>" + "".join(f"<li>{self.inline(i)}</li>" for i in r.items("Summary")) + "</ul>")
             elif r.get("Summary"):
                 body.append(f"<p>{self.inline(r.get('Summary'))}</p>")
+            proposals = proposals_of(r)
+            if proposals:
+                body.append(self.proposals_line(r, proposals))
             chips = [item for change in self.design.changes if change.source == f"meeting {date}" for item in change.items]
             if chips:
                 body.append('<div class="changes"><span>Changed in this doc</span>' + "".join(f'<span class="change">{esc(c)}</span>' for c in chips) + "</div>")
@@ -1688,12 +1896,99 @@ class Renderer:
                 f'<div class="body"><div class="title"><h3>{esc(r.title)}</h3><span class="status{" " + cls if cls else ""}">{esc(status)}</span></div>'
                 f'{"".join(body)}</div></div>'
             )
-        return f'<div class="meetings">{"".join(blocks)}</div>'
+        modals = "".join(self.proposals_detail(r, proposals_of(r)) for r in self.design.of("meeting") if proposals_of(r))
+        return f'<div class="meetings">{"".join(blocks)}</div>' + (f'<div class="record-details">{modals}</div>' if modals else "")
+
+    def proposal_counts(self, proposals: list[dict]) -> tuple[int, int, int]:
+        pending = sum(str(p.get("status", "")).lower() == "proposed" for p in proposals)
+        accepted = sum(str(p.get("status", "")).lower() in ("accepted", "changed") for p in proposals)
+        return pending, accepted, len(proposals) - pending - accepted
+
+    def proposals_line(self, r: Record, proposals: list[dict]) -> str:
+        pending, accepted, other = self.proposal_counts(proposals)
+        if pending:
+            text = f"{pending} of {len(proposals)} proposals to review"
+        else:
+            text = f"{len(proposals)} proposals reviewed: {accepted} accepted" + (f", {other} not" if other else "")
+        return (f'<div class="proposals-line" role="button" tabindex="0" data-detail="{r.id}-proposals">'
+                f'<span class="status{" open" if pending else ""}">{esc(text)}</span><span class="open-link">Open the proposals →</span></div>')
+
+    def proposal_also(self, p: dict) -> str:
+        """The other records an accepted proposal would write, so one proposal covers everything an outcome touches."""
+        items = p.get("also") or []
+        if isinstance(items, str):
+            items = [items]
+        return f'<p class="pr-also"><span>Also records</span> {"; ".join(self.inline(str(i)) for i in items)}</p>' if items else ""
+
+    def proposals_detail(self, r: Record, proposals: list[dict]) -> str:
+        """The modal a meeting opens to: every change it could make to the design, in plain words, with what it would
+        change, the meeting's words behind it, the recommendation and why, and how the user settled it."""
+        close = '<button type="button" class="dm-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>'
+        pending, accepted, other = self.proposal_counts(proposals)
+        summary = " · ".join(part for part in (f"{pending} to review" if pending else "", f"{accepted} accepted" if accepted else "", f"{other} not accepted" if other else "") if part)
+        head = (f'<div class="dm-head"><div class="dm-top"><div class="dm-title"><span class="kind">Proposals</span>'
+                f'<span class="status{" open" if pending else ""}">{esc(summary)}</span></div>{close}</div>'
+                f'<h2>What the {esc(short_date(r.id[8:]))} meeting could change</h2>'
+                f'<p class="dm-shapes">{esc(r.title)}. What would change, the meeting\'s words behind it, and what I recommend. Settle them by number.</p></div>')
+        def rank(p: dict) -> tuple:
+            kind = str(p.get("kind", "")).lower()
+            return (PROPOSAL_ORDER.index(kind) if kind in PROPOSAL_ORDER else len(PROPOSAL_ORDER), p.get("n", 0))
+
+        def routine(p: dict) -> bool:
+            tier = str(p.get("tier", "")).lower()
+            return tier == "routine" if tier else str(p.get("kind", "")).lower() in ROUTINE_KINDS
+
+        key = sorted((p for p in proposals if not routine(p)), key=rank)
+        rest = sorted((p for p in proposals if routine(p)), key=rank)
+        cards = []
+        for p in key:
+            status = str(p.get("status", "proposed")).lower()
+            rec = str(p.get("recommend", "")).lower()
+            targets = [t for t in split_list(str(p.get("target", ""))) if t]
+            chips = "".join(self.ref(t) if t in self.known else f'<span class="change">{esc(t)}{" (new)" if p.get("new") else ""}</span>' for t in targets)
+            change = ""
+            if p.get("before") or p.get("after"):
+                change = (f'<div class="pr-change"><div><span class="pr-label">Now</span>{self.inline(str(p.get("before") or "Nothing recorded"))}</div>'
+                          f'<span class="pr-arrow">→</span><div><span class="pr-label">If accepted</span>{self.inline(str(p.get("after", "")))}</div></div>')
+            quote = f'<blockquote class="pr-quote"><span class="pr-label">From the meeting</span>{self.inline(str(p["from"]))}</blockquote>' if p.get("from") else ""
+            advice = (f'<div class="pr-rec {RECOMMEND.get(rec, "")}"><span class="pr-label">I recommend</span>'
+                      f'<b>{esc(str(p.get("recommend", "")))}</b><p>{self.inline(str(p.get("why", "")))}</p></div>')
+            note = f'<div class="pr-note"><span class="pr-label">What we decided</span>{self.inline(str(p["note"]))}</div>' if p.get("note") else ""
+            cards.append(
+                f'<li class="proposal {status}"><div class="pr-top"><span class="pr-n">{esc(str(p.get("n", "")))}</span>'
+                f'<span class="pr-kind">{esc(str(p.get("kind", "")))}</span>{chips}'
+                f'<span class="status {PROPOSAL_STATUS.get(status, "")}">{esc(PROPOSAL_LABEL.get(status, str(p.get("status", ""))))}</span></div>'
+                f'<p class="pr-text">{self.inline(str(p.get("proposal", "")))}</p>{self.proposal_also(p)}{change}{quote}{advice}{note}</li>')
+        group = ""
+        if rest:
+            rows = []
+            for p in rest:
+                status = str(p.get("status", "proposed")).lower()
+                rec = str(p.get("recommend", "")).lower()
+                targets = [t for t in split_list(str(p.get("target", ""))) if t]
+                chips = "".join(self.ref(t) if t in self.known else f'<span class="change">{esc(t)}</span>' for t in targets)
+                note = f'<span class="pr-row-note">{self.inline(str(p["note"]))}</span>' if p.get("note") else ""
+                rows.append(f'<li class="pr-row {status}"><span class="pr-n">{esc(str(p.get("n", "")))}</span><span class="pr-kind">{esc(str(p.get("kind", "")))}</span>{chips}'
+                            f'<span class="pr-row-text">{self.inline(str(p.get("proposal", "")))}{self.proposal_also(p)}{note}</span>'
+                            f'<span class="pr-rec-pill {RECOMMEND.get(rec, "")}">{esc(str(p.get("recommend", "")))}</span>'
+                            f'<span class="status {PROPOSAL_STATUS.get(status, "")}">{esc(PROPOSAL_LABEL.get(status, str(p.get("status", ""))))}</span></li>')
+            open_attr = " open" if any(str(p.get("status", "")).lower() == "proposed" for p in rest) and not key else ""
+            group = (f'<details class="pr-routine"{open_attr}><summary><b>Record keeping</b> · {len(rest)} proposal{"s" if len(rest) != 1 else ""}: evidence, risk updates and follow-ons that keep the design consistent. '
+                     f'Say "accept the rest" to take my recommendation on all of them.</summary><ol class="pr-rows">{"".join(rows)}</ol></details>')
+        look = ""
+        if r.items("Worth a look"):
+            look = ('<div class="pr-look"><span class="pr-label">Worth a look (not discussed in the meeting)</span><ul>'
+                    + "".join(f"<li>{self.inline(i)}</li>" for i in r.items("Worth a look")) + "</ul></div>")
+        heading = '<h3 class="pr-group">Changes to what the design says</h3>' if key and rest else ""
+        return (f'<div class="record-detail" id="{r.id}-proposals" aria-label="Proposals from {esc(r.title)}">{head}'
+                f'<div class="pr-body">{heading}<ol class="proposals">{"".join(cards)}</ol>{group}{look}</div></div>')
 
     def meetings_rail(self, page: str, ids: list[str] | None) -> str:
         items = []
         for r in self.design.of("meeting"):
-            items.append(f'<a class="rail-meeting" href="#{r.id}"><span class="d">{esc(short_date(r.id[8:]))}</span>{esc(r.title)}</a>')
+            pending = self.proposal_counts(proposals_of(r))[0]
+            flag = f'<span class="status open">{pending} to review</span>' if pending else ""
+            items.append(f'<a class="rail-meeting" href="#{r.id}"><span class="d">{esc(short_date(r.id[8:]))}</span><span class="t">{esc(r.title)}{flag}</span></a>')
         return "".join(items)
 
     def brief_rail(self, page: str, ids: list[str] | None) -> str:

@@ -25,11 +25,11 @@ The skill is for designing something that will be built or changed. A vendor or 
 - **How to split:** choose areas so most records live in one of them. Pipeline stages, layers (UI, API, infrastructure), capabilities (sign-up, billing), migration phases, or systems all work when they keep records apart. If most records would reach two areas, the split is wrong; try another.
 - **A brief that grows into a design:** add an overview, and delete the brief's Requirements and Decisions sections, and move its `context`, if any, to the overview. The records don't move; only where they're shown does.
 - **When to write a brief:** when a decision has at least two real options that need comparing in a meeting, with diagrams. Many decisions don't: one settled in a meeting, or with an obvious answer and a finding behind it, is a row in the decisions table and nothing more. In between, an area page can weigh a small decision about its own part in a comparison table or compact option cards.
-- Phases are the design's delivery units: each with its scope, exit criteria, status, and the effort doing it, in design.md's Phases section and the overview's Phases table. Leave implementation plans and task lists out; how an effort builds its phase goes in its local `design.md`.
+- Phases are the design's delivery units: each with its scope, exit criteria, status, and the effort doing it, in design.json's Phases section and the overview's Phases table. Leave implementation plans and task lists out; how an effort builds its phase goes in its local `design.json`.
 
 ## Where each record lives
 
-Every requirement, decision, option, part, risk, question, finding and meeting is a record in `design.md` (see [records](records.md)). A record lives on one page, and is worked on there:
+Every requirement, decision, option, part, risk, question, finding and meeting is a record in `design.json` (see [records](records.md)). A record lives on one page, and is worked on there:
 
 | Record | Lives on |
 | --- | --- |
@@ -72,11 +72,11 @@ Question rows open the same way: the question's Explanation, then So far, its An
 
 ## Page files
 
-- A design folder holds `design.md`, `changes.md`, `doc.html`, a Markdown file per page in `pages/`, and the doc's own components in `components/`. The format of pages and components is in [components](components.md).
+- A design folder holds `design.json`, `changes.md`, `doc.html`, a Markdown file per page in `pages/`, and the doc's own components in `components/`. The format of pages and components is in [components](components.md).
 - `doc.html` is the shell: `<!-- include pages/<id>.md -->` lines in reading order, the shared SVG definitions (arrowheads and icons), the rail with its `<!-- pages-nav -->` and `<!-- page-rails -->` markers, and the top bar. Drop the top bar's diagrams switch when nothing in the doc has a security view. `build` puts it all together into one file.
 - Section ids are shared by the whole doc, so each page's sections start with its prefix (`s3-design`). Link to a page with `href="#<page id>"` and to anything on it by its id; `?page=<id>` in a URL opens the doc on that page.
 - The Evidence page fills its "Cited on" column and its rail filter from the markers on other pages, so neither needs maintaining.
 
 ## Format and migrations
 
-`design.md` starts with `<!-- design-docs format 2 -->`: the format its folder is written in. When the skill's format moves on, `check` stops and says so; `doc.py migrate <folder>` copies the folder's files to `.migrate-backup/`, brings pages and records up to date, and records the new format. Review what it changed before building. Format 1 folders (pages written in HTML) migrate to Markdown pages that keep any hand-written HTML as raw blocks; move those into components or records when you next work on that part.
+`design.json`'s `"format"` key (3) is the format its folder is written in. When the skill's format moves on, `check` stops and says so; `doc.py migrate <folder>` copies the folder's files to `.migrate-backup/`, brings pages and records up to date, and records the new format. Review what it changed before building. Format 1 folders (pages written in HTML) migrate to Markdown pages that keep any hand-written HTML as raw blocks; move those into components or records when you next work on that part. Format 2 folders (records in design.md) migrate to design.json, evidence.json and meetings.json with the same records; their older meetings have no Outcomes, and none are invented for them.

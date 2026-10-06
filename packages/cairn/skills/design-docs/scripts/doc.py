@@ -44,7 +44,7 @@ from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
 
-from records import FORMAT, LOCAL_PATH_PATTERNS, OPTION_STATUS, Design, read_format, write_format, Renderer, check_design, design_model, fill_placeholders, option_state, read_design
+from records import fill_facts, FORMAT, LOCAL_PATH_PATTERNS, OPTION_STATUS, Design, read_format, write_format, Renderer, check_design, design_model, fill_placeholders, option_state, read_design
 
 SKILL_ASSETS = Path(__file__).resolve().parent.parent / "assets"
 RENDER = Path(__file__).resolve().parent / "render.mjs"
@@ -564,7 +564,9 @@ def resolve(target: Path) -> tuple[Path | None, Path | None, Path]:
     """Return (doc.html, design.md, folder) for a folder, a doc.html, or a design.md."""
     folder = target if target.is_dir() else target.parent
     shell = target if target.is_file() and target.suffix == ".html" else folder / "doc.html"
-    design = folder / "design.md"
+    design = folder / "design.json"
+    if not design.exists():
+        design = folder / "design.md"
     return (shell if shell.exists() else None), (design if design.exists() else None), folder
 
 
@@ -608,6 +610,8 @@ def check(target: Path) -> tuple[list[str], list[str], Source | None, Design | N
 
         filled, problems = fill_placeholders(source.text, Renderer(design, pages, anchors), page_at)
         errors += [f"{source.where(line)}: {message}" for line, message in problems]
+        filled, missing = fill_facts(filled, design)
+        errors += [f"'{{fact:{key}}}' on a page or component names no fact under '## Facts'" for key in sorted(set(missing))]
         source.text = filled
 
         # Parts of diagrams and components that take their state from a record.
@@ -838,7 +842,7 @@ def build(shell: Path, source: Source, design: Design | None, out: Path, keep: l
 
     if design is not None:
         # The records as data, for components' own scripts; design_model leaves out the private fields.
-        model = json.dumps(design_model(design), ensure_ascii=False).replace("</", "<\\/")
+        model = fill_facts(json.dumps(design_model(design), ensure_ascii=False), design)[0].replace("</", "<\\/")
         text = text.replace("</body>", f'<script type="application/json" id="doc-model">{model}</script>\n</body>', 1)
 
     # A design's own components bring their styles and scripts along.
@@ -856,9 +860,9 @@ def build(shell: Path, source: Source, design: Design | None, out: Path, keep: l
 
 
 def migrate(folder: Path) -> int:
-    design = folder / "design.md"
+    design = folder / "design.json" if (folder / "design.json").exists() else folder / "design.md"
     if not design.exists():
-        print(f"{folder}: no design.md here")
+        print(f"{folder}: no design.json or design.md here")
         return 1
     current = read_format(design)
     if current >= FORMAT:
@@ -867,7 +871,7 @@ def migrate(folder: Path) -> int:
 
     backup = folder / ".migrate-backup" / f"format-{current}"
     if not backup.exists():
-        for name in ("design.md", "changes.md", "doc.html", "pages", "components"):
+        for name in ("design.json", "evidence.json", "meetings.json", "design.md", "evidence.md", "meetings.md", "changes.md", "doc.html", "pages", "components"):
             source = folder / name
             if source.is_dir():
                 shutil.copytree(source, backup / name)
@@ -888,6 +892,8 @@ def migrate(folder: Path) -> int:
         for note in module.migrate(folder):
             print(f"  {note}")
         write_format(design, number)
+        if (folder / "design.json").exists():
+            design = folder / "design.json"
 
     errors, warnings, _source, _design = check(folder)
     for w in warnings:

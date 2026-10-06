@@ -22,7 +22,7 @@ Most sections need only their heading. Add an intro under a heading only when it
 | How it measures up | Each requirement three ways: what the system does today, what this design covers, and what still has to be shown, with the evidence, questions or decisions each rests on. See below. |
 | Cost | What the figures assume and leave out, then one line per cost with its category, what drives it, the monthly figure and its pricing evidence, grouped by area with each area's subtotal. See below. |
 | Risks | What could go wrong once it's running: likelihood, what happens, what we'd do, and what it's linked to. A consequential risk carries an Explanation and opens in a modal. |
-| Decisions | Every decision the design depends on, open or made, with its status and where it's worked out. Each row opens the decision in a modal with its explanation, reasoning and alternatives, all from design.md. See [pages](pages.md). |
+| Decisions | Every decision the design depends on, open or made, with its status and where it's worked out. Each row opens the decision in a modal with its explanation, reasoning and alternatives, all from design.json. See [pages](pages.md). |
 | Open questions | Every open question, how far it has got, when its answer is needed, who to ask when someone was named, and what it blocks. Each row opens the question in a modal with its explanation. Answered ones collapse under their home page's list. |
 
 Leave out a section with nothing real in it: cost for a process change, the security view when no data crosses a boundary, the map until there are areas.
@@ -81,17 +81,17 @@ There's no "outcome" or "decision record" section. Decisions show up as status c
 
 ### Decision sections
 
-- **`## D1` makes the section:** its title is the decision's marker and question, with its status from design.md beside it ("Leaning B"), so a meeting sees where it stands in words.
+- **`## D1` makes the section:** its title is the decision's marker and question, with its status from design.json beside it ("Leaning B"), so a meeting sees where it stands in words.
 - **Framing:** two or three sentences on what is being chosen and what stays the same whichever option wins.
 - **Relations:** what it follows, what it unblocks, and which questions it's waiting on, drawn from the decision's `Follows` and `Waiting on` and from the decisions that follow it.
 - **Reasoning:** once the decision has a Why, its Why, Reasoning and Revisit if show under the relations, above the options.
-- **Options:** at least two, each with a letter (A, B, C) and its own colour. Record each under its decision in design.md (short name, summary, works well, costs and risks, evidence with what each finding shows for it), and `::: options D1` renders the cards. Draw a diagram per option when the options differ in structure, as a component, and name it on the block (`A=d1-a`).
+- **Options:** at least two, each with a letter (A, B, C) and its own colour. Record each under its decision in design.json (short name, summary, works well, costs and risks, evidence with what each finding shows for it), and `::: options D1` renders the cards. Draw a diagram per option when the options differ in structure, as a component, and name it on the block (`A=d1-a`).
 - **Set aside:** options ruled out before the decision stay visible in one line with the date and reason, so nobody re-proposes them without knowing why they were dropped. The options block adds them.
 - **When it's decided:** mark the winner Chosen and each other option Not chosen with its Why not; the winning card shows Chosen, and each losing card stays in full with its date and reason. Readers still want to compare them.
 - **Comparison:** requirements against options, with a verdict (meets, partly, doesn't) and a few words per cell: a `Meets R1` field on each option, rendered by `::: comparison D1`.
 - **Extra parts as needed:** add what the decision actually hinges on, especially anything the requester asked about by name. Cost, failover and recovery, migration effort, timeline, and operational load are common. For cost, show where the money goes with `::: cost-options D1`: a bar per option splitting the shared part from the difference, then the line items grouped into "differs between options" and "same in both", each citing its pricing evidence. The lines are Costs records; those that differ give each option's figure and `Varies with: D1`. When the options share no common base, draw each bar in one colour and add today's cost as a first, grey bar for reference. For failover, a table of what fails, what happens, how long it takes, and what's lost, per option.
 - **What would settle it:** when a decision is waiting on questions, say which answers lead to which choice, in a `::: callout`.
-- **Status:** Open, Leaning (name the option), Decided, or Later, set in design.md, with a Why once it's Leaning or Decided. Leaning records the team's direction; research alone doesn't make an option Leaning, though the page can say what the evidence favours. Mark a leaning with "Current leaning" on that option rather than a recommendation section. A premise the requester states as fixed ("we do rolling deploys") is a context decision with status Given.
+- **Status:** Open, Leaning (name the option), Decided, or Later, set in design.json, with a Why once it's Leaning or Decided. Leaning records the team's direction; research alone doesn't make an option Leaning, though the page can say what the evidence favours. Mark a leaning with "Current leaning" on that option rather than a recommendation section. A premise the requester states as fixed ("we do rolling deploys") is a context decision with status Given.
 - **Options found in research:** when research turns up a viable option nobody proposed, add it with `Status: Found in research`; its card and the decision modal show it. The team decides whether it stays. Set aside is only for options the team has ruled out.
 - **Options nobody has designed yet:** keep the option with `Status: Not designed yet`, and draw its new parts as sketches (`node sketch`) so they don't look settled.
 
@@ -110,7 +110,7 @@ When a requirement is implied by how the question was asked but nobody stated it
 - Write the finding as a plain statement. In "How we know", say how it was established (read the route tables, priced from the published rates, confirmed with the network team). In "Gathered from", describe each source portably: the kind of source and a name a colleague would recognise ("AWS account · prod-network", "infra-network repo · VPN module", "Network team, Sep 24").
 - Keep local file paths, machine names, and private URLs in the record's `Recorded from` field, which is never published (see [records](records.md)).
 - Add a finding's date. The Evidence page lists where each finding is cited on its own.
-- Write findings, questions and requirements as design.md records; the tables on every page are rendered from them.
+- Write findings, questions and requirements as design.json records; the tables on every page are rendered from them.
 - Facts the requester states are evidence too. Write "Stated in the request, not independently checked" in How we know and "Request · <date>" in Gathered from. When a requirement or decision rests on one, add a question to confirm it.
 - A finding can be an absence ("the vendor's docs describe no rotation feature"). Say what was searched, and pair it with a question to whoever could confirm when it matters.
 - Public documentation can be linked from Gathered from; it's portable. Private sources can't.

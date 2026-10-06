@@ -1,0 +1,107 @@
+{
+  "meetings": [
+    {
+      "date": "2026-09-29",
+      "title": "Security review of the archive",
+      "Status": "Awaiting review",
+      "Who": "Me · Security (2) · Network team (1)",
+      "Proposals": [
+        {
+          "n": 1,
+          "kind": "Decided",
+          "target": "D5",
+          "proposal": "Confirm one year as the archive's retention, now that Security has signed it off in writing.",
+          "before": "decided: one year, then deleted",
+          "after": "decided, with Security's written sign-off as evidence",
+          "from": "Security confirmed in writing that one year meets the retention policy for firewall and customer logs.",
+          "recommend": "Accept",
+          "why": "It confirms what's already decided and gives the decision the evidence it was missing.",
+          "status": "Proposed",
+          "also": [
+            "Security's written sign-off, as new evidence"
+          ]
+        },
+        {
+          "n": 2,
+          "kind": "Leaning",
+          "target": "D6",
+          "new": false,
+          "proposal": "Lean towards a prefix and a KMS key per customer in one bucket for keeping customer data apart.",
+          "before": "open",
+          "after": "leaning: a prefix and a KMS key per customer",
+          "from": "Security said a key per customer is what they'd expect, and nobody argued for separate buckets. Nothing was decided.",
+          "recommend": "Accept as leaning",
+          "why": "The room leaned this way but stopped short of deciding; Q10 (can OPW write per-customer keys) is still open.",
+          "status": "Proposed"
+        },
+        {
+          "n": 3,
+          "kind": "Scope",
+          "target": "",
+          "proposal": "Add customer log search to the design.",
+          "before": "not in scope",
+          "after": "a new goal and area: customer log search",
+          "from": "One of the network engineers asked whether customers could search their own logs. Nobody picked it up.",
+          "recommend": "Reject",
+          "why": "It was a question, not an agreement, and it would widen the design's scope; raise it with the team if you want it.",
+          "status": "Proposed"
+        },
+        {
+          "n": 4,
+          "kind": "Follow-on",
+          "target": "Q8",
+          "proposal": "Move Q8 (customers in the first year) to before building, since a key per customer makes the count matter sooner.",
+          "before": "needed in a later phase",
+          "after": "needed before building",
+          "from": "Follows from proposal 2.",
+          "recommend": "Accept",
+          "why": "It follows directly from leaning towards a key per customer.",
+          "status": "Proposed"
+        }
+      ],
+      "Summary": [
+        "Security confirmed one year of retention in writing.",
+        "Security expects a KMS key per customer; nobody argued for separate buckets.",
+        "A question came up about customer log search; nobody picked it up."
+      ],
+      "Worth a look": [
+        "The retention sign-off covers firewall and customer logs; nobody said whether it covers the copies OPW keeps while retrying."
+      ]
+    },
+    {
+      "date": "2026-09-22",
+      "title": "Network working session",
+      "Status": "Summarised",
+      "Who": "Me · Network team (2) · Security (1)",
+      "Outcomes": [
+        "Evidence · How firewall logs reach Shared Tooling today → E1",
+        "Leaning · Workers in the pipeline's own network; a worker group in every workload VPC set aside → D1",
+        "Decided · Three c7g.large workers, one per zone → D4",
+        "Decided · The archive keeps logs for one year → D5",
+        "New question · May customer traffic end inside Shared Tooling? → Q2",
+        "New question · Can the site VPNs carry a route to a new network without re-creating tunnels? → Q1"
+      ],
+      "Summary": [
+        "The network team walked through how firewall logs reach Shared Tooling today. Their route tables became E1.",
+        "We agreed that a worker group in every workload VPC (option C in the brief) is too much to run for what it buys.",
+        "Settled worker sizing: three c7g.large, one per zone, which covers peak load with a zone down (D4).",
+        "Security set one year as the archive's retention (D5), and asked whether customer traffic may end inside Shared Tooling. Nobody knew; it became Q2.",
+        "Nobody could say whether the site VPNs can carry a route to a new network without re-creating tunnels (Q1)."
+      ]
+    },
+    {
+      "date": "2026-08-14",
+      "title": "Platform sync",
+      "Status": "Summarised",
+      "Who": "Platform team · Security (GRC)",
+      "Outcomes": [
+        "Decided · Datadog Observability Pipelines Workers, run on our own servers → D0",
+        "Scope · Write the design up before building anything → D0"
+      ],
+      "Summary": [
+        "Chose Datadog Observability Pipelines Workers, run on our own servers, as the log pipeline (D0).",
+        "Agreed to write the design up as this doc before building anything."
+      ]
+    }
+  ]
+}

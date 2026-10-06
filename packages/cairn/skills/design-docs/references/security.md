@@ -25,7 +25,7 @@ Keep every box in the same place as in the architecture view. The diagram is usu
 
 ## Tables under the diagram
 
-**Data flows.** One Flows record per flow in design.md, rendered by `<!-- component flows B -->` in the security component:
+**Data flows.** One Flows record per flow in design.json, rendered by `<!-- component flows B -->` in the security component:
 
 ```markdown
 ### B-F2 · Syslog server → OPW workers

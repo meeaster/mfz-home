@@ -52,7 +52,7 @@ Framing: what's being chosen and what stays the same.
 
 **Sections** are `##` headings, numbered in order and listed in the rail.
 
-- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Phases", "Decisions" and "Open questions" render from design.md when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Phases `phases`, Decisions `decisions`, Open questions `questions` (so `#overview-system`).
+- A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Phases", "Decisions" and "Open questions" render from design.json when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Phases `phases`, Decisions `decisions`, Open questions `questions` (so `#overview-system`).
 - `## D1` is a decision's section: its title and marker, its relations (from Follows and Waiting on), and its reasoning once it has a Why come from the record. The paragraphs under the heading are the framing.
 - Any other heading is a section of the page's own; `{#id}` after a heading sets its id.
 - Opening prose followed by something else (a component, a table) becomes the section's intro; a section of prose alone stays prose.
@@ -78,9 +78,9 @@ Framing: what's being chosen and what stays the same.
 | `decision-map [D1 D2]` | The page's decisions, the ones they follow and the ones waiting on them, in columns by what must be decided first, with each one's open questions under it. |
 | `flows <view>` | A security view's data flows table, from the Flows records whose ID starts with the view (`B` for B-F1). |
 | `diagram-key items="today \| new: label \| …" [title=…] [design]` | A legend from named entries: `today`, `outside`, `new`, `pending`, `sketch`, `retired`, `area`, `context`, `covered`, `blocking`, `first`, `decision`, `evidence`, `question`, `boundary`, `crosses`, `attention`, `protected`, `transit`. `name: label` changes an entry's words and `name(sample)` its sample, as in `boundary: Our AWS account` or `transit(TLS · IAM)`. Give the flow entries the view's own numbers: `crosses(F1) \| attention(F2) \| protected(F3)`. |
-| `goals` | The body's lines as the numbered goals; with an empty body, the bullets of design.md's Goals. |
-| `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.md's Goals. |
-| `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.md, with its fenced diagrams in text left out. |
+| `goals` | The body's lines as the numbered goals; with an empty body, the bullets of design.json's Goals. |
+| `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.json's Goals. |
+| `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.json, with its fenced diagrams in text left out. |
 | `callout title="…" icon=<symbol>` | An aside with an icon, such as "What would settle it". |
 | `requirements`, `measure`, `decisions`, `risks`, `phases`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning` | The record tables, the same as `<!-- records … -->`. |
 
@@ -107,7 +107,7 @@ Components read the records as they are; they don't bring a schema of their own.
 
 ### Bindings
 
-Anything a component or page draws that depends on a record says which, and the build gives it that record's state, so a status change in design.md redraws it without anyone editing the drawing.
+Anything a component or page draws that depends on a record says which, and the build gives it that record's state, so a status change in design.json redraws it without anyone editing the drawing.
 
 | Attribute | Does |
 | --- | --- |

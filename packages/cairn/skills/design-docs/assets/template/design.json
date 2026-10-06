@@ -1,0 +1,175 @@
+{
+  "format": 3,
+  "title": "WHAT WE'RE BUILDING",
+  "summary": "ONE SENTENCE ON WHAT THE SYSTEM DOES.",
+  "problem": "THE PROBLEM TODAY, WHO IT AFFECTS, AND WHAT IT COSTS. THE VALUE OF SOLVING IT.",
+  "goals": "- GOAL, AS AN OUTCOME\n\nNot in scope: WHAT A READER MIGHT ASSUME IS INCLUDED, AND ISN'T.",
+  "howItWorks": "THE SHAPE OF THE SOLUTION IN PROSE: HOW THE PARTS CONNECT AND WHY THAT SHAPE, NAMING THE DECISIONS (D1) THAT SHAPE IT. AN AGENT READS THIS TO UNDERSTAND THE DESIGN; THE OVERVIEW SHOWS IT.\n\n```text\nA DIAGRAM IN TEXT OF THE PARTS AND FLOWS, FOR AGENTS. THE PAGES DRAW THEIR OWN.\n```",
+  "terms": [
+    {
+      "term": "TERM",
+      "pages": [
+        "overview"
+      ],
+      "definition": "PLAIN DEFINITION."
+    }
+  ],
+  "facts": {
+    "key-name": {
+      "value": "VALUE, A NUMBER OR FIGURE STATED MORE THAN ONCE",
+      "source": "E1"
+    }
+  },
+  "requirements": [
+    {
+      "id": "R1",
+      "title": "REQUIREMENT.",
+      "Short": "SHORT LABEL",
+      "Priority": "Must",
+      "Why": "WHY IT MATTERS.",
+      "Source": "WHO OR WHAT SAYS SO",
+      "Today": "Doesn't meet · WHAT THE SYSTEM DOES NOW. [E1]",
+      "Design": "Covers · HOW THE DESIGN MEETS IT. [D1]",
+      "Still to show": "Intended · WHAT HAS TO BE SHOWN BEFORE IT HOLDS.",
+      "Recorded from": "request",
+      "notes": [
+        "Once the design has areas, a record that belongs to one gets \"Page: <area id>\", and \"Applies to: <ids>\" names the other areas it reaches. Records without a Page live on the overview."
+      ]
+    }
+  ],
+  "parts": [
+    {
+      "title": "PART",
+      "Does": "WHAT IT DOES.",
+      "Decided by": "D1",
+      "Evidence": "E1"
+    }
+  ],
+  "phases": [
+    {
+      "title": "PHASE NAME",
+      "Scope": "WHAT THIS PHASE DELIVERS.",
+      "Exit criteria": "HOW EVERYONE KNOWS IT'S DONE.",
+      "Status": "Planned",
+      "Effort": "THE EFFORT DOING IT (ITS SLUG)"
+    }
+  ],
+  "decisions": [
+    {
+      "id": "D1",
+      "title": "THE DECISION, AS A QUESTION?",
+      "Explanation": "WHAT'S BEING DECIDED, IN PLAIN WORDS, AND WHERE IT FITS: THE PART OF THE DESIGN IT'S ABOUT, WHAT IT FOLLOWS OR FEEDS (D2), AND THE GOAL OR REQUIREMENT IT SERVES (R1).",
+      "Rail": "SHORT QUESTION",
+      "Shapes": "WHAT IT SHAPES.",
+      "Status": "Open",
+      "So far": "WHAT'S KNOWN, OR WHAT THE DESIGN ASSUMES MEANWHILE.",
+      "Waiting on": "Q1",
+      "Worked out in": "No brief yet",
+      "options": [
+        {
+          "id": "A",
+          "title": "OPTION NAME",
+          "Short": "TWO WORDS",
+          "Summary": "ONE-LINE SUMMARY.",
+          "Works well": [
+            "BENEFIT."
+          ],
+          "Costs and risks": [
+            "COST OR RISK."
+          ],
+          "Evidence": [
+            "E1: WHAT E1 SHOWS FOR THIS OPTION."
+          ],
+          "Meets R1": "Yes · HOW THIS OPTION MEETS IT."
+        },
+        {
+          "id": "B",
+          "title": "ANOTHER OPTION",
+          "Short": "TWO WORDS",
+          "Summary": "ONE-LINE SUMMARY.",
+          "Works well": [
+            "BENEFIT."
+          ],
+          "Costs and risks": [
+            "COST OR RISK."
+          ],
+          "Meets R1": "Partly · WHAT'S MISSING (Q1)."
+        }
+      ]
+    },
+    {
+      "id": "D2",
+      "title": "A SETTLED DECISION?",
+      "Status": "Decided",
+      "Answer": "WHAT WAS DECIDED.",
+      "Why": "WHAT TIPPED IT, IN ONE SENTENCE, CITING THE EVIDENCE (E1).",
+      "Reasoning": [
+        "WHAT ELSE WEIGHED IN, OR A TRADEOFF ACCEPTED."
+      ],
+      "Revisit if": "WHAT WOULD REOPEN IT.",
+      "Also considered": [
+        "AN ALTERNATIVE THAT WAS PLAINLY WORSE: WHY NOT."
+      ],
+      "Worked out in": "WHERE IT WAS SETTLED (A PAGE, A MEETING ID, OR WORDS)"
+    }
+  ],
+  "risks": [
+    {
+      "title": "RISK.",
+      "Likelihood": "Medium",
+      "If it happens": "EFFECT.",
+      "What we'd do": "RESPONSE.",
+      "Linked": "E1"
+    }
+  ],
+  "costs": {
+    "Assumes": "PRICES, REGION AND VOLUMES THE FIGURES USE.",
+    "Leaves out": "WHAT ISN'T COUNTED, SUCH AS LICENCES PRICED ELSEWHERE OR STAFF TIME.",
+    "lines": [
+      {
+        "title": "LINE ITEM",
+        "Category": "Compute",
+        "Drives": "WHAT DRIVES IT.",
+        "Monthly": "$0",
+        "Evidence": "E1"
+      },
+      {
+        "title": "A LINE THAT DEPENDS ON AN OPTION",
+        "Category": "Network",
+        "Drives": "WHAT DRIVES IT.",
+        "Monthly": "A $0 · B $0",
+        "Varies with": "D1",
+        "Evidence": "E1"
+      }
+    ]
+  },
+  "flows": [
+    {
+      "id": "S-F1",
+      "title": "FROM → TO",
+      "Path": "HOW IT TRAVELS",
+      "Data": "WHAT IT CARRIES",
+      "In transit": "HOW IT'S PROTECTED ON THE WAY.",
+      "Auth": "HOW EACH END IS TRUSTED",
+      "Crosses": "Yes · THE BOUNDARY IT CROSSES",
+      "Assessment": "Partly · WHAT'S STILL NEEDED [Q1]"
+    }
+  ],
+  "questions": [
+    {
+      "id": "Q1",
+      "title": "QUESTION?",
+      "Explanation": "WHAT WE'RE TRYING TO FIND OUT, IN PLAIN WORDS, AND WHY WHAT IT BLOCKS (D1) NEEDS THE ANSWER.",
+      "Needed by": "Choosing the design",
+      "Blocks": "D1",
+      "So far": "A PARTIAL ANSWER, IF THERE IS ONE (E1)."
+    },
+    {
+      "id": "Q2",
+      "title": "AN ANSWERED QUESTION?",
+      "Blocks": "D2",
+      "Answer": "THE ANSWER, IN A FEW WORDS.",
+      "Answered by": "E1"
+    }
+  ]
+}

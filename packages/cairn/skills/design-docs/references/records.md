@@ -1,38 +1,38 @@
-# Records: design.md and changes.md
+# Records: design.json, evidence.json, meetings.json and changes.md
 
-`design.md` holds everything the design has established: terms, requirements, parts, decisions with their options, risks, costs, data flows, open questions, evidence and meetings. It is the design's single source of truth. The pages write prose around it and draw its pictures; its tables, option cards, decision maps, cost bars and flow tables are rendered from it at build time, and diagrams bind their parts to it, so a fact is edited in one place and every page that shows it follows.
+`design.json` holds what the design has established: terms, facts, requirements, parts, decisions with their options, risks, costs, data flows and open questions. `evidence.json` holds the evidence and `meetings.json` the meetings, in the same format; the build reads all three as one. It is the design's single source of truth. The pages write prose around it and draw its pictures; its tables, option cards, decision maps, cost bars and flow tables are rendered from it at build time, and diagrams bind their parts to it, so a fact is edited in one place and every page that shows it follows.
 
-A session that picks the design up reads `design.md` in full, so write each record so it stands on its own: the question and what it means, the answer or leaning, why, and where it came from. `assets/example/design.md` is a complete one; `assets/template/design.md` is the starting point.
+A session that picks the design up reads `design.json` in full (and the other two when the task needs them), so write each record so it stands on its own: the question and what it means, the answer or leaning, why, and where it came from. `assets/example/design.json` is a complete one; `assets/template/design.json` is the starting point.
 
 ## Layout
 
-```markdown
-<!-- design-docs format 2 -->
-# Log ingestion in our cloud
+The records are JSON, in three files. `design.json` holds the design; `evidence.json` holds `{"evidence": [...]}` and `meetings.json` holds `{"meetings": [...]}`. The build reads all three as one.
 
-One sentence on what the system does.
-
-## Problem
-## Goals
-## How it works
-## Terms
-## Requirements
-## Parts
-## Decisions
-## Risks
-## Phases
-## Costs
-## Flows
-## Questions
-## Evidence
-## Meetings
+```json
+{
+  "format": 3,
+  "title": "Log ingestion in our cloud",
+  "summary": "One sentence on what the system does.",
+  "problem": "Prose. Cite evidence by ID (E2).",
+  "goals": "- Each goal as an outcome, one per line\n\nNot in scope: …",
+  "howItWorks": "Prose, a few paragraphs.",
+  "terms": [{"term": "OPW", "pages": ["overview"], "definition": "…"}],
+  "facts": {"sites": {"value": "14", "source": "E1"}},
+  "requirements": [{"id": "R1", "title": "Receive syslog from all sites.", "Priority": "Must", "Why": "…", "Source": "…"}],
+  "parts": [{"title": "OPW workers", "Does": "…"}],
+  "phases": [{"title": "Firewall logs through OPW", "Scope": "…", "Exit criteria": "…", "Status": "Planned"}],
+  "decisions": [{"id": "D1", "title": "Where do the workers run?", "Status": "Leaning B", "Explanation": "…",
+                 "options": [{"id": "A", "title": "Workers in Shared Tooling", "Status": "Set aside Sep 22", "Why not": "…"}]}],
+  "risks": [{"title": "…", "Likelihood": "Medium"}],
+  "costs": {"Assumes": "…", "Leaves out": "…", "lines": [{"title": "OPW workers", "Monthly": "$36"}]},
+  "flows": [{"id": "B-F1", "title": "Syslog server → OPW workers", "Data": "…", "Crosses": "No · …", "Assessment": "Yes · …"}],
+  "questions": [{"id": "Q1", "title": "Can the site VPNs carry a new route?", "Explanation": "…", "Needed by": "Choosing the design"}]
+}
 ```
 
-The first line is the format the folder is written in (see [pages](pages.md#format-and-migrations)).
+A record is an object. Its identity is `id` and `title` (requirements, decisions, questions, evidence, flows), `date` and `title` (meetings), or `title` alone (parts, phases, risks, cost lines). Every other key is a field, named exactly as this reference names it ("Status", "Why", "Recorded from"): a string; a list of strings when the field is a list (Summary, Gathered from, Reasoning, Outcomes); or `{"value": "…", "items": ["…"]}` when it has both. A decision's options are in `options`, each with `id` (A, B, …), `title` and fields. Notes for whoever works on the design next, never rendered, go in `notes`, a list of strings.
 
-Each section holds items. An item is a `###` heading, then `- Field: value` lines. A field that holds a list puts its items on indented `  - ` lines. Anything else under an item (plain paragraphs) is notes for whoever works on the design next: reasoning, context, what was tried. Notes are never rendered.
-
-Sections can be empty or missing. A small design can be `design.md` alone, with no pages yet.
+The rest of this reference describes each field as `Field: value`; in JSON that is the key `"Field"` with that value. `assets/example/` has the complete JSON for a real design and `assets/template/` the starting point. Sections can be empty or missing. A small design can be `design.json` alone, with no pages yet.
 
 ## Prose
 
@@ -198,7 +198,9 @@ A question has no status field: it's open, partly answered (`So far`), deferred 
 
 **Evidence** (`### E1 · Firewall logs from all 14 sites reach the syslog server over site VPNs.`): Found (a date), How we know, and Gathered from as a list of `Kind: portable description` items, such as `AWS account: prod-network · Transit Gateway route tables` or `Email: Security GRC, Oct 3`.
 
-**Meetings** (`### 2026-09-22 · Network working session`): Status (Awaiting review, Summarised), Who, and Summary as a list. Only meetings that happened are recorded; a planned one and its agenda aren't. The meeting's "Changed in this doc" chips come from changes.md.
+**Facts** are an object of `"key": {"value": "…", "source": "E2"}`, with a lowercase key. Any number, cost, count or date stated in more than one place is a fact, and everywhere else (records, pages, components) writes `{fact:key}`; the build puts the value in. Change a figure by changing its fact.
+
+**Meetings** (`### 2026-09-22 · Network working session`, in meetings.json): Status (Awaiting review while it has proposals to settle, then Summarised), Who, Proposals, Worth a look (a list: what the meeting's outcomes imply for things nobody discussed, for the user to look at; never applied on its own), Outcomes, and Summary as a list. Proposals are what the meeting could change in the design, each settled with the user before anything changes; their format and how to write them are in [the update playbook](../playbooks/update.md#2-propose-dont-apply). The Meetings page shows each meeting's proposal count, and clicking it opens them, in the published doc too. Outcomes is a list with one string for each thing the meeting settled: `<Kind> · <what> → <record IDs, fact:key or phase title>`, with Kind one of Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Phase, Fact, Evidence, Scope, Risk. Every decision, leaning or deferral a meeting states gets a decision record with that status, created when none exists. `check` fails when an outcome points at nothing, and when the latest meeting's Decided, Leaning or Later doesn't match the decision's status, or its Answer or So far doesn't match the question. Only meetings that happened are recorded; a planned one and its agenda aren't. The meeting's "Changed in this doc" chips come from changes.md.
 
 ## Where a record came from
 
@@ -214,7 +216,7 @@ Every record can carry `- Recorded from:` naming its sources: `session claude-co
 
 ## changes.md
 
-Every accepted change to `design.md` gets a line here, grouped under the date and where it came from. Oldest first; add at the bottom.
+Every accepted change to `design.json` gets a line here, grouped under the date and where it came from. Oldest first; add at the bottom.
 
 ```markdown
 # Changes
@@ -229,7 +231,7 @@ Every accepted change to `design.md` gets a line here, grouped under the date an
 - D6 leaning: a prefix and key per customer
 ```
 
-- Sources: `meeting <date>` (it must match a meeting in design.md), `email <date> · <sender or subject>` (the date of the message that carried the change), `session <catalog id>` (or `session <date>` without a catalog), `request`, or a few words.
+- Sources: `meeting <date>` (it must match a meeting in design.json), `email <date> · <sender or subject>` (the date of the message that carried the change), `session <catalog id>` (or `session <date>` without a catalog), `request`, or a few words.
 - What follows from a change goes under that change's source: a risk dropped because a meeting answered its question, or a settled decision taken off a question's Blocks, is logged under the meeting.
 - A first sitting usually mixes both: what the user stated (their requirements, decisions and the options they named) goes under `request`, and what the session found (evidence, questions, options from research) under `session <catalog id>`.
 - A meeting's lines become its "Changed in this doc" chips on the Meetings page.
