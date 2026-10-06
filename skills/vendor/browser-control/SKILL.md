@@ -32,6 +32,10 @@ MCP startup, tool discovery, `skill`, and `session_current` do not contact the
 relay. The first operational tool call starts it if needed; relay-backed
 observational tools report unavailability instead of starting it.
 
+For an externally supervised relay, set `BROWSER_CONTROL_AUTOSTART=false` to
+make ordinary calls fail when that relay is absent instead of launching another
+process. Existing relay connections and explicit `relay restart` still work.
+
 Ordinary CLI/MCP/SDK calls never replace a running relay. On a build mismatch,
 coordinate with other agents before running `browser-control relay restart`.
 It preserves browser tabs and durable sessions but resets JavaScript state and
@@ -70,11 +74,13 @@ sessions.
 
 To control a tab already open in the user's browser, ask the user to click the
 Browser Control toolbar button on that tab. Select it for one execute or adopt
-it for sticky reuse:
+it for sticky reuse (omit `--target-url` / `targetUrl` when only one user tab is
+attached):
 
 ```bash
-browser-control execute --target-url github.com 'return page.url()'
+browser-control session adopt --session github
 browser-control session adopt --target-url github.com --session github
+browser-control execute --target-url github.com 'return page.url()'
 ```
 
 `execute --target-url` selects a page for that call only. Continuing with just
@@ -89,6 +95,13 @@ navigate. A URL selector must match exactly one page, and URL and index selector
 cannot be combined. Adoption makes that tab the session default, closes the
 session's previous relay-created page, and is exclusive to one Browser Control
 session. Reset or delete releases an adopted user tab without closing it.
+
+Adoption binds ownership and exact target identity before initializing automation.
+Until the first execute resolves the page, session status reports `connected:
+false` and `pageUrl: null`; `adoptedUrl` is the registry-selected URL, not a fresh
+page read. A busy page can produce `session-page/adopted-initialization-timeout`
+on execute: user code did not run, and the exact adopted target is retained.
+Retry after the page settles; do not reset or adopt a different tab to recover.
 
 Prefer adoption for authenticated browser state rather than reproducing login
 in a fresh page.
@@ -194,6 +207,10 @@ After a resolved handoff, Browser Control waits through transient destination
 context replacement before returning, so this verification can remain in the
 same execute.
 
+With `start`, the handoff deadline and target cancellation remain active until
+the action settles, even if the user has already pressed Continue. An early
+acknowledgment does not authorize an indefinitely pending action.
+
 For a handoff on another page, pass `{ page: otherPage }`. Readiness checks that
 page, not the session default. If a non-default page was replaced or closed,
 inspect the remaining pages rather than assuming an old Playwright reference
@@ -270,8 +287,8 @@ Use the least expensive view that answers the question:
   values, custom ARIA range values, and editable content are omitted so they do
   not enter tool output. Await it separately; do not run other operations on
   the same page concurrently.
-- `screenshotWithLabels({ page, path? })` adds visual labels and metadata when
-  layout matters.
+- `screenshotWithLabels({ page?, path? })` adds visual labels and metadata when
+  layout matters, and registers its `e1..eN` labels for `ref()`.
 - `screenshotDiff({ baseline, path?, threshold?, fullPage? })` compares a saved
   PNG (absolute path or Buffer) with the current session page at CSS-pixel scale.
   It returns `matches`, `changedPixels`, `changedRatio` (0..1), dimensions, and a
@@ -308,7 +325,9 @@ diffs include visible page content: inspect for private information before shari
 
 Execute code can use `page`, `context`, `browser`, persistent `state`, selected
 Node modules through `modules` and aliases such as `fs` and `path`, plus the
-Browser Control helpers documented here. Single expressions auto-return;
+Browser Control helpers documented here. Execute code runs in Node. Use
+`page.evaluate` for `window`, `document`, storage, and same-origin `fetch`
+with page cookies. Single expressions auto-return;
 multi-statement scripts need `return`. Use `--file` for longer scripts:
 
 ```bash
@@ -410,7 +429,7 @@ browser-control network stop --session github \
 ```
 
 Written artifacts replace credential-bearing headers, cookies, query fields,
-and structured body fields with stable references such as `${BC_SECRET_1}`.
+OAuth fragment fields, and structured body fields with stable references such as `${BC_SECRET_1}`.
 `--secrets github` stores lossless values separately in a mode-`0600` Secret
 Profile. Never copy profile values into source, output, diagnostics, or journals,
 and never deliberately return or log credentials.
@@ -521,9 +540,16 @@ existence, and report the viewport, state, and interaction path actually tested.
 
 Common diagnoses:
 
+- `session-page/context-read-timeout; operation=page.title; timeoutMs=5000`:
+  the title read did not finish within its budget. The execution context may be
+  unavailable or busy; this does not prove a frozen renderer. The watchdog does
+  not cancel the underlying read or trigger page replacement. A cached
+  `page.url()` read can still work; retry the page read after the page settles.
+  Ordinary missing-locator timeouts do not receive this diagnostic.
 - `connected:false`: run a relay-backed command and allow the extension startup
-  or alarm wake-up to reconnect. Reload the unpacked extension only if that loop
-  does not recover.
+  or alarm wake-up to reconnect. A sleeping extension wakes on a 30-second
+  alarm, so the command waits up to 35 seconds. Reload the unpacked extension
+  only if that loop does not recover.
 - Incompatible extension protocol: update either the extension or npm package;
   exact extension and relay release versions do not need to match.
 - Competing browser/profile connections: the active browser is preserved and
@@ -552,9 +578,11 @@ Common diagnoses:
 - Repeated execution-context errors: run one short follow-up so Browser Control
   can health-check the page. A live page is kept: Browser Control reconnects and
   re-resolves the same tab once, then fails with a `session-page/*-unresponsive`
-  diagnosis if the page still does not answer. Only a crashed, `about:blank`, or
+  diagnosis if the page still does not answer. Blank or unknown URLs are preserved:
+  they can contain unsaved content. Only a crashed or
   `chrome-error://` relay-owned page is closed and recreated. It never replaces
-  an adopted user tab. When a page stays unresponsive (bot-protected sites can
+  an adopted user tab. Main-frame navigation clears an earlier crash diagnosis;
+  child-frame navigation does not. When a page stays unresponsive (bot-protected sites can
   stall the main world for automation while rendering normally for the human),
   open a fresh tab with `context.newPage()` or hand the tab to the user.
 - Handoff ends with "page execution context did not become available": the user
