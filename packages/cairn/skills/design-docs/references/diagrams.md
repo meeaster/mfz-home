@@ -32,7 +32,9 @@ Diagrams show what the design is for and how it's divided on the overview, the d
 ## Coordinates
 
 - Size the diagram with `style="--w:912;--h:280"` and place children with `--x`, `--y`, `--w` and `--h`, in pixels, relative to the diagram.
+- **Size for the content, not the window.** A diagram keeps the size it's drawn at: on a wide screen the doc centres it, with its key beside it, and on a narrow one it scrolls. Keep a page's diagrams at most about 1000 wide so they fit a laptop screen without scrolling, and never stretch one to fill the column.
 - A full-width option diagram is 912 wide. Half-width compact cards are 436 wide; add `compact` to the diagram class there.
+- A diagram of the design's own goes inside `<div class="diagram-scroll"><div class="diagram" style="--w:…;--h:…">`, as the skill's components do, so it's centred and scrolls like them; a bare `diagram` hugs the left of the column.
 - The SVG layer uses the same numbers: `<svg class="edges" viewBox="0 0 912 280">`.
 
 A working grid for flow diagrams (left to right):
