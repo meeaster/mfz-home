@@ -47,6 +47,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Phase | A stable design's delivery unit: its scope, exit criteria, status, and the effort doing it. Its status lives only in the design. | "Firewall logs through OPW" |
 | External input | Material from outside the working sessions: meetings, emails, chats, tickets, other people's notes. It is kept as artifacts under `sources/` and is never validated state by itself. | A meeting transcript, the security lead's email |
 | Candidate | A decision, suggestion, or open question found in external input and not yet accepted by the human. It lives in the input's summary. | "Infra engineer suggested the shared services VPC" |
+| Proposal | A change a meeting or email could make to a stable design, written on the design's meeting record with what it would change, the words behind it, and a recommendation, and settled by the human (accepted, changed, deferred, or rejected) before anything changes. Accepted proposals become the meeting's outcomes. | "Lean towards a key per customer (D6)", recommended Accept as leaning |
 | Action item | A to-do from a meeting or other input, with an owner. It stays in the summary that recorded it, as said; team-tracked items become Jira items. Records don't copy action items. | "Security lead to confirm the IAM scope" |
 | Intake | A deliberate session with the human that works through external input's candidates and action items. It moves accepted items into `effort.md`, a design, or a knowledge article, and marks the outcome in the summary. | Reviewing the 2026-10-02 meeting summary |
 | Compaction note | The plugin's factual note after compaction, listing the session's attached efforts with their record paths and the stable designs they work on. | "Cisco ASA log ingestion (asa-ingestion): …/effort.md" |
@@ -63,7 +64,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | `synthesis` | Distilled discussion, designs, plans, and summaries |
 | `knowledge` | A knowledge article: one subject's current state, kept current |
 | `deliverable` | Something made to share with people: a Confluence page, a Jira item, a quick shared note |
-| `record` | State: an effort's `effort.md`, or a design's `design.md` and `changes.md` |
+| `record` | State: an effort's `effort.md`, a local design's `design.md`, or a stable design's `design.json` and `changes.md` |
 | `conversation` | A conversation export. Set only by the service. |
 | `learning` | A producer's operational lesson, such as how to run a command, kept apart from its response |
 | `other` | Anything else. Use it rarely. |
