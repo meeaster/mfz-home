@@ -91,10 +91,11 @@ Text in record fields and terms takes `code`, links to sections (`[text](#id)`),
 | Also considered | A list of `Name: why not` for alternatives that were plainly worse and never got a full option |
 | Source | For a Given decision, who or what set it (required). A Given decision needs no options or Worked out in; the decision map shows its source under it. |
 | Note | A sentence more, such as what it's waiting for |
+| Recommendation | The AI's recommendation, while it's still to decide: advice for the people deciding, shown apart from the team's leaning and labelled as AI, in the decision's modal, its row, its brief section and on the option card it names. The value is the option's ID (`B`), or the answer in a few words when there are no options; then a list of parts: `Because:` why, citing IDs; `Would change if:` what would change it; `Confidence:` High, Medium or Low; `Model:` the model that made it, by name and version, shown wherever the recommendation is, since different models recommend differently; `Made:` the date (YYYY-MM-DD); `Seen:` the newest evidence it was made from (`E9`). `check` warns when the decision has come to rest on newer evidence, and the doc hides it once the decision is settled. Written and refreshed with [the recommend playbook](../playbooks/recommend.md); the team's own view stays in the status and Leaning. |
 | Shapes | What the decision settles, in a few words, shown under the question. What it waits on stays out, in Follows: while a Later decision follows an unsettled one, the build writes "Needs where the workers run (D1) first." in its place, from the other decision's Rail, and Shapes returns once D1 is settled. |
 | Page | The area page it lives on, when it isn't the overview. A decision about the whole design has none. |
 | Applies to | Other areas it shapes; they show it under "Decided elsewhere, shapes this area" |
-| Rail | A short title for the rail ("Where the workers run") |
+| Rail | A short title for its section link in a brief's rail ("Where the workers run") |
 | Follows | The decisions that must be made first. It draws the brief's relations ("Follows D0", and "Unblocks" on the other side) and the decision map's arrows. |
 | Waiting on | The questions and decisions it waits for. Each question listed here names the decision in its Blocks; `check` warns when the two disagree. |
 | Evidence | Findings it rests on beyond those the Why and Reasoning cite |
@@ -184,6 +185,7 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 | Field | Holds |
 | --- | --- |
 | Needed by | When the answer is needed: `Choosing the design`, `Before building`, `Later phase`, or a phase's title |
+| Answer from | How the answer can be got: `Research · where to look` when an agent could find it in documentation, a repository or a read-only account (`Research · Datadog's OPW syslog source docs`); `Person` when someone has to tell us; `Approval` when someone has to sign it off. The questions table shows it with where to look, or with Ask. `check` warns when an open question has none. |
 | Ask | Who to ask, only when a person or a meeting named them: `Network team`. Left out otherwise. |
 | Short | A few words for the decision map ("Who owns a new VPC?"), up to about 40 characters; its box grows to fit |
 | Blocks | The decisions, requirements and flows it blocks. It decides where the question lives: with them, or on the overview when they're on different pages or it blocks only flows. |
@@ -192,6 +194,7 @@ When a decision is made, mark the winner Chosen and each other option Not chosen
 | Could reopen | For a deferred question, what its answer could still change: `customer data separation (D6), if the count passes about 50` |
 | Answer | Once answered: the answer in a few words |
 | Answered by | Once answered: the evidence it became |
+| Recommendation | The AI's suggested answer while the question is open, in a few words, with the same parts as a decision's: `Because:`, `Would change if:`, `Confidence:`, `Model:`, `Made:`, `Seen:`. It shows in the question's modal and row, labelled as AI, and goes once the question is answered or deferred. |
 | Explanation | What the question asks and how it fits into the design, as for a decision: what we're trying to find out in plain words, and what it feeds and why that needs it. For a consequential one, a list of parts: `Means here:`, `Matters because:`, `Answer changes:`, `Settled by:` (see [writing](writing.md#explanations)). `check` warns when an open question has none. It opens the question's modal; tables and cards leave it out. |
 
 A question has no status field: it's open, partly answered (`So far`), deferred (`Deferred`), or answered (`Answer` and `Answered by`). The doc doesn't track when or how a question was put to anyone; what to ask next is proposed when someone asks for a plan. `check` warns about `Status`, `Latest` or `Page` on a question. An older design's `Who` still shows as Ask (without its `(other team)` kind, and never `(me)`), and its `Asked` isn't shown; when you next change such a question, drop `Asked`, and leave `Who` as it is unless you know how it was set: rename it `Ask` when the user or a meeting named them, drop it when you know it was a guess. Don't turn it into `Ask` on your own, as though someone had named them.
@@ -248,10 +251,9 @@ A page's standard sections render these on their own (see [components](component
 | `<!-- records decisions -->` | Every decision, grouped by where it lives, unsettled first. A row with a Why, Reasoning, options or alternatives opens to show them. | Its own, then "Decided elsewhere, shapes this area" |
 | `<!-- records risks -->` | Every risk, grouped | Its own, then "Owned elsewhere, affects this area" |
 | `<!-- records cost -->` | The basis, every cost line grouped by area with subtotals, the known total and the totals by category | Its own lines and their total |
-| `<!-- records questions -->` | Every open question, grouped, with filters by Needed by and Ask when any question has them, then the overview's own answered ones | Its own, those from elsewhere that reach it, then its answered ones |
+| `<!-- records questions -->` | Every open question, grouped, then the overview's own answered ones | Its own, those from elsewhere that reach it, then its answered ones |
 | `<!-- records progress -->` | A tile per area with its decisions and open questions; one line when there are no areas | One line: its decisions and questions, and what reaches it from elsewhere |
 | `<!-- records parts -->` | The page's parts table | The page's parts table |
-| `<!-- records decisions-rail -->` | Rail items for every open decision | The page's own open decisions; `ids=D6,D5` picks and orders them anywhere |
 | `<!-- records terms -->` | The terms listed for the page | The same |
 
 | Anywhere | Renders |
@@ -259,6 +261,6 @@ A page's standard sections render these on their own (see [components](component
 | `<!-- records reasoning ids=D1 -->` | A decision's Why, Reasoning and Revisit if. A `## D1` section adds it. |
 | `<!-- records questions blocks=D1,D2 -->` | The questions blocking those decisions, for a brief, each saying where it lives |
 | `<!-- records evidence -->` | The Evidence page's table |
-| `<!-- records meetings -->`, `<!-- records meetings-rail -->` | The Meetings page and its rail |
+| `<!-- records meetings -->` | The Meetings page's list |
 
 A placeholder renders for the page it sits on; add `page=<id>` to render another page's records, or `ids=` to pick records. Groups appear only once the doc has area pages.

@@ -68,14 +68,14 @@ One row per decision. Each row comes from the decision's record:
 
 Within each group, unsettled decisions come first. A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
 
-Question rows open the same way: the question's Explanation, then So far, its Answer, or why it was deferred and what it could reopen; beside them when its answer is needed, who to ask (only when someone was named), what it blocks, its evidence, and where it lives. Each row says how far the question has got (open, partly answered, deferred) apart from when its answer is needed, and the overview's table gets filters by Needed by and Ask when any question has them. A risk with an Explanation opens the same kind of modal; the rest stay one line. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
+Question rows open the same way: the question's Explanation, then So far, its Answer, or why it was deferred and what it could reopen; beside them when its answer is needed, who to ask (only when someone was named), what it blocks, its evidence, and where it lives. Each row says how far the question has got (open, partly answered, deferred) apart from when its answer is needed. A risk with an Explanation opens the same kind of modal; the rest stay one line. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
 
 ## Page files
 
 - A design folder holds `design.json`, `changes.md`, `doc.html`, a Markdown file per page in `pages/`, and the doc's own components in `components/`. The format of pages and components is in [components](components.md).
 - `doc.html` is the shell: `<!-- include pages/<id>.md -->` lines in reading order, the shared SVG definitions (arrowheads and icons), the rail with its `<!-- pages-nav -->` and `<!-- page-rails -->` markers, and the top bar. Drop the top bar's diagrams switch when nothing in the doc has a security view. `build` puts it all together into one file.
 - Section ids are shared by the whole doc, so each page's sections start with its prefix (`s3-design`). Link to a page with `href="#<page id>"` and to anything on it by its id; `?page=<id>` in a URL opens the doc on that page.
-- The Evidence page fills its "Cited on" column and its rail filter from the markers on other pages, so neither needs maintaining.
+- The Evidence page fills its "Cited on" column from the markers on other pages, so it needs no maintaining.
 
 ## Format and migrations
 

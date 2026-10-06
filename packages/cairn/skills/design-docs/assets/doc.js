@@ -209,53 +209,6 @@
     if (opener !== null && opener === event.target) openDetail(opener);
   });
 
-  // Question filters narrow the table that follows them to one stage or one person to ask; a group heading hides with
-  // its last visible row. The filters only exist when the records name a stage or someone to ask.
-  const applyQuestionFilters = (filters) => {
-    const table = filters.nextElementSibling;
-
-    if (table === null) return;
-
-    const wanted = new Map();
-
-    for (const group of filters.querySelectorAll("[data-filter]")) {
-      const pressed = group.querySelector("button[aria-pressed='true']");
-
-      wanted.set(group.dataset.filter, pressed?.dataset.value ?? "");
-    }
-
-    let heading = null;
-    let headingShown = false;
-
-    for (const row of table.querySelectorAll("tbody > tr")) {
-      if (row.classList.contains("group")) {
-        if (heading !== null) heading.hidden = !headingShown;
-
-        heading = row;
-        headingShown = false;
-
-        continue;
-      }
-
-      const shown = [...wanted].every(([key, value]) => value === "" || row.dataset[key] === value);
-
-      row.hidden = !shown;
-      headingShown ||= shown;
-    }
-
-    if (heading !== null) heading.hidden = !headingShown;
-  };
-
-  document.addEventListener("click", (event) => {
-    const button = event.target instanceof Element ? event.target.closest(".q-filter button") : null;
-
-    if (button === null) return;
-
-    for (const other of button.parentElement.querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === button));
-
-    applyQuestionFilters(button.closest(".q-filters"));
-  });
-
   // Reveal a target: show its page, open any collapsed details around or inside it, scroll to it, and flash it.
   const reveal = (id) => {
     const target = document.getElementById(id);
@@ -277,17 +230,6 @@
     if (inner !== null) inner.open = true;
 
     if (outer !== null) outer.open = true;
-
-    // A row the question filters hid comes back with every filter cleared.
-    const filters = target.hidden ? target.closest(".table-wrap")?.previousElementSibling : null;
-
-    if (filters?.matches(".q-filters")) {
-      for (const group of filters.querySelectorAll(".q-filter")) {
-        for (const button of group.querySelectorAll("button")) button.setAttribute("aria-pressed", String(button.dataset.value === ""));
-      }
-
-      applyQuestionFilters(filters);
-    }
 
     target.scrollIntoView({ block: "start" });
     target.classList.remove("flash");
@@ -598,8 +540,7 @@
     if (id !== null) marker.dataset.state = decisionState(definitionFor(id));
   }
 
-  // "Cited on": for items on shared pages, list the other pages that refer to them,
-  // and let the page's rail filter the list to one of those pages.
+  // "Cited on": for items on shared pages, list the other pages that refer to them.
 
   const citedOn = new Map();
 
@@ -633,56 +574,6 @@
     }
 
     cell.replaceChildren(tags);
-    definition.dataset.citedBy = ordered.map((page) => page.id).join(" ");
-  }
-
-  for (const filter of document.querySelectorAll(".cite-filter")) {
-    const home = document.getElementById(filter.closest(".page-rail")?.dataset.page ?? "");
-
-    if (home === null) continue;
-
-    const rows = [];
-
-    for (const row of home.querySelectorAll("[data-ref][data-cited-by]")) rows.push(row);
-
-    const counts = new Map();
-
-    for (const row of rows) {
-      for (const pageId of row.dataset.citedBy.split(" ")) {
-        if (pageId !== "") counts.set(pageId, (counts.get(pageId) ?? 0) + 1);
-      }
-    }
-
-    const buttons = [];
-
-    const addButton = (pageId, label, count) => {
-      const button = make("button", "");
-
-      button.type = "button";
-      button.dataset.filter = pageId;
-      button.append(make("span", "n", String(count)), make("span", "", label));
-      buttons.push(button);
-      filter.append(button);
-    };
-
-    addButton("", "All pages", rows.length);
-
-    for (const page of pages) {
-      if (counts.has(page.id)) addButton(page.id, pageTitle(page), counts.get(page.id));
-    }
-
-    const applyFilter = (pageId) => {
-      for (const button of buttons) button.setAttribute("aria-pressed", String(button.dataset.filter === pageId));
-
-      for (const row of rows) row.hidden = pageId !== "" && !row.dataset.citedBy.split(" ").includes(pageId);
-    };
-
-    filter.addEventListener("click", (event) => {
-      const button = event.target instanceof Element ? event.target.closest("button[data-filter]") : null;
-
-      if (button !== null) applyFilter(button.dataset.filter);
-    });
-    applyFilter("");
   }
 
   // Theme toggle: follows the system until the reader picks one

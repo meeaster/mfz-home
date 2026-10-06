@@ -7,7 +7,6 @@ Pages pull tables from it with placeholders such as
 
     <!-- records decisions -->
     <!-- records requirements page=s3-archive -->
-    <!-- records decisions-rail ids=D6,D5 -->
     <!-- records reasoning ids=D1 -->
     <!-- records questions blocks=D1,D2 -->
     <!-- records progress -->
@@ -99,7 +98,7 @@ PROPOSAL_LABEL = {"proposed": "To review", "accepted": "Accepted", "changed": "A
 # Proposals that change what the design says come first and in full; record-keeping ones fold into one group.
 PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"]
 ROUTINE_KINDS = {"evidence", "risk", "follow-on"}
-FIELD_TALK = re.compile(r"\b(Needed by|Blocks|Waiting on|Status|Recorded from|Answered by|Explanation|Still to show)\s*:", re.I)
+FIELD_TALK = re.compile(r"\b(Needed by|Answer from|Blocks|Waiting on|Status|Recorded from|Answered by|Explanation|Still to show)\s*:", re.I)
 RECOMMEND = {"accept": "decided", "accept as leaning": "leaning", "ask": "open", "defer": "leaning", "reject": ""}
 PHASE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
 LIKELIHOOD = {"high": "open", "medium": "open", "low": "", "unknown": ""}
@@ -115,6 +114,14 @@ TODAY_LABEL = {"meets": "Meets", "doesn't meet": "Doesn't meet", "unknown": "Unk
 DESIGN_LABEL = {"covers": "Covers", "partly covers": "Partly covers", "partly": "Partly covers", "not covered": "Not covered"}
 # When a question's answer is needed; a phase's title works too.
 NEEDED_BY = {"choosing the design": "choose", "before building": "build", "later phase": "later"}
+# How a question's answer can be got: by research an agent can do (reading documentation, a repository, an account),
+# from a person, or as someone's approval. Research says where to look after a "·".
+ANSWER_FROM = {"research": "Research", "person": "Person", "approval": "Approval"}
+# An AI recommendation on an open decision or question: advice for the people deciding, never what they agreed. Its parts,
+# in the order they're written. Model names the model that made it, since different models recommend differently; Seen is
+# the newest evidence it was made from, so later evidence can mark it out of date.
+RECOMMEND_PARTS = ("because", "would change if", "confidence", "model", "made", "seen")
+CONFIDENCE = ("high", "medium", "low")
 # The parts an Explanation can be written in, in the order they show.
 EXPLAIN_PARTS = [("means here", "What it means here"), ("matters", "Why it matters"), ("answer changes", "What the answer changes"), ("settled by", "What settles it")]
 # A verdict of "not built yet" says nothing about whether the design fits; these words give it away.
@@ -433,6 +440,8 @@ def check_design(design: Design, pages: dict[str, dict] | None, anchors: dict[st
             design.errors.append(f"{design.where(record.line)}: priority '{record.get('Priority')}'; use Must or Should")
         if record.kind == "decision":
             check_decision(record, design)
+        if record.kind in ("decision", "question"):
+            check_recommendation(record, design)
         if record.kind == "cost":
             check_cost(record, design)
         if record.kind == "flow":
@@ -712,6 +721,9 @@ def design_model(design: Design) -> dict:
             leaning = [o["id"] for o in entry["options"] if o["status"] == "current leaning"]
             entry["leaning"] = status[1] if len(status) > 1 and status[0].lower() == "leaning" else (leaning[0] if leaning else None)
             entry["chosen"] = next((o["id"] for o in entry["options"] if o["status"] == "chosen"), None)
+            option = recommended_option(r)
+            entry["recommended"] = option.id if option and entry["state"] in UNSETTLED else None
+            entry["recommendedBy"] = (recommendation(r) or {}).get("model", "") if entry["recommended"] else ""
             entry["answer"] = next((r.get(label) for label in ANSWER_LABELS if r.get(label)), "")
         elif r.kind == "question":
             state = question_state(r)
@@ -811,10 +823,10 @@ def ask_name(question: Record) -> str:
     return "" if question.get("Who").strip().lower() == "me" else question.get("Who").strip()
 
 
-def needed_key(question: Record, design: Design) -> str:
-    """The Needed by stage as a filter key: choose, build, later, or the phase's own name."""
-    value = question.get("Needed by").strip()
-    return NEEDED_BY.get(value.lower(), value)
+def answer_from(question: Record) -> tuple[str, str]:
+    """How the answer can be got, as a key of ANSWER_FROM (or the word as written when it isn't one), and where to look."""
+    kind, _, where = question.get("Answer from").partition("·")
+    return kind.strip().lower(), where.strip()
 
 
 def check_question(record: Record, design: Design) -> None:
@@ -828,6 +840,15 @@ def check_question(record: Record, design: Design) -> None:
     phases = {p.title.lower() for p in design.of("phase")}
     if needed and needed.value.lower() not in NEEDED_BY and needed.value.lower() not in phases:
         design.warnings.append(f"{design.where(needed.line)}: question '{record.id}' is needed by '{needed.value}'; use Choosing the design, Before building, Later phase, or a phase's title")
+    source = record.field("Answer from")
+    if source:
+        kind, where_to_look = answer_from(record)
+        if kind not in ANSWER_FROM:
+            design.warnings.append(f"{design.where(source.line)}: question '{record.id}' is answered from '{source.value}'; use Research · where to look, Person, or Approval")
+        elif kind == "research" and not where_to_look:
+            design.warnings.append(f"{design.where(source.line)}: question '{record.id}' is answered from research but doesn't say where to look: 'Research · Datadog OPW docs'")
+    elif not is_answered(record) and not is_deferred(record):
+        design.warnings.append(f"{where}: open question '{record.id}' has no 'Answer from': Research · where to look, when an agent could find the answer; Person, when someone has to tell us; Approval, when someone has to sign it off")
     reopen = record.field("Could reopen")
     if reopen and not record.get("Deferred"):
         design.warnings.append(f"{design.where(reopen.line)}: question '{record.id}' has 'Could reopen' but isn't deferred; it's for what a deferred question could still change")
@@ -942,6 +963,63 @@ def check_decision(record: Record, design: Design) -> None:
             design.warnings.append(f"{where}: '{record.id}' is leaning '{named}', which isn't one of its options ({', '.join(sorted(ids))})")
         elif named and option_state(next(o for o in record.options if o.id == named)) != "current leaning":
             design.warnings.append(f"{where}: '{record.id}' is leaning {named}; mark option {named} 'Current leaning'")
+
+
+def recommendation(record: Record) -> dict[str, str] | None:
+    """A record's AI recommendation: what it recommends, under "value", and each of its parts by lowercase name."""
+    found = record.field("Recommendation")
+    if found is None:
+        return None
+    parts = {"value": found.value.strip()}
+    for item in found.items:
+        key, _, text = item.partition(":")
+        parts[key.strip().lower()] = text.strip()
+    return parts
+
+
+def recommended_option(record: Record) -> Record | None:
+    """The option a decision's recommendation names, when it names one of its options."""
+    rec = recommendation(record)
+    return next((o for o in record.options if rec and o.id == rec["value"]), None)
+
+
+def check_recommendation(record: Record, design: Design) -> None:
+    """A recommendation names what it recommends and why, what would change it, how sure it is, the model that made it,
+    when, and the newest evidence it saw. Evidence the record has come to rest on since then makes it out of date."""
+    rec = recommendation(record)
+    if rec is None:
+        return
+    found = record.field("Recommendation")
+    where = design.where(found.line)
+    if not rec["value"]:
+        design.errors.append(f"{where}: '{record.id}' Recommendation says nothing; its value is the option's ID, or the answer in a few words")
+    unknown = [key for key in rec if key != "value" and key not in RECOMMEND_PARTS]
+    if unknown:
+        design.warnings.append(f"{where}: '{record.id}' Recommendation has '{unknown[0]}'; its parts are Because, Would change if, Confidence, Model, Made and Seen")
+    missing = [key.capitalize() for key in RECOMMEND_PARTS if not rec.get(key)]
+    if missing:
+        design.warnings.append(f"{where}: '{record.id}' Recommendation has no {', '.join(missing)}")
+    if rec.get("confidence") and rec["confidence"].lower() not in CONFIDENCE:
+        design.warnings.append(f"{where}: '{record.id}' Recommendation confidence '{rec['confidence']}'; use High, Medium or Low")
+    if rec.get("made") and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", rec["made"]):
+        design.warnings.append(f"{where}: '{record.id}' Recommendation made '{rec['made']}'; write the date as YYYY-MM-DD")
+    if record.options and rec["value"]:
+        option = recommended_option(record)
+        if option is None:
+            design.warnings.append(f"{where}: '{record.id}' recommends '{rec['value']}', which isn't one of its options ({', '.join(o.id for o in record.options)}); name the option by its ID")
+        elif option_state(option) in ("set aside", "not chosen"):
+            design.warnings.append(f"{where}: '{record.id}' recommends option {option.id}, which is {option.get('Status')}")
+    seen = re.fullmatch(r"E(\d+)", rec.get("seen", ""))
+    if rec.get("seen") and seen is None:
+        design.warnings.append(f"{where}: '{record.id}' Recommendation seen '{rec['seen']}'; name the newest evidence it was made from (E9)")
+    if seen is None:
+        return
+    # What the record rests on now: its own text and options, and what the questions it waits on have found.
+    related = [record, *(design.by_id()[i] for i in split_list(record.get("Waiting on")) if i in design.by_id())]
+    texts = [text for r in related for text, _ in record_texts(r) if not (r is record and text in found.items)]
+    newer = sorted({i for t in texts for i in MENTION.findall(t) if i.startswith("E") and int(i[1:]) > int(seen.group(1))}, key=lambda i: int(i[1:]))
+    if newer:
+        design.warnings.append(f"{where}: '{record.id}' rests on {', '.join(newer)}, which came after its recommendation (made from evidence through {rec['seen']}); refresh it")
 
 
 def record_texts(record: Record):
@@ -1371,6 +1449,56 @@ class Renderer:
             return ""
         return f'<span class="stage {esc(NEEDED_BY.get(value.lower(), "phase"))}">{esc(value)}</span>'
 
+    def open_recommendation(self, r: Record) -> dict[str, str] | None:
+        """A record's AI recommendation while there's still something to decide: none once it's settled or deferred."""
+        settled = self.state(r) not in UNSETTLED if r.kind == "decision" else question_state(r) not in ("open", "partly")
+        return None if settled else recommendation(r)
+
+    def recommended(self, r: Record, rec: dict[str, str]) -> str:
+        """What a recommendation picks: the option by its ID and title, or the answer it suggests."""
+        option = recommended_option(r)
+        return f"{esc(option.id)} · {self.inline(option.title)}" if option else self.inline(rec["value"])
+
+    def ai_block(self, r: Record) -> str:
+        """The AI recommendation in full, for a record's modal and its section in a brief: kept apart from the team's
+        leaning and answer, and labelled as advice."""
+        rec = self.open_recommendation(r)
+        if rec is None:
+            return ""
+        meta = " · ".join(filter(None, [rec.get("model", ""), f"{rec['confidence'].capitalize()} confidence" if rec.get("confidence") else "", short_date(rec.get("made", ""))]))
+        change = f'<p class="ai-change"><b>Would change if</b> {self.inline(rec["would change if"])}</p>' if rec.get("would change if") else ""
+        because = f"<p>{self.inline(rec['because'])}</p>" if rec.get("because") else ""
+        return (
+            f'<div class="ai-rec"><div class="ai-head"><span class="ai-tag">AI recommendation</span><span class="ai-meta">{esc(meta)}</span></div>'
+            f'<p class="ai-pick">{self.recommended(r, rec)}</p>{because}{change}</div>'
+        )
+
+    def ai_line(self, r: Record, define: bool) -> str:
+        """The AI recommendation in a table row, one line; on the record's definition it's also a line of its card."""
+        rec = self.open_recommendation(r)
+        if rec is None:
+            return ""
+        detail = ' data-ref-detail="AI recommends"' if define else ""
+        model = f'&nbsp;·&nbsp;<span{" data-ref-detail=" + chr(34) + "AI model" + chr(34) if define else ""}>{esc(rec["model"])}</span>' if rec.get("model") else ""
+        # The tag comes after the pick so a card lists what's recommended before the model; CSS shows the tag first.
+        return f'<span class="ai-line"><span{detail}>{self.recommended(r, rec)}</span><span class="ai-tag sm">AI{model}</span></span>'
+
+    def answer_source(self, q: Record, define: bool) -> str:
+        """How a question's answer can be got, as a chip, with where to look for research or who to ask otherwise. On the
+        question's definition each part is also a line of its reference card."""
+        def part(label: str, html: str, cls: str = "") -> str:
+            attrs = (f' class="{cls}"' if cls else "") + (f' data-ref-detail="{label}"' if define else "")
+            return f"<span{attrs}>{html}</span>"
+
+        ask = part("Ask", self.inline(ask_name(q))) if ask_name(q) else ""
+        if not q.get("Answer from"):
+            return ask
+        kind, where = answer_from(q)
+        chip = part("Answer from", esc(ANSWER_FROM.get(kind, q.get("Answer from"))), f"route {esc(kind)}")
+        if kind == "research":
+            return chip + (part("Where to look", self.inline(where), "sub") if where else "")
+        return chip + (f'<span class="who">{ask}</span>' if ask else "")
+
     def question_detail(self, q: Record) -> str:
         """What a question opens to: what it asks and where it fits, and what's known so far, its answer, or why it can wait;
         beside them when its answer is needed, who to ask when someone was named, what it blocks, its evidence and where it lives."""
@@ -1385,10 +1513,15 @@ class Renderer:
         if state == "deferred":
             reopen = f'<p class="note">Could reopen {self.inline(q.get("Could reopen"))}</p>' if q.get("Could reopen") else ""
             main.append(f'<div class="dm-deferred"><h4>Deferred</h4><p>{self.inline(q.get("Deferred"))}</p>{reopen}</div>')
+        main.append(self.ai_block(q))
 
         side = []
         if q.get("Needed by") and not answered:
             side.append(f'<div><h4>Needed by</h4>{self.stage(q)}</div>')
+        if q.get("Answer from") and not answered:
+            kind, where = answer_from(q)
+            look = f"<p>{self.inline(where)}</p>" if kind == "research" and where else ""
+            side.append(f'<div><h4>Answer from</h4><span class="route {esc(kind)}">{esc(ANSWER_FROM.get(kind, q.get("Answer from")))}</span>{look}</div>')
         if ask_name(q) and not answered:
             side.append(f'<div><h4>Ask</h4><p>{self.inline(ask_name(q))}</p></div>')
         blocks = split_list(q.get("Blocks"))
@@ -1446,6 +1579,7 @@ class Renderer:
         main += self.reasoning_parts(r, why_detail=True)
         if (r.get("Status") or "").lower() == "given" and r.get("Source"):
             main.append(f'<div><h4>Source</h4><p>{self.inline(r.get("Source"))}</p></div>')
+        main.append(self.ai_block(r))
         main.append(self.alternatives(r))
 
         side = []
@@ -1489,7 +1623,7 @@ class Renderer:
         text, cls = self.status(r)
         shapes = f'<span class="sub">{self.inline(shapes_line(r, self.design))}</span>' if shapes_line(r, self.design) else ""
         note = f" {self.inline(r.get('Note'))}" if r.get("Note") else ""
-        detail = self.answer(r) + note + self.marks(split_list(r.get("Waiting on")), "Waiting on") + self.marks(cited_ids(r, "Evidence"))
+        detail = self.answer(r) + note + self.marks(split_list(r.get("Waiting on")), "Waiting on") + self.marks(cited_ids(r, "Evidence")) + self.ai_line(r, define)
         status = f'<span class="status{" " + cls if cls else ""}"{" data-ref-status" if define else ""}>{esc(text)}</span>'
         where = self.worked_out(r) + chips
         opens = f' class="opens" data-detail="{r.id}-detail" tabindex="0"'
@@ -1532,29 +1666,16 @@ class Renderer:
         return self.table(["ID", "Decision", "Status", "Answer, or where it's leaning", "Worked out in"], rows)
 
     def reasoning(self, page: str, ids: list[str] | None) -> str:
-        """A decision's Why, Reasoning and Revisit if, for its section in a brief. Nothing while it's still open."""
+        """A decision's Why, Reasoning and Revisit if, for its section in a brief, and the AI recommendation while it's
+        still to decide."""
         blocks = []
         for ident in ids or []:
             record = self.known.get(ident)
-            parts = self.reasoning_parts(record, why_detail=False) if record and record.kind == "decision" else []
+            parts = self.reasoning_parts(record, why_detail=False) + [self.ai_block(record)] if record and record.kind == "decision" else []
+            parts = [part for part in parts if part]
             if parts:
                 blocks.append(f'<div class="reasoning">{"".join(parts)}</div>')
         return "".join(blocks)
-
-    def decisions_rail(self, page: str, ids: list[str] | None) -> str:
-        if ids is None:
-            chosen = [r for r in self.design.of("decision") if self.state(r) in UNSETTLED and (page == self.home or self.home_of(r) == page)]
-        else:
-            chosen = [self.known[i] for i in ids if i in self.known]
-        items = []
-        for r in chosen:
-            text, cls = self.status(r)
-            word = text.split()[0]
-            items.append(
-                f'<a class="rail-item" href="#{r.id}"><span class="top"><span class="id">{r.id}</span>'
-                f'<span class="status{" " + cls if cls else ""}">{esc(word)}</span></span><span class="q">{esc(r.get("Rail") or r.title)}</span></a>'
-            )
-        return "".join(items)
 
     # Parts and risks
 
@@ -1734,42 +1855,14 @@ class Renderer:
             status = '<span class="q-state">Open</span>'
         lives = self.lives("Lives on", [lives_on]) if lives_on else ""
         ident = f'<td class="id">{q.id}</td>' if define else f'<td class="id">{self.ref(q.id)}</td>'
-        filters = f' data-needed="{esc(needed_key(q, self.design))}" data-ask="{esc(ask_name(q))}"'
-        attrs = (f' id="{q.id}" data-ref="question"' if define else "") + f' class="opens{" deferred" if state == "deferred" else ""}" data-detail="{q.id}-detail" tabindex="0"' + filters
+        attrs = (f' id="{q.id}" data-ref="question"' if define else "") + f' class="opens{" deferred" if state == "deferred" else ""}" data-detail="{q.id}-detail" tabindex="0"'
         text = f'<span{" data-ref-text" if define else ""}>{self.inline(q.title)}</span>'
         stage = f'<td{" data-ref-detail=" + chr(34) + "Needed by" + chr(34) if define and q.get("Needed by") else ""}>{self.stage(q)}</td>'
-        ask = f'<td class="ask"{" data-ref-detail=" + chr(34) + "Ask" + chr(34) if define and ask_name(q) else ""}>{self.inline(ask_name(q))}</td>'
+        ask = f'<td class="ask">{self.answer_source(q, define)}</td>'
         return (
-            f'<tr{attrs}>{ident}<td>{text}<span class="q-status">{status}</span>{lives}</td>{stage}{ask}'
+            f'<tr{attrs}>{ident}<td>{text}<span class="q-status">{status}</span>{self.ai_line(q, define)}{lives}</td>{stage}{ask}'
             f'<td>{self.marks(split_list(q.get("Blocks")), "Blocks" if define else "")}</td></tr>'
         )
-
-    def question_filters(self, questions: list[Record]) -> str:
-        """Filters for a long list of questions, by when each answer is needed and by who to ask. Each appears only when
-        the records say so for some question; nothing is grouped by a guess."""
-        groups = []
-        needed = [q.get("Needed by") for q in questions if q.get("Needed by")]
-        if needed:
-            stages = list(dict.fromkeys(needed))
-            order = list(NEEDED_BY)
-            stages.sort(key=lambda s: order.index(s.lower()) if s.lower() in order else len(order))
-            options = [("", "All", len(questions))] + [(NEEDED_BY.get(s.lower(), s), s, needed.count(s)) for s in stages]
-            groups.append(("needed", "Needed by", options))
-        asks = [ask_name(q) for q in questions if ask_name(q)]
-        if asks:
-            options = [("", "Anyone", None)] + [(a, a, asks.count(a)) for a in dict.fromkeys(asks)]
-            groups.append(("ask", "Ask", options))
-        if not groups:
-            return ""
-        html = []
-        for key, label, options in groups:
-            buttons = "".join(
-                f'<button type="button" data-value="{esc(value)}"{" aria-pressed=" + chr(34) + "true" + chr(34) if not value else ""}>{esc(text)}'
-                f'{f"<span class=" + chr(34) + "n" + chr(34) + f">{count}</span>" if count is not None else ""}</button>'
-                for value, text, count in options
-            )
-            html.append(f'<div class="q-filter" data-filter="{key}"><span class="k">{esc(label)}</span><div class="seg">{buttons}</div></div>')
-        return f'<div class="q-filters">{"".join(html)}</div>'
 
     def answered_row(self, q: Record, define: bool) -> str:
         evidence = split_list(q.get("Answered by"))
@@ -1801,12 +1894,12 @@ class Renderer:
             records = [q for q in records if set(split_list(q.get("Blocks"))) & set(blocks)]
         open_ = [q for q in records if not is_answered(q)]
         answered = [q for q in records if is_answered(q)]
-        head = ["ID", "Question", "Needed by", "Ask", "Blocks"]
+        head = ["ID", "Question", "Needed by", "Answer from", "Blocks"]
 
         if page == self.home and not blocks:
             rows = [self.question_row(q, True) for q in open_] if ids is not None else self.gathered(open_, 5, lambda q: self.question_row(q, True))
             here = [q for q in answered if self.home_of(q) == page]
-            return (self.question_filters(open_) + self.table(head, rows) + self.details(open_) if rows else "") + self.answered_group(here, True)
+            return (self.table(head, rows) + self.details(open_) if rows else "") + self.answered_group(here, True)
         if blocks:
             define = page == self.home
             rows = [self.question_row(q, define, None if define else self.home_of(q)) for q in open_]
@@ -1983,52 +2076,11 @@ class Renderer:
         return (f'<div class="record-detail" id="{r.id}-proposals" aria-label="Proposals from {esc(r.title)}">{head}'
                 f'<div class="pr-body">{heading}<ol class="proposals">{"".join(cards)}</ol>{group}{look}</div></div>')
 
-    def meetings_rail(self, page: str, ids: list[str] | None) -> str:
-        items = []
-        for r in self.design.of("meeting"):
-            pending = self.proposal_counts(proposals_of(r))[0]
-            flag = f'<span class="status open">{pending} to review</span>' if pending else ""
-            items.append(f'<a class="rail-meeting" href="#{r.id}"><span class="d">{esc(short_date(r.id[8:]))}</span><span class="t">{esc(r.title)}{flag}</span></a>')
-        return "".join(items)
-
-    def brief_rail(self, page: str, ids: list[str] | None) -> str:
-        """A brief's rail: its decisions and those waiting on them, the meetings that touched them, and what blocks them."""
-        covered = [i for i in ids or [] if i in self.known]
-        decisions = covered + [d.id for d in self.design.of("decision") if d.id not in covered and set(split_list(d.get("Follows"))) & set(covered)]
-        blocking = [q for q in self.design.of("question") if not is_answered(q) and set(split_list(q.get("Blocks"))) & set(covered)]
-        related = set(decisions) | {q.id for q in blocking}
-        groups = []
-
-        if decisions:
-            groups.append(f'<div class="rail-group"><span class="rail-label">Decisions</span>{self.decisions_rail(page, decisions)}</div>')
-
-        meetings = []
-        for r in self.design.of("meeting"):
-            texts = [r.get("Summary"), *r.items("Summary")] + [i for c in self.design.changes if c.source == f"meeting {r.id[8:]}" for i in c.items]
-            if related & {m for t in texts for m in MENTION.findall(t)}:
-                meetings.append(f'<a class="rail-meeting" href="#{r.id}"><span class="d">{esc(short_date(r.id[8:]))}</span>{esc(r.title)}</a>')
-        if meetings:
-            groups.append(f'<div class="rail-group"><span class="rail-label">Meetings</span>{"".join(meetings)}</div>')
-
-        if blocking:
-            lines = []
-            for d in covered:
-                qs = [q.id for q in blocking if d in split_list(q.get("Blocks"))]
-                if qs:
-                    names = qs[0] if len(qs) == 1 else f"{', '.join(qs[:-1])} and {qs[-1]}"
-                    lines.append(f"{names} block{'s' if len(qs) == 1 else ''} {d}.")
-            count = f"{len(blocking)} open question{'s' if len(blocking) > 1 else ''}"
-            groups.append(f'<div class="rail-note"><strong>{count}</strong><span>{self.inline(" ".join(lines))}</span></div>')
-
-        return "".join(groups)
-
     def render(self, kind: str, page: str, ids: list[str] | None, opts: dict[str, str] | None = None) -> str | None:
         method = {
             "requirements": self.requirements,
             "measure": self.measure,
             "decisions": self.decisions,
-            "decisions-rail": self.decisions_rail,
-            "brief-rail": self.brief_rail,
             "reasoning": self.reasoning,
             "parts": self.parts,
             "risks": self.risks,
@@ -2038,7 +2090,6 @@ class Renderer:
             "evidence": self.evidence,
             "questions": self.questions,
             "meetings": self.meetings,
-            "meetings-rail": self.meetings_rail,
             "progress": self.progress,
         }.get(kind)
         self.opts = opts or {}

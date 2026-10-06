@@ -197,23 +197,6 @@ code, .mono { font-family: var(--font-mono); }
 .rail-nav a .n { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); font-weight: 400; }
 .rail-nav a.sub { padding: 5px 10px 5px 40px; font-size: 12.5px; color: var(--muted-foreground); }
 
-.rail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  text-decoration: none;
-}
-.rail-item:hover { background: var(--sidebar-accent); }
-.rail-item .top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.rail-item .id { font-family: var(--font-mono); font-size: 11.5px; font-weight: 500; }
-.rail-item .q { font-size: 13px; color: var(--muted-foreground); }
-
-.rail-meeting { display: flex; gap: 10px; align-items: baseline; padding: 7px 10px; font-size: 13px; color: var(--muted-foreground); text-decoration: none; border-radius: 6px; }
-.rail-meeting:hover { background: var(--sidebar-accent); }
-.rail-meeting .d { font-family: var(--font-mono); font-size: 11.5px; white-space: nowrap; }
-
 .rail-note {
   display: flex;
   flex-direction: column;
@@ -288,26 +271,6 @@ html:not(.js) .doc.multi .page-rail::before {
   font-size: 12.5px;
   font-weight: 600;
 }
-
-/* Filter on shared pages: show only items cited on one page. Buttons are added by doc.js. */
-.cite-filter button {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  width: 100%;
-  padding: 7px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  font-size: 13px;
-  text-align: left;
-  cursor: pointer;
-}
-.cite-filter button:hover { background: var(--sidebar-accent); }
-.cite-filter button[aria-pressed="true"] { background: var(--sidebar-accent); font-weight: 500; }
-.cite-filter button .n { font-family: var(--font-mono); font-size: 11.5px; color: var(--muted-foreground); font-weight: 400; min-width: 14px; }
 
 .theme-toggle {
   margin-top: auto;
@@ -767,7 +730,7 @@ table.table { width: 100%; border-collapse: collapse; }
 .state.leaning { background: var(--lean-bg); color: var(--lean); }
 .state.open { background: var(--warn-bg); color: var(--warn); }
 
-/* Open questions: how far each has got, when its answer is needed, and filters over both. */
+/* Open questions: how far each has got and when its answer is needed. */
 .q-status { display: block; margin-top: 4px; }
 .q-state { display: block; font-size: 12.5px; font-weight: 600; color: var(--muted-foreground); }
 .q-state.partly { color: var(--lean); }
@@ -776,13 +739,24 @@ table.table { width: 100%; border-collapse: collapse; }
 .stage.choose { background: var(--new-bg); color: var(--new); }
 .stage.later, .stage.phase { background: transparent; color: var(--muted-foreground); box-shadow: inset 0 0 0 1px var(--border); }
 .table td.ask { font-weight: 500; }
-.q-filters { display: flex; flex-wrap: wrap; gap: 10px 28px; align-items: center; margin-bottom: 12px; }
-.q-filter { display: flex; gap: 8px; align-items: center; }
-.q-filter .k { font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); }
-.q-filter .seg { display: flex; gap: 2px; padding: 2px; border-radius: 6px; background: var(--muted); }
-.q-filter button { display: inline-flex; gap: 5px; align-items: center; padding: 3px 8px; border: 0; border-radius: 4px; background: transparent; color: var(--muted-foreground); font: 500 12px var(--font-ui); cursor: pointer; }
-.q-filter button[aria-pressed="true"] { background: var(--card); color: var(--foreground); box-shadow: inset 0 0 0 1px var(--border); }
-.q-filter .n { font-family: var(--font-mono); font-size: 11px; color: var(--muted-foreground); }
+/* How a question's answer can be got: research an agent can do stands out, since it's what can be handed off. */
+.route { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 11.5px; font-weight: 600; white-space: nowrap; background: transparent; color: var(--muted-foreground); box-shadow: inset 0 0 0 1px var(--border); }
+.route.research { background: var(--ok-bg); color: var(--ok); box-shadow: none; }
+.table td.ask .who { display: block; margin-top: 4px; }
+.table td.ask .sub { max-width: 220px; font-weight: 400; white-space: normal; }
+
+/* AI recommendations: advice for the people deciding, set apart from the team's leaning by a dashed edge and an AI tag. */
+.ai-tag { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 4px; border: 1px dashed var(--muted-foreground); color: var(--foreground); font: 600 11.5px var(--font-ui); white-space: nowrap; }
+.ai-tag.sm { padding: 0 4px; font-size: 10.5px; }
+.ai-line .ai-tag { order: -1; }
+.ai-line { display: flex; gap: 6px; align-items: baseline; margin-top: 6px; font-size: 12.5px; color: var(--muted-foreground); }
+.ai-rec { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px; }
+.ai-head { display: flex; gap: 10px; align-items: center; }
+.ai-meta { font-size: 12.5px; color: var(--muted-foreground); }
+.ai-pick { font-weight: 600; }
+.ai-change { font-size: 13px; color: var(--muted-foreground); }
+.ai-change b { color: var(--foreground); font-weight: 500; }
+.option-badges { display: flex; gap: 6px; align-items: center; }
 
 /* An Explanation in parts, and a deferred question's reason, in a record's modal. */
 .dm-parts { display: flex; flex-direction: column; gap: 14px; padding: 14px 16px; border-radius: 8px; background: var(--muted); }
@@ -889,6 +863,8 @@ html:not(.js) .dm-close { display: none; }
 .reasoning li { position: relative; padding-left: 15px; }
 .reasoning li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted-foreground); }
 .reasoning { padding: 18px 22px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); max-width: 860px; }
+.reasoning:has(> .ai-rec:only-child) { padding: 0; border: 0; background: none; }
+.reasoning .ai-rec { background: var(--card); }
 
 /* A decision's options in its modal: a card each, the winner or leaning first. */
 .alts { display: flex; flex-direction: column; gap: 10px; }
@@ -1273,8 +1249,6 @@ a.flow:hover, a.flow[aria-expanded="true"] { box-shadow: 0 0 0 1px currentColor;
 .proposals-line:hover { border-color: var(--muted-foreground); }
 .proposals-line:focus-visible { outline: 2px solid var(--ring, var(--foreground)); outline-offset: 2px; }
 .proposals-line .open-link { font-size: 13px; font-weight: 500; }
-.rail-meeting .t { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
-.rail-meeting .status { font-size: 11px; }
 .pr-body { padding: 18px 24px 24px; }
 .proposals { display: flex; flex-direction: column; gap: 14px; }
 .proposal { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); }

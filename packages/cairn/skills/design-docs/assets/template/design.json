@@ -161,6 +161,7 @@
       "title": "QUESTION?",
       "Explanation": "WHAT WE'RE TRYING TO FIND OUT, IN PLAIN WORDS, AND WHY WHAT IT BLOCKS (D1) NEEDS THE ANSWER.",
       "Needed by": "Choosing the design",
+      "Answer from": "Research · WHERE AN AGENT COULD LOOK, OR Person, OR Approval",
       "Blocks": "D1",
       "So far": "A PARTIAL ANSWER, IF THERE IS ONE (E1)."
     },

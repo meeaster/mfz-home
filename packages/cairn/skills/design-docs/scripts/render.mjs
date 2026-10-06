@@ -42,7 +42,7 @@ const BOUND_TAG = /<([a-zA-Z][\w:-]*)(\s[^<>]*?\bdata-(?:pending|when|text|state
 const DECISION_HEADING = /^D\d+$/;
 
 // Record tables doc.py renders; ::: <kind> asks for one, and a design's own component of that name replaces it.
-const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "decisions-rail", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "meetings-rail", "progress", "phases"]);
+const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "progress", "phases"]);
 
 const STANDARD_SECTIONS = {
   "in short": { suffix: "short", layout: "short" },
@@ -60,13 +60,8 @@ const STANDARD_SECTIONS = {
   "open questions": { suffix: "questions", records: "questions" },
 };
 
-const RAIL_DECISIONS = { overview: "Open decisions", area: "Open decisions in this area" };
-
 // Shared pages list every finding or meeting; front matter "shows: evidence" picks one.
-const SHARED_LISTS = {
-  evidence: { rail: '  <div class="rail-group cite-filter">\n    <span class="rail-label">Show findings cited on</span>\n  </div>' },
-  meetings: { rail: '  <div class="rail-group">\n    <span class="rail-label">Meetings</span>\n    <!-- records meetings-rail -->\n  </div>' },
-};
+const SHARED_LISTS = new Set(["evidence", "meetings"]);
 
 // Text
 
@@ -403,7 +398,8 @@ async function renderSection(section, number, context) {
     const { prose, rest } = leadingProse(section.lines);
     const intro = prose.length === 0 ? "" : `<p class="intro">${context.inline(prose.join(" "))}</p>`;
     const extra = [intro, relations(decision, context)].filter(Boolean).join("\n    ");
-    const reasoning = context.field(record, "Why") === undefined ? "" : `\n  <!-- records reasoning ids=${decision} -->\n`;
+    // The reasoning block holds the team's Why and, while it's still to decide, the AI's recommendation.
+    const reasoning = context.field(record, "Why") === undefined && context.field(record, "Recommendation") === undefined ? "" : `\n  <!-- records reasoning ids=${decision} -->\n`;
     const body = await renderFlow(rest, context);
 
     return `<section class="section" id="${esc(id)}">\n${sectionHead(num, `${context.ref(decision)}<h2>${context.inline(record.title)}</h2>${context.status(decision)}`, extra)}\n${reasoning}\n${body}\n</section>`;
@@ -435,22 +431,13 @@ async function renderSection(section, number, context) {
   return `<section class="section" id="${esc(id)}">\n${sectionHead(num, title, intro)}\n${body}\n</section>`;
 }
 
-function rail(meta, group, context) {
-  if (SHARED_LISTS[meta.shows] !== undefined) return `<nav class="page-rail">\n${SHARED_LISTS[meta.shows].rail}\n</nav>`;
-
+// The rail holds the page's own sections and its note; record lists stay in the page body.
+function rail(meta, context) {
   const links = context.railLinks.map((link) =>
     link.sub ? `    <a class="sub" href="#${esc(link.id)}">${esc(link.title)}</a>` : `    <a href="#${esc(link.id)}"><span class="n">${link.number}</span>${esc(link.title)}</a>`,
   );
 
-  const groups = [`  <div class="rail-group rail-nav">\n    <span class="rail-label">On this page</span>\n${links.join("\n")}\n  </div>`];
-
-  // Overviews and areas list their open decisions. A brief lists its decisions and those waiting on them,
-  // the meetings that touched them, and the open questions that block them.
-  if (meta.rail !== "none" && group === "brief") {
-    groups.push(`  <!-- records brief-rail ids=${ids(String(meta.meta ?? "").split(/\s+/)).join(",")} -->`);
-  } else if (meta.rail !== "none" && RAIL_DECISIONS[group] !== undefined) {
-    groups.push(`  <div class="rail-group">\n    <span class="rail-label">${RAIL_DECISIONS[group]}</span>\n    <!-- records decisions-rail -->\n  </div>`);
-  }
+  const groups = links.length === 0 ? [] : [`  <div class="rail-group rail-nav">\n    <span class="rail-label">On this page</span>\n${links.join("\n")}\n  </div>`];
 
   if (meta["rail-note"]) {
     const [label, ...note] = meta["rail-note"].split(": ");
@@ -482,10 +469,10 @@ async function renderMarkdownPage(file, text, request, errors) {
     rendered.push(await renderSection(section, index + 1, context));
   }
 
-  if (SHARED_LISTS[meta.shows] !== undefined) {
+  if (SHARED_LISTS.has(meta.shows)) {
     rendered.push(`<section class="section" id="${esc(id)}-list">\n  <!-- records ${meta.shows} -->\n</section>`);
   } else if (meta.shows !== undefined) {
-    errors.push(`${id}.md: 'shows: ${meta.shows}'; a shared page shows ${Object.keys(SHARED_LISTS).join(" or ")}`);
+    errors.push(`${id}.md: 'shows: ${meta.shows}'; a shared page shows ${[...SHARED_LISTS].join(" or ")}`);
   }
 
   if (!meta.title) errors.push(`${id}.md needs a title in its front matter`);
@@ -512,7 +499,7 @@ async function renderMarkdownPage(file, text, request, errors) {
   return [
     `<article class="page" id="${esc(id)}" data-page-title="${esc(meta.title ?? id)}" data-page-group="${esc(group)}"${icon}${pageMeta}>`,
     "",
-    rail(meta, group, context),
+    rail(meta, context),
     "",
     '<header class="doc-header">',
     `  <div class="context-line">${where}${updated}</div>`,

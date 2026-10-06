@@ -42,15 +42,14 @@ Framing: what's being chosen and what stays the same.
 | `group` | `overview`, `area`, `brief` or `shared` |
 | `icon` | A symbol from `doc.html`'s definitions, without `i-` (`database`) |
 | `prefix` | What section ids start with (`s3` gives `s3-design`); the page id when left out |
-| `meta` | A short note in the page list; on a brief, the decisions it covers (`D1 D2`), which also picks the open questions it shows and fills its rail: those decisions and the ones waiting on them, the meetings that touched them or their questions, and which questions block which decision |
+| `meta` | A short note in the page list; on a brief, the decisions it covers (`D1 D2`), which also picks the open questions it shows |
 | `updated` | `YYYY-MM-DD` |
 | `context` | The context line on the doc's home page (the overview, or the brief of a brief-only doc): the effort's slug, after the value of its `initiative:` tag and a `/` when it has one (`observability-pipeline / opw-deployment`). Without it, the home page shows only its date and other pages link home. |
-| `rail` | `none` drops the rail's record groups: an overview's or area's open decisions, or a brief's decisions, meetings and blocking questions |
 | `rail-note` | A note in the rail: `Requirements: This brief is measured against the overview's R1 to R7.` |
 | `shows` | On a shared page, `evidence` or `meetings`: the page is that list |
 | `progress` | `none` leaves out the progress line an overview or area gets |
 
-**Sections** are `##` headings, numbered in order and listed in the rail.
+**Sections** are `##` headings, numbered in order and listed in the rail. The rail holds only the page list, the page's sections and its `rail-note`; record lists and filters stay in the page.
 
 - A standard heading gets its id and, for a record section, its table: "Requirements", "How it measures up", "Cost", "Risks", "Phases", "Decisions" and "Open questions" render from design.json when they hold nothing but prose, and that prose is the section's intro. "In short" puts its paragraphs beside the page's terms. "What we're after", "How it fits together", "The whole system", "Design" and "Decision map" get their ids. The ids are the page's prefix and a short name: In short `short`, What we're after `after`, Requirements `requirements`, How it fits together and Decision map `map`, The whole system `system`, Design `design`, How it measures up `measure`, Cost `cost`, Risks `risks`, Phases `phases`, Decisions `decisions`, Open questions `questions` (so `#overview-system`).
 - `## D1` is a decision's section: its title and marker, its relations (from Follows and Waiting on), and its reasoning once it has a Why come from the record. The paragraphs under the heading are the framing.
@@ -72,7 +71,7 @@ Framing: what's being chosen and what stays the same.
 | Component | Renders |
 | --- | --- |
 | `design-card title="…" diagram=<c> [security=<c>] [parts=false]` | The design on an overview or area page: title, the body as its summary, the diagram, and the page's parts table. `security` adds the Architecture / Security switch. |
-| `options D1 A=<c> A-security=<c> [layout=row]` | A decision's option cards from its `####` records, each with its diagram component, status, and the set-aside lines after them. `layout=row` puts smaller options side by side. |
+| `options D1 A=<c> A-security=<c> [layout=row]` | A decision's option cards from its `####` records, each with its diagram component, status, an "AI recommends" tag on the option the decision's Recommendation names, and the set-aside lines after them. `layout=row` puts smaller options side by side. |
 | `comparison D1` | Requirements against options, from each option's `Meets R1` fields; identical cells merge. |
 | `cost-options D1` | A bar per option splitting the shared part from the difference, then the cost lines grouped into "differs" (those that `Vary with` the decision) and "same". It counts the lines on the pages the decision reaches (its Page and Applies to, and the overview's own); a decision with neither counts every line. It shows the Costs basis first, each line's category and Applies when, and Unknown for a line with no figure; the totals count only what's known and say what they leave out. While every line is unknown, leave it out; the Cost section already says what isn't known. |
 | `decision-map [D1 D2]` | The page's decisions, the ones they follow and the ones waiting on them, in columns by what must be decided first, with each one's open questions under it. |
@@ -137,7 +136,7 @@ A component receives the page it's on (`page`, `prefix`, `pageDecisions`), its `
 | `icon(name)`, `pageLink(href, label)`, `money(n)`, `shortDate(iso)`, `esc(text)` | Small pieces |
 | `error(message)` | Reports a problem; `check` shows it |
 
-`model.records` maps each E, Q, D and R ID to its `kind`, `title`, `fields`, `state` and `states`, and for a decision its `options` (`id`, `title`, `status`, `statusText`, `fields`), `leaning`, `chosen`, `answer`, `follows` and `unblocks`. `model.costs` and `model.flows` hold those records. The published model leaves out `Recorded from`.
+`model.records` maps each E, Q, D and R ID to its `kind`, `title`, `fields`, `state` and `states`, and for a decision its `options` (`id`, `title`, `status`, `statusText`, `fields`), `leaning`, `chosen`, `recommended` (the option an open decision's AI recommendation names), `answer`, `follows` and `unblocks`. `model.costs` and `model.flows` hold those records. The published model leaves out `Recorded from`.
 
 ## Markup for components and diagrams
 

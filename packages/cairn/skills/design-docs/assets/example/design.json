@@ -382,6 +382,17 @@
       ],
       "Revisit if": "Security allows customer traffic to end in Shared Tooling (Q2), and it has room for the endpoint.",
       "Note": "Waiting on the VPN route and the network owner.",
+      "Recommendation": {
+        "value": "B",
+        "items": [
+          "Because: Customer traffic ending in Shared Tooling hangs on a security ruling nobody has yet (Q2), and its 212 free addresses leave little room as customers join (E3); a VPC of their own avoids both for about $60 a month (E2, E7).",
+          "Would change if: Security allows customer traffic to end in Shared Tooling (Q2) and the endpoint fits in its free addresses.",
+          "Confidence: High",
+          "Model: Model A",
+          "Made: 2026-10-05",
+          "Seen: E9"
+        ]
+      },
       "Waiting on": "Q1, Q2, Q5, Q6",
       "Worked out in": "workers",
       "notes": [
@@ -465,6 +476,17 @@
       "Status": "Open",
       "For now": "Relay through the syslog server.",
       "Note": "Sending direct needs new VPN routes.",
+      "Recommendation": {
+        "value": "1",
+        "items": [
+          "Because: The relay works with either place the workers end up and needs no firewall changes, while sending direct rests on two unanswered questions (Q1, Q4).",
+          "Would change if: OPW takes UDP syslog behind a load balancer (Q4) and the site VPNs can route to the workers (Q1); then sending direct removes the single-zone relay (E5).",
+          "Confidence: Medium",
+          "Model: Model B",
+          "Made: 2026-10-05",
+          "Seen: E9"
+        ]
+      },
       "Waiting on": "Q1, Q4",
       "Worked out in": "workers-d2",
       "options": [
@@ -522,6 +544,17 @@
       "Status": "Open",
       "Leaning": "A prefix and KMS key per customer in one bucket.",
       "Note": "Depends on whether OPW can write each customer's logs with its own key.",
+      "Recommendation": {
+        "value": "A prefix and a KMS key per customer in one bucket.",
+        "items": [
+          "Because: One bucket's access rules fit about 60 customers (E8), far more than the first three, and a key per customer keeps each one's logs readable only by them (R8).",
+          "Would change if: OPW can't write each customer's logs with its own key (Q10), or the customer count looks set to pass about 50 (Q8).",
+          "Confidence: Medium",
+          "Model: Model A",
+          "Made: 2026-10-05",
+          "Seen: E9"
+        ]
+      },
       "Waiting on": "Q10",
       "Evidence": "E8",
       "Worked out in": "s3-archive"
@@ -875,6 +908,7 @@
       ],
       "Short": "Can site VPNs reach a new VPC?",
       "Needed by": "Choosing the design",
+      "Answer from": "Person",
       "Ask": "Network team",
       "So far": "The VPNs already route to the Transit Gateway; a route to a new VPC hasn't been tried (E1).",
       "Blocks": "D1, D2"
@@ -885,6 +919,7 @@
       "Explanation": "Customer connections have to end somewhere inside our network. SEC-12 is the security standard for Shared Tooling, the network that hosts our internal tools. If it doesn't allow customer traffic to end there, the workers can't go in Shared Tooling (D1, option A); that doubt is the main reason the design leans towards a VPC of their own.",
       "Short": "May customer traffic end in Shared Tooling?",
       "Needed by": "Choosing the design",
+      "Answer from": "Approval",
       "Ask": "Security (GRC)",
       "Blocks": "D1"
     },
@@ -894,6 +929,7 @@
       "Explanation": "The customer endpoint and what sits behind it are sized for the traffic they carry. We don't know yet how much the first three customers will send in their first 90 days. The answer sizes the customer connection (D3).",
       "Short": "Customer log volume?",
       "Needed by": "Before building",
+      "Answer from": "Person",
       "Blocks": "D3"
     },
     {
@@ -902,6 +938,7 @@
       "Explanation": "If firewalls send straight to the workers (D2, option 2), a Network Load Balancer spreads their syslog across the workers. The firewalls send syslog over UDP, which has no delivery confirmation, and we don't know whether OPW behind a load balancer receives it without losing messages. Datadog can tell us; a no rules the direct path out.",
       "Short": "Syslog behind a load balancer?",
       "Needed by": "Choosing the design",
+      "Answer from": "Research · Datadog's OPW syslog source docs and AWS's Network Load Balancer UDP docs",
       "Ask": "Datadog support",
       "Blocks": "D2"
     },
@@ -911,6 +948,7 @@
       "Explanation": "A VPC of the pipeline's own (D1, option B) is a new network someone has to run: patch what's in it, answer its alerts, and pay for it. No team owns it yet, and option B isn't workable until one agrees to.",
       "Short": "Who owns a new VPC?",
       "Needed by": "Before building",
+      "Answer from": "Approval",
       "Blocks": "D1"
     },
     {
@@ -919,6 +957,7 @@
       "Explanation": "Log data stays in GovCloud unless where it goes is authorized to hold it (R6). Filtered logs go to Datadog, so we need to know whether our Datadog organization is on Datadog's government site, and whether that site is authorized for this data. If it isn't, sending logs to Datadog breaks that rule whichever network the workers get (D1).",
       "Short": "Is Datadog's government site authorized?",
       "Needed by": "Choosing the design",
+      "Answer from": "Approval",
       "Ask": "Security (GRC)",
       "So far": "The org is on the government site; its authorization for CUI isn't confirmed.",
       "Blocks": "D1, R6"
@@ -928,6 +967,7 @@
       "title": "Do the site VPN tunnels use FIPS-validated encryption today?",
       "Explanation": "Every connection carrying these logs must use FIPS-validated encryption (R7). The site VPN tunnels carry firewall logs into AWS, and nobody has confirmed what encryption they use today. If it isn't FIPS-validated, firewall logs don't meet that rule until the tunnels change.",
       "Needed by": "Before building",
+      "Answer from": "Research · the site VPN settings in the network team's firewall configuration repository",
       "Blocks": "R7"
     },
     {
@@ -944,13 +984,26 @@
       "title": "Which kinds of log may OPW drop before Datadog, and which must always reach it?",
       "Explanation": "OPW can drop logs before Datadog to cut the bill, and S3 keeps everything regardless. Security decides which logs investigations depend on, so what OPW drops (D7) needs their list of what may be dropped and what must always reach Datadog.",
       "Needed by": "Before building",
-      "Blocks": "D7"
+      "Answer from": "Person",
+      "Blocks": "D7",
+      "Recommendation": {
+        "value": "Drop debug and health-check logs; always send authentication, firewall deny and admin-change logs.",
+        "items": [
+          "Because: Investigations usually start from who logged in, what was blocked and what changed, and S3 keeps everything for a year either way (R9).",
+          "Would change if: Security names other kinds of log their investigations depend on.",
+          "Confidence: Low",
+          "Model: Model B",
+          "Made: 2026-10-05",
+          "Seen: E9"
+        ]
+      }
     },
     {
       "id": "Q10",
       "title": "Can OPW's S3 destination write each customer's logs with a different KMS key?",
       "Explanation": "Keeping each customer's logs readable only with their own key (R8) is simplest if OPW encrypts each customer's logs with that customer's KMS key as it writes them. We don't know whether OPW's S3 destination can choose a key per customer. If it can't, the shared bucket for customer data (D6) needs another way to apply the keys.",
       "Needed by": "Choosing the design",
+      "Answer from": "Research · Datadog's OPW Amazon S3 destination docs",
       "Blocks": "D6, R8"
     },
     {

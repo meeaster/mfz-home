@@ -129,7 +129,7 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
 - `Means here`: what it is in this system.
 - `Matters because`: what rides on it.
 - `Answer changes`: what each likely answer does to the design (for a risk, what it changes if it happens).
-- `Settled by`: what would settle it: the evidence, ruling or test.
+- `Settled by`: what would settle it: the evidence, ruling or test. The question's `Answer from` says which kind of route that is (research, a person, an approval), so the two agree.
 
 ```markdown
 ### Q1 · Can the site VPNs carry a route to a new VPC's address range without re-creating the tunnels?
@@ -140,6 +140,7 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
   - Settled by: The network team confirms the tunnels accept an added route, or tries one on a single site.
 - Short: Can site VPNs reach a new VPC?
 - Needed by: Choosing the design
+- Answer from: Person
 - Ask: Network team
 - Blocks: D1, D2
 ```

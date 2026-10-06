@@ -26,7 +26,7 @@ function lowerFirst(text) {
   return /^[A-Z][a-z]/.test(text) ? text[0].toLowerCase() + text.slice(1) : text;
 }
 
-async function card(option, props, row, context) {
+async function card(option, props, row, recommendedBy, context) {
   const { esc, inline, field, letter, optionColour, optionClass, optionPill, cite, ref, component } = context;
   const fields = { fields: option.fields };
   const summary = field(fields, "Summary");
@@ -35,6 +35,9 @@ async function card(option, props, row, context) {
   const security = props[`${option.id}-security`];
   const toggle = security === undefined ? "" : '\n      <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>';
   const pill = optionPill(option);
+  // The AI's pick is advice, so it gets its own tag beside the option's status rather than changing it.
+  const advice = recommendedBy === null ? "" : `<span class="ai-tag">AI recommends${recommendedBy === "" ? "" : ` · ${esc(recommendedBy)}`}</span>`;
+  const badges = [pill, advice].filter(Boolean).join("");
   const diagram = architecture === undefined ? "" : `    <div class="diagram-wrap diagram-scroll">\n${await component(architecture)}\n    </div>`;
   let views = diagram;
 
@@ -54,7 +57,7 @@ async function card(option, props, row, context) {
     `  <article class="${classes}">`,
     '    <div class="option-head">',
     `      ${letter(option)}`,
-    `      <div class="text"><h3>${esc(option.title)}</h3>${summary === undefined ? "" : `<p>${inline(summary)}</p>`}${whyNot}</div>${toggle}${pill === "" ? "" : `\n      ${pill}`}`,
+    `      <div class="text"><h3>${esc(option.title)}</h3>${summary === undefined ? "" : `<p>${inline(summary)}</p>`}${whyNot}</div>${toggle}${badges === "" ? "" : `\n      <div class="option-badges">${badges}</div>`}`,
     "    </div>",
     views,
     `    <div class="assess${row ? " stacked" : ""}">\n      ${assess}\n    </div>`,
@@ -103,7 +106,7 @@ export default async function options(context) {
   const cards = [];
 
   for (const option of shown) {
-    cards.push(await card(option, props, row, context));
+    cards.push(await card(option, props, row, option.id === decision.recommended ? (decision.recommendedBy ?? "") : null, context));
   }
 
   const asides = decision.options.filter((option) => option.status === "set aside").map((option) => setAside(option, context));
