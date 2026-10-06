@@ -287,6 +287,20 @@ opencode:
           - action: skill
             resource: effort-context
             effect: allow
+          # OpenCode exposes MCP tools through code mode's execute tool, which the built-in explore agent denies.
+          # Each tool called inside execute still checks its own rule, so only the Cairn tools below open up.
+          - action: execute
+            resource: "*"
+            effect: allow
+          - action: cairn_catalog_location
+            resource: "*"
+            effect: allow
+          - action: cairn_catalog_describe
+            resource: "*"
+            effect: allow
+          - action: cairn_catalog_find
+            resource: "*"
+            effect: allow
           - action: edit
             resource: "*"
             effect: deny
