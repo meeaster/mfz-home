@@ -104,6 +104,8 @@ PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far",
 ROUTINE_KINDS = {"evidence", "risk", "follow-on"}
 FIELD_TALK = re.compile(r"\b(Needed by|Answer from|Blocks|Waiting on|Status|Recorded from|Answered by|Explanation|Still to show)\s*:", re.I)
 RECOMMEND = {"accept": "decided", "accept as leaning": "leaning", "ask": "open", "defer": "leaning", "reject": ""}
+# A decisions table: the decision with where it stands under it, then what it waits on and where it's worked out.
+DECISION_HEAD = ["ID", "Decision", "Waiting on", "Worked out in"]
 # A deliverable's Status, and the class its pill takes.
 DELIVERABLE_STATUS = {"proposed": "", "planned": "", "in progress": "leaning", "done": "decided"}
 # The roles a link plays: something the design published, or someone else's page it relies on.
@@ -133,6 +135,8 @@ ANSWER_FROM = {"research": "Research", "person": "Person", "approval": "Approval
 # the newest evidence it was made from, so later evidence can mark it out of date.
 RECOMMEND_PARTS = ("because", "would change if", "confidence", "model", "made", "seen")
 CONFIDENCE = ("high", "medium", "low")
+# A model's short name fits the AI tag beside a table row; a provider, platform or model ID doesn't.
+MODEL_LIMIT = 24
 # The parts an Explanation can be written in, in the order they show.
 EXPLAIN_PARTS = [("means here", "What it means here"), ("matters", "Why it matters"), ("answer changes", "What the answer changes"), ("settled by", "What settles it")]
 # A verdict of "not built yet" says nothing about whether the design fits; these words give it away.
@@ -1136,6 +1140,9 @@ def check_recommendation(record: Record, design: Design) -> None:
     missing = [key.capitalize() for key in RECOMMEND_PARTS if not rec.get(key)]
     if missing:
         design.warnings.append(f"{where}: '{record.id}' Recommendation has no {', '.join(missing)}")
+    model = rec.get("model", "")
+    if len(model) > MODEL_LIMIT or re.search(r"[()]|\bon\b|\bvia\b|/", model):
+        design.warnings.append(f"{where}: '{record.id}' Recommendation model '{model}'; give the model's short name, as people say it (Opus 5.5, Sonnet, GPT Sol 6.1), without provider, platform or model ID")
     if rec.get("confidence") and rec["confidence"].lower() not in CONFIDENCE:
         design.warnings.append(f"{where}: '{record.id}' Recommendation confidence '{rec['confidence']}'; use High, Medium or Low")
     if rec.get("made") and not re.fullmatch(r"\d{4}-\d{2}-\d{2}", rec["made"]):
@@ -1618,7 +1625,7 @@ class Renderer:
         detail = ' data-ref-detail="AI recommends"' if define else ""
         model = f'&nbsp;·&nbsp;<span{" data-ref-detail=" + chr(34) + "AI model" + chr(34) if define else ""}>{esc(rec["model"])}</span>' if rec.get("model") else ""
         # The tag comes after the pick so a card lists what's recommended before the model; CSS shows the tag first.
-        return f'<span class="ai-line"><span{detail}>{self.recommended(r, rec)}</span><span class="ai-tag sm">AI{model}</span></span>'
+        return f'<span class="ai-line"><span{detail}>{self.recommended(r, rec)}</span><span class="ai-tag sm"><span>AI{model}</span></span></span>'
 
     def answer_source(self, q: Record, define: bool) -> str:
         """How a question's answer can be got, as a chip, with where to look for research or who to ask otherwise. On the
@@ -1643,14 +1650,13 @@ class Renderer:
         answered = state == "answered"
         text, cls = QUESTION_PILL[state]
         pill = f'<span class="status{" " + cls if cls else ""}">{text}</span>'
-        main = self.explanation(q)
+        main = [self.ai_block(q)] + self.explanation(q)
         label = "Answer" if answered else "So far"
         if q.get(label):
             main.append(f'<div class="dm-answer"><h4>{label}</h4><p>{self.inline(q.get(label))}</p></div>')
         if state == "deferred":
             reopen = f'<p class="note">Could reopen {self.inline(q.get("Could reopen"))}</p>' if q.get("Could reopen") else ""
             main.append(f'<div class="dm-deferred"><h4>Deferred</h4><p>{self.inline(q.get("Deferred"))}</p>{reopen}</div>')
-        main.append(self.ai_block(q))
 
         side = []
         if q.get("Needed by") and not answered:
@@ -1708,7 +1714,8 @@ class Renderer:
         pill = f'<span class="status{" " + cls if cls else ""}">{esc(text)}</span>'
         head = self.detail_head(r, pill, shapes_line(r, self.design))
 
-        main = self.explanation(r)
+        # The AI's recommendation leads, so a reader deciding sees it before the detail it weighs.
+        main = [self.ai_block(r)] + self.explanation(r)
         label = next((key for key in ANSWER_LABELS if r.get(key)), None)
         if label:
             note = f'<p class="note">{self.inline(r.get("Note"))}</p>' if r.get("Note") else ""
@@ -1716,7 +1723,6 @@ class Renderer:
         main += self.reasoning_parts(r, why_detail=True)
         if (r.get("Status") or "").lower() == "given" and r.get("Source"):
             main.append(f'<div><h4>Source</h4><p>{self.inline(r.get("Source"))}</p></div>')
-        main.append(self.ai_block(r))
         main.append(self.alternatives(r))
 
         side = []
@@ -1755,21 +1761,20 @@ class Renderer:
         return ""
 
     def decision_row(self, r: Record, define: bool = True, chips: str = "") -> str:
-        """A decision: the question and what it shapes, its status, the answer or leaning, and where it's worked out.
-        The row opens the decision's detail, which the defining table writes after itself."""
+        """A decision as the questions table shows a question: what it asks, and under it where it stands with the answer
+        or leaning (or, with neither, what it shapes) and the AI's recommendation; then what it waits on and where it's
+        worked out. The row opens the decision's detail, which the defining table writes after itself."""
         text, cls = self.status(r)
-        shapes = f'<span class="sub">{self.inline(shapes_line(r, self.design))}</span>' if shapes_line(r, self.design) else ""
-        note = f" {self.inline(r.get('Note'))}" if r.get("Note") else ""
-        detail = self.answer(r) + note + self.marks(split_list(r.get("Waiting on")), "Waiting on") + self.marks(cited_ids(r, "Evidence")) + self.ai_line(r, define)
         status = f'<span class="status{" " + cls if cls else ""}"{" data-ref-status" if define else ""}>{esc(text)}</span>'
-        where = self.worked_out(r) + chips
+        note = f" {self.inline(r.get('Note'))}" if r.get("Note") else ""
+        said = self.answer(r) or self.inline(shapes_line(r, self.design))
+        stands = f'<span class="d-stands">{status}<span class="t">{said}{note}</span></span>'
+        title = f'<span class="q"{" data-ref-text" if define else ""}>{self.inline(r.title)}</span>'
+        waiting = self.marks(split_list(r.get("Waiting on")), "Waiting on" if define else "")
         opens = f' class="opens" data-detail="{r.id}-detail" tabindex="0"'
-        if not define:
-            return f'<tr{opens}><td class="id">{self.ref(r.id)}</td><td><span class="q">{self.inline(r.title)}</span>{shapes}</td><td>{status}</td><td class="soft">{detail}</td><td>{where}</td></tr>'
-        return (
-            f'<tr id="{r.id}" data-ref="decision"{opens}><td class="id">{self.ref(r.id)}</td><td><span class="q" data-ref-text>{self.inline(r.title)}</span>{shapes}</td>'
-            f"<td>{status}</td><td class=\"soft\">{detail}</td><td>{where}</td></tr>"
-        )
+        ident = f'<td class="id">{self.ref(r.id)}</td>'
+        head = f'<tr id="{r.id}" data-ref="decision"{opens}>' if define else f"<tr{opens}>"
+        return f"{head}{ident}<td>{title}{stands}{self.ai_line(r, define)}</td><td>{waiting}</td><td>{self.worked_out(r) + chips}</td></tr>"
 
     def also(self, r: Record, page: str = "") -> str:
         """The other areas a decision shapes, besides the one it lives on and the page showing it."""
@@ -1787,9 +1792,9 @@ class Renderer:
                 rows = [self.decision_row(r, True, self.also(r)) for r in self.settled_last(records)]
             else:
                 for home, members in self.by_home(records):
-                    rows.append(self.group_row(home, 5))
+                    rows.append(self.group_row(home, len(DECISION_HEAD)))
                     rows += [self.decision_row(r, True, self.also(r)) for r in self.settled_last(members)]
-            table = self.table(["ID", "Decision", "Status", "Answer, or where it's leaning", "Worked out in"], rows)
+            table = self.table(DECISION_HEAD, rows)
             return table + self.details(records)
 
 
@@ -1799,8 +1804,8 @@ class Renderer:
         if ids is not None:
             rows = [row(r, None if self.home_of(r) == page else self.home_of(r)) for r in records]
         else:
-            rows = self.local(page, self.settled_last(records), 5, row, "Decided elsewhere, shapes this area")
-        return self.table(["ID", "Decision", "Status", "Answer, or where it's leaning", "Worked out in"], rows)
+            rows = self.local(page, self.settled_last(records), len(DECISION_HEAD), row, "Decided elsewhere, shapes this area")
+        return self.table(DECISION_HEAD, rows)
 
     def reasoning(self, page: str, ids: list[str] | None) -> str:
         """A decision's Why, Reasoning and Revisit if, for its section in a brief, and the AI recommendation while it's

@@ -38,7 +38,7 @@ On the decision or question in `design.json`:
 - `Because`: one or two sentences, citing the IDs it rests on.
 - `Would change if`: the finding or answer that would flip it, by ID when there is one.
 - `Confidence`: `High` when the evidence settles it and nothing open could flip it; `Medium` when an open question could; `Low` when it rests on judgement, or on what someone else has yet to say.
-- `Model`: the model writing it, by name and version, as your harness or session reports it. Readers weigh a recommendation by the model behind it, so take the name from the session rather than from memory.
+- `Model`: the model writing it, by the short name people use for it (`Opus 5.5`, `Sonnet`, `GPT Sol 6.1`), taken from what your harness or session reports rather than from memory. Readers weigh a recommendation by the model behind it, and the name sits in a small tag beside table rows, so leave out the provider, the platform ("on Amazon Bedrock") and any model ID; a version only when you know it. `check` warns when the name runs past about 24 characters.
 - `Made`: today. `Seen`: the highest evidence ID in `evidence.json` now.
 
 Refreshing one replaces it whole, model included. Leave everything else on the record as it is.

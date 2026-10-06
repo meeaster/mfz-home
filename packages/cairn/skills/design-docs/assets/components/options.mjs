@@ -36,7 +36,7 @@ async function card(option, props, row, recommendedBy, context) {
   const toggle = security === undefined ? "" : '\n      <div class="view-toggle"><button type="button" data-view="architecture">Architecture</button><button type="button" data-view="security">Security</button></div>';
   const pill = optionPill(option);
   // The AI's pick is advice, so it gets its own tag beside the option's status rather than changing it.
-  const advice = recommendedBy === null ? "" : `<span class="ai-tag">AI recommends${recommendedBy === "" ? "" : ` · ${esc(recommendedBy)}`}</span>`;
+  const advice = recommendedBy === null ? "" : `<span class="ai-tag" title="AI recommends${recommendedBy === "" ? "" : ` · ${esc(recommendedBy)}`}"><span>AI recommends${recommendedBy === "" ? "" : ` · ${esc(recommendedBy)}`}</span></span>`;
   const badges = [pill, advice].filter(Boolean).join("");
   const diagram = architecture === undefined ? "" : `    <div class="diagram-wrap diagram-scroll">\n${await component(architecture)}\n    </div>`;
   let views = diagram;

@@ -59,17 +59,16 @@ The progress line under an overview's or area's header shows how much is settled
 
 ## The decisions table
 
-One row per decision. Each row comes from the decision's record:
+One row per decision, laid out like a question's row so the table reads down one column rather than across several full ones. Each row comes from the decision's record:
 
-- the question, with what it shapes on a second line
-- its status: open, leaning, decided, or plain for Later and Given. Decision markers across the doc take their colour from it.
-- the answer, the current leaning, or what's assumed meanwhile, and what it's waiting on
+- the question, and under it its status (open, leaning, decided, or plain for Later and Given; decision markers across the doc take their colour from it) with the answer, the current leaning or what's assumed meanwhile, or, with none of those, what it shapes; then the AI's recommendation while it's open
+- what it's waiting on
 - where it's worked out (its brief or area page, the meeting that settled it, or "No brief yet" / "Not started") and the other areas it shapes
-- clicked, on the overview or an area page, the decision opens in a modal: its Explanation, then its answer, Why, Reasoning and Revisit if, and its options or alternatives each with a status and reason; beside them, the questions it waits on, where it's worked out, the other areas it shapes, and its evidence. The decision's card shows the Why under the answer, with "Open details" opening the same modal.
+- clicked, on the overview or an area page, the decision opens in a modal: the AI's recommendation first while it's open, then its Explanation, its answer, Why, Reasoning and Revisit if, and its options or alternatives each with a status and reason; beside them, the questions it waits on, where it's worked out, the other areas it shapes, and its evidence. The decision's card shows the Why under the answer, with "Open details" opening the same modal.
 
 Within each group, unsettled decisions come first. A decision with no brief is normal. It stays a row, with its evidence and the meeting that settled it.
 
-Question rows open the same way: the question's Explanation, then So far, its Answer, or why it was deferred and what it could reopen; beside them when its answer is needed, who to ask (only when someone was named), what it blocks, its evidence, and where it lives. Each row says how far the question has got (open, partly answered, deferred) apart from when its answer is needed. A risk with an Explanation opens the same kind of modal; the rest stay one line. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
+Question rows open the same way: the AI's recommendation first while the question is open, then its Explanation, then So far, its Answer, or why it was deferred and what it could reopen; beside them when its answer is needed, who to ask (only when someone was named), what it blocks, its evidence, and where it lives. Each row says how far the question has got (open, partly answered, deferred) apart from when its answer is needed. A risk with an Explanation opens the same kind of modal; the rest stay one line. On a brief's decision map, a question's box, or a decision without a section on the brief, opens its modal too; the Explanation lives only in the modals, so the tables stay one line a record.
 
 ## Page files
 

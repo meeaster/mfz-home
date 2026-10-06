@@ -17,6 +17,9 @@
 
   --ok: #15803d;
   --ok-bg: #e8f5ec;
+  --ai: #4f46e5;
+  --ai-bg: #eef2ff;
+  --ai-ink: #ffffff;
   --warn: #b45309;
   --warn-bg: #fef3e2;
   --lean: #0e7490;
@@ -62,6 +65,9 @@
     --sidebar-accent: #2a2a30;
     --ok: #4ade80;
     --ok-bg: #22c55e26;
+    --ai: #a5b4fc;
+    --ai-bg: #6366f124;
+    --ai-ink: #1e1b4b;
     --warn: #fbbf24;
     --warn-bg: #f59e0b26;
     --lean: #22d3ee;
@@ -99,6 +105,9 @@
   --sidebar-accent: #2a2a30;
   --ok: #4ade80;
   --ok-bg: #22c55e26;
+  --ai: #a5b4fc;
+  --ai-bg: #6366f124;
+  --ai-ink: #1e1b4b;
   --warn: #fbbf24;
   --warn-bg: #f59e0b26;
   --lean: #22d3ee;
@@ -746,17 +755,24 @@ table.table { width: 100%; border-collapse: collapse; }
 .table td.ask .who { display: block; margin-top: 4px; }
 .table td.ask .sub { max-width: 220px; font-weight: 400; white-space: normal; }
 
-/* AI recommendations: advice for the people deciding, set apart from the team's leaning by a dashed edge and an AI tag. */
-.ai-tag { display: inline-flex; align-items: center; padding: 1px 6px; border-radius: 4px; border: 1px dashed var(--muted-foreground); color: var(--foreground); font: 600 11.5px var(--font-ui); white-space: nowrap; }
-.ai-tag.sm { padding: 0 4px; font-size: 10.5px; }
-.ai-line .ai-tag { order: -1; }
-.ai-line { display: flex; gap: 6px; align-items: baseline; margin-top: 6px; font-size: 12.5px; color: var(--muted-foreground); }
-.ai-rec { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px dashed var(--border); border-radius: 8px; }
-.ai-head { display: flex; gap: 10px; align-items: center; }
-.ai-meta { font-size: 12.5px; color: var(--muted-foreground); }
+/* AI recommendations: advice for the people deciding, in a colour nothing else in the doc uses so it's the first thing
+   a reader spots, and kept apart from the team's own status and leaning. The tag stays one line: a long model name is cut
+   short rather than wrapping. */
+.ai-tag { display: inline-flex; gap: 4px; align-items: center; min-width: 0; max-width: 220px; padding: 2px 8px; border-radius: 999px; background: var(--ai); color: var(--ai-ink); font: 600 11.5px var(--font-ui); line-height: 1.4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ai-tag::before { content: ""; flex: none; width: 11px; height: 11px; background: currentColor; -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z'/%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.94 15.5A2 2 0 0 0 8.5 14.06l-6.14-1.58a.5.5 0 0 1 0-.96L8.5 9.94A2 2 0 0 0 9.94 8.5l1.58-6.14a.5.5 0 0 1 .96 0L14.06 8.5A2 2 0 0 0 15.5 9.94l6.14 1.58a.5.5 0 0 1 0 .96L15.5 14.06a2 2 0 0 0-1.44 1.44l-1.58 6.14a.5.5 0 0 1-.96 0z'/%3E%3C/svg%3E") center / contain no-repeat; }
+.ai-tag.sm { max-width: 160px; padding: 1px 6px; font-size: 10.5px; }
+.ai-tag > span { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ai-line .ai-tag { order: -1; align-self: flex-start; }
+/* In a table row the recommendation is its own small box: the AI tag as its header, what it recommends inside. */
+.ai-line { display: flex; flex-direction: column; gap: 5px; width: fit-content; max-width: 100%; margin-top: 8px; padding: 7px 10px 8px; border: 1.5px dashed var(--ai); border-radius: 8px; background: var(--ai-bg); font-size: 12.5px; font-weight: 500; color: var(--foreground); }
+.ai-rec { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1.5px dashed var(--ai); border-radius: 10px; background: var(--ai-bg); }
+.ai-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.ai-meta { font-size: 12.5px; font-weight: 500; color: var(--ai); }
 .ai-pick { font-weight: 600; }
 .ai-change { font-size: 13px; color: var(--muted-foreground); }
 .ai-change b { color: var(--foreground); font-weight: 500; }
+.d-stands { display: flex; flex-wrap: wrap; gap: 4px 8px; align-items: baseline; margin-top: 6px; }
+.d-stands .t { font-size: 13px; color: var(--muted-foreground); }
 .option-badges { display: flex; gap: 6px; align-items: center; }
 
 /* An Explanation in parts, and a deferred question's reason, in a record's modal. */
@@ -865,7 +881,7 @@ html:not(.js) .dm-close { display: none; }
 .reasoning li::before { content: ""; position: absolute; left: 2px; top: 9px; width: 5px; height: 5px; border-radius: 50%; background: var(--muted-foreground); }
 .reasoning { padding: 18px 22px; border-radius: 10px; border: 1px solid var(--border); background: var(--card); max-width: 860px; }
 .reasoning:has(> .ai-rec:only-child) { padding: 0; border: 0; background: none; }
-.reasoning .ai-rec { background: var(--card); }
+.reasoning .ai-rec { background: var(--ai-bg); }
 
 /* A decision's options in its modal: a card each, the winner or leaning first. */
 .alts { display: flex; flex-direction: column; gap: 10px; }
