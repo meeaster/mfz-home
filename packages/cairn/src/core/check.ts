@@ -3,6 +3,7 @@ import { join } from "node:path";
 import { integer, optionalText, text, timestamp, transaction, type Cairn } from "./db.ts";
 import { fileFacts, recordManagedFile, type FileFacts } from "./artifacts.ts";
 import { member } from "./find.ts";
+import { unplacedSections, type UnplacedSection } from "./origins.ts";
 import { absolutePath, isCairnOwned, safeSegment } from "./root.ts";
 import { markArtifactDirty } from "./views.ts";
 
@@ -11,6 +12,7 @@ export type CheckReport = {
   readonly changed: readonly string[];
   readonly moved: readonly { readonly from: string; readonly to: string }[];
   readonly captured: readonly string[];
+  readonly unplaced: readonly UnplacedSection[];
 };
 
 type Recorded = {
@@ -76,7 +78,8 @@ function folderSession(cairn: Cairn, inside: string): number | null {
   return null;
 }
 
-// Marks missing and changed files, follows moved files by hash, and records files written outside the harness hooks.
+// Marks missing and changed files, follows moved files by hash, records files written outside the harness hooks, and
+// reports reference sections their knowledge article no longer has.
 export function check(cairn: Cairn): CheckReport {
   return transaction(cairn, () => {
     const now = timestamp(cairn);
@@ -165,6 +168,6 @@ export function check(cairn: Cairn): CheckReport {
       captured.push(join(cairn.root, inside));
     }
 
-    return { missing, changed, moved, captured };
+    return { missing, changed, moved, captured, unplaced: unplacedSections(cairn) };
   });
 }

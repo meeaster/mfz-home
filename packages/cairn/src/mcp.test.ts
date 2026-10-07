@@ -101,7 +101,26 @@ async function catalog() {
 
   const index = (slug: string) => readFileSync(join(root, "efforts", slug, "index.md"), "utf8");
 
-  return { client, call, json, cli, writeEvidence, index };
+  const cliJson = (...args: string[]): z.core.util.JSONType => {
+    let printed = "";
+
+    const code = main([...args, "--json"], { CAIRN_ROOT: root }, {
+      stdout: (text) => {
+        printed += text;
+      },
+      stderr: () => {},
+      stdin: () => "",
+      now,
+      launchIndex: () => {},
+      pricing: () => null
+    });
+
+    expect(code).toBe(0);
+
+    return z.json().parse(JSON.parse(printed));
+  };
+
+  return { root, client, call, json, cli, cliJson, writeEvidence, index };
 }
 
 describe("MCP tools", () => {
@@ -115,6 +134,8 @@ describe("MCP tools", () => {
       "catalog_find",
       "catalog_link",
       "catalog_location",
+      "catalog_origin",
+      "catalog_reference",
       "catalog_session"
     ]);
     expect(tools.every((tool) => tool.inputSchema.type === "object")).toBe(true);
@@ -298,5 +319,190 @@ describe("MCP tools", () => {
     expect(missing).toEqual({ isError: true, text: expect.stringContaining("no-such-effort") });
     expect(relative).toEqual({ isError: true, text: expect.stringContaining("absolute path") });
     expect(incomplete).toEqual({ isError: true, text: "into: Invalid input: expected string, received undefined" });
+  });
+});
+
+const accessList = z.array(z.object({ method: z.string(), detail: z.string() }));
+
+const registeredOrigin = z.object({
+  existing: z.boolean(),
+  origin: z.object({ key: z.string(), access: accessList }),
+  kind: z.object({ name: z.string(), identifier: z.string() })
+});
+
+const originKinds = z.object({
+  kinds: z.array(z.object({ name: z.string(), identifier: z.string(), description: z.string(), origins: z.number() }))
+});
+
+const foundOrigins = z.object({ origins: z.array(z.object({ key: z.string(), articles: z.number(), references: z.number() })) });
+
+const referenceEntry = z.object({
+  article: z.string(),
+  origin: z.string(),
+  locator: z.string(),
+  title: z.string(),
+  sections: z.array(z.string()),
+  observed_at: z.string(),
+  version: z.string().nullable()
+});
+
+const recordedReference = z.object({ created: z.boolean(), reference: referenceEntry });
+
+const referenceList = z.object({
+  references: z.array(referenceEntry),
+  origins: z.array(z.object({ key: z.string(), access: accessList }))
+});
+
+const checkReport = z.object({ unplaced: z.array(z.object({ article: z.string(), section: z.string() })) });
+
+describe("Origins and references", () => {
+  async function withArticle() {
+    const cairn = await catalog();
+    const article = join(cairn.root, "knowledge", "network-connectivity.md");
+
+    cairn.cli("session", "start", "opencode:writer");
+    mkdirSync(dirname(article), { recursive: true });
+    writeFileSync(article, "# Network connectivity\n\n## VPN tunnels\n\n## Routing\n");
+    cairn.cli("capture", article, "--session", "opencode:writer");
+    await cairn.json(artifactEntry, "catalog_describe", {
+      path: article,
+      category: "knowledge",
+      title: "Network connectivity",
+      description: "How production reaches on-premises sites."
+    });
+
+    await cairn.json(registeredOrigin, "catalog_origin", {
+      action: "register",
+      origin: "aws:4471-0938-2215",
+      title: "Prod network",
+      access: [{ method: "AWS CLI", detail: "--profile prod-network-ro" }],
+      new_kind: { identifier: "AWS account ID" }
+    });
+
+    return { ...cairn, article };
+  }
+
+  test("a later agent reuses a registered origin, adding the access method it used, and a new kind must say what its identifiers are", async () => {
+    const cairn = await withArticle();
+
+    const again = await cairn.json(registeredOrigin, "catalog_origin", {
+      action: "register",
+      origin: "aws:4471-0938-2215",
+      title: "Production networking account",
+      access: [{ method: "AWS MCP" }]
+    });
+
+    expect(again.existing).toBe(true);
+    expect(again.origin.access).toEqual([
+      { method: "AWS CLI", detail: "--profile prod-network-ro" },
+      { method: "AWS MCP", detail: "" }
+    ]);
+
+    const unknownKind = await cairn.call("catalog_origin", { action: "register", origin: "sentry:acme", title: "Acme Sentry" });
+
+    expect(unknownKind).toEqual({ isError: true, text: expect.stringContaining("new_kind") });
+
+    await cairn.json(registeredOrigin, "catalog_origin", {
+      action: "register",
+      origin: "sentry:acme",
+      title: "Acme Sentry",
+      access: [{ method: "Sentry MCP" }],
+      new_kind: { identifier: "Sentry org slug" }
+    });
+
+    const { kinds } = await cairn.json(originKinds, "catalog_origin", { action: "kinds" });
+
+    expect(kinds).toEqual([
+      { name: "aws", identifier: "AWS account ID", description: "", origins: 1 },
+      { name: "sentry", identifier: "Sentry org slug", description: "", origins: 1 }
+    ]);
+  });
+
+  test("an article's references list oldest observed first, and a new look replaces the observation", async () => {
+    const cairn = await withArticle();
+
+    await cairn.json(registeredOrigin, "catalog_origin", {
+      action: "register",
+      origin: "repo:github.com/acme/infra",
+      title: "acme/infra",
+      new_kind: { identifier: "Repository host and path" }
+    });
+
+    const vpn = await cairn.json(recordedReference, "catalog_reference", {
+      action: "record",
+      article: cairn.article,
+      origin: "aws:4471-0938-2215",
+      locator: "us-east-1 site-to-site VPN connections",
+      title: "Site-to-site VPN connections",
+      sections: ["VPN tunnels"],
+      observed_at: "2026-10-02"
+    });
+
+    await cairn.json(recordedReference, "catalog_reference", {
+      action: "record",
+      article: cairn.article,
+      origin: "repo:github.com/acme/infra",
+      locator: "terraform/network/**",
+      title: "Network Terraform modules",
+      sections: ["Routing"],
+      observed_at: "2026-09-28",
+      version: "3f2a91c"
+    });
+
+    expect(vpn.created).toBe(true);
+
+    const listed = await cairn.json(referenceList, "catalog_reference", { action: "list", article: cairn.article });
+
+    expect(listed.references.map((entry) => entry.title)).toEqual(["Network Terraform modules", "Site-to-site VPN connections"]);
+    expect(listed.origins.find((origin) => origin.key === "aws:4471-0938-2215")?.access).toEqual([
+      { method: "AWS CLI", detail: "--profile prod-network-ro" }
+    ]);
+
+    const relooked = await cairn.json(recordedReference, "catalog_reference", {
+      action: "record",
+      article: cairn.article,
+      origin: "repo:github.com/acme/infra",
+      locator: "terraform/network/**",
+      observed_at: "2026-10-05",
+      version: "9be04d2"
+    });
+
+    expect(relooked).toEqual({
+      created: false,
+      reference: expect.objectContaining({ sections: ["Routing"], observed_at: "2026-10-05", version: "9be04d2" })
+    });
+
+    const { origins } = await cairn.json(foundOrigins, "catalog_origin", { action: "find", text: "infra" });
+
+    expect(origins).toEqual([expect.objectContaining({ key: "repo:github.com/acme/infra", articles: 1, references: 1 })]);
+  });
+
+  test("references attach only to knowledge articles, and check reports a section whose heading was renamed", async () => {
+    const cairn = await withArticle();
+    const evidence = await cairn.writeEvidence("opencode:writer", "VPN tunnel status");
+
+    await cairn.json(artifactEntry, "catalog_describe", { path: evidence, category: "evidence" });
+
+    const onEvidence = await cairn.call("catalog_reference", {
+      action: "record",
+      article: evidence,
+      origin: "aws:4471-0938-2215",
+      locator: "us-east-1 VPN connections",
+      title: "VPN connections"
+    });
+
+    expect(onEvidence).toEqual({ isError: true, text: expect.stringContaining("isn't a knowledge article") });
+
+    await cairn.json(recordedReference, "catalog_reference", {
+      action: "record",
+      article: cairn.article,
+      origin: "aws:4471-0938-2215",
+      locator: "us-east-1 transit gateway route tables",
+      title: "Transit gateway route tables",
+      sections: ["Routing"]
+    });
+    writeFileSync(cairn.article, "# Network connectivity\n\n## VPN tunnels\n\n## Routing and peering\n");
+
+    expect(checkReport.parse(cairn.cliJson("check")).unplaced).toEqual([{ article: cairn.article, section: "Routing" }]);
   });
 });

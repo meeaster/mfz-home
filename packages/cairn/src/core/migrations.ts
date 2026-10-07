@@ -325,6 +325,53 @@ const migrations: readonly string[] = [
     page_updated TEXT,
     read_at TEXT NOT NULL
   ) STRICT;
+  `,
+  `
+  -- Origins are the systems knowledge comes from (an AWS account, a Datadog org, a repository, a documentation site),
+  -- each described once with how to reach it. Kinds are an open list that grows as agents register origins;
+  -- identifier says what a kind's identifiers are, so the next agent registers the same system the same way.
+  CREATE TABLE origin_kind (
+    id INTEGER PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    identifier TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  ) STRICT;
+  CREATE TABLE origin (
+    id INTEGER PRIMARY KEY,
+    kind_id INTEGER NOT NULL REFERENCES origin_kind (id),
+    identifier TEXT NOT NULL,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    created_by TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    UNIQUE (kind_id, identifier)
+  ) STRICT;
+  -- How to reach an origin from here: a tool and what it needs, such as an AWS CLI profile. Never a credential.
+  CREATE TABLE origin_access (
+    origin_id INTEGER NOT NULL REFERENCES origin (id) ON DELETE CASCADE,
+    method TEXT NOT NULL,
+    detail TEXT NOT NULL DEFAULT '',
+    PRIMARY KEY (origin_id, method, detail)
+  ) STRICT;
+  -- What a knowledge article looked at inside an origin. locator says where, precisely enough to look again.
+  -- observed_at and version describe one look and change together. sections is a JSON array of the article's
+  -- headings the reference supports; empty means the whole article.
+  CREATE TABLE origin_reference (
+    id INTEGER PRIMARY KEY,
+    artifact_id INTEGER NOT NULL REFERENCES artifact (id) ON DELETE CASCADE,
+    origin_id INTEGER NOT NULL REFERENCES origin (id),
+    locator TEXT NOT NULL,
+    title TEXT NOT NULL,
+    sections TEXT NOT NULL DEFAULT '[]',
+    observed_at TEXT NOT NULL,
+    version TEXT,
+    recorded_by TEXT NOT NULL,
+    UNIQUE (artifact_id, origin_id, locator)
+  ) STRICT;
+  CREATE INDEX origin_reference_origin ON origin_reference (origin_id);
   `
 ];
 

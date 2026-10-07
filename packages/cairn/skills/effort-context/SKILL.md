@@ -1,6 +1,6 @@
 ---
 name: effort-context
-description: Use for requested effort capture or resume, synthesis or handoff for continuation, recommending an effort once work has a subject, writing up evidence into a knowledge article, saving a meeting or message thread as a source, registering Jira items, Confluence pages and other links or refreshing what Jira says, bringing earlier material into an effort, explicitly assigned working-record maintenance, or locating storage for output files. These are bounded operations, not workflow entry.
+description: Use for requested effort capture or resume, synthesis or handoff for continuation, recommending an effort once work has a subject, writing up evidence into a knowledge article or re-checking one against its origins, saving a meeting or message thread as a source, registering Jira items, Confluence pages and other links or refreshing what Jira says, bringing earlier material into an effort, explicitly assigned working-record maintenance, or locating storage for output files. These are bounded operations, not workflow entry.
 ---
 
 # Effort Context
@@ -14,7 +14,8 @@ Select the bounded operation requested or required by the caller. Loading this s
 | Capture current work | [Storage](references/storage.md), [efforts](references/efforts.md), [capture and resume](references/capture-and-resume.md) | Recoverable intent, decisions, evidence, and state preserved in an effort with disclosed gaps |
 | Preserve discussion or prepare a handoff | [Storage](references/storage.md), [synthesis and handoff](references/capture-and-resume.md#synthesis-and-handoff) | Requested understanding preserved in synthesis, with a continuation pointer when an effort is established |
 | Resume an effort | [Capture and resume](references/capture-and-resume.md), [efforts](references/efforts.md) | Relevant continuation context and current authority understood, and this session attached |
-| Write up knowledge | [Knowledge](references/knowledge.md) | The article covers what the evidence in scope establishes about its subject, and each of those evidence files either informs it or is reported as left out with the reason |
+| Write up knowledge | [Knowledge](references/knowledge.md) | The article covers what the evidence in scope establishes about its subject, each of those evidence files either informs it or is reported as left out with the reason, and each system the article rests on is recorded as a reference |
+| Re-check knowledge | [Knowledge](references/knowledge.md#re-check) | Every reference in scope looked at again: the new look recorded, the article corrected where the origin changed, and each reference that couldn't be reached reported |
 | Save a meeting or message thread | [Storage](references/storage.md#sources) | The source saved in its folder and described; a meeting also has its summary with candidates for intake |
 | Register Jira items, Confluence pages or other links, or refresh Jira | [Storage](references/storage.md#jira-items-confluence-pages-and-other-links) | Each link registered with its role, why it's there and its efforts, and each Jira item or page read described with what was read |
 | Bring in existing material | [Import](references/import.md), [storage](references/storage.md), [knowledge](references/knowledge.md) | Every file in scope feeds a record, an article, or a source, or is reported as left out with the reason; unaccepted items remain marked candidates |

@@ -87,13 +87,15 @@ Agents use the catalog through a stdio MCP server:
 cairn-mcp
 ```
 
-It reads `CAIRN_ROOT` the same way the CLI does. It has six tools:
+It reads `CAIRN_ROOT` the same way the CLI does. It has eight tools:
 - `catalog_session`: describe a session and attach it to efforts.
 - `catalog_describe`: describe a file, or register a URL, with what an agent read about a Jira item or Confluence page.
 - `catalog_find`: find efforts, sessions, or files.
 - `catalog_location`: get a path for a new file.
 - `catalog_effort`: show or change an effort.
 - `catalog_link`: link files or efforts.
+- `catalog_origin`: find or register the systems knowledge comes from, with how to reach them.
+- `catalog_reference`: record what a knowledge article looked at in an origin, and list an article's references oldest observed first.
 
 The tools return pointers and descriptions, never file contents.
 

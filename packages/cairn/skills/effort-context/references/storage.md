@@ -1,6 +1,6 @@
 # Storage
 
-Cairn keeps working files under `~/workspace/artifacts/cairn/` and a catalog of what each one is. Files hold the content; the catalog holds descriptions, efforts, and links. Expand `~` for tools needing absolute paths.
+Cairn keeps working files under `~/workspace/artifacts/cairn/` and a catalog of what each one is. Files hold the content; the catalog holds descriptions, efforts, links, and the [origins](knowledge.md#origins) knowledge rests on. Expand `~` for tools needing absolute paths.
 
 ## Choose a location
 

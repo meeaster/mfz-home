@@ -197,6 +197,8 @@ Evidence is organized by the question each assignment answered: one file per ass
 - **Where it lives.** `knowledge/<subject>.md` at the root, or a folder when it needs sub-pages or pictures (`cairn mv` keeps its identity). It joins the efforts of the session that first wrote it, and an agent adds other efforts with `efforts.include` when their work relies on it or adds to it. Reading an article for background adds nothing.
 - **Writing up.** On the human's request, an agent writes up evidence into an article: it looks for an existing article on the subject first, then writes or updates it, and links each evidence file it used with `informs`. A large write-up can be a dispatched assignment whose output file is the article.
 - **Finding them.** `catalog_find` with category `knowledge`, the effort view's Knowledge group, and the generated `knowledge/index.md`, which lists each article with its efforts, how many files inform it, and when it last changed. In the effort view, each file that informs an article says which one, so evidence that hasn't been written up yet stands out.
+- **Origins and references.** Evidence says which investigation found something; it doesn't say where to look to check it again. An **origin** is a system knowledge comes from (an AWS account, a Datadog org, a repository, a Confluence space, a documentation site), described once in the catalog with its kind, identifier, and access methods: how to reach it from here, such as an AWS CLI profile or an MCP server, never a credential. A **reference** records what one article looked at inside an origin: a locator precise enough to look again, the sections it supports, and when and at which version it was observed. Origins are shared, so one look at an account can serve several articles, and an origin's references show which articles to re-check when it changes. Kinds are an open list that grows as agents register origins, each saying what its identifiers are. A system you reach as one place is the origin; a page, ticket, resource, or path inside it is a reference's locator.
+- **Re-checking.** On request, an agent lists an article's references oldest observed first, looks at each again through its origin's access methods, corrects the article where the origin changed, and records the new look. Nothing between re-checks claims an article is current: freshness is the dates and versions on its references, and origins carry none.
 
 Articles are working material in the catalog. Promotion into a personal knowledge base is a separate step with its own authority.
 
@@ -278,7 +280,7 @@ The generated `efforts/<slug>/index.md` renders the default effort view as Markd
 
 ## Data model (v1)
 
-Rows have internal integer IDs. Interfaces use natural keys (see [Stack](#stack)): sessions as `<harness>:<native-id>`, efforts by slug, and artifacts by path or URL.
+Rows have internal integer IDs. Interfaces use natural keys (see [Stack](#stack)): sessions as `<harness>:<native-id>`, efforts by slug, artifacts by path or URL, and origins as `<kind>:<identifier>`.
 
 ```text
 session     id, harness, native_id, parent_session_id?, root_session_id,
@@ -300,6 +302,11 @@ link        src_kind(artifact|effort|session), src_id, rel, dst_kind, dst_id,
 tag         effort_id, namespace, value                           -- unique triple
 jira_item   artifact_id, issue_key, issue_type?, status?, status_category?, parent_key?, blocks, read_at
 confluence_page artifact_id, space?, version?, page_updated?, read_at   -- what an agent last read
+origin_kind id, name, identifier, description, created_by, created_at      -- identifier says what the kind's identifiers are
+origin      id, kind_id, identifier, title, description, created_by, created_at, updated_at   -- unique (kind, identifier)
+origin_access    origin_id, method, detail                                  -- how to reach it from here
+origin_reference id, artifact_id (a knowledge article), origin_id, locator, title, sections,
+                 observed_at, version?, recorded_by                         -- unique (article, origin, locator)
 ```
 
 An artifact's efforts are the attached efforts of the nearest attached session in its producer's ancestry, plus the effort whose folder holds it, plus `include` memberships, minus `exclude` memberships. The `artifact_effort` view computes this.
@@ -411,6 +418,8 @@ The database is the only place descriptions, attachments, links, and tags exist.
 | `catalog_location` | A collision-free write path. Inputs: `session`, `topic`, optional `effort`. | Absolute path |
 | `catalog_effort` | `create` or `show` an effort, or `update` its title, description, status, or tags. Also `rename`, `split` (a new effort with a `split_from` link and chosen sessions and files included, removing nothing from the original), and `merge`. One flat input object, because MCP tool inputs must be objects. | The effort, or for `show` the effort view |
 | `catalog_link` | Add or remove links between artifacts (`informs`, `supersedes`, `related`) or between efforts (`depends_on`, `split_from`, `related`). Accept or reject suggestions. | Links |
+| `catalog_origin` | `kinds` lists kinds and what their identifiers are; `find` searches origins by kind or text; `register` adds an origin (`<kind>:<identifier>`, title, description, `access[]`, and `new_kind` for a kind not yet listed), or returns the existing one and adds any new access methods; `update` changes its title, description, or access methods. One flat input object. | Kinds, or origins with access methods and how many articles and references use them |
+| `catalog_reference` | `record` a reference from a knowledge article to an origin (`locator`, `title`, `sections[]`, `observed_at`, `version`), or a new look at an existing one, which replaces its observed time and version; `list` an article's references oldest observed first, or every reference to an origin; `remove` one. One flat input object. | References, and for `list` their origins with access methods |
 
 **Why MCP for agents:** read-only producers such as `explore` often have no shell permission. MCP tools can be allowed for them without granting Bash.
 
@@ -430,8 +439,11 @@ cairn find efforts|sessions|artifacts [filters] [--group-by category|session]
 cairn location --session <h>:<id> --topic <topic> [--effort <slug>]
 cairn effort create|show|update|rename|split|merge ...
 cairn link add|remove|accept|reject effort|artifact <src> <rel> <dst>
+cairn origin kinds | find [--kind] [--text] | register <kind:identifier> ... | update <kind:identifier> ...
+cairn reference record <article> <kind:identifier> <locator> ... | list --article <path>|--origin <key> | remove ...
 cairn ls [<effort>] [--by session]                   human browsing
-cairn check      mark missing or changed files; find moved files by hash; capture uncaptured files
+cairn check      mark missing or changed files; find moved files by hash; capture uncaptured files;
+                 report reference sections an article no longer has
 cairn mv <artifact> <new-path>
 cairn index      regenerate every effort's index.md
 cairn backup | restore <file>
@@ -529,6 +541,11 @@ Skills stay short, because the plugins handle the mechanics and the capture note
 | MCP for agents, CLI for plugins | Read-only producers such as `explore` often lack shell access, and MCP tools can be allowed for them without Bash. Plugins and hooks need a fast process call, with no MCP client. |
 | Its own package in `mfz-home` | It can be iterated on separately from the Mindframe-Z runtime. Moving it into Mindframe-Z later means relocating `src/core`. |
 | Built-in `node:sqlite` and MCP 2.0 packages | There is no native dependency. `mcp/discord` already uses the 2.0 split packages, so this matches the home. |
+| Origins shared, references per article | Re-checking and impact both work per system: one look at an account can refresh several articles, and when a system changes, its references list the articles to check. Copies per article would drift into different names for the same place. What each article looked at differs, so that lives on the reference (human decision, 2026-10-06). |
+| Origins and references in the catalog, not files | They are relationships and metadata, which the catalog owns. Agents need lookups ("is this account registered?"), several sessions write them at once, and JSON files beside the catalog would be a second authority (human decision on the assistant's recommendation, 2026-10-06). |
+| No status on origins or references | A stored "current" or "changed" is only true at the moment of a re-check and goes stale silently between them. References carry what was actually known, the observed date and version; origins carry nothing time-based, because a system isn't true or false (human decision, 2026-10-06). |
+| Open origin kinds | Kinds grow as agents meet new systems, such as Sentry, with no code change. Each kind says what its identifiers are, and agents check existing kinds and origins before registering, which keeps one system from being registered twice (human decision, 2026-10-06). |
+| Jira and Confluence pointers stay separate from origins | They track the work around efforts and are first-class there. Origins point only at what knowledge articles rest on (human decision, 2026-10-06). |
 
 ## How the design evolved
 
@@ -823,6 +840,14 @@ Built 2026-09-29.
 - **Written up.** The effort view gives each artifact the knowledge articles it `informs` (`written_up_in`), and the index shows them after the producer.
 - **Record names.** Cairn's record list was still `context.md` and `design.md` after the skills renamed the effort's technical record to `approach.md`, so `approach.md` got a capture note, was missing from the compaction note, and wasn't listed after a merge. The list is now `context.md` and `approach.md`; no effort folder held a `design.md`.
 - `sources/` and `designs/` need no code: any folder under the root is captured and described like the rest.
+
+### Origins and references
+
+Built 2026-10-06.
+- **Schema version 9** adds `origin_kind`, `origin`, `origin_access`, and `origin_reference`. A reference attaches only to an artifact of category `knowledge`.
+- **Tools.** `catalog_origin` and `catalog_reference`, with flat inputs parsed into discriminated ones like `catalog_effort`. The CLI has the same operations under `cairn origin` and `cairn reference`, with access methods as JSON.
+- **Sections.** `cairn check` reads each referenced article's Markdown headings and reports sections it no longer has.
+- **Not built.** The UI's Origins page and an article's References tab, mocked in Pencil.
 
 ### Records revision
 

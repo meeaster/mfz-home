@@ -221,6 +221,90 @@ export const moveInput = z.object({
   to: absolutePath
 });
 
+export type OriginKey = {
+  readonly kind: string;
+  readonly identifier: string;
+};
+
+export function formatOriginKey(key: OriginKey): string {
+  return `${key.kind}:${key.identifier}`;
+}
+
+// An origin's natural key: its kind's slug and the identifier within that kind, such as aws:4471-0938-2215 or
+// docs:docs.datadoghq.com. Only the first colon separates them, so identifiers may hold colons.
+export const originKey = z
+  .string()
+  .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*:\S/, "Expected <kind>:<identifier> such as aws:4471-0938-2215")
+  .transform((value): OriginKey => {
+    const separator = value.indexOf(":");
+
+    return { kind: value.slice(0, separator), identifier: value.slice(separator + 1).trim() };
+  });
+
+// One way to reach an origin from here: a tool, and what it needs, such as an AWS CLI profile. Never a credential.
+export const accessMethod = z.object({
+  method: z.string().min(1),
+  detail: z.string().default("")
+});
+
+// What a new kind's identifiers are, so later agents register the same thing the same way.
+export const originKindDraft = z.object({
+  identifier: z.string().min(1),
+  description: z.string().default("")
+});
+
+export const originInput = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("kinds") }),
+  z.object({
+    action: z.literal("find"),
+    kind: slug.optional(),
+    text: optionalText,
+    limit: z.number().int().positive().max(500).default(50)
+  }),
+  z.object({
+    action: z.literal("register"),
+    origin: originKey,
+    title: z.string().min(1),
+    description: z.string().default(""),
+    access: z.array(accessMethod).default([]),
+    new_kind: originKindDraft.optional()
+  }),
+  z.object({
+    action: z.literal("update"),
+    origin: originKey,
+    title: optionalText,
+    description: z.string().optional(),
+    add_access: z.array(accessMethod).default([]),
+    remove_access: z.array(accessMethod).default([])
+  })
+]);
+
+export const observedAt = z.union([z.iso.date(), z.iso.datetime({ offset: true })]);
+
+export const referenceInput = z.discriminatedUnion("action", [
+  z.object({
+    action: z.literal("record"),
+    article: absolutePath,
+    origin: originKey,
+    locator: z.string().min(1),
+    title: optionalText,
+    sections: z.array(z.string().min(1)).optional(),
+    observed_at: observedAt.optional(),
+    version: optionalText
+  }),
+  z.object({
+    action: z.literal("list"),
+    article: absolutePath.optional(),
+    origin: originKey.optional()
+  }),
+  z.object({
+    action: z.literal("remove"),
+    article: absolutePath,
+    origin: originKey,
+    locator: z.string().min(1)
+  })
+]);
+
 export type SessionOrigin = z.infer<typeof sessionOrigin>;
 
 export type SessionStartInput = z.infer<typeof sessionStartInput>;
@@ -246,3 +330,9 @@ export type EffortInput = z.infer<typeof effortInput>;
 export type LinkInput = z.infer<typeof linkInput>;
 
 export type MoveInput = z.infer<typeof moveInput>;
+
+export type AccessMethod = z.infer<typeof accessMethod>;
+
+export type OriginInput = z.infer<typeof originInput>;
+
+export type ReferenceInput = z.infer<typeof referenceInput>;

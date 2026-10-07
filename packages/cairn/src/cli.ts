@@ -18,6 +18,7 @@ import { find, type ArtifactEntry, type EffortSummary, type FindResult, type Ses
 import { link } from "./core/links.ts";
 import { isUrl } from "./core/lookup.ts";
 import { failureMessage, logFailure, withCairn, type Mode } from "./core/operation.ts";
+import { originCommand, referenceCommand, type OriginEntry, type OriginResult, type ReferenceEntry, type ReferenceResult } from "./core/origins.ts";
 import { resolveRoot, rootPaths } from "./core/root.ts";
 import { describeSession, location, sessionContext, startSession } from "./core/sessions.ts";
 import { effortView, regenerateDirty, renderIndex } from "./core/views.ts";
@@ -635,6 +636,134 @@ const commandTable = {
       return { json: result, text: `${verb}: ${result.action} ${result.src} ${result.rel} ${result.dst}` };
     }
   },
+  "origin kinds": {
+    usage: "cairn origin kinds",
+    options: {},
+    mode: "read",
+    run: (cairn) => originOutput(cairn, { action: "kinds" })
+  },
+  "origin find": {
+    usage: "cairn origin find [--kind <kind>] [--text <text>] [--limit <n>]",
+    options: { kind: { type: "string" }, text: { type: "string" }, limit: { type: "string" } },
+    mode: "read",
+    run: (cairn, values) => {
+      const limit = one(values, "limit");
+
+      return originOutput(
+        cairn,
+        schemas.originInput.parse({
+          action: "find",
+          kind: one(values, "kind"),
+          text: one(values, "text"),
+          limit: limit === undefined ? undefined : Number(limit)
+        })
+      );
+    }
+  },
+  "origin register": {
+    usage:
+      "cairn origin register <kind:identifier> --title <text> [--description <text>] [--access <json>]... " +
+      "[--kind-identifier <text> [--kind-description <text>]]",
+    options: {
+      title: { type: "string" },
+      description: { type: "string" },
+      access: { type: "string", multiple: true },
+      "kind-identifier": { type: "string" },
+      "kind-description": { type: "string" }
+    },
+    mode: "write",
+    run: (cairn, values, positionals) => {
+      const kindIdentifier = one(values, "kind-identifier");
+
+      return originOutput(
+        cairn,
+        schemas.originInput.parse({
+          action: "register",
+          origin: positional(positionals, 0, "kind:identifier"),
+          title: one(values, "title"),
+          description: one(values, "description"),
+          access: accessOptions(values, "access"),
+          new_kind: kindIdentifier === undefined ? undefined : { identifier: kindIdentifier, description: one(values, "kind-description") }
+        })
+      );
+    }
+  },
+  "origin update": {
+    usage: "cairn origin update <kind:identifier> [--title <text>] [--description <text>] [--add-access <json>]... [--remove-access <json>]...",
+    options: {
+      title: { type: "string" },
+      description: { type: "string" },
+      "add-access": { type: "string", multiple: true },
+      "remove-access": { type: "string", multiple: true }
+    },
+    mode: "write",
+    run: (cairn, values, positionals) =>
+      originOutput(
+        cairn,
+        schemas.originInput.parse({
+          action: "update",
+          origin: positional(positionals, 0, "kind:identifier"),
+          title: one(values, "title"),
+          description: one(values, "description"),
+          add_access: accessOptions(values, "add-access"),
+          remove_access: accessOptions(values, "remove-access")
+        })
+      )
+  },
+  "reference record": {
+    usage:
+      "cairn reference record <article-path> <kind:identifier> <locator> [--title <text>] [--section <heading>]... " +
+      "[--observed-at <date>] [--version <text>]",
+    options: {
+      title: { type: "string" },
+      section: { type: "string", multiple: true },
+      "observed-at": { type: "string" },
+      version: { type: "string" }
+    },
+    mode: "write",
+    run: (cairn, values, positionals) => {
+      const sections = many(values, "section");
+
+      return referenceOutput(
+        cairn,
+        schemas.referenceInput.parse({
+          action: "record",
+          article: resolve(positional(positionals, 0, "article-path")),
+          origin: positional(positionals, 1, "kind:identifier"),
+          locator: positional(positionals, 2, "locator"),
+          title: one(values, "title"),
+          sections: sections.length === 0 ? undefined : sections,
+          observed_at: one(values, "observed-at"),
+          version: one(values, "version")
+        })
+      );
+    }
+  },
+  "reference list": {
+    usage: "cairn reference list --article <path> | --origin <kind:identifier>",
+    options: { article: { type: "string" }, origin: { type: "string" } },
+    mode: "read",
+    run: (cairn, values) =>
+      referenceOutput(
+        cairn,
+        schemas.referenceInput.parse({ action: "list", article: optionalPath(one(values, "article")), origin: one(values, "origin") })
+      )
+  },
+  "reference remove": {
+    usage: "cairn reference remove <article-path> <kind:identifier> <locator>",
+    options: {},
+    mode: "write",
+    run: (cairn, _values, positionals) =>
+      referenceOutput(
+        cairn,
+        schemas.referenceInput.parse({
+          action: "remove",
+          article: resolve(positional(positionals, 0, "article-path")),
+          origin: positional(positionals, 1, "kind:identifier"),
+          locator: positional(positionals, 2, "locator")
+        })
+      )
+  },
   ls: {
     usage: "cairn ls [<effort>] [--by session]",
     options: { by: { type: "string" } },
@@ -670,7 +799,8 @@ const commandTable = {
         ...report.missing.map((path) => `missing   ${path}`),
         ...report.changed.map((path) => `changed   ${path}`),
         ...report.moved.map((move) => `moved     ${move.from} → ${move.to}`),
-        ...report.captured.map((path) => `recorded  ${path}`)
+        ...report.captured.map((path) => `recorded  ${path}`),
+        ...report.unplaced.map((entry) => `section   ${entry.article} § ${entry.section} (no longer a heading)`)
       ];
 
       return { json: report, text: lines.join("\n") || "Everything matches the catalog." };
@@ -714,6 +844,64 @@ const commandTable = {
 } satisfies Record<string, Command>;
 
 const commands = new Map<string, Command>(Object.entries(commandTable));
+
+// Access methods are given as JSON, one per repetition: {"method": "AWS CLI", "detail": "--profile prod-network-ro"}.
+function accessOptions(values: Values, name: string): schemas.AccessMethod[] {
+  return many(values, name).map((value) => schemas.accessMethod.parse(JSON.parse(value)));
+}
+
+function accessText(access: readonly schemas.AccessMethod[]): string {
+  return access.map((entry) => (entry.detail === "" ? entry.method : `${entry.method} ${entry.detail}`)).join("; ");
+}
+
+function originLine(origin: OriginEntry): string {
+  const access = origin.access.length === 0 ? "" : `  via ${accessText(origin.access)}`;
+
+  return `${origin.key}  ${origin.title}  (${origin.articles} articles, ${origin.references} references)${access}`;
+}
+
+function originText(result: OriginResult): string {
+  switch (result.action) {
+    case "kinds":
+      return result.kinds.map((kind) => `${kind.name}  ${kind.identifier}  (${kind.origins} origins)`).join("\n") || "No origin kinds.";
+    case "find":
+      return result.origins.map(originLine).join("\n") || "No origins.";
+    case "register":
+      return `${result.existing ? "Already registered" : "Registered"}: ${originLine(result.origin)}`;
+    case "update":
+      return originLine(result.origin);
+  }
+}
+
+function referenceLine(entry: ReferenceEntry): string {
+  const version = entry.version === null ? "" : ` @ ${entry.version}`;
+  const sections = entry.sections.length === 0 ? "" : `  § ${entry.sections.join(", ")}`;
+
+  return `${entry.observed_at}${version}  ${entry.origin}  ${entry.title} — ${entry.locator}${sections}`;
+}
+
+function referenceText(result: ReferenceResult): string {
+  switch (result.action) {
+    case "record":
+      return `${result.created ? "Recorded" : "Observed again"}: ${referenceLine(result.reference)}`;
+    case "list":
+      return result.references.map(referenceLine).join("\n") || "No references.";
+    case "remove":
+      return result.removed ? "Removed." : "No such reference.";
+  }
+}
+
+function originOutput(cairn: Cairn, input: schemas.OriginInput): Output {
+  const result = originCommand(cairn, input, "cli");
+
+  return { json: result, text: originText(result) };
+}
+
+function referenceOutput(cairn: Cairn, input: schemas.ReferenceInput): Output {
+  const result = referenceCommand(cairn, input, "cli");
+
+  return { json: result, text: referenceText(result) };
+}
 
 function effortOutput(cairn: Cairn, input: schemas.EffortInput): Output {
   const result = effortCommand(cairn, input, "cli");
