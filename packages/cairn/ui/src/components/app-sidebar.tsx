@@ -4,6 +4,7 @@ import {
   InboxIcon,
   LayersIcon,
   LinkIcon,
+  RadarIcon,
   MessagesSquareIcon,
   MoonIcon,
   MountainIcon,
@@ -30,7 +31,7 @@ import { routeHref, type Route } from "@/lib/route";
 import type { Theme } from "@/lib/theme";
 
 type BrowseItem = {
-  readonly view: "efforts" | "designs" | "links" | "sessions" | "knowledge" | "sources";
+  readonly view: "efforts" | "designs" | "links" | "sessions" | "knowledge" | "sources" | "origins";
   readonly label: string;
   readonly icon: LucideIcon;
 };
@@ -50,7 +51,8 @@ const groups: readonly { readonly label: string; readonly items: readonly Browse
     items: [
       { view: "sessions", label: "Sessions", icon: MessagesSquareIcon },
       { view: "knowledge", label: "Knowledge", icon: BookOpenIcon },
-      { view: "sources", label: "Sources", icon: InboxIcon }
+      { view: "sources", label: "Sources", icon: InboxIcon },
+      { view: "origins", label: "Origins", icon: RadarIcon }
     ]
   }
 ];
@@ -62,6 +64,8 @@ function browseView(route: Route): BrowseItem["view"] {
       return "efforts";
     case "session":
       return "sessions";
+    case "article":
+      return "knowledge";
     default:
       return route.view;
   }

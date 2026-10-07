@@ -5,7 +5,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { main } from "../cli.ts";
-import type { DesignItem, EffortPage, FilePage, LinksPage, SessionListItem, SessionPage, SidebarData, SourceItem } from "./api.ts";
+import type { ArticlePage, DesignItem, EffortPage, FilePage, LinksPage, OriginsPage, SessionListItem, SessionPage, SidebarData, SourceItem } from "./api.ts";
 import { startUiServer } from "./server.ts";
 
 const cleanups: (() => void)[] = [];
@@ -220,7 +220,7 @@ describe("cairn ui server", () => {
     const { json } = await serve(root);
     const sidebar = await json<SidebarData>("/api/sidebar");
 
-    expect(sidebar.counts).toEqual({ efforts: 1, designs: 1, links: 0, sessions: 1, knowledge: 1, sources: 3 });
+    expect(sidebar.counts).toEqual({ efforts: 1, designs: 1, links: 0, sessions: 1, knowledge: 1, sources: 3, origins: 0 });
   });
 
   test("an effort's Jira items deliver the plan deliverable their epic is linked to, and its pages keep their role", async () => {
@@ -267,6 +267,41 @@ describe("cairn ui server", () => {
     expect(links.jira).toHaveLength(2);
     expect(links.confluence[0]?.efforts).toEqual(["opw-deployment-on-aws"]);
     expect((await json<SidebarData>("/api/sidebar")).counts.links).toBe(3);
+  });
+
+  test("a knowledge article's page carries its content and its references oldest observed first, and origins list what rests on them", async () => {
+    const { root, article, run } = catalog();
+
+    run("origin", "register", "aws:4471-0938-2215", "--title", "Prod network", "--access", '{"method":"AWS CLI","detail":"--profile prod-network-ro"}', "--kind-identifier", "AWS account ID");
+    run("origin", "register", "docs:docs.aws.amazon.com", "--title", "AWS documentation", "--kind-identifier", "Documentation site host");
+    run("reference", "record", article, "aws:4471-0938-2215", "us-east-1 transit gateway route tables", "--title", "TGW route tables", "--section", "Routing", "--observed-at", "2026-10-02");
+    run("reference", "record", article, "docs:docs.aws.amazon.com", "/vpc/latest/tgw/transit-gateway-quotas.html", "--title", "Transit Gateway quotas", "--observed-at", "2026-09-30");
+
+    const { json } = await serve(root);
+    const page = await json<ArticlePage>(`/api/article?path=${encodeURIComponent(article)}`);
+    const origins = await json<OriginsPage>("/api/origins");
+
+    expect(page.file.content).toBe("# AWS environment\n");
+    expect(page.references.map((reference) => [reference.title, reference.sections])).toEqual([
+      ["Transit Gateway quotas", []],
+      ["TGW route tables", ["Routing"]]
+    ]);
+    expect(page.origins.find((origin) => origin.key === "aws:4471-0938-2215")?.access).toEqual([{ method: "AWS CLI", detail: "--profile prod-network-ro" }]);
+    expect(origins.kinds.map((kind) => [kind.name, kind.identifier, kind.origins])).toEqual([
+      ["aws", "AWS account ID", 1],
+      ["docs", "Documentation site host", 1]
+    ]);
+    expect(origins.origins.map((origin) => [origin.key, origin.articles, origin.references])).toEqual([
+      ["aws:4471-0938-2215", 1, 1],
+      ["docs:docs.aws.amazon.com", 1, 1]
+    ]);
+  });
+
+  test("an article page is only for knowledge articles", async () => {
+    const { root, evidence } = catalog();
+    const { send } = await serve(root);
+
+    expect((await send(`/api/article?path=${encodeURIComponent(evidence)}`)).status).toBe(404);
   });
 
   test("an effort's artifacts are grouped in view order and evidence names the article it was written up in", async () => {

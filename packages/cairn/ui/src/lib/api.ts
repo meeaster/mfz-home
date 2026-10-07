@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import type {
+  ArticlePage,
   DesignItem,
   EffortListItem,
   EffortPage,
   FilePage,
   KnowledgeItem,
   LinksPage,
+  OriginsPage,
   SessionListItem,
   SessionPage,
   SidebarData,
@@ -56,7 +58,9 @@ export const api = {
   designs: (signal?: AbortSignal) => get<DesignItem[]>("/api/designs", signal),
   sources: (signal?: AbortSignal) => get<SourceItem[]>("/api/sources", signal),
   links: (signal?: AbortSignal) => get<LinksPage>("/api/links", signal),
-  file: (path: string, signal?: AbortSignal) => get<FilePage>(`/api/file?path=${encodeURIComponent(path)}`, signal)
+  file: (path: string, signal?: AbortSignal) => get<FilePage>(`/api/file?path=${encodeURIComponent(path)}`, signal),
+  article: (path: string, signal?: AbortSignal) => get<ArticlePage>(`/api/article?path=${encodeURIComponent(path)}`, signal),
+  origins: (signal?: AbortSignal) => get<OriginsPage>("/api/origins", signal)
 };
 
 export async function openFolder(path: string): Promise<void> {

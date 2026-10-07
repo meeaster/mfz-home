@@ -6,6 +6,7 @@ import { z } from "zod";
 import { CairnError, type Cairn } from "../core/db.ts";
 import { failureMessage, withCairn } from "../core/operation.ts";
 import type {
+  ArticlePage,
   DesignItem,
   EffortListItem,
   EffortPage,
@@ -14,10 +15,12 @@ import type {
   SessionListItem,
   SessionPage,
   LinksPage,
+  OriginsPage,
   SidebarData,
   SourceItem
 } from "./api.ts";
 import {
+  articlePage,
   builtDoc,
   designList,
   effortList,
@@ -26,6 +29,7 @@ import {
   folderToOpen,
   jiraAndConfluence,
   knowledgeList,
+  originsPage,
   sessionList,
   sessionPage,
   sidebar,
@@ -63,7 +67,9 @@ type Payload =
   | DesignItem[]
   | SourceItem[]
   | LinksPage
-  | FilePage;
+  | FilePage
+  | OriginsPage
+  | ArticlePage;
 
 type Body = Payload | { readonly error: string } | { readonly opened: string };
 
@@ -76,6 +82,8 @@ const routes: readonly (readonly [RegExp, Route])[] = [
   [/^\/api\/sessions$/, (cairn) => sessionList(cairn)],
   [/^\/api\/sessions\/([^/]+)$/, (cairn, _params, match) => sessionPage(cairn, decodeURIComponent(match[1] ?? ""))],
   [/^\/api\/knowledge$/, (cairn) => knowledgeList(cairn)],
+  [/^\/api\/article$/, (cairn, params) => articlePage(cairn, params.get("path") ?? "")],
+  [/^\/api\/origins$/, (cairn) => originsPage(cairn)],
   [/^\/api\/designs$/, (cairn) => designList(cairn)],
   [/^\/api\/sources$/, (cairn) => sourceList(cairn)],
   [/^\/api\/links$/, (cairn) => jiraAndConfluence(cairn)],

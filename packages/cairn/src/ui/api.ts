@@ -45,6 +45,7 @@ export type SidebarData = {
     readonly sessions: number;
     readonly knowledge: number;
     readonly sources: number;
+    readonly origins: number;
   };
   // Every effort's title by slug, for naming efforts wherever a page lists them.
   readonly efforts: readonly { readonly slug: string; readonly title: string }[];
@@ -226,4 +227,54 @@ export type FilePage = {
   readonly content: string | null;
   // Why content is missing: a binary file, one too large to show, or one no longer on disk.
   readonly omitted: "binary" | "too_large" | "missing" | null;
+};
+
+// How to reach an origin from here: a tool and what it needs, such as an AWS CLI profile.
+export type OriginAccess = {
+  readonly method: string;
+  readonly detail: string;
+};
+
+// A system knowledge comes from, keyed <kind>:<identifier>, with how many articles and references rest on it.
+export type OriginItem = {
+  readonly key: string;
+  readonly kind: string;
+  readonly identifier: string;
+  readonly title: string;
+  readonly description: string;
+  readonly access: readonly OriginAccess[];
+  readonly articles: number;
+  readonly references: number;
+};
+
+// A kind of origin, and what its identifiers are.
+export type OriginKindItem = {
+  readonly name: string;
+  readonly identifier: string;
+  readonly description: string;
+  readonly origins: number;
+};
+
+export type OriginsPage = {
+  readonly kinds: readonly OriginKindItem[];
+  readonly origins: readonly OriginItem[];
+};
+
+// What an article looked at inside an origin. observed_at and version describe one look; sections empty means the
+// whole article.
+export type ReferenceItem = {
+  readonly origin: string;
+  readonly locator: string;
+  readonly title: string;
+  readonly sections: readonly string[];
+  readonly observed_at: string;
+  readonly version: string | null;
+};
+
+// A knowledge article with its content and its references, oldest observed first.
+export type ArticlePage = {
+  readonly article: KnowledgeItem;
+  readonly file: FilePage;
+  readonly references: readonly ReferenceItem[];
+  readonly origins: readonly OriginItem[];
 };

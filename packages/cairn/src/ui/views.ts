@@ -14,11 +14,13 @@ import {
   type EffortSummary
 } from "../core/find.ts";
 import { findArtifactId, findSessionId, requireEffortId, requireSessionId } from "../core/lookup.ts";
+import { articleReferences, findOrigins, originKinds } from "../core/origins.ts";
 import { relativeInsideRoot } from "../core/root.ts";
 import { articlesInformed, effortView, knowledgeArticles, type ArticleReference } from "../core/views.ts";
 import * as schemas from "../schemas.ts";
 import { sessionCost } from "../usage/rollup.ts";
 import type {
+  ArticlePage,
   ArtifactItem,
   DesignItem,
   EffortListItem,
@@ -26,6 +28,7 @@ import type {
   FilePage,
   KnowledgeItem,
   LinksPage,
+  OriginsPage,
   SessionListItem,
   SessionPage,
   SidebarData,
@@ -151,7 +154,8 @@ export function sidebar(cairn: Cairn): SidebarData {
       links: linkCount(cairn),
       sessions: roots === undefined ? 0 : integer(roots, "count"),
       knowledge: knowledgeArticles(cairn).length,
-      sources: sourceList(cairn).length
+      sources: sourceList(cairn).length,
+      origins: findOrigins(cairn, undefined, undefined, null).length
     },
     efforts: efforts.map((effort) => ({ slug: effort.slug, title: effort.title }))
   };
@@ -275,6 +279,21 @@ export function knowledgeList(cairn: Cairn): KnowledgeItem[] {
     informed_by: article.informed_by,
     updated_at: article.updated_at
   }));
+}
+
+export function originsPage(cairn: Cairn): OriginsPage {
+  return { kinds: originKinds(cairn), origins: findOrigins(cairn, undefined, undefined, null) };
+}
+
+export function articlePage(cairn: Cairn, requested: string): ArticlePage {
+  const path = resolve(requested);
+  const article = knowledgeList(cairn).find((item) => item.path === path);
+
+  if (article === undefined) {
+    throw new CairnError("not_found", `No knowledge article at ${requested}`);
+  }
+
+  return { article, file: filePage(cairn, path), ...articleReferences(cairn, path) };
 }
 
 function readIfPresent(path: string): string | null {

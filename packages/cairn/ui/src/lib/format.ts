@@ -36,6 +36,14 @@ export function dateTime(value: string): string {
   return toDate(value).toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: false });
 }
 
+// How long before now a day was, in whole days: "today", "1 day ago", "32 days ago".
+export function daysAgo(value: string, now = new Date()): string {
+  const day = toDate(value);
+  const days = Math.round((new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime() - new Date(day.getFullYear(), day.getMonth(), day.getDate()).getTime()) / 86_400_000);
+
+  return days <= 0 ? "today" : days === 1 ? "1 day ago" : `${days} days ago`;
+}
+
 export function time(value: string): string {
   return toDate(value).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit", hour12: false });
 }

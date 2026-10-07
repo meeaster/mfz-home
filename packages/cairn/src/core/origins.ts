@@ -55,7 +55,7 @@ function kindEntry(row: Row): OriginKindEntry {
   };
 }
 
-function kinds(cairn: Cairn): OriginKindEntry[] {
+export function originKinds(cairn: Cairn): OriginKindEntry[] {
   return cairn.sql.all`
     SELECT k.name, k.identifier, k.description, COUNT(o.id) AS origins
     FROM origin_kind k LEFT JOIN origin o ON o.kind_id = k.id
@@ -64,7 +64,7 @@ function kinds(cairn: Cairn): OriginKindEntry[] {
 }
 
 function requireKind(cairn: Cairn, name: string): OriginKindEntry {
-  const found = kinds(cairn).find((kind) => kind.name === name);
+  const found = originKinds(cairn).find((kind) => kind.name === name);
 
   if (found === undefined) {
     throw new CairnError("not_found", `No origin kind ${name}`);
@@ -132,7 +132,8 @@ function originById(cairn: Cairn, id: number): OriginEntry {
   return originEntry(cairn, row);
 }
 
-function findOrigins(cairn: Cairn, kind: string | undefined, search: string | undefined, limit: number): OriginEntry[] {
+// A null limit returns every match.
+export function findOrigins(cairn: Cairn, kind: string | undefined, search: string | undefined, limit: number | null): OriginEntry[] {
   const pattern = search === undefined ? null : `%${search}%`;
 
   return cairn.db
@@ -140,7 +141,7 @@ function findOrigins(cairn: Cairn, kind: string | undefined, search: string | un
       `${originColumns}
       WHERE (?1 IS NULL OR k.name = ?1)
         AND (?2 IS NULL OR o.identifier LIKE ?2 OR o.title LIKE ?2 OR o.description LIKE ?2 OR k.name LIKE ?2)
-      ORDER BY k.name, o.title LIMIT ?3`
+      ORDER BY k.name, o.title LIMIT coalesce(?3, -1)`
     )
     .all(kind ?? null, pattern, limit)
     .map((row) => originEntry(cairn, row));
@@ -222,7 +223,7 @@ function update(cairn: Cairn, input: Extract<OriginInput, { action: "update" }>)
 export function originCommand(cairn: Cairn, input: OriginInput, actor: string): OriginResult {
   switch (input.action) {
     case "kinds":
-      return { action: "kinds", kinds: kinds(cairn) };
+      return { action: "kinds", kinds: originKinds(cairn) };
     case "find":
       return { action: "find", origins: findOrigins(cairn, input.kind, input.text, input.limit) };
     case "register":
@@ -318,6 +319,23 @@ function record(cairn: Cairn, input: Extract<ReferenceInput, { action: "record" 
   return { action: "record", reference: referenceEntry(cairn, row), created: existing === undefined };
 }
 
+export type ReferenceList = {
+  readonly references: readonly ReferenceEntry[];
+  readonly origins: readonly OriginEntry[];
+};
+
+function listed(cairn: Cairn, articleId: number | null, originId: number | null): ReferenceList {
+  const rows = referenceRows(cairn, articleId, originId);
+  const originIds = new Set(rows.map((row) => integer(row, "origin_id")));
+
+  return { references: rows.map((row) => referenceEntry(cairn, row)), origins: [...originIds].map((id) => originById(cairn, id)) };
+}
+
+// A knowledge article's references, oldest observed first, with the origins they point into.
+export function articleReferences(cairn: Cairn, article: string): ReferenceList {
+  return listed(cairn, requireArticleId(cairn, article), null);
+}
+
 function list(cairn: Cairn, input: Extract<ReferenceInput, { action: "list" }>): ReferenceResult {
   if ((input.article === undefined) === (input.origin === undefined)) {
     throw new CairnError("invalid", "Give exactly one of article or origin");
@@ -325,14 +343,8 @@ function list(cairn: Cairn, input: Extract<ReferenceInput, { action: "list" }>):
 
   const articleId = input.article === undefined ? null : requireArticleId(cairn, input.article);
   const originId = input.origin === undefined ? null : requireOriginId(cairn, input.origin);
-  const rows = referenceRows(cairn, articleId, originId);
-  const originIds = new Set(rows.map((row) => integer(row, "origin_id")));
 
-  return {
-    action: "list",
-    references: rows.map((row) => referenceEntry(cairn, row)),
-    origins: [...originIds].map((id) => originById(cairn, id))
-  };
+  return { action: "list", ...listed(cairn, articleId, originId) };
 }
 
 function remove(cairn: Cairn, input: Extract<ReferenceInput, { action: "remove" }>): ReferenceResult {

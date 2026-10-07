@@ -6,6 +6,8 @@ export type Route =
   | { readonly view: "sessions" }
   | { readonly view: "session"; readonly key: string }
   | { readonly view: "knowledge" }
+  | { readonly view: "article"; readonly path: string }
+  | { readonly view: "origins" }
   | { readonly view: "designs" }
   | { readonly view: "links" }
   | { readonly view: "sources" };
@@ -27,7 +29,11 @@ function parseRoute(path: string): Route {
     return { view: "session", key: second };
   }
 
-  if (first === "sessions" || first === "knowledge" || first === "designs" || first === "sources" || first === "links") {
+  if (first === "knowledge" && second !== undefined) {
+    return { view: "article", path: second };
+  }
+
+  if (first === "sessions" || first === "knowledge" || first === "designs" || first === "sources" || first === "links" || first === "origins") {
     return { view: first };
   }
 
@@ -58,6 +64,8 @@ export function routeHref(route: Route): string {
       return `#/efforts/${encodeURIComponent(route.slug)}`;
     case "session":
       return `#/sessions/${encodeURIComponent(route.key)}`;
+    case "article":
+      return `#/knowledge/${encodeURIComponent(route.path)}`;
     default:
       return `#/${route.view}`;
   }
@@ -66,6 +74,8 @@ export function routeHref(route: Route): string {
 export const effortHref = (slug: string): string => routeHref({ view: "effort", slug });
 
 export const sessionHref = (key: string): string => routeHref({ view: "session", key });
+
+export const articleHref = (path: string): string => routeHref({ view: "article", path });
 
 // The current page with a file open in the viewer, or closed when path is null.
 export function fileHref(route: Route, path: string | null): string {

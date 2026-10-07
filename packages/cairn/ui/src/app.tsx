@@ -8,12 +8,22 @@ import { api, useResource } from "@/lib/api";
 import { fileHref, useLocation, type Route } from "@/lib/route";
 import { useTheme } from "@/lib/theme";
 import { EffortView } from "@/views/effort";
+import { ArticleView, OriginsView } from "@/views/knowledge";
 import { LinksView } from "@/views/links";
 import { DesignsView, EffortsView, KnowledgeView, SessionsView, SourcesView } from "@/views/lists";
 import { SessionView } from "@/views/session";
 
 function routeKey(route: Route): string {
-  return route.view === "effort" ? `effort:${route.slug}` : route.view === "session" ? `session:${route.key}` : route.view;
+  switch (route.view) {
+    case "effort":
+      return `effort:${route.slug}`;
+    case "session":
+      return `session:${route.key}`;
+    case "article":
+      return `article:${route.path}`;
+    default:
+      return route.view;
+  }
 }
 
 function Page({ route }: { readonly route: Route }) {
@@ -27,7 +37,11 @@ function Page({ route }: { readonly route: Route }) {
     case "session":
       return <SessionView sessionKey={route.key} route={route} />;
     case "knowledge":
-      return <KnowledgeView route={route} />;
+      return <KnowledgeView />;
+    case "article":
+      return <ArticleView path={route.path} route={route} />;
+    case "origins":
+      return <OriginsView />;
     case "designs":
       return <DesignsView route={route} />;
     case "sources":

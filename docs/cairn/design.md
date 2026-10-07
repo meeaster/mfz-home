@@ -847,7 +847,7 @@ Built 2026-10-06.
 - **Schema version 9** adds `origin_kind`, `origin`, `origin_access`, and `origin_reference`. A reference attaches only to an artifact of category `knowledge`.
 - **Tools.** `catalog_origin` and `catalog_reference`, with flat inputs parsed into discriminated ones like `catalog_effort`. The CLI has the same operations under `cairn origin` and `cairn reference`, with access methods as JSON.
 - **Sections.** `cairn check` reads each referenced article's Markdown headings and reports sections it no longer has.
-- **Not built.** The UI's Origins page and an article's References tab, mocked in Pencil.
+- **UI.** An Origins page groups origins by kind with their access methods and use. A knowledge article opens on its own page (`#/knowledge/<path>`) with Article, References, and Efforts tabs; references group by origin or by section in the article's heading order, oldest observed first. The UI shows only what was observed and when, and offers no re-check action, because re-checking is an agent's work.
 
 ### Records revision
 

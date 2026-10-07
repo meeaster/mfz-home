@@ -8,7 +8,7 @@ import { EmptyList, Loaded, PageBody, PageHeader } from "@/components/page";
 import { harnessName, SessionTable } from "@/components/session-table";
 import { api, useResource, type DesignItem, type SourceItem } from "@/lib/api";
 import { groupByDay, plural, shortDate } from "@/lib/format";
-import { effortHref, fileHref, type Route } from "@/lib/route";
+import { articleHref, effortHref, fileHref, type Route } from "@/lib/route";
 import { statusBadge } from "./effort";
 
 type Option = { readonly value: string; readonly label: string };
@@ -189,7 +189,7 @@ export function SessionsView() {
   );
 }
 
-export function KnowledgeView({ route }: { readonly route: Route }) {
+export function KnowledgeView() {
   const articles = useResource("knowledge", (signal) => api.knowledge(signal));
 
   return (
@@ -220,7 +220,7 @@ export function KnowledgeView({ route }: { readonly route: Route }) {
                             title={article.title ?? article.display_path}
                             description={article.description}
                             path={article.display_path}
-                            href={fileHref(route, article.path)}
+                            href={articleHref(article.path)}
                           />
                         </TableCell>
                         <TableCell className="align-top">
