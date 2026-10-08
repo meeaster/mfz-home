@@ -528,6 +528,7 @@ opencode:
     - session-context
     - skill-continuity
     - cairn
+    - optchat
   tui_plugins:
     - handoff-tui
     - session-cost-tui

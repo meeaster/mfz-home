@@ -1,0 +1,14 @@
+{
+  "name": "mindframe-z-optchat",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./index.ts"
+  },
+  "dependencies": {
+    "@opencode/ai": "2.0.25",
+    "@opencode/plugin": "2.0.25",
+    "zod": "4.1.8"
+  }
+}

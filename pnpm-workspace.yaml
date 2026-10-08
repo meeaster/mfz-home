@@ -9,6 +9,7 @@ packages:
   - mcp/*
   - packages/*
   - opencode/plugins/omp-advisor
+  - opencode/plugins/optchat
   - opencode/plugins/handoff-tui
   - opencode/plugins/pstack
   - opencode/plugins/session-cost-tui
