@@ -6,6 +6,12 @@
     ".": "./index.ts",
     "./server": "./index.ts"
   },
+  "bin": {
+    "optchat-viewer": "./viewer/cli.ts"
+  },
+  "scripts": {
+    "viewer": "bun viewer/cli.ts"
+  },
   "dependencies": {
     "@opencode/ai": "2.0.25",
     "@opencode/plugin": "2.0.25",

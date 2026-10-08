@@ -3,14 +3,14 @@ import { join } from "node:path"
 import { z } from "zod"
 import { Kind } from "./store.js"
 
-const Meta = z.object({ sessionID: z.string(), agent: z.string(), title: z.string() })
+export const SubagentMeta = z.object({ sessionID: z.string(), agent: z.string(), title: z.string() })
 
-const Entry = z.object({ kind: Kind, text: z.string(), source: z.string() })
+export const SubagentEntry = z.object({ kind: Kind, text: z.string(), source: z.string() })
 
-export type AgentEntry = z.infer<typeof Entry>
+export type AgentEntry = z.infer<typeof SubagentEntry>
 
 interface AgentLog {
-  readonly meta: z.infer<typeof Meta>
+  readonly meta: z.infer<typeof SubagentMeta>
   readonly entries: AgentEntry[]
   readonly sources: Set<string>
 }
@@ -28,12 +28,12 @@ export class SubagentLogs {
 
     for (const file of readdirSync(directory).filter((name) => name.endsWith(".jsonl"))) {
       const [head, ...rest] = readFileSync(join(directory, file), "utf8").split("\n").filter((line) => line !== "")
-      const meta = Meta.safeParse(JSON.parse(head ?? "null"))
+      const meta = SubagentMeta.safeParse(JSON.parse(head ?? "null"))
 
       if (!meta.success) continue
 
       const entries = rest.flatMap((line) => {
-        const entry = Entry.safeParse(JSON.parse(line))
+        const entry = SubagentEntry.safeParse(JSON.parse(line))
 
         return entry.success ? [entry.data] : []
       })

@@ -7,7 +7,7 @@ export const Kind = z.enum(["user", "agent", "tool", "echo", "work", "note"])
 
 export type Kind = z.infer<typeof Kind>
 
-const MessageRecord = z.object({
+export const MessageRecord = z.object({
   i: z.number().int(),
   kind: Kind,
   text: z.string(),
@@ -18,11 +18,11 @@ const MessageRecord = z.object({
 
 export type MessageRecord = z.infer<typeof MessageRecord>
 
-const NodeRecord = z.object({ l: z.number().int(), i: z.number().int(), text: z.string(), size: z.number().int() })
+export const NodeRecord = z.object({ l: z.number().int(), i: z.number().int(), text: z.string(), size: z.number().int() })
 
 const EntryRecord = z.tuple([z.number().int(), z.number().int()])
 
-const ViewRecord = z.object({ chat: z.array(EntryRecord), compaction: z.array(EntryRecord), merging: z.boolean() })
+export const ViewRecord = z.object({ chat: z.array(EntryRecord), compaction: z.array(EntryRecord), merging: z.boolean() })
 
 export type ViewRecord = z.infer<typeof ViewRecord>
 

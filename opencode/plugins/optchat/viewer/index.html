@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>OptChat</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/style.css" />
+  </head>
+  <body>
+    <aside id="chats">
+      <header>
+        <h1>OptChat</h1>
+        <button id="reload" type="button" title="Reload chats">Reload</button>
+      </header>
+      <p id="data-dir"></p>
+      <ul id="chat-list"></ul>
+    </aside>
+
+    <main id="stage">
+      <header id="toolbar" hidden>
+        <div id="chat-title">
+          <h2 id="chat-name"></h2>
+          <span id="chat-stats"></span>
+        </div>
+        <input id="search" type="search" placeholder="Search summaries (Enter for next)" autocomplete="off" />
+        <span id="search-count"></span>
+        <button id="latest" type="button" title="Show the newest messages (L)">Latest</button>
+        <button id="fit" type="button" title="Fit the whole tree (F)">Fit</button>
+      </header>
+      <canvas id="canvas"></canvas>
+      <div id="legend" hidden>
+        <span><i class="swatch user"></i>user</span>
+        <span><i class="swatch agent"></i>agent</span>
+        <span><i class="swatch tool"></i>tool</span>
+        <span><i class="swatch echo"></i>tool result</span>
+        <span><i class="swatch work"></i>subagent</span>
+        <span><i class="swatch note"></i>note</span>
+        <span><i class="swatch summary"></i>summary</span>
+        <span><i class="outline view"></i>in view</span>
+        <span><i class="outline compaction"></i>in compaction view</span>
+      </div>
+      <p id="empty">Pick a chat to browse its memory tree.</p>
+    </main>
+
+    <aside id="detail" hidden>
+      <header>
+        <h3 id="detail-label"></h3>
+        <button id="detail-close" type="button" title="Close (Esc)">Close</button>
+      </header>
+      <p id="detail-meta"></p>
+      <nav>
+        <button id="go-parent" type="button" title="Parent (↑)">Parent</button>
+        <button id="go-left" type="button" title="Left child (←)">Left child</button>
+        <button id="go-right" type="button" title="Right child (→)">Right child</button>
+      </nav>
+      <pre id="detail-text"></pre>
+    </aside>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

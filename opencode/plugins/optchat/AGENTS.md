@@ -19,6 +19,16 @@ gist before changing the tree, view or compaction logic; it is the specification
 - Lines are at most 512 bytes. Models can't count bytes, so keep the ruler, the "Too long" retry and the
   keep-the-shortest rule in `memory.ts`.
 
+## Viewer
+
+- `viewer/` is a standalone, read-only local website (`bun viewer/cli.ts`). It reads the data directory
+  directly through the stored-format schemas exported from `store.ts`, `chats.ts` and `subagent-logs.ts`. A
+  format change must keep `viewer/data.ts` working.
+- It reads while the plugin is appending, so it skips lines that don't parse and never takes a chat's `lock`.
+  It accepts any message `kind`, because dropping a line would shift every later message's index.
+- `viewer/app.js` is plain browser JavaScript with no build step. Its layout repeats the tree arithmetic from
+  `tree.ts` (a node `(l, i)` covers messages `i·2^l` to `(i+1)·2^l - 1`).
+
 ## Scope rules
 
 - Only requests from the `optchat` agent are rewritten. Every other agent's request has all OptChat tools
@@ -57,3 +67,5 @@ gist before changing the tree, view or compaction logic; it is the specification
 - Live runs use the active global OpenCode config, so other plugins (such as session capture) see them. For
   repeated or automated runs, point `OPENCODE_CONFIG_DIR` at an empty directory and pass the plugin through that
   folder's `opencode.json`.
+- For a viewer change, run it with `--data-dir` pointed at a chat with merged summaries, and check the page in
+  a browser: the fit view, zooming in, clicking a leaf (it loads the full message), and search.

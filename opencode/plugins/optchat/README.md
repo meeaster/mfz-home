@@ -60,6 +60,26 @@ Each chat is a folder under `dataDir/chats/<chat id>/`:
 `chats.json` holds chat names and which session belongs to which chat. Nothing is ever deleted except the empty
 chat a session leaves when it immediately resumes another one.
 
+## Viewer
+
+A small local website for browsing chats and their memory trees:
+
+```sh
+bun opencode/plugins/optchat/viewer/cli.ts [--port 4517] [--data-dir <path>] [--open]
+```
+
+It lists every chat, and draws each chat's tree on an infinite canvas: messages along the bottom, and every
+summary drawn above the messages it covers, scaled with its level. Zoomed out, the top summaries are readable;
+zoom into a region to read the summaries and messages under it. Lines in the current view and the compaction
+view are outlined.
+
+- Drag to pan, scroll to zoom, Shift+scroll to pan sideways.
+- Click a node to read its full text, or the whole message for a leaf. Double-click to frame it.
+- With a node selected, ↑ goes to its parent, and ← and → go to its children.
+- `F` fits the tree, `L` shows the newest messages, and `/` searches the summaries.
+
+The viewer only reads the data directory and listens on 127.0.0.1. Use **Reload** to pick up new messages.
+
 ## Limitations
 
 - **Revert and fork aren't handled.** A reverted turn stays in the chat's memory.

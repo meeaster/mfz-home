@@ -19,7 +19,7 @@ const ChatInfo = z.object({
 
 export type ChatInfo = z.infer<typeof ChatInfo>
 
-const Registry = z.object({ chats: z.array(ChatInfo).default([]), sessions: z.record(z.string(), z.string()).default({}) })
+export const Registry = z.object({ chats: z.array(ChatInfo).default([]), sessions: z.record(z.string(), z.string()).default({}) })
 
 /** One chat's open memory: its log and tree, and its subagents' own logs. */
 export interface Chat {
