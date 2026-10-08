@@ -8,7 +8,7 @@ Cairn keeps working files under `~/workspace/artifacts/cairn/` and a catalog of 
 2. For a design, knowledge article, meeting, or message thread, use its subject folder from the layout below, named for the subject (`knowledge/aws-environment.md`, `sources/meetings/2026-10-02-network-working-session/`). These outlive every session and effort, so their paths come from the subject. Look for an existing file on the same subject first (`catalog_find`, or the folder itself) and add to it.
 3. Otherwise call `catalog_location` with your session's catalog ID (injected at session start) and a short topic named for the content, such as `aws-account-structure` or `pr-123-review`. It returns a new path in the root session's folder and never hands out the same path twice.
 4. Add `effort` for an effort's records and other material meant to outlive the session. The path is then in that effort's folder.
-5. A parent assigning producer output requests one path per file and gives it in the brief. Cairn credits each file to the session that writes it, so the path can come from the parent's session.
+5. In OpenCode, Cairn saves a subagent's final message in the session tree's folder and names the subagent's learnings path in its context. A parent assigns paths only for other files an assignment must produce, requesting one path per file. Cairn credits each file to the session that writes it, so the path can come from the parent's session.
 
 Create only needed files. Keep writers' session working directories and project worktrees outside the root; report a conflict rather than changing the session directory implicitly.
 
@@ -26,7 +26,7 @@ Create only needed files. Keep writers' session working directories and project 
 | `sources/<kind>/<thread>.md` | `source` | One email, chat, or ticket thread (`email/`, `chat/`, `tickets/`). See [message threads](#message-threads) |
 | `sessions/…/<workstream-key>/` | | A delegated orchestrator's files, kept apart from parallel workstreams |
 | `sessions/…/conversation.md` | `conversation` | The root session's conversation, exported by Cairn after each turn |
-| Other paths from `catalog_location` | `evidence`, `learning`, `source`, `synthesis`, `deliverable`, `other` | Producer responses, operational lessons, raw captures from our own work such as exports and screenshots, requested fuller synthesis, and finished outputs |
+| Other paths from `catalog_location` | `evidence`, `learning`, `source`, `synthesis`, `deliverable`, `other` | Subagent results Cairn saves, operational lessons, raw captures from our own work such as exports and screenshots (see [raw captures](#raw-captures)), requested fuller synthesis, and finished outputs |
 
 Records describe state: what is settled, the human's views, what was said and by whom, and what is still open. Next steps, to-dos, waiting-on lists, planned meetings, and agendas stay out of them; when the human wants a plan, an agent reads the records and proposes one in the conversation, kept as a dated synthesis only when asked. An effort whose records still carry the earlier names `context.md` and `approach.md` is read the same way; rename them with `cairn mv` the next time you write them.
 
@@ -84,5 +84,12 @@ A meeting gets a folder, `sources/meetings/<yyyy-mm-dd>-<subject>/`, so its summ
 The summary keeps apart what was discussed, what was decided in the meeting (with who decided, as stated), what was suggested and by whom, what was left open, and the action items with their owners and dates. Everything decided or suggested is a candidate: a colleague's agreement is not the human's decision. When the meeting touched several efforts or designs, group the candidates by the one they concern. An **Intake** section, filled in when the human goes through the candidates, records each one as accepted, deferred, or rejected, and where each accepted item went, so nothing is reviewed twice. Candidates for a stable design become proposals on that design's meeting record instead (`design-docs`), where the human settles them with the doc open; the Intake section names the design and its meeting rather than listing them again.
 
 Saving a meeting writes only to its folder.
+
+## Raw captures
+
+An export, scrape, or screenshot from our own work stays with the evidence it supports.
+
+- Preserve the requested content and format where practical, with interpretation outside the capture.
+- Describe each capture as category `source`, with its source message ID or link as `origin`. Record extraction time, transformations, and omissions in its description or beside the evidence that uses it. Label partial coverage and keep earlier versions when they're still needed. Leave out secrets and unrelated sensitive content.
 
 The root is private working material. Writable storage grants neither project mutation nor publication or promotion authority.

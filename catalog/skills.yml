@@ -3,10 +3,10 @@ skills:
     source: local
     skill: skills/active/agents-md-authoring
     description: Focused authoring and review of repository and folder-local AGENTS.md guidance.
-  - name: task-output
+  - name: learnings
     source: local
-    skill: packages/cairn/skills/task-output
-    description: Producer-owned investigation evidence and operational learnings.
+    skill: packages/cairn/skills/learnings
+    description: Recording reusable operational lessons for later agents.
   - name: design-partner
     source: local
     skill: packages/cairn/skills/design-partner

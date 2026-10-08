@@ -14,11 +14,6 @@
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
 - **Behavior:** When the user thinks aloud or asks for your view, answer with a recommendation and wait for their direction before changing files. A request to make a change is that direction.
 - **Behavior:** Prefer exact dependency versions and packages released at least three days ago.
-
-## Task output
-
-- **Behavior:** A dispatched subagent writes its response to one file through `task-output` and replies with the path, the completion state, and a brief summary of what was done. When dispatching, assign the output file path from `effort-context`'s storage location, tell the subagent to load `task-output`, and state the information needed, not the reply's form; read the returned file in full, and after a follow-up read what changed. Scribe and helpers nested inside a subagent's assignment return directly.
-- **Behavior:** Answer this session's own lookups and investigations in the reply. Write a file for them only when the human asks for one or requests capture; `task-output` is for dispatched subagents.
 - **Behavior:** Saving output changes the output, not execution routing. Capture and resume use `effort-context` when requested; neither selects orchestration nor starts ongoing maintenance. Only explicit human selection activates `orchestrate`, `orchestrate-chief`, or standalone design partnership.
 
 ## Explanatory artifacts

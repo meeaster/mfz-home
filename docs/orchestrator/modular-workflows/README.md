@@ -7,7 +7,7 @@
 - Use `/orchestrate-chief` to retain high-level decisions while orchestrators coordinate bounded workstreams.
 - To leave a workflow, say so explicitly, for example, "Exit orchestration and continue normally." The session reconciles active assignments and pending writes before returning to ordinary routing.
 
-Ordinary sessions keep their native behavior. Dispatched subagents write their responses through `task-output`; a session's own lookups and investigations are answered in its reply.
+Ordinary sessions keep their native behavior. A dispatched subagent's final message is its result, which Cairn saves in OpenCode; a session's own lookups and investigations are answered in its reply.
 
 ## Capture or resume work
 
@@ -22,7 +22,7 @@ Files a session writes live in its folder under Cairn's root. Capture attaches t
 | Capability | Runtime source |
 | --- | --- |
 | Design collaboration | [Design Partner](../../../packages/cairn/skills/design-partner/SKILL.md) |
-| Evidence output and reuse | [Task Output](../../../packages/cairn/skills/task-output/SKILL.md) |
+| Operational lessons | [Learnings](../../../packages/cairn/skills/learnings/SKILL.md) |
 | Storage, capture, resume, maintenance | [Effort Context](../../../packages/cairn/skills/effort-context/SKILL.md) |
 | Coordination procedures | [Orchestration](../../../packages/cairn/skills/orchestration/SKILL.md) |
 | Direct entry | [Orchestrate](../../../packages/cairn/skills/orchestrate/SKILL.md) |

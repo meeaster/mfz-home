@@ -30,12 +30,13 @@ function latestCheckpoint(messages: Awaited<ReturnType<Plugin.Context["session"]
   return null;
 }
 
+// Skills retired without a successor; Cairn now saves subagent results itself.
+const retiredSkills = new Set(["task-output", "orchestrator-task-evidence", "task-evidence"]);
+
 function currentSkillID(id: string) {
   if (id === "orchestrator-mode") return "orchestration";
 
-  if (id === "orchestrator-task-evidence" || id === "task-evidence") return "task-output";
-
-  return id;
+  return retiredSkills.has(id) ? null : id;
 }
 
 function reminder(ids: string[]) {
@@ -108,7 +109,10 @@ export async function setupSkillContinuity(ctx: Plugin.Context) {
         if (skill.loadedAt === at) continue;
 
         if (skill.suggestedAt !== at) {
-          pendingIDs.add(currentSkillID(skill.id));
+          const current = currentSkillID(skill.id);
+
+          if (current !== null) pendingIDs.add(current);
+
           skill.suggestedAt = at;
         }
       }

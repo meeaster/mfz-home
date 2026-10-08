@@ -56,7 +56,7 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   design-partner:
     agents: { opencode: true, claude-code: true, codex: false }
-  task-output:
+  learnings:
     agents: { opencode: true, claude-code: true, codex: false }
   effort-context:
     agents: { opencode: true, claude-code: true, codex: false }
@@ -282,7 +282,7 @@ opencode:
         model: openai/gpt-6-luna#high
         permissions:
           - action: skill
-            resource: task-output
+            resource: learnings
             effect: allow
           - action: skill
             resource: effort-context

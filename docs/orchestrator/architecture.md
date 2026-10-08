@@ -50,7 +50,7 @@ The human-facing coordinator interprets the request, develops understanding with
 
 The caller selects the mode. In `baked-in`, the current session dispatches specialists directly; in `chief/split`, a standing orchestrator gateway owns assignments and returns envelopes while the Chief retains human dialogue and consequential decisions. The scribe is the coordinator's direct subordinate in both modes.
 
-[Orchestration](../../packages/cairn/skills/orchestration/SKILL.md) owns coordination, routing, authority, and acceptance. Its branch references contain the applicable execution contracts. [Task Output](../../packages/cairn/skills/task-output/SKILL.md) owns how producers write and reuse their notes. A child brief supplies the current assignment and authority; background files do not grant more work.
+[Orchestration](../../packages/cairn/skills/orchestration/SKILL.md) owns coordination, routing, authority, and acceptance. Its branch references contain the applicable execution contracts. A producer's final message is its result; in OpenCode, Cairn saves it and gives the producer a learnings path, and [Learnings](../../packages/cairn/skills/learnings/SKILL.md) owns what a lesson records. A child brief supplies the current assignment and authority; background files do not grant more work.
 
 The effort workspace preserves shared understanding and selected findings outside the conversation. It lets the human compact at a meaningful boundary, such as an accepted design, and continue implementation without manually reconstructing the whole investigation. Durable plans such as an explicitly requested OpenSpec proposal can support that boundary; they are not mandatory for every effort.
 

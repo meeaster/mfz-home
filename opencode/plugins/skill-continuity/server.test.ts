@@ -90,7 +90,7 @@ describe("skill continuity", () => {
     expect(await app.request("s1")).toBe("");
   });
 
-  it("migrates retired IDs without forcing mode entry or repeating after restart", async () => {
+  it("renames or drops retired IDs without forcing mode entry or repeating after restart", async () => {
     const storage = new Map<string, Stored>();
     const first = harness(storage);
     await first.start();
@@ -100,7 +100,7 @@ describe("skill continuity", () => {
     first.compact("s1", "one");
     const reminder = await first.request("s1");
 
-    expect(reminder).toContain("orchestration, task-output");
+    expect(reminder).toContain("skills to reassess for this assignment: orchestration.");
     expect(reminder).not.toContain("orchestrator-mode");
     expect(reminder).not.toContain("task-evidence");
     expect(reminder).toContain("including any exit");
@@ -114,7 +114,7 @@ describe("skill continuity", () => {
     expect(await second.request("s1")).toBe("");
     await second.load("s1", "orchestration");
     second.compact("s1", "two");
-    expect(await second.request("s1")).toContain("orchestration, task-output. Reload");
+    expect(await second.request("s1")).toContain("orchestration. Reload");
   });
 
   it("suggests optional skills once per checkpoint and only within their session", async () => {
