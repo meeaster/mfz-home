@@ -280,6 +280,9 @@ opencode:
   cli:
     theme:
       name: dracula
+    plugins:
+      # session-usage-tui replaces OpenCode's built-in Context box in the sidebar.
+      - "-opencode.sidebar.context"
   plugins:
     - session-usage
     - session-context
