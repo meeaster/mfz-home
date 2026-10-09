@@ -47,6 +47,7 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<
 
       return generated;
     },
+    directory: "/home/user/repo",
     session: async (sessionID) => {
       const facts = sessions.get(sessionID);
 
@@ -294,7 +295,7 @@ describe("cairn plugin", () => {
     expect(app.fired).toContainEqual(["capture", saved, "--session", "opencode:ses_explore"]);
   });
 
-  it("replaces a subagent's saved response when a follow-up returns, and describes its learnings", async () => {
+  it("appends a follow-up to a subagent's saved response, and describes its learnings", async () => {
     const app = harness(sessions);
     const learnings = `${sessionFolder}/learnings-ses-explore.md`;
 
@@ -308,7 +309,7 @@ describe("cairn plugin", () => {
     // The same completion arriving again by another route changes nothing.
     await app.cairn.subagentReturned({ childID: "ses_explore", description: "Check the VPCs too", text: "Final." });
     expect(app.fired.filter((args) => args[0] === "capture")).toHaveLength(2);
-    expect(app.written.get(first?.response ?? "")).toBe("Final.\n");
+    expect(app.written.get(first?.response ?? "")).toBe("Draft.\n\n---\n\n## Follow-up\n\nFinal.\n");
     await vi.waitFor(() =>
       expect(app.fired.filter((args) => args[0] === "describe" && args[1] === learnings && args[3] === "learning")).toHaveLength(2)
     );
@@ -328,6 +329,14 @@ describe("cairn plugin", () => {
       type: "text",
       text: `Cairn saved this response to ${sessionFolder}/map-the-aws-accounts.md. The subagent also wrote learnings to ${learnings}.`
     });
+  });
+
+  it("acts only on sessions in its own location", async () => {
+    const app = harness(new Map([...sessions, ["ses_other", { ...lead, directory: "/home/user/other" }]]));
+
+    expect(await app.cairn.owns("ses_lead")).toBe(true);
+    expect(await app.cairn.owns("ses_other")).toBe(false);
+    expect(await app.cairn.owns("ses_missing")).toBe(false);
   });
 
   it("saves nothing for a subagent that ended without text", async () => {

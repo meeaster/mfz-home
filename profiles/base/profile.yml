@@ -60,11 +60,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: false }
   effort-context:
     agents: { opencode: true, claude-code: true, codex: false }
-  orchestration:
-    agents: { opencode: true, claude-code: true, codex: false }
   orchestrate:
-    agents: { opencode: true, claude-code: true, codex: false }
-  orchestrate-chief:
     agents: { opencode: true, claude-code: true, codex: false }
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -201,323 +197,84 @@ mcp:
   cairn:
     agents: [opencode, claude-code]
 opencode:
+  # OpenCode always loads ~/.claude/skills, including the claude.ai skills synced into ~/.claude/skills/synced.
+  # Skill permissions match names, not folders, so deny the synced names; the rest share names with mfz's skills.
+  permissions:
+    - action: skill
+      resource: built-in-browser
+      effect: deny
+    - action: skill
+      resource: chrome-browser
+      effect: deny
+    - action: skill
+      resource: computer-use
+      effect: deny
+    - action: skill
+      resource: deep-research
+      effect: deny
+    - action: skill
+      resource: docs
+      effect: deny
+    - action: skill
+      resource: docx
+      effect: deny
+    - action: skill
+      resource: google-workspace
+      effect: deny
+    - action: skill
+      resource: import-memory
+      effect: deny
+    - action: skill
+      resource: morning
+      effect: deny
+    - action: skill
+      resource: pdf
+      effect: deny
+    - action: skill
+      resource: pptx
+      effect: deny
+    - action: skill
+      resource: skill-creator
+      effect: deny
+    - action: skill
+      resource: xlsx
+      effect: deny
   global_instructions: true
   config:
     experimental:
       subagent_depth: 3
     agents:
-      agent-author:
-        model: openai/gpt-6-sol#medium
-      artifact-author:
-        model: openai/gpt-6-sol#medium
-      architect:
-        model: openai/gpt-6-astra#high
+      # Orchestrate dispatches every role to general; implementers, operators, and writers dispatch nested roles.
+      general:
         permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
+          - action: subagent
+            resource: general
             effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      inspect:
-        model: openai/gpt-6-luna#high
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      omp-advisor:
-        model: openai/gpt-6-luna#high
       explore:
         model: openai/gpt-6-luna#high
         permissions:
           - action: skill
             resource: learnings
             effect: allow
-          - action: skill
-            resource: effort-context
-            effect: allow
           # OpenCode exposes MCP tools through code mode's execute tool, which the built-in explore agent denies.
-          # Each tool called inside execute still checks its own rule, so only the Cairn tools below open up.
+          # Each tool called inside execute still checks its own rule, so only the Cairn search below opens up.
           - action: execute
-            resource: "*"
-            effect: allow
-          - action: cairn_catalog_location
-            resource: "*"
-            effect: allow
-          - action: cairn_catalog_describe
             resource: "*"
             effect: allow
           - action: cairn_catalog_find
             resource: "*"
             effect: allow
+          # Rendered extra folders add edit allows to every agent after its built-in rules, so deny edits again here.
           - action: edit
             resource: "*"
             effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
+          # The learnings file Cairn grants a subagent lives under the Cairn root.
           - action: edit
             resource: artifacts/cairn/*
             effect: allow
           - action: edit
             resource: ~/workspace/artifacts/cairn/*
             effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      operator:
-        model: openai/gpt-6-luna#high
-      worker:
-        model: openai/gpt-6-luna#max
-      triage:
-        model: openai/gpt-6-luna#max
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      prototype:
-        model: openai/gpt-6-luna#max
-      reviewer:
-        model: openai/gpt-6-sol#high
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      pr-reviewer:
-        model: openai/gpt-6-sol#high
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      ui-ux-designer:
-        model: openai/gpt-6-sol#medium
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      orchestrator:
-        model: openai/gpt-6-sol#medium
-      research:
-        model: openai/gpt-6-luna#high
-        permissions:
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      session-analyst:
-        model: openai/gpt-6-sol#medium
-        permissions:
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-          - action: external_directory
-            resource: /tmp/opencode/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/scratch/orchestrator-workspaces/*
-            effect: allow
-          - action: external_directory
-            resource: ~/workspace/artifacts/cairn/*
-            effect: allow
-      scribe:
-        model: openai/gpt-6-luna#high
   websearch:
     provider: exa
   cli:
@@ -538,22 +295,7 @@ opencode:
     - openspec-rolling-apply
     - rmslop
   agents:
-    - agent-author
-    - artifact-author
-    - orchestrator
-    - architect
-    - inspect
-    - operator
-    - prototype
-    - pr-reviewer
-    - research
-    - reviewer
     - scheduled-worker
-    - scribe
-    - session-analyst
-    - triage
-    - worker
-    - ui-ux-designer
 codex:
   config:
     tui:

@@ -41,6 +41,8 @@ export type CairnPluginOptions = {
   // Asks a small model for text. Used to title and describe what subagents return.
   readonly generate: (prompt: string) => Promise<string>;
   readonly session: (sessionID: string) => Promise<SessionFacts>;
+  // The directory of the OpenCode location this instance serves.
+  readonly directory: string;
   // The opencode run process that created a root session, or null when it came from the TUI or another client.
   readonly runClient: (session: RunSession) => RunClient | null;
   readonly log: (message: string, error: Error) => void;
@@ -219,6 +221,30 @@ export function createCairn(options: CairnPluginOptions) {
   const workspaces = new Map<string, Promise<{ guidance: string; learnings: string }>>();
   const responses = new Map<string, string>();
   const lastReturned = new Map<string, string>();
+  const owned = new Map<string, Promise<boolean>>();
+
+  // OpenCode runs a plugin instance per location but sends every location's events to each one, so only the instance
+  // whose location holds a session acts on its events.
+  function owns(sessionID: string): Promise<boolean> {
+    const known = owned.get(sessionID);
+
+    if (known !== undefined) {
+      return known;
+    }
+
+    const found = options.session(sessionID).then(
+      (info) => info.directory === options.directory,
+      () => {
+        owned.delete(sessionID);
+
+        return false;
+      }
+    );
+
+    owned.set(sessionID, found);
+
+    return found;
+  }
 
   // Registers a session on first sight. Registration is an upsert, so a repeat after a plugin reload is harmless.
   function register(sessionID: string): Promise<SessionFacts> {
@@ -358,8 +384,8 @@ export function createCairn(options: CairnPluginOptions) {
   }
 
   // Saves what a subagent returned in its session tree's folder, credited to the subagent, and describes it and
-  // any learnings in the background. A follow-up to the same subagent replaces its earlier response.
-  // Returns null when there was nothing to save or saving failed.
+  // any learnings in the background. A follow-up to the same subagent is appended, because its reply often covers
+  // only what was asked next. Returns null when there was nothing to save or saving failed.
   async function subagentReturned(result: SubagentReturn): Promise<SavedReturn | null> {
     if (result.text.trim() === "" || result.text === noText) {
       return null;
@@ -373,12 +399,17 @@ export function createCairn(options: CairnPluginOptions) {
     }
 
     let path: string;
+    let file: string;
 
     try {
       await register(result.childID);
-      path = responses.get(result.childID) ?? (await grant(result.childID, result.description));
+      path = saved ?? (await grant(result.childID, result.description));
       responses.set(result.childID, path);
-      await options.files.write(path, `${result.text}\n`);
+
+      const earlier = saved === undefined ? null : await options.files.read(path);
+
+      file = earlier === null ? result.text : `${earlier}\n---\n\n## Follow-up\n\n${result.text}`;
+      await options.files.write(path, `${file}\n`);
       lastReturned.set(result.childID, result.text);
     } catch (error) {
       options.log("unable to save a subagent's response", error instanceof Error ? error : new Error(String(error)));
@@ -388,7 +419,7 @@ export function createCairn(options: CairnPluginOptions) {
 
     options.cli.fire(["capture", path, "--session", sessionKey(result.childID)]);
 
-    void describeInBackground(path, result.childID, "evidence", result.text);
+    void describeInBackground(path, result.childID, "evidence", file);
 
     const learnings = await readLearnings(result.childID);
 
@@ -490,12 +521,7 @@ export function createCairn(options: CairnPluginOptions) {
       return null;
     }
 
-    const note =
-      saved.learnings === null
-        ? `Cairn saved this response to ${saved.response}.`
-        : `Cairn saved this response to ${saved.response}. The subagent also wrote learnings to ${saved.learnings}.`;
-
-    return [...baseContent(tool), { type: "text", text: note }];
+    return [...baseContent(tool), { type: "text", text: savedNote("this response", saved) }];
   }
 
   // Updates a root session's conversation export after each completed turn. Child sessions get none.
@@ -514,6 +540,7 @@ export function createCairn(options: CairnPluginOptions) {
   return {
     context,
     afterTool,
+    owns,
     subagentReturned,
     turnCompleted,
     compactionEnded: (sessionID: string) => {
@@ -573,6 +600,26 @@ async function readText(path: string): Promise<string | null> {
   }
 }
 
+// Tells the parent where a subagent's result was saved, so it can point later work at the file.
+export function savedNote(subject: string, saved: SavedReturn): string {
+  const response = `Cairn saved ${subject} to ${saved.response}.`;
+
+  return saved.learnings === null ? response : `${response} The subagent also wrote learnings to ${saved.learnings}.`;
+}
+
+// The session an event Cairn acts on belongs to, or null for events Cairn ignores.
+function sessionOf(event: OpenCodeEvent): string | null {
+  switch (event.type) {
+    case "session.compaction.ended":
+    case "session.execution.succeeded":
+    case "session.inbox.enqueued":
+    case "session.synthetic":
+      return event.data.sessionID;
+    default:
+      return null;
+  }
+}
+
 export async function setupCairnPlugin(ctx: Plugin.Context) {
   const describeModel = modelRef(pluginOptions.parse(ctx.options).describeModel);
 
@@ -582,6 +629,7 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
     cli: nodeCli(fileURLToPath(new URL("../cli.js", import.meta.url))),
     files: { write: (path, text) => writeFile(path, text, "utf8"), read: readText },
     generate: async (prompt) => (await ctx.generate.text({ prompt, model: describeModel })).text,
+    directory: ctx.location.directory,
     session: async (sessionID) => {
       const session = await ctx.session.get({ sessionID });
 
@@ -598,13 +646,20 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
   });
 
   const events = ctx.event.subscribe()[Symbol.asyncIterator]();
+  let stopped = false;
 
-  const consume = (async () => {
+  void (async () => {
     for (;;) {
       const next = await events.next();
 
-      if (next.done === true) {
+      if (next.done === true || stopped) {
         return;
+      }
+
+      const sessionID = sessionOf(next.value);
+
+      if (sessionID === null || !(await cairn.owns(sessionID))) {
+        continue;
       }
 
       if (next.value.type === "session.compaction.ended") {
@@ -625,8 +680,22 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
 
       const returned = message === null ? null : backgroundReturn(message);
 
-      if (returned !== null) {
-        await cairn.subagentReturned(returned);
+      const saved = returned === null ? null : await cairn.subagentReturned(returned);
+
+      // A background result reaches the parent through its inbox, where Cairn can't add its note the way it does to a
+      // foreground result, so the note follows as its own message, without waking the parent.
+      if (returned !== null && saved !== null) {
+        try {
+          await ctx.session.synthetic({
+            sessionID,
+            resume: false,
+            description: `Cairn saved: ${returned.description}`,
+            text: savedNote(`the result of "${returned.description}"`, saved),
+            metadata: { source: "cairn" }
+          });
+        } catch (error) {
+          console.error("[cairn] unable to tell the parent where a result was saved", error);
+        }
       }
     }
   })().catch((error) => console.error("[cairn] event stream failed", error));
@@ -660,12 +729,14 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
     delete shell.env.CAIRN_SESSION;
   });
 
+  // OpenCode waits for this cleanup before a reload finishes, and the stream's pending next() may wait for another
+  // event to arrive. So the loop is told to stop rather than awaited; it exits at its next event.
   return async () => {
+    stopped = true;
     await shellHook.dispose();
     await contextHook.dispose();
     await toolHook.dispose();
-    await events.return?.();
-    await consume;
+    void events.return?.();
   };
 }
 

@@ -1,6 +1,6 @@
 # Cairn design (draft)
 
-This document turns the later storage-service discussion in [modular workflows](../orchestrator/modular-workflows/design.md#later-storage-service) into a design that can be built. Terms follow [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design was worked out in a design-partner session on 2026-09-24 and 2026-09-25. Decisions attributed to the human were stated or accepted by the human in that session. Everything else follows from those decisions. [How the design evolved](#how-the-design-evolved) records the proposals that were replaced, so they aren't proposed again. [Continuation](#continuation) records the working state for the next session.
+This document turns the later storage-service discussion in [modular workflows](../archive/orchestrator/modular-workflows/design.md#later-storage-service) into a design that can be built. Terms follow [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design was worked out in a design-partner session on 2026-09-24 and 2026-09-25. Decisions attributed to the human were stated or accepted by the human in that session. Everything else follows from those decisions. [How the design evolved](#how-the-design-evolved) records the proposals that were replaced, so they aren't proposed again. [Continuation](#continuation) records the working state for the next session.
 
 Cairn is named after the stacked stones that mark a trail: markers that point the way without being the destination. The name covers the package, CLI, MCP server, plugin, environment variable, and storage root. The database of pointers is still called the catalog, and the MCP tools keep the self-describing `catalog_` prefix.
 
@@ -457,7 +457,7 @@ cairn backup | restore <file>
 | Session ID into context | `context` hook pushes `This session's catalog ID is opencode:<id>.` into `system`, and for a child session, where its result is saved and the learnings path it was granted | `additionalContext` from `SessionStart`, and from `SubagentStart` for the subagent's ID | none |
 | File written | `tool` `execute.after` for `write`, `edit`, and `patch`; the hook appends the capture note to `result.content`, except for a subagent's learnings file | `PostToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit`, with the note as `additionalContext`; `agent_id` selects the subagent's session | `capture` |
 | File read | `execute.after` for `read`, for in-root paths | `PostToolUse` on `Read` | `read` |
-| Subagent returned | `execute.after` for `subagent` in the foreground; a `synthetic` item in `session.inbox.enqueued` with `metadata.source: "subagent"` in the background. The plugin writes the result to a granted path, credits the child, and describes the result and any learnings with a small model through `generate.text` | none | `location`, `capture`, `describe` |
+| Subagent returned | `execute.after` for `subagent` in the foreground; a `synthetic` item in `session.inbox.enqueued` with `metadata.source: "subagent"` in the background. The plugin writes the result to a granted path, credits the child, describes the result and any learnings with a small model through `generate.text`, and for a background result adds its saved-path note to the parent with `session.synthetic` (`resume: false`) | none | `location`, `capture`, `describe` |
 | Main turn completed | `session.execution.succeeded`, when `session.get` shows no `parentID` | `Stop`, with `last_assistant_message` | `session index` |
 | Compaction completed | The `session.compaction.ended` event marks the session; the next `context` hook reads the note and pushes it into `system` on that and every later request | `SessionStart` with `source: compact`, with the note as `additionalContext` | `session context` |
 
@@ -495,7 +495,7 @@ The only item not observed live was OpenCode's `session.created` for a root sess
 - **Concurrency.** A lock file per session makes duplicate triggers no-ops. SQLite uses WAL and `busy_timeout`, with one connection per process.
 - **Failures.** They are logged and recorded as `last_error`. `--full` or a periodic sweep reconciles missed events.
 
-- **Content rules**, carried over from the [modular workflows discussion](../orchestrator/modular-workflows/design.md#main-session-conversation-history):
+- **Content rules**, carried over from the [modular workflows discussion](../archive/orchestrator/modular-workflows/design.md#main-session-conversation-history):
   - Keep actual human messages and assistant text, including commentary.
   - Exclude hidden reasoning, tool calls and results, injected system or skill instructions, synthetic notifications, and subagent transcripts.
   - Disclose attachment counts rather than presenting a text-only export as complete.
@@ -601,6 +601,7 @@ These proposals were made and then replaced. Don't re-propose them without new e
 37. **Phases on efforts.** Rejected: the design's plan holds the breakdown, as deliverables in a dependency map rather than sequential phases, and an effort just works on some of them (human, 2026-10-06).
 38. **A usage and cost page, and initiatives listed in the sidebar.** Dropped from the redesign: cost shows on each session, and the sidebar keeps to the work (human, 2026-10-06).
 39. **Subagents writing and describing their own response file through `task-output`.** Each dispatch cost a write, a describe call, a reply naming the file, and a read by the parent, which read the whole file anyway. Replaced by the plugin saving the result and a small model describing it; Claude Code subagent results go unsaved until its hooks do the same (human, 2026-10-08).
+40. **Orchestration creating a provisional effort on entry, and Chief.** Replaced by the [orchestrate redesign](../orchestrate/design.md): efforts are opt-in through `effort-context` when the human asks to capture, attach, or resume, and Chief is archived. The `workstream` and `subject` fields stay for a future multi-session mode (human, 2026-10-08).
 
 ## Deferred ideas
 
@@ -911,7 +912,7 @@ State after phase 6 (skills), 2026-09-25:
   - OpenCode source at `~/workspace/references/opencode`. Its `packages/plugin` is 2.0.16, matching the installed version.
   - Local plugins under `opencode/plugins/`, especially `skill-continuity` (tool and context hooks) and `omp-advisor` (event stream), and `opencode/AGENTS.md`.
   - Claude Code hooks reference: `https://code.claude.com/docs/en/hooks.md`.
-- **Conversation exporter reference.** `docs/orchestrator/modular-workflows/export-session.py` and [exporter.md](../orchestrator/modular-workflows/exporter.md).
+- **Conversation exporter reference.** `docs/archive/orchestrator/modular-workflows/export-session.py` and [exporter.md](../archive/orchestrator/modular-workflows/exporter.md).
 - **Live test setup.** A temporary project with an `opencode.jsonc` that loads the plugin by `file://` URL and adds the MCP server under `mcp.servers.cairn` (`type: local`, `command: ["cairn-mcp"]`, `environment.CAIRN_ROOT`, `codemode: false`). Run `CAIRN_ROOT=<root> opencode run --standalone --auto --format json` in it, and inspect the result with the CLI against the same root. Since the profile wiring, the global configuration already loads Cairn, so a test needs only `CAIRN_ROOT` set in the environment; without it, the run writes to the real root.
 - **Installed state.** `~/.local/share/mfz-packages/` holds the installed tarball, `~/.local/bin` links its commands, and `opencode/plugins/cairn` points at it. The `base` profile now enables Cairn's MCP server, plugin, and Claude Code hooks, and grants the evidence agents edits under the Cairn root; `personal` no longer repeats them. MCP servers started before the schema change refuse the version 3 catalog until they restart.
 - **Next step.** Re-run the orchestration evals with Cairn in the eval environment, then the trial import.

@@ -1,6 +1,6 @@
 ---
 name: design-partner
-description: Use when the human explicitly selects design partnership, or an explicitly selected orchestration workflow composes its human-facing design role. Ordinary brainstorming alone does not select this workflow.
+description: Use when the human explicitly selects design partnership, or when `orchestrate` loads it. Ordinary brainstorming alone does not select this workflow.
 disable-model-invocation: true
 metadata:
   opencode/autoinvoke: false
@@ -8,6 +8,14 @@ metadata:
 
 # Design Partner
 
-Work with the human on the desired outcome, evidence, preferences, and tradeoffs. Apply this collaboration method only while explicitly selected or composed by the selected workflow. A request to stop returns subsequent work to the remaining applicable instructions.
+Work with the human on the desired outcome, evidence, preferences, and tradeoffs. Apply this method while it is selected, on its own or loaded by `orchestrate`, which adds delegation. On its own it doesn't select roles or brief subagents; use whatever the session would otherwise use. A request to stop returns later work to the remaining applicable instructions.
 
-Read [the collaboration method](references/collaboration.md). Selected orchestration reads that shared method directly rather than invoking this manual entry. This preserves Claude Code's human-only invocation control while allowing workflow composition.
+- Establish the goal and the constraints that actually matter. Challenge consequential assumptions; existing implementation choices are evidence about migration cost, not requirements by default.
+- Distinguish facts, predictions, preferences, and taste. Research can resolve uncertainty about consequences; the human's priorities decide between acceptable tradeoffs.
+- Bring your own view. Develop credible alternatives and recommend one: why it fits this human's goals, why the main alternatives fit less well, its weaknesses, and what would change it. When both are responsible, weigh staged compatibility against direct cutover through clients, data, interruption tolerance, recovery, and cleanup.
+- Ask every open question at once, as a numbered list the human can answer in one pass. Give each question its options, the one you recommend, and why that one over the others. Carry forward an unanswered question in the next list instead of asking it again on its own.
+- Reuse sufficient evidence. Investigate when the answer can change the decision, and stop when it has sufficient support or the remaining choice is a preference.
+- Establish accepted direction and execution authority before implementation. An explicit request to implement an accepted direction can establish both without another approval cycle. A proposal alone cannot.
+- Design dialogue creates no records. Preserve decisions in an effort only when the human asks for a capture, using `effort-context`.
+
+Return a useful recommendation or the next material question. Designing does not require a formal document, implementation, or publication.

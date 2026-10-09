@@ -30,20 +30,24 @@ function latestCheckpoint(messages: Awaited<ReturnType<Plugin.Context["session"]
   return null;
 }
 
-// Skills retired without a successor; Cairn now saves subagent results itself.
-const retiredSkills = new Set(["task-output", "orchestrator-task-evidence", "task-evidence"]);
+// Skills retired without a successor: Cairn now saves subagent results itself, and Chief was archived.
+const retiredSkills = new Set(["task-output", "orchestrator-task-evidence", "task-evidence", "orchestrate-chief"]);
+
+// Skills folded into a successor.
+const renamedSkills = new Map([
+  ["orchestrator-mode", "orchestrate"],
+  ["orchestration", "orchestrate"],
+]);
 
 function currentSkillID(id: string) {
-  if (id === "orchestrator-mode") return "orchestration";
-
-  return retiredSkills.has(id) ? null : id;
+  return retiredSkills.has(id) ? null : (renamedSkills.get(id) ?? id);
 }
 
 function reminder(ids: string[]) {
   return [
     "Skill continuity after completed compaction:",
     `Previously loaded skills to reassess for this assignment: ${ids.join(", ")}. Reload only those still relevant.`,
-    "Recover the latest explicit human workflow selection, including any exit, from retained context or current effort records. Skill history is not mode selection. Reload reusable procedures for a continuing role; do not replay human-only entry skills or restart completed capture and storage operations. Ask only if a required selection is genuinely missing.",
+    "Recover the latest explicit human workflow selection, including any exit, from retained context or current effort records. Skill history is not mode selection. Reload the skill for a mode the human still has selected; do not enter one they never selected or exited, or restart completed capture and storage operations. Ask only if a required selection is genuinely missing.",
   ].join("\n");
 }
 

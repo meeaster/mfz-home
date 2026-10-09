@@ -3,7 +3,7 @@ description: Implement the accepted current-session design through a fresh worke
 subagent: false
 ---
 
-Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `worker` subagent.
+Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `general` subagent as an implementer.
 
 This is an ephemeral handoff, not an OpenSpec change. Do not create or update proposal, specification, design, task, or other planning artifacts, and do not run OpenSpec commands.
 
@@ -34,7 +34,8 @@ The execution brief must state:
 Use one fresh native `task` call with:
 
 - a short outcome-based `description`
-- `subagent_type`: `worker`
+- `subagent_type`: `general`
+- `model`: `openai/gpt-6.1-sol#medium`
 - no `task_id`
 - the complete execution brief as `prompt`
 

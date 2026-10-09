@@ -85,7 +85,7 @@ describe("skill continuity", () => {
     app.compact("s1", "done");
     const reminder = await app.request("s1");
 
-    expect(reminder).toContain("orchestration");
+    expect(reminder).toContain("orchestrate");
     expect(reminder).not.toContain("failed");
     expect(await app.request("s1")).toBe("");
   });
@@ -100,11 +100,11 @@ describe("skill continuity", () => {
     first.compact("s1", "one");
     const reminder = await first.request("s1");
 
-    expect(reminder).toContain("skills to reassess for this assignment: orchestration.");
+    expect(reminder).toContain("skills to reassess for this assignment: orchestrate.");
     expect(reminder).not.toContain("orchestrator-mode");
     expect(reminder).not.toContain("task-evidence");
     expect(reminder).toContain("including any exit");
-    expect(reminder).toContain("do not replay human-only entry skills");
+    expect(reminder).toContain("do not enter one they never selected or exited");
     await first.load("s1", "orchestrator-mode", "error");
     expect(await first.request("s1")).toBe("");
 
@@ -114,7 +114,7 @@ describe("skill continuity", () => {
     expect(await second.request("s1")).toBe("");
     await second.load("s1", "orchestration");
     second.compact("s1", "two");
-    expect(await second.request("s1")).toContain("orchestration. Reload");
+    expect(await second.request("s1")).toContain("orchestrate. Reload");
   });
 
   it("suggests optional skills once per checkpoint and only within their session", async () => {
@@ -168,6 +168,6 @@ describe("skill continuity", () => {
     app.compact("s1", "one");
     const results = await Promise.all([app.request("s1"), app.request("s1")]);
     expect(results.filter((text) => text.includes("anti-slop"))).toHaveLength(1);
-    expect(results.filter((text) => text.includes("orchestration"))).toHaveLength(1);
+    expect(results.filter((text) => text.includes("orchestrate"))).toHaveLength(1);
   });
 });

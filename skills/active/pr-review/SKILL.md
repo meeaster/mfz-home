@@ -37,7 +37,7 @@ Within the review session, use read or shell tools only for a bounded focused ve
 When material evidence is missing, return one complete request or a batch. Each unit must include:
 
 - the direct question and why it materially affects the review or merge posture;
-- the preferred caller-owned role: `explore` for static local evidence, `research` for authoritative external evidence, or `inspect` for current or command-derived facts;
+- the preferred caller-owned role: explorer for static local evidence, researcher for authoritative external evidence, or inspector for current or command-derived facts;
 - exact scope and evidence locators or targets;
 - accepted constraints and hypotheses to test rather than assume;
 - freshness requirement and expected compact packet;

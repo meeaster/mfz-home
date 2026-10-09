@@ -85,7 +85,8 @@ not create a separate worker or checkpoint for ledger-only acceptance.
 Use one fresh native `task` call with:
 
 - a short outcome-based `description`;
-- `subagent_type`: `worker`;
+- `subagent_type`: `general`;
+- `model`: `openai/gpt-6.1-sol#medium`;
 - no `task_id`; and
 - the complete worker brief as `prompt`.
 
@@ -122,12 +123,12 @@ After the worker returns:
 5. Refresh `openspec instructions apply` with the selected store and reconcile progress.
 
 Do not accept a task from worker self-report alone. If the batch fails, classify the concrete failure
-before retrying. Use at most one fresh `worker` remediation for that batch; unresolved product,
+before retrying. Use at most one fresh `general` remediation for that batch, on the same model,; unresolved product,
 authority, security, or likely irreversible-data risk stops for the user.
 
 ## Periodic Review
 
-Coordinator review is sufficient after ordinary batches. Run one fresh native `reviewer` review only
+Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review, on `openai/gpt-6-astra#medium` with `thermo-nuclear-code-quality-review` loaded and no fixes, only
 when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;

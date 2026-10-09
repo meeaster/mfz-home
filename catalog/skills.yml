@@ -15,18 +15,10 @@ skills:
     source: local
     skill: packages/cairn/skills/effort-context
     description: Bounded storage, capture, resume, and assigned maintenance.
-  - name: orchestration
-    source: local
-    skill: packages/cairn/skills/orchestration
-    description: Reusable explicitly selected coordination procedures.
   - name: orchestrate
     source: local
     skill: packages/cairn/skills/orchestrate
-    description: Human-only direct orchestration entry.
-  - name: orchestrate-chief
-    source: local
-    skill: packages/cairn/skills/orchestrate-chief
-    description: Human-only Chief collaboration entry.
+    description: Human-only orchestration entry, delegating by role.
   - name: design-docs
     source: local
     skill: packages/cairn/skills/design-docs

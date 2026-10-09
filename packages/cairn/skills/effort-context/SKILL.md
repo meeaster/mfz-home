@@ -24,13 +24,13 @@ Select the bounded operation requested or required by the caller. Loading this s
 ## Efforts are the human's choice
 
 - The human approves attaching a session to an effort, creating a regular effort, promoting a provisional one, detaching, splitting, merging, and excluding a file from an effort. Recommend, then act on the answer. A request that names an effort ("capture this into the S3 effort", "resume the S3 effort") is approval for that effort.
-- Create a provisional effort without asking only when entering orchestration or capturing work that names no effort, and recommend what should become of it.
-- Default-mode work needs no effort. Its files stay in the session folder and are described like any other output.
+- Create a provisional effort without asking only when capturing work that names no effort, and recommend what should become of it.
+- Default-mode and orchestrated work need no effort until the human asks for one. Its files stay in the session folder and are described like any other output.
 - Knowledge articles and sources belong to their subjects, not to an effort, and join efforts through membership. Linking one to an effort whose work relies on it or adds to it needs no approval.
 
 ## Boundaries
 
 - Preserve the active execution role. Capture, handoff, or resume alone does not select orchestration, change work-unit bindings, authorize delivery, or establish a standing Scribe. Preparing a handoff does not authorize compaction.
-- An explicitly selected orchestration workflow assigns ongoing maintenance. Otherwise each operation ends at its completion condition.
+- Each operation ends at its completion condition. Ongoing maintenance happens only when the human assigns it.
 - `work-context` owns explicit `mfz work` operations and its `orientation.md`/`context-map.md` lifecycle. `session-brief` owns explicitly requested refreshable single-session briefs. Do not substitute either for effort capture or invoke them automatically.
 - Follow the current harness reference only when session retrieval or ongoing continuity is needed: [OpenCode](references/continuity/opencode.md) or [Claude Code](references/continuity/claude-code.md).

@@ -1,6 +1,6 @@
 # OpenCode continuity
 
-These procedures apply to the Chief and direct orchestrator. Delegated orchestrators record directly and do not receive Scribes.
+Scribe is experimental: its agent is archived in `opencode/agents/archive/scribe.md`, and the Scribe sections below apply only when the human re-enables it.
 
 For a bounded capture or named-session retrieval, use only the relevant retrieval rules below. Loading this reference alone does not authorize ongoing Scribe synchronization or the orchestration post-compaction lifecycle.
 
@@ -10,7 +10,7 @@ For a bounded capture or named-session retrieval, use only the relevant retrieva
 - Use the requested current window or `previousCompaction: true`; preserve that choice across chunks. Start with the assigned or retained `sinceMarker`, follow usable markers while `MORE: true`, and stop at `MORE: false`. Keep the last usable marker when an empty delta returns `MARKER: none`.
 - Marker mismatch already returns the selected full window. Do not repeat a markerless pull. Report an unavailable previous window rather than substituting the current one.
 - Read files directly for exact contents; filtered transcript output is not a lossless source copy. Outside this API's available window, read the root session's `conversation.md`, which Cairn exports after each turn with compaction markers, and load `agent-sessions` for detail beyond it.
-- Use factual retrieval for historical gaps and `session-analyst` only for authorized evaluation. Capture does not authorize unrelated archaeology or synthesis.
+- Use factual retrieval for historical gaps, and evaluation only when it is authorized. Capture does not authorize unrelated archaeology or synthesis.
 
 ## Own Scribe synchronization
 
@@ -42,7 +42,7 @@ Cairn's compaction note lists the attached efforts with their record paths and t
 4. Incorporate the result before a new consequential dispatch, implementation decision, or final completion claim. Conversation and independent evidence gathering can continue; already-authorized work in flight can continue.
 5. After outstanding writes finish, retire the old Scribe's write ownership and start a new Scribe. Supply current workspace paths and a markerless read of the parent's active context. Preserve the former session ID for reference.
 
-- If the old Scribe is unavailable or cannot complete the check, assign a fresh `inspect` agent the named-session continuity check and a direct return. Arrange any record updates with a single permitted writer.
+- If the old Scribe is unavailable or cannot complete the check, assign a fresh inspector (`general`) the named-session continuity check and a direct return. Arrange any record updates with a single permitted writer.
 - The tool's marker-mismatch notice already accompanies a full selected-window response. Do not reread it again. No previous window is an explicit limitation, not a reason to substitute current context or claim full recovery.
 - A second compaction during recovery may change which window the boolean selects. Report the changed boundary and obtain bounded historical retrieval through `agent-sessions` if needed; do not claim the original segment was recovered.
 - Parent compaction preserves the parent session ID, but a genuinely new parent cannot ordinarily resume a former parent's child. Use available records and a fresh owner in that case.
