@@ -278,7 +278,7 @@ export default Plugin.define({
     const turnHeader = (chat: Chat, sessionID: string): string => {
       const name = chat.info.name ?? "unnamed: once its topic is clear, give it a short name with chat_rename"
 
-      return `<turn date="${new Date().toString()}" session="${sessionID}" chat="${name}"/>`
+      return `<turn date="${new Date().toString()}" session="${sessionID}" chat="${name}" chat_id="${chat.info.id}"/>`
     }
 
     const notOptchat = "This tool only works in a session of the optchat agent."
@@ -327,21 +327,21 @@ export default Plugin.define({
       })
       editor.add({
         name: "chat_list",
-        description: "List the named chats, newest activity first, with their size, when they were last active and how they started.",
+        description: "List the named chats, newest activity first, with their IDs, size, when they were last active and how they started. Names can repeat; the ID identifies a chat.",
         input: z.object({}),
         options: { codemode: false },
         execute: async (_, context) => ({ content: optchatSessions.has(context.sessionID) ? chats.list(context.sessionID) : primaryOnly }),
       })
       editor.add({
         name: "chat_resume",
-        description: "Continue an existing named chat in this session. From your next step on, the view is that chat's memory and new messages are added to it.",
-        input: z.object({ name: z.string().describe("The name of the chat to continue, as chat_list shows it") }),
+        description: "Continue an existing chat in this session. From your next step on, the view is that chat's memory and new messages are added to it.",
+        input: z.object({ chat: z.string().describe("The ID of the chat to continue, as chat_list shows it, or its name when no other chat has it") }),
         options: { codemode: false },
-        execute: async ({ name }, context) => {
+        execute: async ({ chat }, context) => {
           if (!optchatSessions.has(context.sessionID)) return { content: primaryOnly }
 
           const turn = turns.get(context.sessionID)
-          const result = chats.resume(context.sessionID, name, (chatID) => activeTurns.get(chatID), turn?.startTotal)
+          const result = chats.resume(context.sessionID, chat, (chatID) => activeTurns.get(chatID), turn?.startTotal)
 
           if (turn !== undefined && chats.chatIdOf(context.sessionID) !== turn.chat) activeTurns.delete(turn.chat)
 

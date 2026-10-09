@@ -29,11 +29,23 @@ export interface Chat {
   readonly subagents: SubagentLogs
 }
 
+// One line per chat, newest activity first. Names can repeat, so each line carries the chat's ID.
+const describe = (chats: readonly ChatInfo[], current: string | undefined): string =>
+  chats
+    .toSorted((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt))
+    .map((chat) => {
+      const marker = chat.id === current ? " (this chat)" : ""
+      const opening = chat.opening === "" ? "" : ` — opened with: ${chat.opening}`
+
+      return `- ${chat.name ?? "(unnamed)"} [${chat.id}]${marker}: ${chat.messages} messages, last active ${chat.lastActiveAt}, started in ${chat.directory}${opening}`
+    })
+    .join("\n")
+
 const NAME = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,59}$/u
 
 /**
- * Every optchat session belongs to one chat. A new session starts a new chat; a session can resume a named
- * chat, after which it reads and extends that chat's memory.
+ * Every optchat session belongs to one chat, identified by its ID; its name is a label that other chats may share.
+ * A new session starts a new chat; a session can resume another chat, after which it reads and extends its memory.
  */
 export class Chats {
   readonly #directory: string
@@ -98,10 +110,6 @@ export class Chats {
 
     if (!NAME.test(clean)) return "chat_rename: use 1-60 letters, digits, spaces, dots, dashes or underscores"
 
-    const taken = this.#registry.chats.find((chat) => chat.id !== info.id && chat.name?.toLowerCase() === clean.toLowerCase())
-
-    if (taken !== undefined) return `chat_rename: another chat is already named "${taken.name ?? ""}"`
-
     const before = info.name
 
     info.name = clean
@@ -116,25 +124,22 @@ export class Chats {
 
     if (named.length === 0) return "No chats yet."
 
-    return named
-      .toSorted((a, b) => b.lastActiveAt.localeCompare(a.lastActiveAt))
-      .map((chat) => {
-        const marker = chat.id === current ? " (this chat)" : ""
-        const opening = chat.opening === "" ? "" : ` — opened with: ${chat.opening}`
-
-        return `- ${chat.name ?? "(unnamed)"}${marker}: ${chat.messages} messages, last active ${chat.lastActiveAt}, started in ${chat.directory}${opening}`
-      })
-      .join("\n")
+    return describe(named, current)
   }
 
   /**
-   * Points the session at a named chat. The session's previous chat stays listed, unless it only holds this
-   * turn, which is discarded so "start a session and resume" leaves nothing behind.
+   * Points the session at a chat, given its ID or a name only one chat has. The session's previous chat stays
+   * listed, unless it only holds this turn, which is discarded so "start a session and resume" leaves nothing behind.
    */
-  resume(sessionID: string, name: string, busy: (chatID: string) => string | undefined, turnStartTotal: number | undefined): string {
-    const target = this.#registry.chats.find((chat) => chat.name?.toLowerCase() === name.trim().toLowerCase())
+  resume(sessionID: string, chat: string, busy: (chatID: string) => string | undefined, turnStartTotal: number | undefined): string {
+    const wanted = chat.trim()
+    const byID = this.#find(wanted)
+    const named = byID === undefined ? this.#registry.chats.filter((entry) => entry.name?.toLowerCase() === wanted.toLowerCase()) : [byID]
+    const [target] = named
 
-    if (target === undefined) return `chat_resume: no chat named "${name}". Use chat_list to see the chats.`
+    if (target === undefined) return `chat_resume: no chat has the ID or name "${chat}". Use chat_list to see the chats.`
+
+    if (named.length > 1) return `chat_resume: ${named.length} chats are named "${target.name ?? ""}"; pass the ID of the one to continue:\n${describe(named, this.chatIdOf(sessionID))}`
 
     const previous = this.chatIdOf(sessionID)
 

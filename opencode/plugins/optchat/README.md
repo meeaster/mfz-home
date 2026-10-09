@@ -15,7 +15,8 @@ merge order taken from his rollback `push`, batched merging so the prompt cache 
 Switch to the `optchat` agent (Tab in the TUI, or `opencode run --agent optchat`). Other agents are unchanged
 and don't see any of OptChat's tools.
 
-- **New sessions start a new chat.** The agent names the chat once its topic is clear.
+- **New sessions start a new chat.** Each chat has a unique ID; the agent names it once its topic is clear, and names
+  can repeat.
 - **Ask the agent to list, rename or resume chats.** A new session can continue an earlier chat, with its whole
   memory, by resuming it.
 - **One active turn per chat.** A chat can't be resumed while another session is mid-turn in it.
@@ -34,8 +35,8 @@ OpenCode's own compaction is left alone. It rarely triggers, because requests st
 | `zoom(id, n)` | optchat sessions and their subagents | Open line `id+n` into the two lines under it; `n = 1` returns the message itself. `zoom(agent: "...")` returns a subagent's log. |
 | `date(id)` | optchat sessions and their subagents | When message `id` was sent. |
 | `chat_rename(name)` | optchat primary sessions | Name or rename the current chat. |
-| `chat_list()` | optchat primary sessions | List named chats. |
-| `chat_resume(name)` | optchat primary sessions | Continue a named chat in this session. |
+| `chat_list()` | optchat primary sessions | List named chats with their IDs. |
+| `chat_resume(chat)` | optchat primary sessions | Continue a chat in this session, by its ID or by a name no other chat has. |
 
 ## Options
 
@@ -62,7 +63,7 @@ Each chat is a folder under `dataDir/chats/<chat id>/`:
 - `view.json`: the current view
 - `agents/`: one log per subagent
 
-`chats.json` holds chat names and which session belongs to which chat. Nothing is ever deleted except the empty
+`chats.json` holds each chat's ID and name and which session belongs to which chat. Nothing is ever deleted except the empty
 chat a session leaves when it immediately resumes another one.
 
 ## Viewer

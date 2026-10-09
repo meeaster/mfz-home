@@ -60,7 +60,7 @@ test("resuming from a session that only holds this turn discards its empty chat"
   chats.forSession("ses_b", "/work")
   chats.resume("ses_b", "Kept", idle, 0)
 
-  expect(chats.list("ses_b").split("\n")).toEqual([expect.stringContaining("- Kept (this chat)")])
+  expect(chats.list("ses_b").split("\n")).toEqual([expect.stringMatching(/^- Kept \[chat_\w+\] \(this chat\)/)])
 })
 
 test("resuming keeps a session's earlier chat when it already had messages, unnamed or not", () => {
@@ -75,7 +75,7 @@ test("resuming keeps a session's earlier chat when it already had messages, unna
   expect(chats.list("ses_b")).toContain("Earlier")
 })
 
-test("a chat in use by another session cannot be resumed, and names stay unique", () => {
+test("a chat in use by another session cannot be resumed", () => {
   const { chats } = open()
 
   chats.forSession("ses_a", "/work")
@@ -83,5 +83,26 @@ test("a chat in use by another session cannot be resumed, and names stay unique"
   chats.forSession("ses_b", "/work")
 
   expect(chats.resume("ses_b", "Busy one", () => "ses_a", 0)).toContain("in use by session ses_a")
-  expect(chats.rename("ses_b", "busy ONE")).toContain("already named")
+})
+
+test("chats can share a name; resuming by that name lists them, and resuming by ID picks one", () => {
+  const { chats } = open()
+
+  chats.forSession("ses_a", "/work")
+  chats.forSession("ses_b", "/work")
+  chats.rename("ses_a", "Todo app")
+  expect(chats.rename("ses_b", "todo APP")).toBe('Named this chat "todo APP".')
+
+  const first = chats.chatIdOf("ses_a") ?? ""
+  const second = chats.chatIdOf("ses_b") ?? ""
+
+  chats.forSession("ses_c", "/work")
+
+  const ambiguous = chats.resume("ses_c", "Todo app", idle, 0)
+
+  expect(ambiguous).toContain("2 chats are named")
+  expect(ambiguous).toContain(first)
+  expect(ambiguous).toContain(second)
+  expect(chats.resume("ses_c", second, idle, 0)).toContain('continues "todo APP"')
+  expect(chats.chatIdOf("ses_c")).toBe(second)
 })
