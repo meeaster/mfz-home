@@ -16,7 +16,7 @@ Your context is the expensive one, so spend it on the human and on decisions: re
 
 ## Delegate by role
 
-Dispatch every assignment to the `general` subagent with its role's model from the table below, unless the human asks for a different one. Start the dispatch's description with the role name (`explorer: map the VPN accounts`). The subagent learns its job only from you, so put the role's expectations from [Roles](#roles) into the brief, adapted to the assignment.
+Dispatch every assignment to the `general` subagent with its role's model from the table below, unless the human asks for a different one. The table's models are exact references: pass them as they are, and look a model up only when the subagent tool rejects it. Start the dispatch's description with the role name (`explorer: map the VPN accounts`). The subagent learns its job only from you, so put the role's expectations from [Roles](#roles) into the brief, adapted to the assignment.
 
 Run independent assignments in the background and keep the conversation going. When nothing else is useful, say what is pending and end your turn.
 
