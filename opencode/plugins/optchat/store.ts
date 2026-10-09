@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto"
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from "node:fs"
+import { homedir } from "node:os"
 import { join } from "node:path"
 import { z } from "zod"
 import { key, type Entry } from "./tree.js"
@@ -23,9 +24,13 @@ export const NodeRecord = z.object({ l: z.number().int(), i: z.number().int(), t
 
 const EntryRecord = z.tuple([z.number().int(), z.number().int()])
 
-export const ViewRecord = z.object({ chat: z.array(EntryRecord), compaction: z.array(EntryRecord), merging: z.boolean() })
+// `high` is the view's merge threshold when it was saved, for readers that don't get the plugin's options.
+export const ViewRecord = z.object({ chat: z.array(EntryRecord), compaction: z.array(EntryRecord), merging: z.boolean(), high: z.number().int().optional() })
 
 export type ViewRecord = z.infer<typeof ViewRecord>
+
+/** Where chats are stored unless the `dataDir` option says otherwise. */
+export const defaultDataDir = (): string => join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "optchat")
 
 export const bytes = (text: string): number => Buffer.byteLength(text, "utf8")
 

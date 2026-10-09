@@ -76,14 +76,27 @@ importers:
   opencode/plugins/optchat:
     dependencies:
       '@opencode/ai':
-        specifier: 2.0.25
-        version: 2.0.25
+        specifier: 2.0.26
+        version: 2.0.26
       '@opencode/plugin':
-        specifier: 2.0.25
-        version: 2.0.25(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.10)
+        specifier: 2.0.26
+        version: 2.0.26(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.17(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)
       zod:
         specifier: 4.1.8
         version: 4.1.8
+    devDependencies:
+      '@opentui/core':
+        specifier: 0.5.17
+        version: 0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      '@opentui/keymap':
+        specifier: 0.5.17
+        version: 0.5.17(@opentui/solid@0.5.17(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(react@19.3.0)(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      '@opentui/solid':
+        specifier: 0.5.17
+        version: 0.5.17(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10)
+      solid-js:
+        specifier: 1.9.15
+        version: 1.9.15
 
   opencode/plugins/pstack:
     devDependencies:
@@ -1071,9 +1084,6 @@ packages:
   '@opencode/ai@2.0.16':
     resolution: {integrity: sha512-QNOut+LUDNqMm2gqzr5xiOkj2xxD3JQX/DG3Z358aBJMgYZkDHY+ui20J7Jl7XdudQb4Jot2hIQ7t6q17BpOFw==}
 
-  '@opencode/ai@2.0.25':
-    resolution: {integrity: sha512-vLa138DzPELRuJ3AGO4M0+ngN/rlcKGreLjOTJoaQIq+DNZRWQLuO+uI6LOVSOCpuNHl3Lwdek4iiTfSs4DZ1A==}
-
   '@opencode/ai@2.0.26':
     resolution: {integrity: sha512-CB+k3Ed6mtat2Or/6YZiXSPrI8q02NfECEKKO9HNeYLKFG3UrbIxrhnaRLbA9YMQp9mKOA1qWIWXJDnkxdVjMQ==}
 
@@ -1107,17 +1117,6 @@ packages:
 
   '@opencode/client@2.0.16':
     resolution: {integrity: sha512-lEZM5NY8cKVwnlIJVHiERIaIMJfWfKTlQvKKkIz7NcNEwUXlrTXOA79kS5n17HtjYer1u1XiQIIggYtEYJXHRw==}
-    peerDependencies:
-      effect: 4.0.0-rc.112
-      solid-js: '>=1.9.0'
-    peerDependenciesMeta:
-      effect:
-        optional: true
-      solid-js:
-        optional: true
-
-  '@opencode/client@2.0.25':
-    resolution: {integrity: sha512-ur/LTb/1ANOskbGM3ZMDurpK8q0BIQuWys/MD499/Eodv6PzybM9hJY4cKJMyD2lNqu9v3349IsV1mj7gCdt7w==}
     peerDependencies:
       effect: 4.0.0-rc.112
       solid-js: '>=1.9.0'
@@ -1194,23 +1193,6 @@ packages:
       solid-js:
         optional: true
 
-  '@opencode/plugin@2.0.25':
-    resolution: {integrity: sha512-CdGaTps7W1QlMsgisPAQMVLV8g5eedV02I21blf6jf73VKoBivUIrKnXyXsjl68ePDsAZG6DX7oXieC8tdPWKw==}
-    peerDependencies:
-      '@opencode/theme': 2.0.25
-      '@opentui/core': '>=0.5.16'
-      '@opentui/solid': '>=0.5.16'
-      solid-js: '>=1.9.0'
-    peerDependenciesMeta:
-      '@opencode/theme':
-        optional: true
-      '@opentui/core':
-        optional: true
-      '@opentui/solid':
-        optional: true
-      solid-js:
-        optional: true
-
   '@opencode/plugin@2.0.26':
     resolution: {integrity: sha512-8fu/WokR5hxGjclLQJKL0PAgsMEfh81MHnUBsJuhcnYUiTJ2ZQPLqSYAhzoYEQu/Vj4M65D3Xx7QS0Q9b9Z4fw==}
     peerDependencies:
@@ -1271,9 +1253,6 @@ packages:
   '@opencode/protocol@2.0.16':
     resolution: {integrity: sha512-TQQOXLngSH4D9Z/B6DkyioFsHyApaczjU9EdD5BJ0UtwihKs3iT5mLQlicctKzcWomNoCqIM45XEjBv+WrSynA==}
 
-  '@opencode/protocol@2.0.25':
-    resolution: {integrity: sha512-A2fbaIc1OOIe9wE0P9dMFD7xxUXS0kyd635l4dS3jfvWAzNTNP24PPtMMw07NKfFh4neEmCh2vvZB5zKP383Fg==}
-
   '@opencode/protocol@2.0.26':
     resolution: {integrity: sha512-Q+kbu0zTneh0RC4jhiuB19WeP8et9dWXGJVjb5EbUdJ8E1j5Eh0lAyqLXlM2tzTxfMfK3gos9ss6mxMVsvDFIg==}
 
@@ -1292,9 +1271,6 @@ packages:
   '@opencode/schema@2.0.16':
     resolution: {integrity: sha512-MXENqPxsEzv77AAQDZsyYM4kSqUSApGEKD3xQ6kDDDvm5f5SHMffcNQ+uJXbh7rFo7Fm7nzdvoDHeZwiXm2UvQ==}
 
-  '@opencode/schema@2.0.25':
-    resolution: {integrity: sha512-z064XvBBmdDQLCUYjBinGeCqdbDK3DZ49raFFrzE95eIth3qBkU2Q872VLSqCCLLgDcwKZuRNrwSFNtcc4xvcw==}
-
   '@opencode/schema@2.0.26':
     resolution: {integrity: sha512-DZ09xXCTkTI3Y9VzuQHsm5AMGh67EqkUM13lC0LGKvD12RAYaVmRX5lDv5AnD3OkmUmPPWLYWjicT18CDloy6Q==}
 
@@ -1309,9 +1285,6 @@ packages:
 
   '@opencode/util@2.0.16':
     resolution: {integrity: sha512-VfY65xppJgSQSXT3x5hH3jM6e5Z08pYEaRA3sKv1K7I8jIFNma8IGZXSoYWaSXPnDt1svxd1sZ9b7tA1RRhOGw==}
-
-  '@opencode/util@2.0.25':
-    resolution: {integrity: sha512-JakTRGjKXMPyFLrKS7OwRIOrXlczS2pGGf7/k6petVA+ikEoeuFmQjIhf3+69WhrSeNlqm2ef/6psgzSDqa4aQ==}
 
   '@opencode/util@2.0.26':
     resolution: {integrity: sha512-RebqfdFEEby7IFA7agajYvCpeW4VoaPkKu/ZMhBXsEYRnpz2NMyoI7zapFvvDJdYl4B0/kPnmt5vUVuqRWm0lQ==}
@@ -6613,18 +6586,6 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@opencode/ai@2.0.25':
-    dependencies:
-      '@aws-sdk/credential-providers': 3.1057.0
-      '@opencode/schema': 2.0.25
-      '@smithy/eventstream-codec': 4.2.14
-      '@smithy/util-utf8': 4.2.2
-      aws4fetch: 1.0.20
-      effect: 4.0.0-rc.112
-      google-auth-library: 10.5.0
-    transitivePeerDependencies:
-      - supports-color
-
   '@opencode/ai@2.0.26':
     dependencies:
       '@aws-sdk/credential-providers': 3.1057.0
@@ -6681,14 +6642,6 @@ snapshots:
     dependencies:
       '@opencode/protocol': 2.0.16
       '@opencode/schema': 2.0.16
-    optionalDependencies:
-      effect: 4.0.0-rc.112
-      solid-js: 1.9.10
-
-  '@opencode/client@2.0.25(effect@4.0.0-rc.112)(solid-js@1.9.10)':
-    dependencies:
-      '@opencode/protocol': 2.0.25
-      '@opencode/schema': 2.0.25
     optionalDependencies:
       effect: 4.0.0-rc.112
       solid-js: 1.9.10
@@ -6790,27 +6743,6 @@ snapshots:
       - supports-color
       - utf-8-validate
 
-  '@opencode/plugin@2.0.25(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.10)':
-    dependencies:
-      '@ai-sdk/provider': 3.0.8
-      '@opencode/ai': 2.0.25
-      '@opencode/client': 2.0.25(effect@4.0.0-rc.112)(solid-js@1.9.10)
-      '@opencode/protocol': 2.0.25
-      '@opencode/schema': 2.0.25
-      '@opencode/util': 2.0.25(@opentelemetry/semantic-conventions@1.43.0)(redis@6.2.1(@opentelemetry/api@1.9.0))
-      effect: 4.0.0-rc.112
-    optionalDependencies:
-      '@opentui/core': 0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10)
-      '@opentui/solid': 0.4.3(solid-js@1.9.10)(typescript@6.0.3)(web-tree-sitter@0.25.10)
-      solid-js: 1.9.10
-    transitivePeerDependencies:
-      - '@opentelemetry/sdk-trace-web'
-      - '@opentelemetry/semantic-conventions'
-      - bufferutil
-      - redis
-      - supports-color
-      - utf-8-validate
-
   '@opencode/plugin@2.0.26(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.5.17(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.5.17(solid-js@1.9.15)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.15)':
     dependencies:
       '@ai-sdk/provider': 3.0.8
@@ -6901,11 +6833,6 @@ snapshots:
       '@opencode/schema': 2.0.16
       effect: 4.0.0-rc.112
 
-  '@opencode/protocol@2.0.25':
-    dependencies:
-      '@opencode/schema': 2.0.25
-      effect: 4.0.0-rc.112
-
   '@opencode/protocol@2.0.26':
     dependencies:
       '@opencode/schema': 2.0.26
@@ -6932,11 +6859,6 @@ snapshots:
       effect: 4.0.0-rc.112
 
   '@opencode/schema@2.0.16':
-    dependencies:
-      '@standard-schema/spec': 1.1.0
-      effect: 4.0.0-rc.112
-
-  '@opencode/schema@2.0.25':
     dependencies:
       '@standard-schema/spec': 1.1.0
       effect: 4.0.0-rc.112
@@ -7009,38 +6931,6 @@ snapshots:
       mime-types: 3.0.2
       minimatch: 10.2.5
       npm-package-arg: 13.0.2
-      pacote: 21.5.1
-    transitivePeerDependencies:
-      - '@opentelemetry/sdk-trace-web'
-      - '@opentelemetry/semantic-conventions'
-      - bufferutil
-      - redis
-      - supports-color
-      - utf-8-validate
-
-  '@opencode/util@2.0.25(@opentelemetry/semantic-conventions@1.43.0)(redis@6.2.1(@opentelemetry/api@1.9.0))':
-    dependencies:
-      '@effect/opentelemetry': 4.0.0-rc.112(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.0)(@opentelemetry/resources@2.8.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-metrics@2.8.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.0))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.0-rc.112)
-      '@effect/platform-node': 4.0.0-rc.112(effect@4.0.0-rc.112)(redis@6.2.1(@opentelemetry/api@1.9.0))
-      '@effect/platform-node-shared': 4.0.0-rc.112(effect@4.0.0-rc.112)
-      '@npmcli/arborist': 9.4.0
-      '@npmcli/config': 10.8.1
-      '@opentelemetry/api': 1.9.0
-      '@opentelemetry/api-logs': 0.219.0
-      '@opentelemetry/context-async-hooks': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/exporter-trace-otlp-http': 0.219.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-metrics': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-base': 2.8.0(@opentelemetry/api@1.9.0)
-      '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.0)
-      cross-spawn: 7.0.6
-      effect: 4.0.0-rc.112
-      glob: 13.0.5
-      mime-types: 3.0.2
-      minimatch: 10.2.5
-      npm-package-arg: 13.0.2
-      open: 11.0.4
       pacote: 21.5.1
     transitivePeerDependencies:
       - '@opentelemetry/sdk-trace-web'

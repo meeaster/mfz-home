@@ -4,7 +4,8 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
-    "./server": "./index.ts"
+    "./server": "./index.ts",
+    "./tui": "./tui.tsx"
   },
   "bin": {
     "optchat-viewer": "./viewer/cli.ts"
@@ -13,8 +14,14 @@
     "viewer": "bun viewer/cli.ts"
   },
   "dependencies": {
-    "@opencode/ai": "2.0.25",
-    "@opencode/plugin": "2.0.25",
+    "@opencode/ai": "2.0.26",
+    "@opencode/plugin": "2.0.26",
     "zod": "4.1.8"
+  },
+  "devDependencies": {
+    "@opentui/core": "0.5.17",
+    "@opentui/keymap": "0.5.17",
+    "@opentui/solid": "0.5.17",
+    "solid-js": "1.9.15"
   }
 }

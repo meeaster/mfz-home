@@ -47,6 +47,14 @@ gist before changing the tree, view or compaction logic; it is the specification
 - Lines are at most 512 bytes. Models can't count bytes, so keep the ruler, the "Too long" retry and the
   keep-the-shortest rule in `memory.ts`.
 
+## Sidebar
+
+- `sidebar/` is the TUI part (`tui.tsx`): a read-only box in `optchat` sessions. Like the viewer, it reads the data
+  directory through the stored-format schemas and never takes a chat's `lock`, so a format change must keep
+  `sidebar/status.ts` working. Its view size must match `Memory.viewBytes()`; `sidebar/status.test.ts` checks that.
+- OpenCode loads it without the plugin's options, so it reads `defaultDataDir()`, and `view.json` records `high`
+  for it.
+
 ## Viewer
 
 - `viewer/` is a standalone, read-only local website (`bun viewer/cli.ts`). It reads the data directory

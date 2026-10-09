@@ -60,11 +60,31 @@ Pass options through the plugin entry in `opencode.json`. Sizes are UTF-8 bytes.
 Each chat is a folder under `dataDir/chats/<chat id>/`:
 - `main.jsonl`: every message, append-only
 - `tree.jsonl`: every summary node, append-only
-- `view.json`: the current view
+- `view.json`: the current view, and the `viewHigh` it was saved under
 - `agents/`: one log per subagent
 
 `chats.json` holds each chat's ID and name and which session belongs to which chat. Nothing is ever deleted except the empty
 chat a session leaves when it immediately resumes another one.
+
+## Sidebar
+
+In `optchat` sessions, the TUI sidebar gets an **OptChat** box:
+
+```
+OptChat
+Temporary Todo App
+chat_abde357cbd1e4734
+View 17.1k / 128k · 50 lines
+No summaries pending
+```
+
+- The chat's name and ID, which `chat_resume` takes.
+- The view's size against `viewHigh`, where one batch of merges brings it back to `viewLow` and rewrites the cached
+  prompt; its line count, or "merging" while that batch runs.
+- How many view lines are still waiting for their summaries. A turn waits up to `waitMs` for them.
+
+OpenCode loads it as this plugin's TUI part (`tui.tsx`), with no options, so it reads the default data directory. It
+reads the stored files every two seconds, since summaries are written in the background between turns.
 
 ## Viewer
 

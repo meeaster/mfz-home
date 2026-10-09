@@ -3,9 +3,8 @@
 // Usage: bun viewer/cli.ts [--port 4517] [--data-dir <path>] [--open]
 
 import { spawn } from "node:child_process"
-import { homedir } from "node:os"
-import { join } from "node:path"
 import { parseArgs } from "node:util"
+import { defaultDataDir } from "../store.js"
 import { startServer } from "./server.js"
 
 const { values } = parseArgs({
@@ -23,7 +22,7 @@ if (values.help) {
 }
 
 // The plugin's default data directory.
-const dataDir = values["data-dir"] ?? join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "optchat")
+const dataDir = values["data-dir"] ?? defaultDataDir()
 
 const port = Number(values.port)
 

@@ -18,7 +18,8 @@ export interface MemoryOptions {
   readonly report: (message: string) => void
 }
 
-const PLACEHOLDER = "(not summarized yet: zoom it)"
+/** A view line's text until its summary is written. */
+export const PLACEHOLDER = "(not summarized yet: zoom it)"
 
 const CHUNK = 30_000
 
@@ -214,7 +215,7 @@ export class Memory {
       this.#compaction = this.#shrinkTo(this.#compaction, compactionLow)
     }
 
-    this.#store.saveView({ chat: this.#chat.map(([l, i]) => [l, i]), compaction: this.#compaction.map(([l, i]) => [l, i]), merging: this.#merging })
+    this.#store.saveView({ chat: this.#chat.map(([l, i]) => [l, i]), compaction: this.#compaction.map(([l, i]) => [l, i]), merging: this.#merging, high: viewHigh })
   }
 
   #shrinkTo(view: readonly Entry[], target: number): Entry[] {

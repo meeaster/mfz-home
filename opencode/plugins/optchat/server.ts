@@ -4,7 +4,6 @@
 
 import { appendFileSync, mkdirSync } from "node:fs"
 import { createHash } from "node:crypto"
-import { homedir } from "node:os"
 import { join } from "node:path"
 import { Message } from "@opencode/ai"
 import { Plugin } from "@opencode/plugin"
@@ -14,6 +13,7 @@ import { Memory } from "./memory.js"
 import { markCache, splitView, type TurnParts, viewPrefix, warmBody } from "./cache-marks.js"
 import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
+import { defaultDataDir } from "./store.js"
 
 const AGENT = "optchat"
 
@@ -103,8 +103,6 @@ const sharedPrefix = (before: string, after: string): number => {
 
   return Buffer.byteLength(before.slice(0, index))
 }
-
-const defaultDataDir = (): string => join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "optchat")
 
 export default Plugin.define({
   id: "optchat",
