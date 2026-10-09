@@ -311,8 +311,16 @@ export class Memory {
     if (prompt === undefined) return
 
     try {
-      this.#built(entry, await this.#write(prompt))
+      const text = await this.#write(prompt)
+
+      // Closed while summarizing, as on a plugin reload: the store's files are closed, and whoever opens the chat next
+      // summarizes this entry again.
+      if (this.#closed) return
+
+      this.#built(entry, text)
     } catch (error) {
+      if (this.#closed) return
+
       this.#queued.delete(key(entry))
       this.#failed.push(entry)
       this.#options.report(`compaction ${label(entry)} failed: ${error instanceof Error ? error.message : String(error)}`)

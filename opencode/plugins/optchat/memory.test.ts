@@ -1,5 +1,5 @@
 import { afterEach, expect, test } from "vitest"
-import { mkdtempSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Memory, type MemoryOptions } from "./memory.js"
@@ -143,4 +143,26 @@ test("a turn waiting on a failed compaction gets it retried without a new messag
 
   memory.close()
   store.close()
+})
+
+test("a chat reopened while a summary is in flight, as on a plugin reload, keeps the new store's files and lock", async () => {
+  const directory = fresh()
+  let finish: (text: string) => void = () => {}
+
+  const first = open(directory, () => new Promise((resolve) => (finish = resolve)))
+
+  first.memory.append("echo", "z".repeat(2_000), "long")
+
+  const second = open(directory)
+
+  first.memory.close()
+  first.store.close()
+  finish("late summary from the closed chat")
+  await new Promise((resolve) => setTimeout(resolve, 0))
+
+  expect(existsSync(join(directory, "lock"))).toBe(true)
+  expect(await second.memory.waitFor(1, 5_000)).toBe(true)
+  expect(readFileSync(join(directory, "tree.jsonl"), "utf8")).not.toContain("late summary")
+  second.memory.close()
+  second.store.close()
 })

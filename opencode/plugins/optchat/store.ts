@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto"
 import { closeSync, existsSync, fsyncSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync, writeSync } from "node:fs"
 import { join } from "node:path"
 import { z } from "zod"
@@ -53,8 +54,11 @@ export class Store {
   readonly #treeFd: number
   readonly #viewPath: string
   readonly #lockPath: string
+  readonly #lock: string
+  #closed = false
 
-  private constructor(directory: string) {
+  private constructor(directory: string, lock: string) {
+    this.#lock = lock
     this.#viewPath = join(directory, "view.json")
     this.#lockPath = join(directory, "lock")
 
@@ -78,14 +82,17 @@ export class Store {
     const lockPath = join(directory, "lock")
 
     if (existsSync(lockPath)) {
-      const holder = Number(readFileSync(lockPath, "utf8"))
+      const holder = Number(readFileSync(lockPath, "utf8").split(" ")[0])
 
       if (holder !== process.pid && isAlive(holder)) return undefined
     }
 
-    writeFileSync(lockPath, String(process.pid))
+    // The token tells this store's lock from a later one in the same process, such as a reloaded plugin's.
+    const lock = `${process.pid} ${randomUUID()}`
 
-    return new Store(directory)
+    writeFileSync(lockPath, lock)
+
+    return new Store(directory, lock)
   }
 
   get total(): number {
@@ -93,6 +100,8 @@ export class Store {
   }
 
   append(kind: Kind, text: string, source: string): MessageRecord {
+    this.#assertOpen()
+
     const record: MessageRecord = {
       i: this.messages.length,
       kind,
@@ -117,6 +126,7 @@ export class Store {
   putNode([l, i]: Entry, text: string): void {
     if (this.nodes.has(key([l, i]))) return
 
+    this.#assertOpen()
     writeSync(this.#treeFd, `${JSON.stringify({ l, i, text, size: bytes(text) })}\n`)
     fsyncSync(this.#treeFd)
     this.nodes.set(key([l, i]), text)
@@ -131,6 +141,8 @@ export class Store {
   }
 
   saveView(view: ViewRecord): void {
+    this.#assertOpen()
+
     const temporary = `${this.#viewPath}.tmp`
 
     writeFileSync(temporary, JSON.stringify(view))
@@ -138,9 +150,19 @@ export class Store {
   }
 
   close(): void {
+    if (this.#closed) return
+
+    this.#closed = true
     closeSync(this.#mainFd)
     closeSync(this.#treeFd)
-    rmSync(this.#lockPath, { force: true })
+
+    // A later store for this chat may already hold the lock; leave its lock in place.
+    if (existsSync(this.#lockPath) && readFileSync(this.#lockPath, "utf8") === this.#lock) rmSync(this.#lockPath, { force: true })
+  }
+
+  // The descriptors of a closed store may already belong to another file, so a late write must not reach them.
+  #assertOpen(): void {
+    if (this.#closed) throw new Error("the chat's store is closed")
   }
 }
 
