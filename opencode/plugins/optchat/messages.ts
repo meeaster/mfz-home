@@ -33,20 +33,24 @@ const resultText = (result: ToolResult): string => {
 }
 
 // OpenCode wraps a finished subagent's reply, as a tool result or a background notice, in this element.
-// Other plugins may append their own tags after it, so it need not end the text.
+// Other plugins may append to it, so it need not end the text: their tags are dropped and their notes kept.
 const SUBAGENT_REPORT = /^<subagent sessionID="([^"]+)" state="([^"]+)"(?: description="([^"]*)")?>\n?([\s\S]*?)\n?<\/subagent>/
 
-/** A subagent's result becomes one `work` message, "[agent: task] report: ...". */
+const TAG = /^<[^>]*>$/
+
+/** A subagent's result becomes one `work` message, "[agent: task] report: ...", followed by any note appended to it. */
 const subagentReport = (text: string, label: (sessionID: string) => string | undefined): string | undefined => {
-  const match = SUBAGENT_REPORT.exec(text.trim())
+  const trimmed = text.trim()
+  const match = SUBAGENT_REPORT.exec(trimmed)
 
   if (match === null) return undefined
 
-  const [, sessionID = "", state = "", description, output = ""] = match
+  const [whole, sessionID = "", state = "", description, output = ""] = match
   const name = label(sessionID) ?? description ?? sessionID
   const status = state === "completed" ? "" : ` (${state})`
+  const notes = trimmed.slice(whole.length).split("\n").map((line) => line.trim()).filter((line) => line !== "" && !TAG.test(line))
 
-  return `[${name}] report${status}: ${clip(output)}`
+  return [`[${name}] report${status}: ${clip(output)}`, ...notes].join(" ")
 }
 
 /**

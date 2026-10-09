@@ -4,15 +4,15 @@ import { completedReply, loadedSkills, pendingInput, toLogged } from "./messages
 
 const noLabel = (): undefined => undefined
 
-test("a subagent result becomes one work message, even with another plugin's tag after it", () => {
+test("a subagent result becomes one work message that keeps another plugin's note and drops its tags", () => {
   const result = Message.tool({
     id: "call_1",
     name: "subagent",
-    result: '<subagent sessionID="ses_child" state="completed">\nThe codename is GREEN FALCON.\n</subagent>\n<session-usage tokens="10"/>',
+    result: '<subagent sessionID="ses_child" state="completed">\nThe codename is GREEN FALCON.\n</subagent>\n<session-usage tokens="10"/>\n\nCairn saved this response to /saved/recall.md.',
   })
 
   expect(toLogged(result, 3, "ses_parent", (sessionID) => (sessionID === "ses_child" ? "general: Recall codename" : undefined))).toEqual([
-    { kind: "work", text: "[general: Recall codename] report: The codename is GREEN FALCON.", source: "ses_parent#3:0" },
+    { kind: "work", text: "[general: Recall codename] report: The codename is GREEN FALCON. Cairn saved this response to /saved/recall.md.", source: "ses_parent#3:0" },
   ])
 })
 
