@@ -150,6 +150,13 @@ export class Memory {
     return this.#chat.length
   }
 
+  /** How many leading view lines are final, with their summary written rather than the placeholder. */
+  builtLines(): number {
+    const pending = this.#chat.findIndex((entry) => !this.#isBuilt(entry))
+
+    return pending < 0 ? this.#chat.length : pending
+  }
+
   zoom(id: number, n: number): string {
     const entry = fromLabel(id, n)
 

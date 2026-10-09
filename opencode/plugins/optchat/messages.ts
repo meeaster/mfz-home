@@ -78,8 +78,84 @@ export const toLogged = (message: Message, position: number, sessionID: string, 
   return logged
 }
 
+// OpenCode wraps a loaded skill's instructions in this element, whether the skill tool loaded it or the user attached it.
+const SKILL_CONTENT = /<skill_content name="([^"]+)">[\s\S]*?<\/skill_content>/g
+
+/**
+ * The skills loaded anywhere in the session, each once in the order first loaded, with the files read from each
+ * skill's folder except its scripts. A view line can't carry a skill's instructions, so they go in full at the start
+ * of every request and stay in effect for the whole chat.
+ */
+export const loadedSkills = (messages: readonly Message[]): string | undefined => {
+  const skills = new Map<string, { readonly block: string; readonly directory: string | undefined }>()
+  const readPaths = new Map<string, string>()
+  // The latest read of each file, in the order first read.
+  const reads = new Map<string, string>()
+
+  for (const message of messages) {
+    for (const part of message.content) {
+      if (part.type === "tool-call" && part.name === "read") {
+        const input = readInput.safeParse(part.input)
+
+        if (input.success) readPaths.set(part.id, input.data.path)
+
+        continue
+      }
+
+      const text = part.type === "tool-result" ? resultText(part) : message.role === "user" && part.type === "text" ? part.text : undefined
+
+      if (text === undefined) continue
+
+      // Only the skill tool and the user's attachments load a skill; a zoom or a subagent's report may quote one.
+      const loads = part.type === "tool-result" ? part.name === "skill" : !SUBAGENT_REPORT.test(text.trim())
+
+      if (loads) {
+        for (const [block, name = ""] of text.matchAll(SKILL_CONTENT)) skills.set(name, { block, directory: BASE_DIRECTORY.exec(block)?.[1] })
+      }
+
+      const path = part.type === "tool-result" && part.name === "read" && part.result.type !== "error" ? readPaths.get(part.id) : undefined
+
+      if (path !== undefined) reads.set(path, text)
+    }
+  }
+
+  if (skills.size === 0) return undefined
+
+  const sections = [...skills.values()].flatMap((skill) => [skill.block, ...skillFiles(skill.directory, reads)])
+
+  return ["Skills loaded in this chat, with the files read from them. Their instructions stay in effect:", ...sections].join("\n\n")
+}
+
+const readInput = z.object({ path: z.string() })
+
+// OpenCode names the skill's folder inside its <skill_content> block.
+const BASE_DIRECTORY = /^Base directory for this skill: (.+)$/m
+
+// The files read from a skill's folder, leaving out its scripts, which are code rather than instructions.
+const skillFiles = (directory: string | undefined, reads: ReadonlyMap<string, string>): string[] =>
+  directory === undefined
+    ? []
+    : [...reads].flatMap(([path, text]) =>
+        path.startsWith(`${directory}/`) && !path.startsWith(`${directory}/scripts/`) ? [`<skill_file path="${path}">\n${text}\n</skill_file>`] : [],
+      )
+
 export const messageKey = (message: Message | undefined, position: number, sessionID: string): string =>
   message?.id ?? `${sessionID}#${position}`
+
+/**
+ * Where the input the model hasn't answered yet begins: the trailing user messages, and any system messages just
+ * before them. OpenCode records instruction changes as system messages, which can sit between the last reply and the
+ * user's new message; they belong to the new turn. Returns the message count when the session ends with a reply.
+ */
+export const pendingInput = (messages: readonly Message[]): number => {
+  let start = messages.length
+
+  while (start > 0 && messages[start - 1]?.role === "user") start--
+
+  while (start < messages.length && start > 0 && messages[start - 1]?.role === "system") start--
+
+  return start
+}
 
 /** Whether a message is a finished assistant reply (no pending tool call), so a following user message starts a new turn. */
 export const completedReply = (message: Message | undefined): boolean =>

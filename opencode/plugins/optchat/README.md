@@ -19,6 +19,8 @@ and don't see any of OptChat's tools.
 - **Ask the agent to list, rename or resume chats.** A new session can continue an earlier chat, with its whole
   memory, by resuming it.
 - **One active turn per chat.** A chat can't be resumed while another session is mid-turn in it.
+- **Loaded skills stay loaded.** A skill's instructions, and the files read from its folder (not its scripts), are sent
+  ahead of the view in every later turn of the session, rather than shrinking to a view line.
 - **Subagents** of an `optchat` session start from the chat's smaller compaction view, so they know what was
   decided without the parent restating it. Their own steps go to a separate log the agent can open with
   `zoom`; only their final report enters the chat.
@@ -48,6 +50,9 @@ Pass options through the plugin entry in `opencode.json`. Sizes are UTF-8 bytes.
 | `concurrency` | 8 | Summary calls in flight at once |
 | `waitMs` | 120000 | How long a turn waits for earlier messages to be summarized |
 | `subagentView` | `compaction` | What subagents start from: `compaction`, `full` or `none` |
+| `viewCache` | `none` | How a new turn reuses the skills and earlier view from the backend's cache: `openai` (breakpoints; GPT-5.6+ on the OpenAI API or Azure Standard), `anthropic` (cache_control; Claude through LiteLLM or another OpenAI-compatible proxy), or `warm` (OpenAI backends that reject marks, such as the ChatGPT login: view blocks go as separate messages, and a warm-up request at each turn's end saves the last complete one) |
+| `viewCacheBytes` | 2048 for `anthropic`, 5000 otherwise | Bytes per view block, of whole lines. OpenAI saves an entry only at least 1,024 tokens past the previous one, so smaller blocks would never be saved; Anthropic's blocks can be nearer the gist's 4 lines |
+| `logTurns` | `false` | Log each turn's prompt parts to `plugin.log`, to check that the view only grows at its end |
 
 ## Storage
 

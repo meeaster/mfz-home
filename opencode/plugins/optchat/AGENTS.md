@@ -12,8 +12,36 @@ gist before changing the tree, view or compaction logic; it is the specification
 - Merges are batched (view `viewHigh` down to `viewLow`), and the view is saved to `view.json` and reloaded,
   never rebuilt from the log. Rebuilding or merging every message rewrites the cached prefix on every call.
 - The system prompt and tools must not change between calls. Per-turn state (date, session, chat name) goes in
-  the turn header after the view, and the view is frozen for the whole turn. OpenCode's date line is stripped
+  the turn header after the view, and the view, header, and loaded skills are frozen for the whole turn. OpenCode's date line is stripped
   from its system prompt for the same reason.
+- A request is `[system] [loaded skills] [view] [turn header] [this turn's messages]`, ordered like the gist's
+  `[tools] [system] [view] [new message]` by how often each part changes, so each call reads the longest prefix
+  from the cache. Skills change only when one loads (each load rewrites the view's cache once), the view grows every
+  turn, and the header is per turn. Skills and header are built once when the turn starts and frozen with the view,
+  so the turn's steps stay cached. Only the skill tool or a user attachment loads a skill (a `<skill_content>` quoted
+  in a zoom or a subagent's report doesn't), and each comes once in first-load order with the latest `read` of each
+  file in its base directory except `scripts/`; a view line can't carry their instructions.
+- Whether a new turn reuses the skills and the earlier view depends on the backend. Anthropic caches at marks inside
+  a message, which the gist assumes. OpenAI on GPT-5.6 and later writes an entry only at the end of a request's last
+  message unless the request has explicit breakpoints, so a view that grows inside one message is re-sent each turn;
+  steps within a turn still reuse everything. `viewCache` rewrites the request body (`cache-marks.ts`): `openai`
+  breakpoints for the OpenAI API and Azure Standard deployments, `anthropic` cache_control for Claude through
+  LiteLLM. The ChatGPT login rejects breakpoints ("not supported on this model") on both the Codex websocket backend
+  and token sharing, and splitting the view into messages alone doesn't help: no request ends at those messages. So
+  `warm` does both: block messages, plus a warm-up at each turn's end (`ctx.session.generate`, rewritten in
+  `http.request` from the turn's own request body so the prefix is identical) that ends at the last complete block.
+  The body is rebuilt from the turn's request rather than in the `generate` hook because other plugins add to the
+  system prompt in `context` hooks only. Verified on the ChatGPT login: the next turn reads the block only when it
+  lies at least 1,024 tokens past the system prompt's entry, which is why blocks are sized in bytes (5,000 by
+  default), and the entry took more than a few seconds to become readable. The warm-up goes out as soon as the turn
+  ends, with only the lines whose summaries are written (`Memory.builtLines`): waiting for the rest let a quick next
+  turn start first and lose the warm-up.
+- Only the human's message starts a turn. A synthetic message (a background subagent's result, a plugin's note)
+  arrives as a plain user message and continues the turn, so the frozen view keeps its cached prefix and the next
+  warm-up covers it; otherwise each background result re-sent the grown view. The model request can't tell them
+  apart, so when a turn boundary is possible the session's own messages are read (`ctx.session.context`), where a
+  synthetic message has `type: "synthetic"`. The `session.synthetic` event isn't used: it can arrive after the
+  message's first request is built.
 - `main.jsonl` and `tree.jsonl` are append-only and flushed on every write; one OpenCode process owns a chat
   through its `lock` file. Changing stored formats needs a migration for existing chats under `dataDir`.
 - Lines are at most 512 bytes. Models can't count bytes, so keep the ruler, the "Too long" retry and the

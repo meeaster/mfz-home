@@ -11,7 +11,8 @@ import { Plugin } from "@opencode/plugin"
 import { z } from "zod"
 import { type Chat, Chats } from "./chats.js"
 import { Memory } from "./memory.js"
-import { completedReply, messageKey, textKey, toLogged } from "./messages.js"
+import { markCache, splitView, type TurnParts, viewPrefix, warmBody } from "./cache-marks.js"
+import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
 
 const AGENT = "optchat"
@@ -40,7 +41,24 @@ const Options = z.object({
   waitMs: z.number().int().positive().default(120_000),
   /** What subagents of an optchat session start from. */
   subagentView: z.enum(["compaction", "full", "none"]).default("compaction"),
+  /** Log each turn's prompt parts to plugin.log, to check that the view only grows at its end. */
+  logTurns: z.boolean().default(false),
+  /**
+   * How a new turn reuses the skills and the earlier view from the backend's cache (see cache-marks.ts): `openai`
+   * breakpoints for GPT-5.6 and later on the OpenAI API or Azure, `anthropic` cache_control for Claude through LiteLLM
+   * or another OpenAI-compatible proxy, `warm` for OpenAI backends that reject marks, such as the ChatGPT login: view
+   * blocks go as separate messages and a warm-up request at each turn's end saves the last complete one.
+   */
+  viewCache: z.enum(["none", "openai", "anthropic", "warm"]).default("none"),
+  /**
+   * Bytes per view block, of whole lines. By default 5000 for `openai` and `warm`, since OpenAI saves an entry only
+   * at least 1,024 tokens past the previous one, and 2048 for `anthropic`, near the gist's 4-line blocks.
+   */
+  viewCacheBytes: z.number().int().positive().optional(),
 })
+
+/** The prompt of a warm-up request, which only identifies it: the model gets the view in its place. */
+const WARM_PROMPT = "OptChat warm-up"
 
 type SessionRole = { readonly kind: "primary" } | { readonly kind: "child"; readonly agent: string; readonly title: string; readonly root: string }
 
@@ -50,6 +68,10 @@ interface Turn {
   readonly start: string
   /** The view, frozen for the whole turn so every call in it shares one cached prefix. */
   readonly view: string
+  /** Skills loaded in earlier turns, sent before the view: they change less often than it does. */
+  readonly skills: string | undefined
+  /** Per-turn state after the view, frozen with it so the turn's steps stay cached. */
+  readonly header: string
   /** Messages in the chat when the turn started. */
   readonly startTotal: number
 }
@@ -68,6 +90,18 @@ const withoutDate = (system: readonly { type: "text"; text: string }[]) => syste
 
 const hide = <Tool>(tools: Record<string, Tool>, names: readonly string[]): void => {
   for (const name of names) delete tools[name]
+}
+
+const digest = (text: string): string => createHash("sha1").update(text).digest("hex").slice(0, 8)
+
+// The bytes two texts share from their start.
+const sharedPrefix = (before: string, after: string): number => {
+  const length = Math.min(before.length, after.length)
+  let index = 0
+
+  while (index < length && before[index] === after[index]) index++
+
+  return Buffer.byteLength(before.slice(0, index))
 }
 
 const defaultDataDir = (): string => join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "optchat")
@@ -109,7 +143,29 @@ export default Plugin.define({
     // One active turn per chat: chat ID -> the session running a turn in it.
     const activeTurns = new Map<string, string>()
     const subagentViews = new Map<string, string>()
+    // The previous turn's view and skills in each chat, for logTurns.
+    const lastPrompts = new Map<string, { readonly view: string; readonly skills: string }>()
+
+    // Whether the human wrote any of the pending user messages. A background subagent's result or a plugin's note
+    // arrives as a synthetic message, which the model request shows as a plain user message; the session's own record
+    // tells them apart.
+    const humanSpoke = async (sessionID: string, pending: readonly Message[]): Promise<boolean> => {
+      const users = pending.filter((message) => message.role === "user")
+
+      if (users.length === 0) return false
+
+      const types = new Map((await ctx.session.context({ sessionID })).map((message) => [message.id, message.type]))
+
+      return users.some((message) => message.id === undefined || types.get(message.id) !== "synthetic")
+    }
+
+    // For `warm`: each session's latest turn request body, the view its warm-up is about to send, and the parts of
+    // the warm-up request in flight.
+    const templates = new Map<string, string>()
+    const warmViews = new Map<string, string>()
+    const warmParts = new Map<string, TurnParts>()
     let turnLock: Promise<void> = Promise.resolve()
+    let stopped = false
 
     const roleOf = async (sessionID: string): Promise<SessionRole> => {
       const known = sessions.get(sessionID)
@@ -160,7 +216,16 @@ export default Plugin.define({
 
       if (!ready) warn(`a turn in ${chat.info.id} started before ${chat.memory.total} messages were all summarized`)
 
-      const turn: Turn = { chat: chat.info.id, start: messageKey(messages[start], start, sessionID), view: chat.memory.render(), startTotal: chat.memory.total }
+      const turn: Turn = {
+        chat: chat.info.id,
+        start: messageKey(messages[start], start, sessionID),
+        view: chat.memory.render(),
+        skills: loadedSkills(messages.slice(0, start)),
+        header: turnHeader(chat, sessionID),
+        startTotal: chat.memory.total,
+      }
+
+      if (options.logTurns) logTurn(chat.info.id, sessionID, turn)
 
       activeTurns.set(chat.info.id, sessionID)
       turns.set(sessionID, turn)
@@ -169,16 +234,31 @@ export default Plugin.define({
       return turn
     }
 
+    // One line per turn: the size and hash of each prompt part, and how much of the previous turn's view this one
+    // starts with. The cache holds only while `shared` equals the previous view's size.
+    const logTurn = (chatID: string, sessionID: string, turn: Turn): void => {
+      const skills = turn.skills ?? ""
+      const last = lastPrompts.get(chatID)
+      const shared = last === undefined ? 0 : sharedPrefix(last.view, turn.view)
+      const previous = last === undefined ? 0 : Buffer.byteLength(last.view)
+      const skillsChanged = last !== undefined && last.skills !== skills
+
+      lastPrompts.set(chatID, { view: turn.view, skills })
+      warn(
+        `turn chat=${chatID} session=${sessionID} skills=${Buffer.byteLength(skills)}:${digest(skills)}${skillsChanged ? " (changed)" : ""} ` +
+          `view=${Buffer.byteLength(turn.view)} shared=${shared}/${previous} header=${digest(turn.header)}`,
+      )
+    }
+
     // Finds the current turn's first message. A new turn starts when the user spoke after a finished reply, or when
     // the session moved to another chat.
     const currentTurn = async (chat: Chat, sessionID: string, messages: readonly Message[]): Promise<{ turn: Turn; start: number }> => {
       const existing = turns.get(sessionID)
       const existingStart = existing === undefined ? -1 : messages.findIndex((message, position) => messageKey(message, position, sessionID) === existing.start)
-      let block = messages.length
-
-      while (block > 0 && messages[block - 1]?.role === "user") block--
-
-      const userSpoke = block < messages.length
+      const block = pendingInput(messages)
+      // Only the human starts a turn: a synthetic message continues it, so the frozen view keeps its cached prefix
+      // and the next warm-up covers the result.
+      const userSpoke = await humanSpoke(sessionID, messages.slice(block))
       const fresh = existing === undefined || existing.chat !== chat.info.id || existingStart < 0 || (userSpoke && block > existingStart && completedReply(messages[block - 1]))
 
       if (existing !== undefined && !fresh) return { turn: existing, start: existingStart }
@@ -208,7 +288,7 @@ export default Plugin.define({
       editor.add({
         name: "zoom",
         description:
-          "Open the line id+n of the view into the two lines of n/2 under it; n = 1 gives the message whole. Pass agent instead to get a subagent's whole chat, by its task title, agent name or session ID.",
+          "Open the line id+n of the view into the two lines of n/2 under it; n = 1 gives the message whole. To reread a subagent's result, zoom into its report line with n = 1. Pass agent instead only when you need a subagent's working steps: it returns that subagent's whole chat, by its task title, agent name or session ID, which is much longer than its report.",
         input: z.object({
           id: z.number().int().min(0).optional().describe("First message of the line"),
           n: z.number().int().min(1).optional().describe("Messages the line covers, a power of 2"),
@@ -326,8 +406,102 @@ export default Plugin.define({
 
       const current = event.messages.slice(start)
 
-      event.messages.splice(0, event.messages.length, Message.user(turn.view), Message.user(turnHeader(chat, event.sessionID)), ...current)
+      // The prompt is ordered by how often each part changes, so each call reads the longest prefix from the cache:
+      // loaded skills change only when another one loads, the view grows every turn, and the header is per turn.
+      const head = [Message.user(turn.view), Message.user(turn.header)]
+
+      if (turn.skills !== undefined) head.unshift(Message.user(turn.skills))
+
+      event.messages.splice(0, event.messages.length, ...head, ...current)
       event.system.splice(0, event.system.length, { type: "text", text: SYSTEM }, ...withoutDate(event.system))
+    })
+
+    const blockSize = (): number => options.viewCacheBytes ?? (options.viewCache === "anthropic" ? 2048 : 5000)
+
+    // The request body rewritten for the view cache: a turn's request gets its marks or block messages, and a warm-up
+    // request is rebuilt from the session's latest turn request, so it shares that request's prefix byte for byte.
+    const rewriteFor = (sessionID: string, kind: string, body: string, transport: string): string | undefined => {
+      const mode = options.viewCache
+
+      if (mode === "none" || !optchatSessions.has(sessionID)) return undefined
+
+      const size = blockSize()
+
+      if (kind === "primary") {
+        const turn = turns.get(sessionID)
+
+        if (turn === undefined) return undefined
+
+        if (mode === "warm" && transport === "http") templates.set(sessionID, body)
+
+        const rewritten = markCache(body, turn, mode, size)
+
+        if (options.logTurns) warn(`view cache session=${sessionID} via=${transport} mode=${mode} rewritten=${rewritten !== undefined}`)
+
+        return rewritten
+      }
+
+      const parts = warmParts.get(sessionID)
+      const template = templates.get(sessionID)
+
+      if (kind !== "generate" || parts === undefined || template === undefined || !body.includes(WARM_PROMPT)) return undefined
+
+      warmParts.delete(sessionID)
+
+      const warm = warmBody(template, parts, size)
+
+      if (options.logTurns) warn(`warm-up session=${sessionID} view=${Buffer.byteLength(parts.view)} skills=${Buffer.byteLength(parts.skills ?? "")} sent=${warm !== undefined}`)
+
+      return warm
+    }
+
+    // At a turn's end, a warm-up request ending at the last complete view block saves a cache entry there, which the
+    // next turn's request shares. It is sent as the session's own generate request, so it carries the session's
+    // model, cache key and affinity headers; the `generate` hook and `rewriteFor` give it its content.
+    const warmUp = async (sessionID: string): Promise<void> => {
+      const chat = chatOfSession(sessionID)
+
+      if (chat === undefined) return
+
+      if (!templates.has(sessionID)) {
+        warn(`no HTTP turn request to warm from in session ${sessionID}`)
+
+        return
+      }
+
+      // Sent at once, with only the lines whose summaries are written: waiting for the rest would let a quick next
+      // turn start first, and the entry serves whichever turn comes.
+      const view = viewPrefix(chat.memory.render(), chat.memory.builtLines())
+
+      // A short chat has nothing stable to save yet, unless skills are loaded.
+      if (turns.get(sessionID)?.skills === undefined && !splitView(view, blockSize()).some((block) => block.complete)) return
+
+      warmViews.set(sessionID, view)
+
+      try {
+        const result = await ctx.session.generate({ sessionID, prompt: WARM_PROMPT })
+
+        if (options.logTurns) warn(`warm-up session=${sessionID} replied ${result.text.length} chars`)
+      } catch (error) {
+        warn(`warm-up failed in session ${sessionID}: ${String(error)}`)
+      } finally {
+        warmViews.delete(sessionID)
+        warmParts.delete(sessionID)
+      }
+    }
+
+    await ctx.session.hook("generate", (event) => {
+      const view = warmViews.get(event.sessionID)
+      const last = event.messages.at(-1)
+      const prompt = last?.role === "user" && last.content.length === 1 && last.content[0]?.type === "text" ? last.content[0].text : undefined
+
+      if (view === undefined || prompt !== WARM_PROMPT) return
+
+      // The next turn's skills: everything loaded in the session so far. The body is replaced on the way out, so the
+      // history and system prompt needn't be lowered.
+      warmParts.set(event.sessionID, { view, skills: loadedSkills(event.messages.slice(0, -1)) })
+      event.messages.splice(0, event.messages.length, Message.user(WARM_PROMPT))
+      event.system.splice(0, event.system.length)
     })
 
     // OpenAI's prompt cache, and the ChatGPT backend's session affinity, should follow the chat rather than the
@@ -348,6 +522,10 @@ export default Plugin.define({
         const frame = CacheKeyed.safeParse(JSON.parse(event.frame))
 
         if (frame.success) event.frame = JSON.stringify({ ...frame.data, prompt_cache_key: key })
+
+        const rewritten = rewriteFor(event.sessionID, event.kind, event.frame, "ws")
+
+        if (rewritten !== undefined) event.frame = rewritten
       },
       { providerID: "openai" },
     )
@@ -366,18 +544,39 @@ export default Plugin.define({
       { providerID: "openai" },
     )
 
+    // Any provider: at work the model is reached through a LiteLLM provider, not `openai`.
+    if (options.viewCache !== "none") {
+      await ctx.session.hook(
+        "http.request",
+        async (event) => {
+          const body = rewriteFor(event.sessionID, event.kind, await event.request.clone().text(), "http")
+
+          if (body === undefined) return
+
+          const headers = new Headers(event.request.headers)
+
+          headers.delete("content-length")
+          event.request = new Request(event.request, { body, headers })
+        },
+      )
+    }
+
     // A turn's final reply has no later model call to observe it, and a finished turn frees its chat.
     const iterator = ctx.event.subscribe()[Symbol.asyncIterator]()
 
-    const consumer = (async () => {
+    void (async () => {
       try {
-        for (let next = await iterator.next(); next.done !== true; next = await iterator.next()) {
+        for (let next = await iterator.next(); next.done !== true && !stopped; next = await iterator.next()) {
           const event = next.value
 
           if (event.type === "session.execution.succeeded" || event.type === "session.execution.failed" || event.type === "session.execution.interrupted") {
             const chatID = turns.get(event.data.sessionID)?.chat
 
-            if (chatID !== undefined && activeTurns.get(chatID) === event.data.sessionID) activeTurns.delete(chatID)
+            if (chatID !== undefined && activeTurns.get(chatID) === event.data.sessionID) {
+              activeTurns.delete(chatID)
+
+              if (options.viewCache === "warm") void warmUp(event.data.sessionID)
+            }
 
             continue
           }
@@ -398,9 +597,12 @@ export default Plugin.define({
       }
     })()
 
+    // OpenCode waits for this cleanup before a reload finishes, and the stream's pending next() may wait for another
+    // event to arrive. So the loop is told to stop rather than awaited; it exits at its next event, before touching a
+    // closed chat.
     return async () => {
-      await iterator.return?.()
-      await consumer
+      stopped = true
+      void iterator.return?.()
       chats.close()
     }
   },
