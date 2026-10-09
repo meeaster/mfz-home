@@ -190,7 +190,7 @@ describe("session cost", () => {
     const tokens = { input: 1000, output: 100, reasoning: 0, cacheRead: 0, cacheWrite: 0, cacheWriteLong: 0 };
 
     mkdirSync(cairn.root, { recursive: true });
-    // Either target form: a string, or the session-cost-tui plugin's { providerID, modelID }.
+    // Either target form: a string, or the session-usage-tui plugin's { providerID, modelID }.
     writeFileSync(aliases, JSON.stringify({ "gateway/opus": "anthropic/claude-opus-5-5", "gateway/sol": { providerID: "openai", modelID: "gpt-x" } }));
 
     const price = pricer(catalog, loadAliases(aliases));

@@ -1,0 +1,15 @@
+{
+  "name": "mindframe-z-session-usage-tui",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./tui": "./tui/index.tsx"
+  },
+  "devDependencies": {
+    "@opencode/plugin": "2.0.26",
+    "@opentui/core": "0.5.17",
+    "@opentui/keymap": "0.5.17",
+    "@opentui/solid": "0.5.17",
+    "solid-js": "1.9.15"
+  }
+}

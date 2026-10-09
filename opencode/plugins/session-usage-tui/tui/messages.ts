@@ -76,29 +76,39 @@ export function latestCompletedCompactionIndex(messages: readonly SessionMessage
   );
 }
 
+/**
+ * Every family session's priced steps, and those since the selected session's latest completed compaction: its own
+ * later steps, and its descendants' steps that started after the compaction.
+ */
 export function familyPricingUsages(
   family: readonly SessionMessageGroup[],
   selectedSessionID: string,
+  descendants: ReadonlySet<string> = new Set(),
 ) {
   const selected = family.find(({ sessionID }) => sessionID === selectedSessionID);
   const compactionIndex = latestCompletedCompactionIndex(selected?.messages ?? []);
+  const compactionTime = selected?.messages[compactionIndex]?.time;
+  const compactedAt = compactionTime?.completed ?? compactionTime?.created;
 
   const pricedGroups = family.map(({ sessionID, messages }) => ({
     sessionID,
     usages: messages.flatMap((message, index) => {
       const usage = pricingUsage(message);
 
-      return usage ? [{ index, usage }] : [];
+      return usage ? [{ index, created: message.time?.created, usage }] : [];
     }),
   }));
-
-  const selectedUsages =
-    pricedGroups.find(({ sessionID }) => sessionID === selectedSessionID)?.usages ?? [];
 
   const sinceCompaction =
     compactionIndex === -1
       ? undefined
-      : selectedUsages.flatMap(({ index, usage }) => (index > compactionIndex ? [usage] : []));
+      : pricedGroups.flatMap(({ sessionID, usages }) => usages.flatMap(({ index, created, usage }) => {
+          if (sessionID === selectedSessionID) return index > compactionIndex ? [usage] : [];
+
+          const later = descendants.has(sessionID) && compactedAt !== undefined && created !== undefined && created > compactedAt;
+
+          return later ? [usage] : [];
+        }));
 
   return {
     all: pricedGroups.flatMap(({ usages }) => usages.map(({ usage }) => usage)),

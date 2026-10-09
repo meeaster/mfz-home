@@ -1,15 +1,19 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
-import { familyPricingUsages, loadFamilySessionMessages } from "./messages.js";
+import { familyPricingUsages, loadFamilySessionMessages, pricingUsage } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
 import type { ModelAliases } from "./models.js";
+import { sessionUsage, type SessionUsage } from "./usage.js";
+
+/** The family's cost by model, with each family session's own usage and estimated cost. */
+export type UsageEstimate = CostEstimate & { sessions: Record<string, SessionUsage & { cost: number }> };
 
 type CostLifecycleOptions = {
   context: Context;
   sessionID: () => string;
-  setEstimate: (value: CostEstimate | undefined) => void;
+  setEstimate: (value: UsageEstimate | undefined) => void;
   setError: (value: string | undefined) => void;
-  estimate?: (context: Context, sessionID: string, modelAliases: ModelAliases) => Promise<CostEstimate>;
+  estimate?: (context: Context, sessionID: string, modelAliases: ModelAliases) => Promise<UsageEstimate>;
   modelAliases?: ModelAliases;
   delay?: number;
 };
@@ -77,16 +81,38 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   };
 }
 
-async function estimateCost(context: Context, sessionID: string, modelAliases: ModelAliases) {
+async function estimateCost(context: Context, sessionID: string, modelAliases: ModelAliases): Promise<UsageEstimate> {
   const [priceCatalog, sessionIDs] = await Promise.all([
     loadCatalog(),
     Promise.resolve(context.data.session.family(sessionID))
   ]);
 
   const familyMessages = await loadFamilySessionMessages(context.client, sessionIDs);
-  const usages = familyPricingUsages(familyMessages, sessionID);
+  const usages = familyPricingUsages(familyMessages, sessionID, descendantsOf(context, sessionID, sessionIDs));
 
-  return aggregateCost(usages.all, priceCatalog, usages.sinceCompaction, modelAliases);
+  const sessions = Object.fromEntries(familyMessages.map(({ sessionID: id, messages }) => {
+    const priced = aggregateCost(messages.flatMap((message) => pricingUsage(message) ?? []), priceCatalog, undefined, modelAliases);
+    const cost = priced.costs.reduce((sum, item) => sum + item.amount, 0);
+
+    return [id, { ...sessionUsage(messages, context.data.session.get(id)?.revert?.messageID), cost }];
+  }));
+
+  return { ...aggregateCost(usages.all, priceCatalog, usages.sinceCompaction, modelAliases), sessions };
+}
+
+/** The sessions among `sessionIDs` started under `sessionID`, directly or through other subagents. */
+export function descendantsOf(context: Context, sessionID: string, sessionIDs: readonly string[]) {
+  const descendants = new Set<string>();
+
+  for (const id of sessionIDs) {
+    let parent = context.data.session.get(id)?.parentID;
+
+    while (parent !== undefined && parent !== sessionID) parent = context.data.session.get(parent)?.parentID;
+
+    if (parent === sessionID) descendants.add(id);
+  }
+
+  return descendants;
 }
 
 type RejectionReason = Parameters<typeof String>[0];

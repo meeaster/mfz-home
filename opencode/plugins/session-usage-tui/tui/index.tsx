@@ -6,10 +6,10 @@ import type { ModelAliases } from "./models.js";
 import { reactiveSessionID } from "./slot.js";
 
 const plugin = {
-  id: "session-cost-tui",
+  id: "session-usage-tui",
   setup(context) {
-    // SAFETY: MFZ renders modelAliases from the Work profile's reviewed plugin configuration.
-    const aliases = context.options.modelAliases as ModelAliases | undefined;
+    // SAFETY: MFZ renders these options from the profile's reviewed plugin configuration.
+    const options = context.options as { modelAliases?: ModelAliases; warnAt?: number };
 
     return context.ui.slot({
       append: "sidebar.content",
@@ -17,7 +17,8 @@ const plugin = {
         <View
           context={context}
           sessionID={reactiveSessionID(input)}
-          modelAliases={aliases ?? {}}
+          modelAliases={options.modelAliases ?? {}}
+          warnAt={options.warnAt ?? 200_000}
         />
       )
     });

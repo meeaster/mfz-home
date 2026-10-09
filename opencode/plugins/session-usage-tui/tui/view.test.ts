@@ -1,13 +1,12 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import type { CostEstimate } from "./pricing.js";
-import { createCostLifecycle } from "./lifecycle.js";
+import { createCostLifecycle, type UsageEstimate } from "./lifecycle.js";
 import { catalogRenderState } from "./render-state.js";
 
 type Handler = (event: { data: { sessionID: string; parentID?: string } }) => void;
 
-type State = { estimate?: CostEstimate; error?: string };
+type State = { estimate?: UsageEstimate; error?: string };
 
 type TestContext = { data: { on: (type: string, handler: Handler) => () => number; session: { family: (id: string) => string[] } } };
 
@@ -16,7 +15,7 @@ function asContext(value: TestContext): Context {
   return value as never;
 }
 
-function harness(estimate: (context: Context, sessionID: string) => Promise<CostEstimate>) {
+function harness(estimate: (context: Context, sessionID: string) => Promise<UsageEstimate>) {
   const handlers = new Map<string, Handler>();
   const cleanups: string[] = [];
   const state: State = {};
@@ -57,7 +56,7 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Cost
   };
 }
 
-const result = (amount: number): CostEstimate => ({ costs: [{ model: "test", amount }], unpriced: 0 });
+const result = (amount: number): UsageEstimate => ({ costs: [{ model: "test", amount }], unpriced: 0, sessions: {} });
 
 const deferred = <Value>() => {
   let resolve!: (value: Value) => void;
@@ -93,7 +92,7 @@ describe("session cost lifecycle", () => {
 
   it("suppresses stale async completion", async () => {
     vi.useFakeTimers();
-    const first = deferred<CostEstimate>();
+    const first = deferred<UsageEstimate>();
     const test = harness((_context, id) => id === "one" ? first.promise : Promise.resolve(result(2)));
     test.lifecycle.refresh("one");
     await vi.advanceTimersByTimeAsync(10);
@@ -107,7 +106,7 @@ describe("session cost lifecycle", () => {
 
   it("keeps the last estimate visible during same-session refreshes", async () => {
     vi.useFakeTimers();
-    const next = deferred<CostEstimate>();
+    const next = deferred<UsageEstimate>();
     let calls = 0;
     const test = harness(async () => ++calls === 1 ? result(1) : next.promise);
     test.lifecycle.refresh();

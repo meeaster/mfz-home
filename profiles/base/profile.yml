@@ -288,7 +288,7 @@ opencode:
     - optchat
   tui_plugins:
     - handoff-tui
-    - session-cost-tui
+    - session-usage-tui
   commands:
     - apply-spec
     - implement-design

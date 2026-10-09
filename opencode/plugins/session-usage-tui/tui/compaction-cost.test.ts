@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest";
 import { familyPricingUsages, type SessionMessage, type SessionMessageGroup } from "./messages.js";
 import { aggregateCost, type Catalog } from "./pricing.js";
 
-const assistant = (modelID: string, input: number): SessionMessage => ({
+const assistant = (modelID: string, input: number, created = 0): SessionMessage => ({
   type: "assistant",
   model: { providerID: "openai", id: modelID },
-  time: { completed: 1 },
+  time: { created, completed: created + 1 },
   tokens: { input, output: 0, reasoning: 0, cache: { read: 0, write: 0 } }
 });
 
-const compaction = (status: string): SessionMessage => ({ type: "compaction", status });
+const compaction = (status: string, created = 0): SessionMessage => ({ type: "compaction", status, time: { created } });
 
 const group = (sessionID: string, messages: SessionMessage[]): SessionMessageGroup => ({ sessionID, messages });
 
@@ -67,5 +67,21 @@ describe("session cost compaction scope", () => {
     ];
 
     expect(familyPricingUsages(family, "selected").sinceCompaction).toBeUndefined();
+  });
+
+  it("counts the selected session's subagents' steps after its compaction toward it", () => {
+    const family = [
+      group("root", [assistant("priced", 1_000_000, 10), compaction("completed", 20), assistant("priced", 250_000, 30)]),
+      group("explorer", [assistant("priced", 500_000, 15), assistant("priced", 100_000, 25)]),
+      group("nested", [assistant("priced", 50_000, 35)]),
+      group("other", [assistant("priced", 400_000, 40)])
+    ];
+
+    const usages = familyPricingUsages(family, "root", new Set(["explorer", "nested"]));
+
+    const [cost] = aggregateCost(usages.all, catalog, usages.sinceCompaction).costs;
+
+    expect(cost?.amount).toBeCloseTo(2.3);
+    expect(cost?.sinceCompaction).toBeCloseTo(0.4);
   });
 });

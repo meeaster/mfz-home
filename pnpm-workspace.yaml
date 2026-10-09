@@ -12,7 +12,7 @@ packages:
   - opencode/plugins/optchat
   - opencode/plugins/handoff-tui
   - opencode/plugins/pstack
-  - opencode/plugins/session-cost-tui
+  - opencode/plugins/session-usage-tui
   - opencode/plugins/session-usage
   - opencode/plugins/session-context
   - opencode/plugins/skill-continuity
