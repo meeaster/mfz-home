@@ -368,6 +368,28 @@ describe("cairn plugin", () => {
     expect(backgroundReturn({ text: "A reminder." })).toBeNull();
   });
 
+  it("adds where a background result was saved to the result itself, the same way in every request", async () => {
+    const app = harness(sessions);
+    const saved = `${sessionFolder}/map-the-aws-accounts.md`;
+    const result = '<subagent sessionID="ses_explore" state="completed" description="Map the AWS accounts">\nThree accounts.\n</subagent>';
+
+    const pending = [
+      { role: "user", content: [{ type: "text", text: "Map the accounts." }] },
+      { role: "assistant", content: [{ type: "text", text: "Started a subagent." }] },
+      { role: "user", content: [{ type: "text", text: result }] }
+    ];
+
+    const first = await app.cairn.noteResults("ses_lead", pending);
+
+    expect(first).toEqual(new Map([[2, `${result}\n\nCairn saved the result of "Map the AWS accounts" to ${saved}.`]]));
+    expect(app.written.get(saved)).toBe("Three accounts.\n");
+
+    const answered = [...pending, { role: "assistant", content: [{ type: "text", text: "Three accounts." }] }];
+
+    expect(await app.cairn.noteResults("ses_lead", answered)).toEqual(first);
+    expect(await harness(sessions).cairn.noteResults("ses_lead", answered)).toEqual(new Map());
+  });
+
   it("keeps a saved response when the model can't describe it", async () => {
     const app = harness(sessions);
 

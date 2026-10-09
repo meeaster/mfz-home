@@ -92,6 +92,20 @@ export function backgroundReturn(message: SyntheticMessage): SubagentReturn | nu
   return { childID: metadata.data.childID, description: message.description, text };
 }
 
+// The parts of a model request's message that Cairn reads to find background results.
+export type RequestMessage = {
+  readonly role: string;
+  readonly content: readonly unknown[];
+};
+
+const textPart = z.object({ type: z.literal("text"), text: z.string() });
+
+// The <subagent> element OpenCode wraps a completed background result in, as the parent's model request carries it.
+const completedResult = /^<subagent sessionID="([^"]+)" state="completed" description="(.*)">\n([\s\S]*)\n<\/subagent>$/;
+
+// How long a request waits for a background result to be saved before going without its note.
+const noteWait = 15_000;
+
 const generatedDescription = z.object({ title: z.string().min(1), description: z.string().min(1) });
 
 // OpenCode's result for a subagent that ended without text.
@@ -222,6 +236,10 @@ export function createCairn(options: CairnPluginOptions) {
   const responses = new Map<string, string>();
   const lastReturned = new Map<string, string>();
   const owned = new Map<string, Promise<boolean>>();
+  // The note for each background result, keyed by subagent and text, and the note each request carries: the first
+  // request decides, so later ones repeat it and the request's cached prefix holds.
+  const savedNotes = new Map<string, Promise<string | null>>();
+  const decidedNotes = new Map<string, string | null>();
 
   // OpenCode runs a plugin instance per location but sends every location's events to each one, so only the instance
   // whose location holds a session acts on its events.
@@ -309,8 +327,6 @@ export function createCairn(options: CairnPluginOptions) {
     }
   }
 
-  // The system text for a model request: the session's catalog ID, and after a compaction, the compaction note.
-  // The note stays in every later request, because system text isn't kept in the session's history.
   // Gives a path in the session tree's folder, granted to the session.
   async function grant(sessionID: string, topic: string): Promise<string> {
     const printed = await options.cli.output(["location", "--session", sessionKey(sessionID), "--topic", topic, "--json"]);
@@ -336,6 +352,9 @@ export function createCairn(options: CairnPluginOptions) {
     return found;
   }
 
+  // What a model request is told about its session: the catalog ID, a subagent's folder guidance, and after a
+  // compaction, the compaction note. The note stays in every later request, because this text isn't kept in the
+  // session's history.
   async function context(sessionID: string): Promise<string> {
     const parts = [`This session's catalog ID is ${sessionKey(sessionID)}.`];
 
@@ -428,6 +447,61 @@ export function createCairn(options: CairnPluginOptions) {
     }
 
     return { response: path, learnings: learnings?.path ?? null };
+  }
+
+  // Saves a background result once, however many routes it arrives by, and gives the note on where it went.
+  function backgroundSaved(result: SubagentReturn): Promise<string | null> {
+    const key = `${result.childID}\n${result.text}`;
+    const known = savedNotes.get(key);
+
+    if (known !== undefined) {
+      return known;
+    }
+
+    const note = subagentReturned(result).then((saved) => (saved === null ? null : savedNote(`the result of "${result.description}"`, saved)));
+
+    savedNotes.set(key, note);
+
+    return note;
+  }
+
+  // The text to give each background result in a request, after its <subagent> element, so the parent learns where
+  // the result was saved from the result itself. A separate message would arrive while the parent answers the
+  // result and make it answer again. A result the model has already answered gets its note only if this instance
+  // saved it; after a reload it stays as it is.
+  async function noteResults(sessionID: string, messages: readonly RequestMessage[]): Promise<Map<number, string>> {
+    const notes = new Map<number, string>();
+    const answered = messages.findLastIndex((message) => message.role === "assistant");
+
+    if (!(await owns(sessionID))) {
+      return notes;
+    }
+
+    for (const [index, message] of messages.entries()) {
+      const part = message.role === "user" && message.content.length === 1 ? textPart.safeParse(message.content[0]) : undefined;
+      const match = part?.success === true ? completedResult.exec(part.data.text) : null;
+
+      if (part?.success !== true || match === null) {
+        continue;
+      }
+
+      const [, childID = "", description = "", text = ""] = match;
+      const key = `${childID}\n${text}`;
+
+      if (!decidedNotes.has(key) && (index > answered || savedNotes.has(key))) {
+        const timeout = new Promise<null>((resolve) => setTimeout(() => resolve(null), noteWait).unref());
+
+        decidedNotes.set(key, await Promise.race([backgroundSaved({ childID, description, text }), timeout]));
+      }
+
+      const note = decidedNotes.get(key);
+
+      if (note !== undefined && note !== null) {
+        notes.set(index, `${part.data.text}\n\n${note}`);
+      }
+    }
+
+    return notes;
   }
 
   // The learnings path granted to a subagent, or null when none was.
@@ -542,6 +616,8 @@ export function createCairn(options: CairnPluginOptions) {
     afterTool,
     owns,
     subagentReturned,
+    backgroundSaved,
+    noteResults,
     turnCompleted,
     compactionEnded: (sessionID: string) => {
       compacted.add(sessionID);
@@ -680,22 +756,9 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
 
       const returned = message === null ? null : backgroundReturn(message);
 
-      const saved = returned === null ? null : await cairn.subagentReturned(returned);
-
-      // A background result reaches the parent through its inbox, where Cairn can't add its note the way it does to a
-      // foreground result, so the note follows as its own message, without waking the parent.
-      if (returned !== null && saved !== null) {
-        try {
-          await ctx.session.synthetic({
-            sessionID,
-            resume: false,
-            description: `Cairn saved: ${returned.description}`,
-            text: savedNote(`the result of "${returned.description}"`, saved),
-            metadata: { source: "cairn" }
-          });
-        } catch (error) {
-          console.error("[cairn] unable to tell the parent where a result was saved", error);
-        }
+      // Saving starts as soon as the result arrives; the parent's next request waits for it and carries the note.
+      if (returned !== null) {
+        void cairn.backgroundSaved(returned);
       }
     }
   })().catch((error) => console.error("[cairn] event stream failed", error));
@@ -719,7 +782,18 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
   });
 
   const contextHook = await ctx.session.hook("context", async (event) => {
-    event.system.push({ type: "text", text: await cairn.context(event.sessionID) });
+    for (const [index, text] of await cairn.noteResults(event.sessionID, event.messages)) {
+      const message = event.messages[index];
+
+      if (message !== undefined) {
+        event.messages[index] = { ...message, content: message.content.map((part) => (part.type === "text" ? { ...part, text } : part)) };
+      }
+    }
+
+    // The session's context opens the conversation rather than joining the system text. Its catalog ID differs in
+    // every session, and in the system text it made each session's prompt differ from its first request on, so
+    // subagents started together couldn't share a cache entry.
+    event.messages.unshift({ role: "user", content: [{ type: "text", text: await cairn.context(event.sessionID) }] });
   });
 
   // A shell inherits CAIRN_SESSION from the command that started an opencode run, which names a session further
