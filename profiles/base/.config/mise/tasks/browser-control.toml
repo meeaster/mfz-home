@@ -1,0 +1,41 @@
+["browser-control:sync-extension"]
+description = "Copy the bundled Browser Control extension into the unpacked folder Windows Chrome loads (WSL only)"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+if ! grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+  echo "browser-control: not running under WSL; nothing to sync"
+  exit 0
+fi
+
+# Set by mise when this runs as the tool's postinstall; otherwise use the active version.
+root=${MISE_TOOL_INSTALL_PATH:-$(mise where npm:@opencode-ai/browser-control)}
+manifest=$(find "$root" -path '*/@opencode-ai/browser-control/extension/dist/manifest.json' -print -quit)
+if [ -z "$manifest" ]; then
+  echo "browser-control: no bundled extension under $root" >&2
+  exit 1
+fi
+src=$(dirname "$manifest")
+
+dest=${BROWSER_CONTROL_EXTENSION_DIR:-}
+if [ -z "$dest" ]; then
+  # Run cmd.exe from a Windows drive so it does not warn about a UNC working directory.
+  localappdata=$(cd /mnt/c && /mnt/c/Windows/System32/cmd.exe /d /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r') || true
+  if [ -z "$localappdata" ]; then
+    echo "browser-control: cannot reach Windows to find %LOCALAPPDATA%; set BROWSER_CONTROL_EXTENSION_DIR" >&2
+    exit 1
+  fi
+  dest="$(wslpath -u "$localappdata")/BrowserControl/extension"
+fi
+
+if diff -rq "$src" "$dest" >/dev/null 2>&1; then
+  echo "browser-control: extension already current at $dest"
+  exit 0
+fi
+
+mkdir -p "$dest"
+rsync -a --delete "$src"/ "$dest"/
+echo "browser-control: extension synced to $dest"
+echo "browser-control: click Update on Browser Control in chrome://extensions to load it"
+'''
