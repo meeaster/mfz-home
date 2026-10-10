@@ -45,7 +45,7 @@ test("loaded skills are kept once each, in the order first loaded, from tool res
   const reloaded = Message.tool({ id: "call_4", name: "skill", result: block("orchestrate", "Lead the work, revised.") })
 
   expect(loadedSkills([attached, loaded, reloaded])).toBe(
-    ["Skills loaded in this chat, with the files read from them. Their instructions stay in effect:", block("orchestrate", "Lead the work, revised."), block("design-partner", "Think with them.")].join("\n\n"),
+    ["These skills and the files read from them are already loaded and remain in effect. Apply their instructions directly; load instructions are satisfied for skills already listed. Use the skill tool for unlisted skills. Reload a listed skill only when explicitly requested or when there is evidence its instructions changed:", block("orchestrate", "Lead the work, revised."), block("design-partner", "Think with them.")].join("\n\n"),
   )
   expect(loadedSkills([Message.user("no skills here")])).toBeUndefined()
 })
@@ -68,7 +68,7 @@ test("files read from a loaded skill's folder are kept with it, except its scrip
 
   expect(loadedSkills(messages)).toBe(
     [
-      "Skills loaded in this chat, with the files read from them. Their instructions stay in effect:",
+      "These skills and the files read from them are already loaded and remain in effect. Apply their instructions directly; load instructions are satisfied for skills already listed. Use the skill tool for unlisted skills. Reload a listed skill only when explicitly requested or when there is evidence its instructions changed:",
       skill,
       '<skill_file path="/skills/impeccable/reference/new-work.md">\nnew text\n</skill_file>',
     ].join("\n\n"),

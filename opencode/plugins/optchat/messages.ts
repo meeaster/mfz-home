@@ -127,7 +127,7 @@ export const loadedSkills = (messages: readonly Message[]): string | undefined =
 
   const sections = [...skills.values()].flatMap((skill) => [skill.block, ...skillFiles(skill.directory, reads)])
 
-  return ["Skills loaded in this chat, with the files read from them. Their instructions stay in effect:", ...sections].join("\n\n")
+  return ["These skills and the files read from them are already loaded and remain in effect. Apply their instructions directly; load instructions are satisfied for skills already listed. Use the skill tool for unlisted skills. Reload a listed skill only when explicitly requested or when there is evidence its instructions changed:", ...sections].join("\n\n")
 }
 
 const readInput = z.object({ path: z.string() })
