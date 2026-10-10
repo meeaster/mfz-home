@@ -94,6 +94,9 @@ export function absolutePath(root: string, location: "managed" | "external", sto
 // Cairn's own files are never captured as artifacts.
 export function isCairnOwned(inside: string): boolean {
   return (
+    inside === ".git" ||
+    inside === ".git/" ||
+    inside.startsWith(".git/") ||
     inside === "catalog.db" ||
     inside.startsWith("catalog.db-") ||
     inside.startsWith("backups/") ||

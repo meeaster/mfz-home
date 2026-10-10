@@ -39,7 +39,7 @@ const WARM_OUTPUT = 16
 
 const Text = z.looseObject({ type: z.enum(["input_text", "text"]), text: z.string() })
 
-const ResponsesBody = z.looseObject({ input: z.array(z.unknown()) })
+const ResponsesBody = z.looseObject({ input: z.array(z.unknown()), type: z.string().optional(), previous_response_id: z.string().optional(), stream: z.boolean().optional() })
 
 const ResponsesUser = z.looseObject({ role: z.literal("user"), content: z.tuple([Text]) })
 
@@ -204,6 +204,11 @@ export const warmBody = (template: string, parts: TurnParts, size: number): stri
 
   if (responses.success) {
     const input = texts.map((text) => ({ type: "message", role: "user", content: [{ type: "input_text", text }] }))
+
+    // A foreground WS template becomes an auxiliary HTTP request. WS continuation controls are invalid there.
+    delete responses.data.type
+    delete responses.data.previous_response_id
+    responses.data.stream = true
 
     return JSON.stringify({ ...responses.data, input, max_output_tokens: WARM_OUTPUT })
   }

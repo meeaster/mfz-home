@@ -318,6 +318,8 @@ describe("files", () => {
     const shellWritten = cairn.write(join(folder, "shell-output.md"), "written by a shell redirect");
     const relocatedTo = join(folder, "archive", "relocated.md");
 
+    mkdirSync(join(cairn.root, ".git", "objects"), { recursive: true });
+    writeFileSync(join(cairn.root, ".git", "objects", "sample"), "repository metadata");
     writeFileSync(relocated, "moved content");
     cairn.run("capture", relocated, "--session", "opencode:root");
     rmSync(gone);
@@ -333,6 +335,10 @@ describe("files", () => {
       moved: [{ from: relocated, to: relocatedTo }],
       captured: [shellWritten]
     });
+
+    const gitMetadata = cairn.json(artifactList, "find", "artifacts", "--text", "repository metadata");
+
+    expect(gitMetadata.artifacts).toEqual([]);
 
     const bySession = cairn.json(artifactList, "find", "artifacts", "--session", "opencode:root", "--text", "shell-output");
 

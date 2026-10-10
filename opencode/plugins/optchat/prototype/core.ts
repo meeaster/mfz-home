@@ -1,3 +1,4 @@
+// Disposable qualification copy; normal OptChat server remains unchanged.
 // OptChat for OpenCode: an `optchat` primary agent whose sessions run on a chat that never ends. Each turn starts
 // from a bounded view of one-line summaries of the whole chat instead of its full history; a cheap model writes
 // the summaries in the background, and the agent zooms into them for detail.
@@ -8,13 +9,14 @@ import { join } from "node:path"
 import { Message } from "@opencode/ai"
 import { Plugin } from "@opencode/plugin"
 import { z } from "zod"
-import { type Chat, Chats } from "./chats.js"
-import { Memory } from "./memory.js"
-import { markCache, splitView, type TurnParts, type ViewCacheMode, viewPrefix, warmBody } from "./cache-marks.js"
-import { cacheStrategy } from "./cache-strategy.js"
-import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
+import { type Chat, Chats } from "../chats.js"
+import { Memory } from "../memory.js"
+import { markCache, splitView, type TurnParts, viewPrefix, warmBody } from "../cache-marks.js"
+import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "../messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
-import { defaultDataDir } from "./store.js"
+import { SYSTEM as ORIGINAL_SYSTEM } from "../prompt.js"
+import { defaultDataDir } from "../store.js"
+import { gatewayMode } from "./strategy.js"
 
 const AGENT = "optchat"
 
@@ -44,8 +46,13 @@ const Options = z.object({
   subagentView: z.enum(["compaction", "full", "none"]).default("compaction"),
   /** Log each turn's prompt parts to plugin.log, to check that the view only grows at its end. */
   logTurns: z.boolean().default(false),
-  /** Automatic connection/model selection by default; explicit modes remain available as overrides. */
-  viewCache: z.enum(["auto", "none", "openai", "anthropic", "warm"]).default("auto"),
+  /**
+   * How a new turn reuses the skills and the earlier view from the backend's cache (see cache-marks.ts): `openai`
+   * breakpoints for GPT-5.6 and later on the OpenAI API or Azure, `anthropic` cache_control for Claude through LiteLLM
+   * or another OpenAI-compatible proxy, `warm` for OpenAI backends that reject marks, such as the ChatGPT login: view
+   * blocks go as separate messages and a warm-up request at each turn's end saves the last complete one.
+   */
+  viewCache: z.enum(["none", "auto", "openai", "anthropic", "warm"]).default("auto"),
   /**
    * Bytes per view block, of whole lines. By default 5000 for `openai` and `warm`, since OpenAI saves an entry only
    * at least 1,024 tokens past the previous one, and 2048 for `anthropic`, near the gist's 4-line blocks.
@@ -78,6 +85,8 @@ interface RequestParts {
 }
 
 const CacheKeyed = z.looseObject({ prompt_cache_key: z.string() })
+
+const WireTemplate = z.looseObject({ type: z.string().optional(), previous_response_id: z.string().optional(), stream: z.boolean().optional() })
 
 // OpenCode's system prompt carries today's date; the view's cached prefix must not change daily.
 const DATE_LINE = /^Today's date: .*$\n?/m
@@ -126,7 +135,7 @@ export default Plugin.define({
         store,
         budget: { viewHigh: options.viewHigh, viewLow: options.viewLow, compactionHigh: options.compactionHigh, compactionLow: options.compactionLow },
         concurrency: options.concurrency,
-        generate: async (prompt) => (await ctx.generate.text({ prompt, model: compactor })).text,
+        generate: async (prompt) => (await ctx.generate.text({ prompt: prompt.replace(ORIGINAL_SYSTEM, SYSTEM), model: compactor })).text,
         report: warn,
       }),
     )
@@ -378,7 +387,6 @@ export default Plugin.define({
       }
 
       if (event.agent !== AGENT) {
-        optchatSessions.delete(event.sessionID)
         hide(event.tools, [...VIEW_TOOLS, ...CHAT_TOOLS])
 
         return
@@ -411,8 +419,7 @@ export default Plugin.define({
       event.system.splice(0, event.system.length, { type: "text", text: SYSTEM }, ...withoutDate(event.system))
     })
 
-    const modes = new Map<string, ViewCacheMode | "none">()
-    const routes = new Map<string, string>()
+    const modes = new Map<string, "none" | "openai" | "anthropic" | "warm">()
     const modeFor = (sessionID: string) => options.viewCache === "auto" ? modes.get(sessionID) ?? "none" : options.viewCache
     const blockSize = (sessionID: string): number => options.viewCacheBytes ?? (modeFor(sessionID) === "anthropic" ? 2048 : 5000)
 
@@ -432,7 +439,7 @@ export default Plugin.define({
 
         const rewritten = markCache(body, turn, mode, size)
 
-        // Only a full request containing the frozen view can supply a warm-up template, never a WS delta.
+        // A successful rewrite found the frozen view; delta frames must not replace the full template.
         if (mode === "warm" && rewritten !== undefined) templates.set(sessionID, body)
 
         if (options.logTurns) warn(`view cache session=${sessionID} via=${transport} mode=${mode} rewritten=${rewritten !== undefined}`)
@@ -447,7 +454,14 @@ export default Plugin.define({
 
       warmParts.delete(sessionID)
 
-      const warm = warmBody(template, parts, size)
+      const frame = WireTemplate.parse(JSON.parse(template))
+
+      // Foreground WS frames contain protocol controls that are invalid on the auxiliary HTTP warm-up.
+      delete frame.type
+      delete frame.previous_response_id
+      frame.stream = true
+
+      const warm = warmBody(JSON.stringify(frame), parts, size)
 
       if (options.logTurns) warn(`warm-up session=${sessionID} view=${Buffer.byteLength(parts.view)} skills=${Buffer.byteLength(parts.skills ?? "")} sent=${warm !== undefined}`)
 
@@ -511,28 +525,18 @@ export default Plugin.define({
       return chatID === undefined ? undefined : `optchat-${createHash("sha1").update(chatID).digest("hex").slice(0, 24)}`
     }
 
+    // Provider login hooks have already selected connection-specific headers. Affinity follows the chat.
     await ctx.session.hook("model.request", async (event) => {
-      if (event.agent !== AGENT) return
-
-      if (event.kind === "primary" && event.agent === AGENT && optchatSessions.has(event.sessionID)) {
+      if (event.kind === "primary" && event.agent === AGENT && options.viewCache === "auto") {
         const connection = await ctx.integration.connection.active(event.model.providerID)
-        const model = (await ctx.model.list()).data.find((candidate) => candidate.providerID === event.model.providerID && candidate.id === event.model.id)
-        const connectionID = connection?.type === "credential" ? connection.id : connection?.name
-        const route = JSON.stringify([event.model.providerID, event.model.id, event.model.variant, event.baseURL, model?.modelID, model?.package, model?.family, connectionID])
 
-        const mode = options.viewCache === "auto" ? cacheStrategy({
-          providerID: event.model.providerID,
-          modelID: model?.modelID ?? event.model.id,
-          package: model?.package,
-          family: model?.family,
-          baseURL: event.baseURL,
-          oauth: connection?.type === "credential" && connection.method === "oauth",
-        }) : options.viewCache
+        const subscription = event.model.providerID === "openai" && connection?.type === "credential" && connection.method === "oauth" &&
+          (event.baseURL?.startsWith("https://chatgpt.com/backend-api/codex") || event.baseURL?.startsWith("https://api.openai.com/v1"))
 
-        // Model/account switches must never warm from the preceding route's template.
-        if (routes.get(event.sessionID) !== route) templates.delete(event.sessionID)
+        const mode = subscription ? "warm" : event.model.providerID === "tyler" ? gatewayMode(event.model.id) ?? "none" : "none"
 
-        routes.set(event.sessionID, route)
+        if (modes.get(event.sessionID) !== mode) templates.delete(event.sessionID)
+
         modes.set(event.sessionID, mode)
 
         if (options.logTurns) warn(`strategy session=${event.sessionID} model=${event.model.providerID}/${event.model.id} mode=${mode}`)
@@ -542,18 +546,22 @@ export default Plugin.define({
 
       if (key === undefined) return
 
-      // Rewrite only affinity headers the provider already owns; no provider-specific aliases belong here.
-      for (const name of ["x-session-affinity", "session-id", "x-session-id", "x-litellm-session-id"]) {
-        if (name in event.headers) event.headers[name] = key
+      if (event.model.providerID === "tyler") {
+        event.headers["x-litellm-session-id"] = key
+
+        return
       }
 
+      if (event.model.providerID !== "openai") return
+
+      for (const name of ["x-session-affinity", "session-id", "x-session-id"]) {
+        if (name in event.headers) event.headers[name] = key
+      }
     })
 
     await ctx.session.hook(
       "experimental.ws.send",
       (event) => {
-        if (event.agent !== AGENT) return
-
         const key = cacheKeyFor(event.sessionID, event.kind)
 
         if (key === undefined) return
@@ -572,8 +580,6 @@ export default Plugin.define({
     await ctx.session.hook(
       "experimental.ws.handshake",
       (event) => {
-        if (event.agent !== AGENT) return
-
         const key = cacheKeyFor(event.sessionID, event.kind)
 
         if (key === undefined) return
@@ -590,22 +596,15 @@ export default Plugin.define({
       await ctx.session.hook(
         "http.request",
         async (event) => {
-          if (event.agent !== AGENT || !optchatSessions.has(event.sessionID) || (event.kind !== "primary" && !warmViews.has(event.sessionID))) return
-
           const raw = await event.request.clone().text()
           const rewritten = rewriteFor(event.sessionID, event.kind, raw, "http")
           const key = cacheKeyFor(event.sessionID, event.kind)
-          const keyed = key === undefined ? undefined : CacheKeyed.safeParse(JSON.parse(rewritten ?? raw))
+          const keyed = key === undefined || event.model.providerID !== "openai" ? undefined : CacheKeyed.safeParse(JSON.parse(rewritten ?? raw))
           const body = keyed?.success ? JSON.stringify({ ...keyed.data, prompt_cache_key: key }) : rewritten
 
           if (body === undefined) return
 
           const headers = new Headers(event.request.headers)
-
-          // Provider model.request hooks have all run by now, regardless of plugin registration order.
-          for (const name of ["x-session-affinity", "session-id", "x-session-id", "x-litellm-session-id"]) {
-            if (key !== undefined && headers.has(name)) headers.set(name, key)
-          }
 
           headers.delete("content-length")
           event.request = new Request(event.request, { body, headers })
@@ -616,7 +615,7 @@ export default Plugin.define({
     // A turn's final reply has no later model call to observe it, and a finished turn frees its chat.
     const iterator = ctx.event.subscribe()[Symbol.asyncIterator]()
 
-    const events = (async () => {
+    void (async () => {
       try {
         for (let next = await iterator.next(); next.done !== true && !stopped; next = await iterator.next()) {
           const event = next.value
@@ -649,11 +648,12 @@ export default Plugin.define({
       }
     })()
 
-    // The SDK closes the iterator's scope, interrupting its pending next(). Join before releasing chat locks.
+    // OpenCode waits for this cleanup before a reload finishes, and the stream's pending next() may wait for another
+    // event to arrive. So the loop is told to stop rather than awaited; it exits at its next event, before touching a
+    // closed chat.
     return async () => {
       stopped = true
-      await iterator.return?.()
-      await events
+      void iterator.return?.()
       chats.close()
     }
   },

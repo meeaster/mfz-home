@@ -51,6 +51,8 @@ extra_folders:
     signals: [Git worktree, isolated implementation, prototype]
     description: "Disposable Git worktrees for isolated project work across workspace repositories."
 skills:
+  orchestration-routing:
+    agents: { opencode: true, claude-code: true, codex: false }
   session-brief:
     agents: { opencode: false, claude-code: false, codex: false }
   session-derived-knowledge:
@@ -90,12 +92,12 @@ claude:
     permissions:
       defaultMode: auto
 opencode:
+  plugins:
+    - optchat
   plugin_options:
     # Temporary: logs each turn's prompt parts to ~/.local/share/optchat/plugin.log to diagnose cache misses.
     optchat:
       logTurns: true
-      # The ChatGPT login rejects cache marks, so a warm-up at each turn's end saves the view for the next turn.
-      viewCache: warm
   config:
     agents:
       compaction:

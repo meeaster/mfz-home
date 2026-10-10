@@ -4,7 +4,7 @@ Worked out with Mark on 2026-10-06 to 2026-10-08. It replaces the orchestrator i
 
 ## Why it was rebuilt
 
-The old skills grew to about 7,300 words, and a direct orchestrator read about 5,500 of them before its first dispatch. Much of that was defensive wording added after incidents. The new skill gives the model guidance that fits Mark's process and leaves the mechanics to the model and to plugins. It is one `SKILL.md` of about 1,700 words. Length is watched, not capped: anything the orchestrator needs in every session belongs in it, which is why the role table moved back in after OptChat runs showed the lead re-reading a separate `roles.md` before every dispatch.
+The old skills grew to about 7,300 words, and a direct orchestrator read about 5,500 of them before its first dispatch. Much of that was defensive wording added after incidents. The new skill gives the model guidance that fits Mark's process and leaves the mechanics to the model and to plugins. It is one `SKILL.md` of about 1,700 words. Length is watched, not capped: anything the orchestrator needs in every session belongs in it, which is why the role table moved back in after runs showed the lead re-reading a separate `roles.md` before every dispatch.
 
 Keeping it light:
 
@@ -30,30 +30,29 @@ A new job is a new role. Only a different model or skills is a task type. How to
 
 All roles run on `general`. Read-only is a boundary stated in the brief rather than a permission: current models follow it well, and an `execute.before` hook can block edits for read-only roles later if runs show it's needed. Built-in `explore` stays available outside orchestration.
 
-| Group | Role | Task types | Initial model | Came from |
-| --- | --- | --- | --- | --- |
-| Gather | explorer | | `openai/gpt-6-luna#high` | `explore` |
-| Gather | researcher | | `openai/gpt-6-luna#high` | `research` |
-| Gather | inspector | | `openai/gpt-6-luna#high` | `inspect` |
-| Gather | prototyper | | `openai/gpt-6.1-sol#high` | `prototype` |
-| Advise | architect | | `openai/gpt-6-astra#medium` | `architect` |
-| Advise | triage | | `openai/gpt-6.1-sol#high` | `triage` |
-| Advise | reviewer | `code` | `openai/gpt-6-astra#medium` | `reviewer` |
-| Advise | reviewer | `pr` | `openai/gpt-6.1-sol#high` | `pr-reviewer` |
-| Advise | qa | | `openai/gpt-6.1-sol#high` | new: judges look and feel in the browser |
-| Build | implementer | `frontend`, `backend` | `openai/gpt-6.1-sol#medium` | `worker` |
-| Operate | operator | `pr` | `openai/gpt-6.1-sol#medium` | `operator` |
-| Operate | operator | `git` | `openai/gpt-6-luna#high` | the global Git delegation rule |
-| Record | writer | | `openai/gpt-6.1-sol#medium` | `artifact-author` |
+| Group | Role | Task types | Came from |
+| --- | --- | --- | --- |
+| Gather | explorer | | `explore` |
+| Gather | researcher | | `research` |
+| Gather | inspector | | `inspect` |
+| Gather | prototyper | | `prototype` |
+| Advise | architect | | `architect` |
+| Advise | triage | | `triage` |
+| Advise | reviewer | `code`, `pr` | `reviewer`, `pr-reviewer` |
+| Advise | qa | | new: judges look and feel in the browser |
+| Build | implementer | `frontend`, `backend` | `worker` |
+| Operate | operator | `git`, `pr`, other | `operator`, the global Git delegation rule |
+| Record | writer | | `artifact-author` |
 
-Initial models are the Personal profile's current values for the old agents. Tiers such as an upgrade model are deferred.
+Model bindings live in the profile-selected `orchestration-routing` skill. Personal's [routing skill](../../skills/active/orchestration-routing/SKILL.md) preserves the initial model choices. Work supplies its own skill with Tyler gateway aliases. Each profile selects only its own routing skill; the shared base selects neither. Tiers such as an upgrade model are deferred.
 
 Deferred: ui-ux-designer, session-analyst, agent-author. Experimental: scribe. Results are saved by the plugin, and the conversation export already records the session, so continuous transcription has to prove its value again; captures go to a writer on request.
 
 ## Decisions
 
 - **The brief carries the job.** A subagent shouldn't have to work out how to do its job. The orchestrator puts the role's expectations into the brief: how to operate, boundaries, what to return, when to stop. A long procedure is named as a skill for the subagent to load, because retyping it would spend the orchestrator's expensive output tokens on every dispatch.
-- **Models come from the roles table.** The orchestrator passes each role's model from the roles table in `SKILL.md` and starts the dispatch description with the role name, which Cairn records as the child session's title for per-role cost. An explicit request from Mark wins. A plugin hook that resolved roles to models was considered and rejected: behavior and expectations belong in the brief, not in plumbing. The subagent tool's description says not to set `model` unless the user asks; the skill is that standing request, and the first runs should confirm the model follows it. Per-profile models would need a profile-specific table; there is one table for now.
+- **Models come from a separate routing skill.** The shared orchestrator loads `orchestration-routing` before dispatching. The routing skill holds the human's model preferences for the active profile, with task-specific bindings before role defaults. An explicit request from Mark wins. An unavailable skill, binding, or model requires a human choice rather than a provider fallback. The orchestrator passes the selected reference and starts the dispatch description with the role name, which Cairn records for per-role cost. Roles and briefing expectations stay in the shared workflow, while model choices stay in each home. The implementation commands use the same bindings without entering orchestration. No dispatch plugin or named-agent catalog is needed.
+- **Routing stays current.** Continuing orchestration in a fresh session, changing profiles, or editing bindings requires loading the current routing skill again. Worker routing leaves the lead's selected model unchanged. Orchestration does not select or depend on a primary agent's memory implementation.
 - **One owner for coupled work.** An implementer owns infrastructure changes from edit through plan, apply, and verify, with review of the plan and Mark's approval before apply. Splitting work between agents needs a concrete gain: a different model worth paying for, different access, independence, or a procedure the first owner lacks.
 - **Verify, review, and QA are separate.** The implementer verifies its own work, including in the browser. After UI work an inspector checks the accepted requirements in the background, cheaply and independently. A reviewer reads the code. QA, on request, judges whether the interface looks and feels right, which needs a stronger model.
 - **Review repairs go to a fresh implementer.** Its scope is the findings and the files involved, and browser checks aren't cached, so a continued session saves little. Continuing the same subagent is for follow-ups on one assignment, such as applying an approved infrastructure plan.

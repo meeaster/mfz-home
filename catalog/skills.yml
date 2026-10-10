@@ -19,6 +19,10 @@ skills:
     source: local
     skill: packages/cairn/skills/orchestrate
     description: Human-only orchestration entry, delegating by role.
+  - name: orchestration-routing
+    source: local
+    skill: skills/active/orchestration-routing
+    description: Personal model bindings for role-based delegation.
   - name: design-docs
     source: local
     skill: packages/cairn/skills/design-docs

@@ -7,7 +7,7 @@ Load the openspec apply skill and the thermo-nuclear-code-quality-review skill, 
 
 Use the thermo-nuclear skill only as pre-implementation quality guidance: understand how the finished work will be reviewed, and apply those standards while planning and coding. Do not run a review or report review findings unless the user explicitly asks for one.
 
-Then launch `explore` as a fact-finding assistant for current codebase state. Also launch `general` on `openai/gpt-6-luna#high` as a researcher, in parallel, only when the spec identifies an external library, API, SDK, CLI, integration, protocol, or upstream repository whose documented behavior matters to implementation. If the spec presents no concrete external question, do not launch the researcher.
+Then launch `explore` as a fact-finding assistant for current codebase state. Also launch `general` as a researcher, in parallel, only when the spec identifies an external library, API, SDK, CLI, integration, protocol, or upstream repository whose documented behavior matters to implementation. Before launching the researcher, load `orchestration-routing` and use its `researcher` model binding. If the spec presents no concrete external question, do not launch the researcher.
 
 Their purpose is to gather evidence, not to decide implementation direction. In the prompt you pass to each invoked subagent, explicitly say:
 

@@ -25,6 +25,8 @@ deployment, migration, production access, or another operator-gated action.
 
 ## Prepare
 
+Load `orchestration-routing` for worker and reviewer model bindings. Reload it after a profile or binding change before the next dispatch.
+
 Resolve the change, store, planning root, and implementation workspace through the Apply procedure.
 Read every returned context path and follow every applicable `operationGuidance` entry. Preserve the
 distinction between the planning root and the code workspace. Stop for a blocked or all-done state as
@@ -82,12 +84,12 @@ not create a separate worker or checkpoint for ledger-only acceptance.
 
 ## Delegate The Batch
 
-Use one fresh native `task` call with:
+Use one fresh native `subagent` call with:
 
-- a short outcome-based `description`;
-- `subagent_type`: `general`;
-- `model`: `openai/gpt-6.1-sol#medium`;
-- no `task_id`; and
+- a short outcome-based `description` starting with `implementer:`;
+- `agent`: `general`;
+- `model`: the `implementer` binding for `frontend` or `backend` from `orchestration-routing`;
+- no `sessionID`; and
 - the complete worker brief as `prompt`.
 
 The worker brief must require the worker to load `openspec-apply-change`, resolve the selected store,
@@ -123,13 +125,12 @@ After the worker returns:
 5. Refresh `openspec instructions apply` with the selected store and reconcile progress.
 
 Do not accept a task from worker self-report alone. If the batch fails, classify the concrete failure
-before retrying. Use at most one fresh `general` remediation for that batch, on the same model,; unresolved product,
+before retrying. Use at most one fresh `general` remediation for that batch, using the applicable `implementer` model binding; unresolved product,
 authority, security, or likely irreversible-data risk stops for the user.
 
 ## Periodic Review
 
-Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review, on `openai/gpt-6-astra#medium` with `thermo-nuclear-code-quality-review` loaded and no fixes, only
-when one of these triggers occurs:
+Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review using the `reviewer/code` model binding from `orchestration-routing`, with `thermo-nuclear-code-quality-review` loaded and no fixes, only when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;
 - a coherent subsystem or vertical milestone is complete, the next batch moves to another seam, and
@@ -147,8 +148,8 @@ defer the boundary review and perform one final review over the complete accepte
 for both a near-final boundary review and a final review unless material risk requires the earlier
 checkpoint.
 
-For the independent review, use one fresh native `task` call with a short milestone `description`,
-`subagent_type: reviewer`, no `task_id`, and the complete review charter as `prompt`. Require it to load
+For the independent review, use one fresh native `subagent` call with a short milestone `description` starting with `reviewer:`,
+`agent: general`, the `reviewer/code` model binding, no `sessionID`, and the complete review charter as `prompt`. Require it to load
 `thermo-nuclear-code-quality-review`, then review only the accepted task IDs, changed paths, OpenSpec
 anchors, observable criteria, complete relevant diff or patch evidence, and existing validation results
 accumulated since the last review checkpoint. The reviewer can run read-only shell inspection
@@ -173,8 +174,8 @@ current implementation: a large or mixed-responsibility file, duplicated pathway
 growing conditional tangle in changed code is not deferred merely because its repair is a refactor.
 
 The coordinator adjudicates every finding against the diff and remaining work. Consolidate accepted
-`blocker` and `health-now` findings into one fresh native `task` call with a short remediation
-`description`, `subagent_type: worker`, no `task_id`, and the complete remediation brief as `prompt`.
+`blocker` and `health-now` findings into one fresh native `subagent` call with a short remediation
+`description` starting with `implementer:`, `agent: general`, the applicable `implementer` model binding, no `sessionID`, and the complete remediation brief as `prompt`.
 The coordinator verifies the specific fixes and gates without commissioning a second review. Put
 `health-register` findings in the
 run journal with an intended checkpoint; record other follow-ups and future tasks there when no more

@@ -51,9 +51,25 @@ Pass options through the plugin entry in `opencode.json`. Sizes are UTF-8 bytes.
 | `concurrency` | 8 | Summary calls in flight at once |
 | `waitMs` | 120000 | How long a turn waits for earlier messages to be summarized |
 | `subagentView` | `compaction` | What subagents start from: `compaction`, `full` or `none` |
-| `viewCache` | `none` | How a new turn reuses the skills and earlier view from the backend's cache: `openai` (breakpoints; GPT-5.6+ on the OpenAI API or Azure Standard), `anthropic` (cache_control; Claude through LiteLLM or another OpenAI-compatible proxy), or `warm` (OpenAI backends that reject marks, such as the ChatGPT login: view blocks go as separate messages, and a warm-up request at each turn's end saves the last complete one) |
+| `viewCache` | `auto` | Select the cache strategy from the active connection and resolved model. Optional overrides are `openai`, `anthropic`, `warm`, and `none`. |
 | `viewCacheBytes` | 2048 for `anthropic`, 5000 otherwise | Bytes per view block, of whole lines. OpenAI saves an entry only at least 1,024 tokens past the previous one, so smaller blocks would never be saved; Anthropic's blocks can be nearer the gist's 4 lines |
 | `logTurns` | `false` | Log each turn's prompt parts to `plugin.log`, to check that the view only grows at its end |
+
+## Automatic caching
+
+No cache configuration is required. OptChat selects a strategy for each foreground model request:
+
+- ChatGPT OAuth connections use block messages and a capped warm-up after each turn. Both legacy Codex and token-sharing routes select this strategy.
+- GPT-5.6 and newer models using Responses use explicit OpenAI breakpoints.
+- Claude models using an OpenAI-compatible protocol use Anthropic marks when their provider publishes `family: "claude"`.
+- Unknown routes receive no explicit cache rewrite. The backend's normal caching still applies.
+
+Gateway aliases need provider-owned family metadata because their names do not identify the underlying model.
+The Tyler gateway plugin supplies this metadata and selects Responses for `sol` and `luna`, and Chat Completions for `sonnet` and `haiku`.
+Other Tyler aliases keep their existing routes until qualified.
+
+Cache affinity follows the chat across sessions. Model and connection changes discard the preceding request's warm-up template.
+Foreground WebSocket requests can supply the template for an HTTP warm-up. Background summary calls remain uncached.
 
 ## Storage
 

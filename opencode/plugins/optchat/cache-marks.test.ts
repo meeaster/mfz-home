@@ -44,6 +44,8 @@ test("warm sends each view block as its own message and leaves the skills alone"
 
 test("a warm-up request keeps the turn request's prefix and ends at the last complete block with its output capped", () => {
   const template = JSON.stringify({
+    type: "response.create",
+    previous_response_id: "resp_previous",
     model: "gpt-6-luna",
     instructions: "System prompt",
     tools: [{ type: "function", name: "zoom" }],
@@ -58,6 +60,9 @@ test("a warm-up request keeps the turn request's prefix and ends at the last com
 
   expect(warm.input).toEqual([message(skills), message(blocks[0]?.text ?? ""), message(blocks[1]?.text ?? "")])
   expect(warm).toMatchObject({ model: "gpt-6-luna", instructions: "System prompt", tools: [{ type: "function", name: "zoom" }], reasoning: { effort: "high" }, prompt_cache_key: "optchat-abc", max_output_tokens: 16 })
+  expect(warm.stream).toBe(true)
+  expect(warm).not.toHaveProperty("type")
+  expect(warm).not.toHaveProperty("previous_response_id")
   expect(warmBody(template, { skills: undefined, view: view(3) }, 36)).toBeUndefined()
 
   const chat = JSON.parse(warmBody(JSON.stringify({ messages: [{ role: "system", content: "System prompt" }, { role: "user", content: view(5) }], max_tokens: 4000 }), { skills: undefined, view: view(5) }, 36) ?? "{}")

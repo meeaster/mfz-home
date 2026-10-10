@@ -4,6 +4,7 @@
 
 - [Design](design.md): the primitives, roles, models, and what this replaced.
 - [Scenarios](scenarios/README.md): how Mark actually uses it, and what the skill is checked against.
-- The skill: [`packages/cairn/skills/orchestrate`](../../packages/cairn/skills/orchestrate/SKILL.md), which composes [`design-partner`](../../packages/cairn/skills/design-partner/SKILL.md).
+- The skill: [`packages/cairn/skills/orchestrate`](../../packages/cairn/skills/orchestrate/SKILL.md), which loads [`design-partner`](../../packages/cairn/skills/design-partner/SKILL.md) and the profile's `orchestration-routing` skill.
+- Personal model bindings: [`skills/active/orchestration-routing`](../../skills/active/orchestration-routing/SKILL.md). Work selects its own routing skill from the Work home.
 
 The previous orchestrator design, including Chief, is in [`docs/archive/orchestrator`](../archive/orchestrator/architecture.md), and its skills are in `skills/archive/`.
