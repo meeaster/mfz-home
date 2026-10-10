@@ -44,6 +44,7 @@ yamllint = "1"
 "github:dandavison/delta" = "0"
 "github:charmbracelet/glow" = "3"
 bat = "0"
+imagemagick = "7"
 "aqua:sharkdp/fd" = "10"
 "pipx:git-filter-repo" = "2"
 
