@@ -1,8 +1,9 @@
 ---
 name: agent-exec
 description: >
-  Run another agent harness via its CLI. Use when the user explicitly asks to run Codex, OpenCode, or Claude Code;
-  continue a session from one of those harnesses; or inspect a harness's available models or variants.
+  Run Codex, OpenCode, or Claude Code through its CLI (`codex exec`, `opencode run`, `claude -p`). Use before invoking
+  one of these CLIs from a shell or script, including plugin or configuration tests; to continue one of their
+  sessions; or to inspect a harness's models or variants.
 ---
 
 # Agent Exec

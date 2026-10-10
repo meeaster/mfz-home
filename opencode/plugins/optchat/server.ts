@@ -11,7 +11,8 @@ import { z } from "zod"
 import { type Chat, Chats } from "./chats.js"
 import { Memory } from "./memory.js"
 import { markCache, splitView, type TurnParts, type ViewCacheMode, viewPrefix, warmBody } from "./cache-marks.js"
-import { cacheStrategy } from "./cache-strategy.js"
+import { hintedText, hintedView, withEndHint } from "./cache-hints.js"
+import { AFFINITY, type CacheProfile, type CacheRoute, cacheProfile } from "./cache-profile.js"
 import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
 import { defaultDataDir } from "./store.js"
@@ -44,12 +45,12 @@ const Options = z.object({
   subagentView: z.enum(["compaction", "full", "none"]).default("compaction"),
   /** Log each turn's prompt parts to plugin.log, to check that the view only grows at its end. */
   logTurns: z.boolean().default(false),
-  /** Automatic connection/model selection by default; explicit modes remain available as overrides. */
-  viewCache: z.enum(["auto", "none", "openai", "anthropic", "warm"]).default("auto"),
   /**
-   * Bytes per view block, of whole lines. By default 5000 for `openai` and `warm`, since OpenAI saves an entry only
-   * at least 1,024 tokens past the previous one, and 2048 for `anthropic`, near the gist's 4-line blocks.
+   * The cache style: `auto` picks it per route (`cache-profile.ts`); the others force it, to try a route the rules
+   * don't cover yet. The route's protocol still decides how the marks are written.
    */
+  viewCache: z.enum(["auto", "none", "openai", "anthropic", "warm"]).default("auto"),
+  /** Bytes per view block, of whole lines. By default the profile's: 2048 for `anthropic`, 5000 otherwise. */
   viewCacheBytes: z.number().int().positive().optional(),
 })
 
@@ -86,6 +87,15 @@ const withoutDate = (system: readonly { type: "text"; text: string }[]) => syste
 
 const hide = <Tool>(tools: Record<string, Tool>, names: readonly string[]): void => {
   for (const name of names) delete tools[name]
+}
+
+// Sets each named header the request already has, whatever its case, to the chat's cache key.
+const setAffinity = (headers: Record<string, string>, names: readonly string[], key: string): void => {
+  const wanted = new Set(names)
+
+  for (const name of Object.keys(headers)) {
+    if (wanted.has(name.toLowerCase())) headers[name] = key
+  }
 }
 
 const digest = (text: string): string => createHash("sha1").update(text).digest("hex").slice(0, 8)
@@ -359,6 +369,38 @@ export default Plugin.define({
       request.system.splice(0, request.system.length, { type: "text", text: SUBAGENT }, ...withoutDate(request.system))
     }
 
+    // Each optchat session's cache profile and the route it was resolved for, set by its latest primary model request.
+    const profiles = new Map<string, CacheProfile>()
+    const routes = new Map<string, string>()
+    const forced = options.viewCache === "auto" ? undefined : options.viewCache
+    const profileOf = (sessionID: string): CacheProfile | undefined => profiles.get(sessionID)
+    const blockSize = (profile: CacheProfile): number => options.viewCacheBytes ?? profile.blockBytes
+
+    // A body rewrite's mode: the profile's style when the route takes its marks in the body.
+    const bodyMode = (sessionID: string): ViewCacheMode | undefined => {
+      const profile = profileOf(sessionID)
+
+      return profile?.writer === "body" && profile.style !== "none" ? profile.style : undefined
+    }
+
+    const routeOf = async (model: { readonly providerID: string; readonly id: string; readonly variant?: string }, baseURL: string | undefined): Promise<{ readonly key: string; readonly route: CacheRoute }> => {
+      const connection = await ctx.integration.connection.active(model.providerID)
+      const info = (await ctx.model.list()).data.find((candidate) => candidate.providerID === model.providerID && candidate.id === model.id)
+      const connectionID = connection?.type === "credential" ? connection.id : connection?.name
+
+      return {
+        key: JSON.stringify([model.providerID, model.id, model.variant, baseURL, info?.modelID, info?.package, info?.family, connectionID]),
+        route: {
+          providerID: model.providerID,
+          modelID: info?.modelID ?? model.id,
+          package: info?.package,
+          family: info?.family,
+          baseURL,
+          oauth: connection?.type === "credential" && connection.method === "oauth",
+        },
+      }
+    }
+
     await ctx.session.hook("context", async (event) => {
       const role = await roleOf(event.sessionID)
 
@@ -403,27 +445,26 @@ export default Plugin.define({
 
       // The prompt is ordered by how often each part changes, so each call reads the longest prefix from the cache:
       // loaded skills change only when another one loads, the view grows every turn, and the header is per turn.
-      const head = [Message.user(turn.view), Message.user(turn.header)]
+      // The endpoint is resolved after this hook, but a `hints` route never depends on it.
+      const profile = cacheProfile((await routeOf(event.model, undefined)).route, forced)
+      const hinted = profile.writer === "hints"
+      const head = [hinted ? hintedView(turn.view, blockSize(profile)) : Message.user(turn.view), Message.user(turn.header)]
 
-      if (turn.skills !== undefined) head.unshift(Message.user(turn.skills))
+      if (turn.skills !== undefined) head.unshift(hinted ? hintedText(turn.skills) : Message.user(turn.skills))
 
-      event.messages.splice(0, event.messages.length, ...head, ...current)
+      event.messages.splice(0, event.messages.length, ...(hinted ? withEndHint([...head, ...current]) : [...head, ...current]))
       event.system.splice(0, event.system.length, { type: "text", text: SYSTEM }, ...withoutDate(event.system))
     })
-
-    const modes = new Map<string, ViewCacheMode | "none">()
-    const routes = new Map<string, string>()
-    const modeFor = (sessionID: string) => options.viewCache === "auto" ? modes.get(sessionID) ?? "none" : options.viewCache
-    const blockSize = (sessionID: string): number => options.viewCacheBytes ?? (modeFor(sessionID) === "anthropic" ? 2048 : 5000)
 
     // The request body rewritten for the view cache: a turn's request gets its marks or block messages, and a warm-up
     // request is rebuilt from the session's latest turn request, so it shares that request's prefix byte for byte.
     const rewriteFor = (sessionID: string, kind: string, body: string, transport: string): string | undefined => {
-      const mode = modeFor(sessionID)
+      const mode = bodyMode(sessionID)
+      const profile = profileOf(sessionID)
 
-      if (mode === "none" || !optchatSessions.has(sessionID)) return undefined
+      if (mode === undefined || profile === undefined || !optchatSessions.has(sessionID)) return undefined
 
-      const size = blockSize(sessionID)
+      const size = blockSize(profile)
 
       if (kind === "primary") {
         const turn = turns.get(sessionID)
@@ -473,7 +514,9 @@ export default Plugin.define({
       const view = viewPrefix(chat.memory.render(), chat.memory.builtLines())
 
       // A short chat has nothing stable to save yet, unless skills are loaded.
-      if (turns.get(sessionID)?.skills === undefined && !splitView(view, blockSize(sessionID)).some((block) => block.complete)) return
+      const profile = profileOf(sessionID)
+
+      if (profile === undefined || (turns.get(sessionID)?.skills === undefined && !splitView(view, blockSize(profile)).some((block) => block.complete))) return
 
       warmViews.set(sessionID, view)
 
@@ -515,37 +558,26 @@ export default Plugin.define({
       if (event.agent !== AGENT) return
 
       if (event.kind === "primary" && event.agent === AGENT && optchatSessions.has(event.sessionID)) {
-        const connection = await ctx.integration.connection.active(event.model.providerID)
-        const model = (await ctx.model.list()).data.find((candidate) => candidate.providerID === event.model.providerID && candidate.id === event.model.id)
-        const connectionID = connection?.type === "credential" ? connection.id : connection?.name
-        const route = JSON.stringify([event.model.providerID, event.model.id, event.model.variant, event.baseURL, model?.modelID, model?.package, model?.family, connectionID])
-
-        const mode = options.viewCache === "auto" ? cacheStrategy({
-          providerID: event.model.providerID,
-          modelID: model?.modelID ?? event.model.id,
-          package: model?.package,
-          family: model?.family,
-          baseURL: event.baseURL,
-          oauth: connection?.type === "credential" && connection.method === "oauth",
-        }) : options.viewCache
+        const { key, route } = await routeOf(event.model, event.baseURL)
+        const profile = cacheProfile(route, forced)
 
         // Model/account switches must never warm from the preceding route's template.
-        if (routes.get(event.sessionID) !== route) templates.delete(event.sessionID)
+        if (routes.get(event.sessionID) !== key) templates.delete(event.sessionID)
 
-        routes.set(event.sessionID, route)
-        modes.set(event.sessionID, mode)
+        routes.set(event.sessionID, key)
+        profiles.set(event.sessionID, profile)
 
-        if (options.logTurns) warn(`strategy session=${event.sessionID} model=${event.model.providerID}/${event.model.id} mode=${mode}`)
+        if (options.logTurns) warn(`strategy session=${event.sessionID} model=${event.model.providerID}/${event.model.id} rule=${profile.rule} style=${profile.style} writer=${profile.writer}`)
       }
 
       const key = cacheKeyFor(event.sessionID, event.kind)
 
       if (key === undefined) return
 
-      // Rewrite only affinity headers the provider already owns; no provider-specific aliases belong here.
-      for (const name of ["x-session-affinity", "session-id", "x-session-id", "x-litellm-session-id"]) {
-        if (name in event.headers) event.headers[name] = key
-      }
+      // Rewrite the affinity headers the request already has, and add the backend's own routing key.
+      setAffinity(event.headers, profileOf(event.sessionID)?.affinity ?? AFFINITY, key)
+
+      for (const name of profileOf(event.sessionID)?.keyHeaders ?? []) event.headers[name] = key
 
     })
 
@@ -578,9 +610,7 @@ export default Plugin.define({
 
         if (key === undefined) return
 
-        for (const name of ["x-session-affinity", "session-id", "x-session-id"]) {
-          if (name in event.headers) event.headers[name] = key
-        }
+        setAffinity(event.headers, profileOf(event.sessionID)?.affinity ?? AFFINITY, key)
       },
       { providerID: "openai" },
     )
@@ -603,7 +633,7 @@ export default Plugin.define({
           const headers = new Headers(event.request.headers)
 
           // Provider model.request hooks have all run by now, regardless of plugin registration order.
-          for (const name of ["x-session-affinity", "session-id", "x-session-id", "x-litellm-session-id"]) {
+          for (const name of profileOf(event.sessionID)?.affinity ?? AFFINITY) {
             if (key !== undefined && headers.has(name)) headers.set(name, key)
           }
 
@@ -627,7 +657,7 @@ export default Plugin.define({
             if (chatID !== undefined && activeTurns.get(chatID) === event.data.sessionID) {
               activeTurns.delete(chatID)
 
-              if (modeFor(event.data.sessionID) === "warm") void warmUp(event.data.sessionID)
+              if (bodyMode(event.data.sessionID) === "warm") void warmUp(event.data.sessionID)
             }
 
             continue

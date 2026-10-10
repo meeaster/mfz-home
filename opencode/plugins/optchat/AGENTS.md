@@ -24,9 +24,13 @@ gist before changing the tree, view or compaction logic; it is the specification
 - Whether a new turn reuses the skills and the earlier view depends on the backend. Anthropic caches at marks inside
   a message, which the gist assumes. OpenAI on GPT-5.6 and later writes an entry only at the end of a request's last
   message unless the request has explicit breakpoints, so a view that grows inside one message is re-sent each turn;
-  steps within a turn still reuse everything. `viewCache` rewrites the request body (`cache-marks.ts`): `openai`
-  breakpoints for the OpenAI API and Azure Standard deployments, `anthropic` cache_control for Claude through
-  LiteLLM. The ChatGPT login rejects breakpoints ("not supported on this model") on both the Codex websocket backend
+  steps within a turn still reuse everything. `cache-profile.ts` picks each route's style (`RULES`, or forced by
+  `viewCache`) and its writer from the protocol; keep route knowledge there, not in the writers. `openai` puts
+  breakpoints in the body for the OpenAI API and Azure Standard deployments (`cache-marks.ts`). `anthropic` on a
+  Messages protocol uses OpenCode cache hints (`cache-hints.ts`): OpenCode already places up to four marks there and
+  Anthropic rejects a fifth, so marks must go through hints, which OpenCode counts before adding its own. Never add
+  `cache_control` to a Messages body. `anthropic` on Chat Completions, Claude through LiteLLM, puts `cache_control` in
+  the body, where OpenCode adds none. The ChatGPT login rejects breakpoints ("not supported on this model") on both the Codex websocket backend
   and token sharing, and splitting the view into messages alone doesn't help: no request ends at those messages. So
   `warm` does both: block messages, plus a warm-up at each turn's end (`ctx.session.generate`, rewritten in
   `http.request` from the turn's own request body so the prefix is identical) that ends at the last complete block.
@@ -97,6 +101,12 @@ gist before changing the tree, view or compaction logic; it is the specification
 ## Verifying changes
 
 - `pnpm test opencode/plugins/optchat` and `pnpm typecheck` from the repository root.
+- For a cache change, run `cache-probe.sh <provider/model> [turns]` against each affected route after restarting the
+  OpenCode service (this plugin loads from a directory, which doesn't hot-reload). Check that `read` steps up as view
+  blocks complete and `write` stays within a block; a Messages route that errors with "A maximum of 4 blocks with
+  cache_control" has a mark outside the hints. Update `docs/caching.md` when a route's rule or measured behavior
+  changes. Probe the cheaper model of a family (for example `opencode-go/glm-5.3-flash`) unless the change is
+  model-specific.
 - For a runtime change, run a fresh `opencode run --format json --agent optchat` in a scratch folder and check
   for the expected `tool_use` event (for example, `chat_rename` on a first turn with a clear topic). Then confirm
   a `build` session still has none of the OptChat tools.

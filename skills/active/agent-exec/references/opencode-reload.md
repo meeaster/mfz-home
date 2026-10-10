@@ -9,7 +9,8 @@ Read this before launching OpenCode through its CLI merely to test a configurati
 | Current watched server state | The current session's next model attempt |
 | Context without prior conversation or loaded guidance | A fresh native subagent or session |
 | Client-startup state | A new CLI or TUI process |
-| A private server | `--standalone` |
+| A private server for one run | `--standalone` |
+| A private server kept across turns of one session | A dedicated `opencode serve` with `--server <url>` |
 | A named existing server | `--server <url>` |
 | Reconstructed server state or recovery from an unhealthy service | A service restart |
 
@@ -35,7 +36,7 @@ Fresh context is a test condition, not a server reload mechanism.
 
 Start a new client after changing client-startup configuration such as `cli.json`, keybindings, themes, or terminal plugins.
 
-Use `--standalone` for a private server. Add clean-room environment controls when the run must also exclude normal configuration, credentials, sessions, caches, plugins, and skills. Use `--server <url>` to connect to a named existing service, not as an isolation shortcut.
+Use `--standalone` for a private server for one run, or a dedicated `opencode serve` when several turns of one session must share server state; [opencode.md](opencode.md) has the multi-turn recipe. Add clean-room environment controls when the run must also exclude normal configuration, credentials, sessions, caches, plugins, and skills. Use `--server <url>` to connect to a named existing service or that dedicated test server, not as an isolation shortcut.
 
 Restart the shared service only when the test concerns state constructed at service startup or the service is unhealthy. Formatter configuration, watcher policy, process environment, and installed executable code can require reconstruction rather than request-context reload.
 

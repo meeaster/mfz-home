@@ -51,25 +51,42 @@ Pass options through the plugin entry in `opencode.json`. Sizes are UTF-8 bytes.
 | `concurrency` | 8 | Summary calls in flight at once |
 | `waitMs` | 120000 | How long a turn waits for earlier messages to be summarized |
 | `subagentView` | `compaction` | What subagents start from: `compaction`, `full` or `none` |
-| `viewCache` | `auto` | Select the cache strategy from the active connection and resolved model. Optional overrides are `openai`, `anthropic`, `warm`, and `none`. |
-| `viewCacheBytes` | 2048 for `anthropic`, 5000 otherwise | Bytes per view block, of whole lines. OpenAI saves an entry only at least 1,024 tokens past the previous one, so smaller blocks would never be saved; Anthropic's blocks can be nearer the gist's 4 lines |
+| `viewCache` | `auto` | The cache style. `auto` selects it per route (see [Automatic caching](#automatic-caching)); `openai`, `anthropic`, `warm` and `none` force it. The route's protocol still decides how marks are written, and a style the protocol can't carry adds none. |
+| `viewCacheBytes` | 2048 for `anthropic`, 5000 otherwise | Bytes per view block, of whole lines. OpenAI saves an entry only at least 1,024 tokens past the previous one, so smaller blocks would never be saved; Anthropic looks back 20 blocks for an earlier entry, so its blocks can be nearer the gist's 4 lines |
 | `logTurns` | `false` | Log each turn's prompt parts to `plugin.log`, to check that the view only grows at its end |
 
 ## Automatic caching
 
-No cache configuration is required. OptChat selects a strategy for each foreground model request:
+No cache configuration is required. Each model request gets a cache profile from `cache-profile.ts`: a mark style
+the backend understands, and a writer that matches how the route's requests carry marks. [docs/caching.md](docs/caching.md)
+explains each route, why it gets its style, and what was measured.
 
-- ChatGPT OAuth connections use block messages and a capped warm-up after each turn. Both legacy Codex and token-sharing routes select this strategy.
-- GPT-5.6 and newer models using Responses use explicit OpenAI breakpoints.
-- Claude models using an OpenAI-compatible protocol use Anthropic marks when their provider publishes `family: "claude"`.
-- Unknown routes receive no explicit cache rewrite. The backend's normal caching still applies.
+| Route | Style | Writer |
+|---|---|---|
+| ChatGPT login (Codex backend or token sharing) | `warm` | Block messages in the body, plus a capped warm-up after each turn |
+| GPT-5.6 and later over Responses | `openai` | Explicit breakpoints in the body |
+| Anthropic Messages and compatible backends (Claude, MiniMax, Qwen on OpenCode Go), Claude on OpenRouter | `anthropic` | OpenCode cache hints, which OpenCode fits into Anthropic's four marks alongside its own |
+| Claude behind an OpenAI-compatible proxy such as LiteLLM, when the provider publishes `family: "claude"` | `anthropic` | `cache_control` in the body |
+| Anything else | `none` | None. The backend's own prefix caching still applies |
 
 Gateway aliases need provider-owned family metadata because their names do not identify the underlying model.
 The Tyler gateway plugin supplies this metadata and selects Responses for `sol` and `luna`, and Chat Completions for `sonnet` and `haiku`.
 Other Tyler aliases keep their existing routes until qualified.
 
-Cache affinity follows the chat across sessions. Model and connection changes discard the preceding request's warm-up template.
+Cache affinity follows the chat across sessions: the cache key and the session headers a backend routes by are set
+to the chat's key. On OpenCode Zen and Go that includes `x-opencode-session`, which picks the upstream, and Grok also
+gets xAI's `x-grok-conv-id`. Model and connection changes discard the preceding request's warm-up template.
 Foreground WebSocket requests can supply the template for an HTTP warm-up. Background summary calls remain uncached.
+
+To try a route the table doesn't cover, force a style with `viewCache` and measure it with the probe:
+
+```sh
+opencode/plugins/optchat/cache-probe.sh <provider/model> [turns]
+```
+
+It runs a chat on the OpenCode service and prints each call's input, cache read and cache write tokens. On a route
+that caches the view, `read` grows in steps as view blocks complete and `write` stays within one block plus the
+turn's messages. Once a style works, add a rule for the route in `cache-profile.ts`.
 
 ## Storage
 
