@@ -7,6 +7,7 @@ usage = "6"
 "npm:wrangler" = "4"
 "npm:shadcn" = "4"
 "github:xdevplatform/xurl" = "1"
+caddy = "2"
 
 [tools."github:truenas/truenas-mcp"]
 version = "0"
