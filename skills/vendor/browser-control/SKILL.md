@@ -9,6 +9,11 @@ Browser Control is a **driver**, not an agent. The calling agent decides what to
 do; Browser Control runs deterministic Playwright code in the user's visible
 browser.
 
+When Browser Control is installed as an OpenCode plugin, the plugin already
+registers this MCP server and exposes the packaged workflow as the `@browser`
+skill. Do not ask the user to install this skill separately or add an MCP
+configuration. Browser extension approval remains a separate user step.
+
 Use one loop throughout: **inspect, act, verify**. Inspect the real page before
 choosing locators, act through the narrowest stable control, then verify the
 result through a URL or fresh page read. Never treat a successful click or human
@@ -59,13 +64,16 @@ after five seconds if the page execution context remains unavailable; the read
 timeout does not close or replace the tab.
 
 A bare CLI execute creates a fresh session-owned page and prints the exact
-`--session <id>` continuation command. Every later CLI call must pass that id or
-set `BROWSER_CONTROL_SESSION`; bare execute never guesses from human-shell
-current state.
+`--session <id>` continuation command, or you can pass a descriptive session
+name (including an optional emoji, which appears directly on the browser tab
+group and in-page status pill). Every later CLI call must pass that id or set
+`BROWSER_CONTROL_SESSION`; bare execute never guesses from human-shell current
+state.
 
 ```bash
+browser-control session new "🎙️ elevenlabs"
+browser-control execute --session "🎙️ elevenlabs" 'return page.url()'
 browser-control execute 'return page.url()'
-browser-control execute --session cosmic-otter-866 'return page.url()'
 ```
 
 MCP keeps one implicit process session. Omit `session` for that normal path, or
@@ -138,8 +146,10 @@ Use normal Playwright first. Keep dependent interactions in one execute when
 they rely on transient UI such as an open menu, selected rows, hover state, or
 an in-progress form.
 
-If native `locator.fill()` hangs because a browser extension interferes with
-focus, use the explicit input, textarea, or contenteditable fallback:
+If native `locator.fill()` hangs, inspect the failure before using the explicit
+input, textarea, or contenteditable fallback. A `target/cross-extension-page`
+diagnostic requires human dismissal or completion first; `fillInput` is not a
+way around protected extension UI:
 
 ```js
 await fillInput(page.getByPlaceholder("Username"), "standard_user")
@@ -147,6 +157,36 @@ await fillInput(page.getByPlaceholder("Username"), "standard_user")
 
 Completion: the final return value contains evidence of the requested outcome,
 not merely evidence that an action was attempted.
+
+#### Forms and outward mutations
+
+A click returning, HTTP 200, a redirect, or cleared fields do not prove delivery.
+Register any expected navigation before clicking once, then read the destination
+and assert the workflow's specific receipt or confirmation. Coordinate rejection
+and confirmation checks with the actual page you inspected; the driver cannot
+infer business success from generic page text.
+
+```ts
+await Promise.all([
+  page.waitForURL(expectedDestination, { waitUntil: "domcontentloaded", timeout: 15_000 }),
+  ref(sendRef).click({ timeout: 15_000 }),
+])
+const observed = await snapshot()
+await expectedReceipt.waitFor({ state: "visible", timeout: 5_000 })
+return { url: page.url(), observed, receipt: await expectedReceipt.innerText() }
+```
+
+`expectedDestination`, `sendRef`, and `expectedReceipt` come from the inspected
+workflow, not guessed selectors. For same-URL navigation, register a main-frame
+navigation or response wait instead. A mouse coordinate click need not wait for
+navigation; an immediate snapshot can still be the old document.
+
+If submission timed out or the destination cannot be read, report **unverified**
+and inspect once without clicking again. Re-read only after the exact tab/context
+settles. Never replay an uncertain send, booking, purchase, or payment. An explicit
+site rejection means **rejected**, not delivered; protection requiring human
+interaction means hand off the ordinary page to the user. Do not modify protection
+tokens, spoof human signals, or dispatch DOM clicks to evade a security boundary.
 
 ### 4. Continue Or Finish Cleanly
 
@@ -260,6 +300,10 @@ already prevents attachment, give the user the required action directly rather
 than assuming an in-page handoff can be displayed. Verify the intended webpage
 state after the prompt is completed.
 
+A page's leftover password-manager status text is not evidence that its menu is
+still open. Use current relay diagnostics and a fresh ordinary-page read after
+human dismissal, without inspecting the extension's private frame contents.
+
 ## Inspection Tools
 
 Use the least expensive view that answers the question:
@@ -342,10 +386,18 @@ when another command needs to branch on `ok`, `value`, `error`, `warnings`, or
 browser-control execute --json --session github '({ url: page.url() })' | jq .value.url
 ```
 
-Playwright downloads are unavailable through extension-backed tabs because
-Chromium blocks download artifact control through `chrome.debugger`. If the
-page exposes the payload through fetch or an API response, read the bytes in the
-page and write them with `fs`. Do not retry `page.waitForEvent("download")`.
+`page.waitForEvent("download")` intercepts both `Content-Disposition: attachment`
+responses (via CDP `Fetch`) and `<a download>` / `blob:` / `data:` links without
+opening Chrome's native Save confirmation dialog, returning a `Download` with
+`suggestedFilename()`, `await dl.path()`, and `await dl.saveAs(targetPath)`:
+
+```ts
+const dl = page.waitForEvent("download", { timeout: 30_000 })
+await page.getByRole("button", { name: /Generate a private key/i }).click()
+const download = await dl
+await download.saveAs("/tmp/private-key.pem")
+return { filename: download.suggestedFilename(), savedPath: await download.path() }
+```
 
 Pages with WebMCP enabled can expose structured page tools. Discover and call
 them through the execute helper; names, descriptions, schemas, and results come
@@ -393,11 +445,29 @@ before accepting it.
 
 ## TypeScript Client
 
-Applications can import `BrowserControlClient` for schema-decoded,
-same-origin requests authenticated by a session page. Use `sensitive: true`
-for token-bearing responses and reveal them through Browser Control's API, not
-the application's own Effect `Redacted` import; package-manager layouts may
-resolve separate Effect runtimes.
+Applications and CLI tools can use `BrowserControlClient.origin()` for direct
+same-origin JSON requests authenticated by a session page (with optional default
+headers and automatic in-page `handoff` recovery when a session expires or
+redirects to login):
+
+```ts
+import { BrowserControlClient } from "@opencode-ai/browser-control"
+
+const ubereats = BrowserControlClient.origin("https://www.ubereats.com", {
+  session: "🥤 karma-cafe",
+  startUrl: "/feed",
+  headers: { "x-csrf-token": "x" },
+  handoffOnAuthFailure: true,
+})
+
+const store = await ubereats.post("/_p/api/getStoreV1", {
+  storeUuid: "78cb1602-9f58-57bb-ad08-f6b8f80bb788",
+  diningMode: "DELIVERY",
+})
+```
+
+For Effect-native applications with schema decoding or `sensitive: true`
+`Redacted` responses, use `BrowserControlClient.Service`:
 
 ```ts
 import { BrowserControlClient } from "@opencode-ai/browser-control"
@@ -498,6 +568,21 @@ values fail instead of silently clamping. The start result reports the chosen ra
 `--mode auto` uses tab capture for user-owned tabs and CDP for relay-owned tabs.
 Tab capture can include audio; CDP requires `ffmpeg` and has no audio. Use the
 command's `--help` for format and cursor options.
+
+Playwright mouse actions automatically reveal the on-page Ghost Cursor
+(`distance-glide` motion + `tactile-bloom` click shockwave). When recording a
+user-facing proof or PR walkthrough video, opt into the `ghostCursor` helpers
+inside `execute` to focus attention on key steps and verified postconditions:
+
+```ts
+await showGhostCursor()
+await ghostCursor.caption("Verify cluster & promote release", { step: "01", tone: "neutral" })
+await ghostCursor.zoom("#release-card", { scale: 1.45 })
+await page.locator("#promote-btn").click()
+await ghostCursor.keys("⌘+⇧+P", "Promote Release")
+await ghostCursor.resetZoom()
+await ghostCursor.spotlight("#status-badge", { label: "Verified", detail: "200 OK", tone: "success" })
+```
 
 CDP recordings preserve the starting CSS viewport (not a fixed 720p canvas),
 use high-quality source frames, and default to 60 fps. Use `--frame-rate 30`
