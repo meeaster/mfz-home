@@ -1,0 +1,17 @@
+[Unit]
+Description=Claude Code Remote Control
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/home/mark/workspace
+Environment=HOME=/home/mark
+Environment=XDG_CONFIG_HOME=/home/mark/.config
+Environment=PATH=/home/mark/.local/share/mise/shims:/home/mark/.local/bin:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+ExecStartPre=/home/mark/.local/bin/claude update
+ExecStart=/usr/bin/zsh -c 'set -a; source "$HOME/.mindframe-z/secrets/zsh.env"; exec /home/mark/.local/bin/claude remote-control'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
