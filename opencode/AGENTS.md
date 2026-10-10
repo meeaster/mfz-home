@@ -6,4 +6,4 @@
 - Whenever you update an OpenCode plugin dependency or SDK version, reconcile `minimumReleaseAgeExclude` in `pnpm-workspace.yaml` in the same change. Remove stale or unnecessary exceptions and keep the list concise and intentional. After changing `minimumReleaseAgeExclude` or a plugin dependency or SDK version, regenerate and verify `pnpm-lock.yaml`.
 - After changing a server plugin or its runtime dependencies, verify a fresh `opencode run --format json` emits the expected `tool_use` event; unit tests alone do not prove rendered-plugin loading.
 - For a wide TUI runtime probe, use `script -qefc "stty cols 200 rows 50 && timeout 15s opencode --session <id>" /dev/null`; TUI slots mount only while their layout region is visible.
-- When an OpenCode 2 API behaves unexpectedly, compare `opencode --version` with the `@opencode/plugin` version the plugin's own `package.json` declares.
+- When an OpenCode API behaves unexpectedly, compare `opencode --version` with the `@opencode/plugin` version the plugin's own `package.json` declares.

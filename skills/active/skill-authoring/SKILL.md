@@ -23,10 +23,10 @@ Skill Authoring owns the local authoring process and writing preferences. Writin
 
 ### OpenCode invocation
 
-- For OpenCode V2 skills that should not be automatically selected, set `metadata: { opencode/autoinvoke: false }` in `SKILL.md` frontmatter. Do not rely on `disable-model-invocation: true` or description wording to control OpenCode discovery.
+- For OpenCode skills that should not be automatically selected, set `metadata: { opencode/autoinvoke: false }` in `SKILL.md` frontmatter. Do not rely on `disable-model-invocation: true` or description wording to control OpenCode discovery.
 - This setting hides the skill from the model's available list while preserving registration and explicit loading by ID, including named access from a workflow. It is not a permission boundary. Keep any human-only invocation rule explicit in the skill's behavior.
 - Control interactive visibility separately: keep `slash: true` or its default for a user-facing skill; use `slash: false` only when it should also be absent from command catalogs. Retain other harnesses' invocation metadata when they are targets.
-- Verify version-sensitive behavior against the [OpenCode V2 skills guide](https://opencode.ai/v2/docs/skills). These destination mechanics qualify the broader invocation claims in Writing for Agents.
+- Verify version-sensitive behavior against the [OpenCode skills guide](https://opencode.ai/v2/docs/skills). These destination mechanics qualify the broader invocation claims in Writing for Agents.
 
 ## Establish intent and authority
 

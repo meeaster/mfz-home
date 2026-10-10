@@ -152,7 +152,7 @@ references:
     signals: [agent collaboration, ACP, relay]
   - name: opencode-plugins
     url: https://github.com/kitlangton/opencode-plugins.git
-    description: "TypeScript/Bun monorepo for OpenCode V2 TUI plugins. Inspect it for pull-request and CI tracking in the sidebar, session recap behavior, plugin packaging, or local hot-reload development. Main packages: packages/pr-tracker and packages/session-recap."
+    description: "TypeScript/Bun monorepo for OpenCode TUI plugins. Inspect it for pull-request and CI tracking in the sidebar, session recap behavior, plugin packaging, or local hot-reload development. Main packages: packages/pr-tracker and packages/session-recap."
     group: agent-tooling
     summary: OpenCode plugins
     signals: [OpenCode, TUI plugins, session recap]

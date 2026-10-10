@@ -1,8 +1,8 @@
 ## Host environment
 
 - **Fact:** This environment runs in WSL with a Windows host; Windows binaries are reachable from the shell.
-- **Fact:** This machine uses OpenCode V2.
-- **Fact:** OpenCode V2 reloads skills, agent definitions, reloadable configuration, and MCP servers in the running server when their runtime files change.
+- **Fact:** This machine uses OpenCode V2. For OpenCode documentation, use the V2 docs at `https://opencode.ai/v2/docs`; pages under `https://opencode.ai/docs` describe the older V1 release.
+- **Fact:** OpenCode reloads skills, agent definitions, reloadable configuration, and MCP servers in the running server when their runtime files change.
 
 ## Tool selection
 
