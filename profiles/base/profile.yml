@@ -78,6 +78,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   hunk-review:
     agents: { opencode: false, claude-code: false, codex: false }
+  fframes-video:
+    agents: { opencode: true, claude-code: true, codex: true }
   thermo-nuclear-code-quality-review:
     agents: { opencode: true, claude-code: true, codex: true }
   adversarial-code-review:

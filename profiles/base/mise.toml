@@ -47,6 +47,8 @@ bat = "0"
 imagemagick = "7"
 "aqua:sharkdp/fd" = "10"
 "pipx:git-filter-repo" = "2"
+# Pinned to the release of the vendored fframes-video skill; new projects pin the same fframes crates.
+"cargo:cargo-fframes" = "1.2.0"
 
 [settings]
 minimum_release_age = "3d"
@@ -60,6 +62,21 @@ pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
 
 [bootstrap.packages]
 "apt:google-chrome-stable" = "latest"
+# fframes builds: bindgen for ffmpeg-sys-fframes needs libclang; FFmpeg source builds need the assemblers,
+# ninja, and codec headers; Skia links FreeType and Fontconfig; the preview window plays audio through ALSA.
+"apt:libclang-dev" = { os = "linux" }
+"apt:clang" = { os = "linux" }
+"apt:pkg-config" = { os = "linux" }
+"apt:nasm" = { os = "linux" }
+"apt:yasm" = { os = "linux" }
+"apt:ninja-build" = { os = "linux" }
+"apt:libx264-dev" = { os = "linux" }
+"apt:libx265-dev" = { os = "linux" }
+"apt:libopus-dev" = { os = "linux" }
+"apt:libvpx-dev" = { os = "linux" }
+"apt:libfreetype-dev" = { os = "linux" }
+"apt:libfontconfig-dev" = { os = "linux" }
+"apt:libasound2-dev" = { os = "linux" }
 
 [tools."github:dmtrKovalenko/fff"]
 version = "0"
@@ -69,3 +86,6 @@ bin = "fff-mcp"
 [env]
 IMPECCABLE_NO_TELEMETRY = "1"
 IMPECCABLE_NO_UPDATE_CHECK = "1"
+# fframes' prebuilt FFmpeg links x264 ABI 163 and Ubuntu 24.04 ships 164, so build FFmpeg from source.
+# A project that already downloaded the prebuilt also needs `cargo clean -p ffmpeg-sys-fframes`.
+FFMPEG_FORCE_BUILD = "1"

@@ -117,3 +117,6 @@ skills:
   pr-lens:
     commit: 7a9115c8202da4db030be5954ada8862e6135dce
     digest: 82f86c87d116c035b8a8e1dfa563c0226e38ad3679c8f221181719006ffaee2c
+  fframes-video:
+    commit: 055bb6b9dcbbcca6532206847d43ea8e81fa2a0b
+    digest: dad7a9ca8c8ba8b7af19e50172070d20b4a493e478601ff390a54af0725e33b2
