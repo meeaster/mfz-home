@@ -51,8 +51,7 @@ imagemagick = "7"
 "cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
 
 [settings]
-minimum_release_age = "3d"
-minimum_release_age_excludes = ["npm:@fission-ai/openspec", "npm:openwiki", "npm:opencode-drive", "herdr", "cargo:terminal-control"]
+minimum_release_age = "1d"
 
 [settings.npm]
 package_manager = "pnpm"
