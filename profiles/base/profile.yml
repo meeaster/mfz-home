@@ -70,8 +70,9 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
+  # Claude Code and Codex use the CLI through this skill; OpenCode uses the MCP server with Code Mode.
   agent-browser:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: false, claude-code: true, codex: true }
   browser-control:
     agents: { opencode: true, claude-code: true, codex: true }
   terminal-control:
@@ -185,7 +186,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   browser-control:
-    agents: [opencode]
+    agents: [opencode, claude-code, codex]
   agent-browser:
     agents: [opencode]
   context7:
@@ -199,9 +200,14 @@ mcp:
   cairn:
     agents: [opencode, claude-code]
 opencode:
-  # OpenCode always loads ~/.claude/skills, including the claude.ai skills synced into ~/.claude/skills/synced.
-  # Skill permissions match names, not folders, so deny the synced names; the rest share names with mfz's skills.
+  # OpenCode always loads ~/.claude/skills and ~/.agents/skills, including the claude.ai skills synced into
+  # ~/.claude/skills/synced. Skill permissions match names, not folders, so deny the synced names and any mfz
+  # skill enabled for Claude Code or Codex but not OpenCode.
   permissions:
+    # OpenCode uses the agent-browser MCP server with Code Mode instead.
+    - action: skill
+      resource: agent-browser
+      effect: deny
     - action: skill
       resource: built-in-browser
       effect: deny
