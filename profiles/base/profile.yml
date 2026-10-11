@@ -30,13 +30,11 @@ references:
   - openspec
   - openevals
   - mise
-  # - executor
   - mattpocock-skills
   - codex
   - openai-skills
   - openai-plugins
-  - openwiki
-  - buzz
+  - cursor-plugins
 thread:
   defaults:
     synthesize: claude-code:sonnet@max
@@ -70,6 +68,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
+  shadcn:
+    agents: { opencode: true, claude-code: true, codex: true }
   # Claude Code and Codex use the CLI through this skill; OpenCode uses the MCP server with Code Mode.
   agent-browser:
     agents: { opencode: false, claude-code: true, codex: true }
@@ -77,8 +77,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   terminal-control:
     agents: { opencode: true, claude-code: true, codex: true }
-  hunk-review:
-    agents: { opencode: false, claude-code: false, codex: false }
   fframes-video:
     agents: { opencode: true, claude-code: true, codex: true }
   thermo-nuclear-code-quality-review:
@@ -154,10 +152,6 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   domain-modeling:
     agents: { opencode: true, claude-code: true, codex: true }
-  qmd:
-    agents: { opencode: false, claude-code: false, codex: false }
-  openai-docs:
-    agents: { opencode: false, claude-code: false, codex: false }
   improve:
     agents: { opencode: false, claude-code: false, codex: false }
   claude-code-docs:
@@ -194,6 +188,8 @@ mcp:
   openai-docs:
     agents: [opencode, claude-code, codex]
   aws-knowledge:
+    agents: [opencode, claude-code, codex]
+  shadcn:
     agents: [opencode, claude-code, codex]
   terminal-control:
     agents: [opencode, claude-code, codex]

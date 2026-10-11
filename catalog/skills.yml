@@ -356,15 +356,6 @@ skills:
     description: >
       Quality garden - coordinate one behavior-preserving maintenance PR with
       separate gardener and reviewer roles. User-invoked.
-  - name: hunk-review
-    description: Interacts with live Hunk diff review sessions via CLI. Inspects
-      review focus, navigates files and hunks, reloads session contents, and
-      adds inline review comments. Use when the user has a Hunk session running
-      or wants to review diffs interactively.
-    source: vendored
-    repo: https://github.com/modem-dev/hunk
-    ref: main
-    subtree: skills/hunk-review
   - name: thermo-nuclear-code-quality-review
     description: >
       Run an extremely strict maintainability review for abstraction quality,
@@ -448,14 +439,6 @@ skills:
       merge the PR with gh under the user's authority. Use when opening or merging
       a PR, writing or rewriting a PR title/body, or refreshing one after the branch
       changed.
-  - name: qmd
-    description: Search markdown knowledge bases, notes, and documentation using
-      QMD. Use when users ask to search notes, find documents, or look up
-      information.
-    source: vendored
-    repo: https://github.com/tobi/qmd
-    ref: main
-    subtree: skills/qmd
   - name: visual-explainer
     description: Generate beautiful, self-contained HTML pages that visually explain
       systems, code changes, plans, and data. Use when the user asks for a
@@ -499,17 +482,6 @@ skills:
     repo: https://github.com/cathrynlavery/diagram-design
     ref: main
     subtree: skills/diagram-design
-  - name: openai-docs
-    description: Use when the user asks how to build with OpenAI products or APIs
-      and needs up-to-date official documentation with citations, help choosing
-      the latest model for a use case, or model upgrade and prompt-upgrade
-      guidance; prioritize OpenAI docs MCP tools, use bundled references only as
-      helper context, and restrict any fallback browsing to official OpenAI
-      domains.
-    source: vendored
-    repo: https://github.com/openai/skills
-    ref: main
-    subtree: skills/.curated/openai-docs
   - name: improve
     description: >
       Audit a codebase and write self-contained implementation plans for cheaper

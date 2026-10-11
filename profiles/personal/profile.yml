@@ -23,12 +23,8 @@ thread:
     digest: opencode:openai/gpt-6-sol@high
 agents: [opencode, claude-code, codex, pi]
 references:
-  - axis
-  - deepagents
-  - deepagentsjs
-  - vercel-ai
-  - eve
   - opencode-plugins
+  - openwiki
 extra_folders:
   - path: /home/mark/workspace/specs/workspace-specs
     group: knowledge-and-artifacts
@@ -59,24 +55,19 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
-  shadcn:
-    agents: { opencode: true, claude-code: true, codex: true }
   tradingview:
     agents: { opencode: true, claude-code: true, codex: true }
   xurl:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
-  shadcn:
-    agents: [opencode, claude-code, codex]
   x-docs:
     agents: [opencode, claude-code, codex]
   homeassistant:
     agents: [opencode]
   unifi-network:
-    agents:
-      disabled: [opencode]
+    agents: [opencode]
   robinhood:
     agents: [opencode, claude-code, codex]
   sentry:

@@ -15,7 +15,6 @@ jq = "1"
 pipx = "1"
 pre-commit = "4"
 ripgrep = "15"
-rtk = "0"
 uv = "0"
 pnpm = "12"
 actionlint = "1"
@@ -29,23 +28,21 @@ shfmt = "3"
 tflint = "0"
 yamllint = "1"
 "npm:ccstatusline" = "2"
-# "npm:hunkdiff" = "0"
 "npm:aws-cdk" = "2"
 "npm:sfw" = "2"
-# "npm:executor" = "1"
+"npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
+"npm:executor" = "2.0.0-beta.14"
 # Tool skills follow the installed version; a failed refresh must not fail the install.
 "npm:@fission-ai/openspec" = { version = "1", postinstall = "mfz skills refresh --tool npm:@fission-ai/openspec || echo 'openspec: skill refresh failed; rerun mfz skills refresh' >&2" }
-"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
-"github:Infisical/agent-vault" = "0"
 "github:kitlangton/ghui" = "0"
 "npm:agent-browser" = "0"
 # Refresh the unpacked extension Windows Chrome loads; a failed sync must not fail the install.
 "npm:@opencode-ai/browser-control" = { version = "0", postinstall = "mise run browser-control:sync-extension || echo 'browser-control: extension sync failed; rerun mise run browser-control:sync-extension' >&2; mfz skills refresh --tool npm:@opencode-ai/browser-control || echo 'browser-control: skill refresh failed; rerun mfz skills refresh' >&2" }
 "npm:opencode-drive" = { version = "2", postinstall = "mfz skills refresh --tool npm:opencode-drive || echo 'opencode-drive: skill refresh failed; rerun mfz skills refresh' >&2" }
-"github:dandavison/delta" = "0"
 "github:charmbracelet/glow" = "3"
 bat = "0"
 imagemagick = "7"
+ffmpeg = "9"
 "aqua:sharkdp/fd" = "10"
 "pipx:git-filter-repo" = "2"
 "cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
@@ -76,11 +73,6 @@ pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
 "apt:libfreetype-dev" = { os = "linux" }
 "apt:libfontconfig-dev" = { os = "linux" }
 "apt:libasound2-dev" = { os = "linux" }
-
-[tools."github:dmtrKovalenko/fff"]
-version = "0"
-asset_pattern = "fff-mcp-x86_64-unknown-linux-gnu"
-bin = "fff-mcp"
 
 [env]
 IMPECCABLE_NO_TELEMETRY = "1"

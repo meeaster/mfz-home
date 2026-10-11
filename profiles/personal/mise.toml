@@ -1,18 +1,11 @@
 [tools]
 node = "26"
-ffmpeg = "9"
 yt-dlp = "2026"
-websocat = "1"
 usage = "6"
 "npm:wrangler" = "4"
-"npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
+"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
 "github:xdevplatform/xurl" = { version = "1", postinstall = "mfz skills refresh --tool github:xdevplatform/xurl || echo 'xurl: skill refresh failed; rerun mfz skills refresh' >&2" }
 caddy = "2"
-
-[tools."github:truenas/truenas-mcp"]
-version = "0"
-asset_pattern = "truenas-mcp-linux-amd64.tar.gz"
-bin = "truenas-mcp"
 
 [tools."pipx:unifi-network-mcp"]
 version = "0"

@@ -4,19 +4,11 @@ servers:
     type: remote
     transport: http
     url: https://mcp.context7.com/mcp/oauth
-  qmd:
-    description: Local markdown knowledge base MCP.
-    type: local
-    command: [qmd, mcp]
   shadcn:
     description: Official shadcn/ui registry MCP server.
     type: local
     transport: stdio
     command: [shadcn, mcp]
-  fff:
-    description: Local fast file finder MCP.
-    type: local
-    command: [fff-mcp]
   deepwiki:
     description: Repository documentation and implementation detail MCP.
     type: remote
@@ -70,14 +62,6 @@ servers:
       UNIFI_NETWORK_HOST: "{env:UNIFI_NETWORK_HOST}"
       UNIFI_NETWORK_USERNAME: "{env:UNIFI_NETWORK_USERNAME}"
       UNIFI_NETWORK_PASSWORD: "{env:UNIFI_NETWORK_PASSWORD}"
-  truenas:
-    description: TrueNAS MCP server for storage, datasets, shares, apps, monitoring, and maintenance.
-    type: local
-    transport: stdio
-    command: [truenas-mcp]
-    env:
-      TRUENAS_URL: "{env:TRUENAS_URL}"
-      TRUENAS_API_KEY: "{env:TRUENAS_API_KEY}"
   x-docs:
     description: X API documentation search MCP server (hosted).
     type: remote

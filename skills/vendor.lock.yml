@@ -5,18 +5,12 @@ skills:
   grilling:
     commit: 49dd158d1076134a641b33efb035946536778336
     digest: b7bd1c91a17f07c7f5482d20708f72cd7f11fa4525a39583fe954d4cc555b6bb
-  hunk-review:
-    commit: 2458366fbf028759ac7ca7da729f4f6089e22b02
-    digest: c67fad8eef6fda4dab6b4d7460ab01213eca1389586b45bad270efe2f08f68b0
   improve-codebase-architecture:
     commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
     digest: 259c47fd519dce98e1c98ad589ba24bafefa8df09b083366b477e5c088e4555a
   grill-with-docs:
     commit: 9603c1cc8118d08bc1b3bf34cf714f62178dea3b
     digest: 52a2e30968c0cbd03bd6d0a0f44ae4b21de5abc9d95d3ad25e4d409a7042e0ab
-  qmd:
-    commit: e428df76bc0274d9e93eb7ca3e95673315c42e90
-    digest: 8e7a8a28a3f3e7dc39d82155f41384776b67987f7a137f758cfa37cf2b575e66
   handoff:
     commit: 49dd158d1076134a641b33efb035946536778336
     digest: b8e26e87bea75f463517dde914ec74242ee60984af99185d9d8027fa9b7190f3
@@ -47,9 +41,6 @@ skills:
   unslop:
     commit: e5a8186d7b43be8d6ac4452440fbead5f1a51c70
     digest: 1ff1005830c5bd2d1eea4a4131989408b09835cf6b79d2f41a0a4a63a57cd3ea
-  openai-docs:
-    commit: 49f948faa9258a0c61caceaf225e179651397431
-    digest: d41587eb5078a178987ab2a69d0037643066907068c2b6552bba0039d6dde1c3
   prototype:
     commit: 6654f6b60cd9d5be8b54c6fafe44346dabeb3b76
     digest: 6f8b3f42484815a6dd945e7792ae96bca8a2a856d199e836bfa2515d59fb885c
