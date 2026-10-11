@@ -63,6 +63,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   tradingview:
     agents: { opencode: true, claude-code: true, codex: true }
+  xurl:
+    agents: { opencode: true, claude-code: true, codex: true }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:

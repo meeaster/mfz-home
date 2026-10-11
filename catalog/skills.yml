@@ -58,15 +58,16 @@ skills:
     subtree: skills/effect
   - name: shadcn
     description: Official shadcn/ui component and CLI guidance.
-    source: vendored
+    source: tool
+    tool: npm:shadcn
     repo: https://github.com/shadcn-ui/ui
-    ref: main
+    tag: "shadcn@{version}"
     subtree: skills/shadcn
   - name: opencode-drive
     description: Drive isolated or running OpenCode instances with scripted UI, backend, and simulated-model control.
-    source: vendored
+    source: tool
+    tool: npm:opencode-drive
     repo: https://github.com/anomalyco/opencode-drive.git
-    ref: main
     subtree: skills/opencode-drive
   - name: grill-with-docs
     description: >
@@ -246,9 +247,9 @@ skills:
       Control Herdr from inside a Herdr-managed agent pane: inspect and
       coordinate panes, run commands without stealing focus, read output, wait
       for work to finish, and start helper agents.
-    source: vendored
+    source: tool
+    tool: herdr
     repo: https://github.com/ogulcancelik/herdr
-    ref: master
     subtree: skills/herdr
   - name: threads
     source: local
@@ -375,46 +376,61 @@ skills:
     ref: main
     subtree: thermos/skills/thermo-nuclear-code-quality-review
   - name: openspec-apply-change
-    source: local
-    skill: skills/openspec/openspec-apply-change
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: &openspec-generate
+      run: |
+        set -e
+        export OPENSPEC_TELEMETRY=0
+        openspec config set profile custom
+        openspec config set delivery skills
+        openspec config set workflows '["propose","explore","apply","update","sync","archive","verify"]'
+        openspec init --tools agents --no-animation --no-copilot-cloud .
+      path: .agents/skills/{name}
     description: >
       Implement tasks from an OpenSpec change. Use when starting implementation,
       continuing implementation, or working through tasks.
   - name: openspec-archive-change
-    source: local
-    skill: skills/openspec/openspec-archive-change
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Archive a completed change in the experimental workflow. Use when
       finalizing and archiving a change after implementation is complete.
   - name: openspec-explore
-    source: local
-    skill: skills/openspec/openspec-explore
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Enter explore mode — a thinking partner for exploring ideas, investigating
       problems, and clarifying requirements. Use when thinking through something
       before or during a change.
   - name: openspec-propose
-    source: local
-    skill: skills/openspec/openspec-propose
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Propose a new change with all artifacts generated in one step. Use when
       quickly describing what to build and getting a complete proposal with
       design, specs, and tasks ready for implementation.
   - name: openspec-update-change
-    source: local
-    skill: skills/openspec/openspec-update-change
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Revise an OpenSpec change's existing planning artifacts and keep them
       coherent without editing implementation code.
   - name: openspec-sync-specs
-    source: local
-    skill: skills/openspec/openspec-sync-specs
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Sync delta specs from a change to main specs. Use when updating main specs
       with changes from a delta spec, without archiving the change.
   - name: openspec-verify-change
-    source: local
-    skill: skills/openspec/openspec-verify-change
+    source: tool
+    tool: npm:@fission-ai/openspec
+    generate: *openspec-generate
     description: >
       Verify implementation matches change artifacts. Use when validating that
       implementation is complete, correct, and coherent before archiving.
@@ -527,16 +543,16 @@ skills:
     description: >
       Drive the user's existing Chromium-family browser with deterministic
       Playwright, including authenticated browser workflows and human handoffs.
-    source: vendored
+    source: tool
+    tool: npm:@opencode-ai/browser-control
     repo: https://github.com/anomalyco/browser-control
-    ref: main
     subtree: skills/browser-control
   - name: terminal-control
     description: >
       Drive and verify terminal applications with the termctrl CLI in a real PTY.
-    source: vendored
+    source: tool
+    tool: cargo:terminal-control
     repo: https://github.com/anomalyco/terminal-control
-    ref: v1.2.1
     subtree: skills/terminal-control
   - name: open-pencil-design
     source: local
@@ -616,7 +632,15 @@ skills:
     description: >
       Create, animate, review, and render videos in code with fframes (Rust, SVG
       scenes, Skia GPU rendering, FFmpeg encoding).
-    source: vendored
+    source: tool
+    tool: cargo:cargo-fframes
     repo: https://github.com/dmtrKovalenko/fframes
-    ref: main
     subtree: skills/fframes-video
+  - name: xurl
+    description: >
+      Authenticated X (Twitter) API requests with the xurl CLI: posts, search,
+      followers, DMs, media, and raw v2 endpoints.
+    source: tool
+    tool: github:xdevplatform/xurl
+    repo: https://github.com/xdevplatform/xurl
+    subtree: SKILL.md

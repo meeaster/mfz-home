@@ -2,9 +2,6 @@ skills:
   diagram-design:
     commit: 246d6d71d752245403d2bf28d27f124192584d18
     digest: 176656c98e622b0ea80ff3924d60c5dec07e0eca2ccc7a4185f3926fc191c578
-  opencode-drive:
-    commit: f0b55f8e5a69f6311feb2576cd9840bb1443c912
-    digest: bbda4b599475aeb30d3cf6b4d9da07830a5780f313b1d5c3ea0a310b860cdffd
   grilling:
     commit: 49dd158d1076134a641b33efb035946536778336
     digest: b7bd1c91a17f07c7f5482d20708f72cd7f11fa4525a39583fe954d4cc555b6bb
@@ -50,9 +47,6 @@ skills:
   unslop:
     commit: e5a8186d7b43be8d6ac4452440fbead5f1a51c70
     digest: 1ff1005830c5bd2d1eea4a4131989408b09835cf6b79d2f41a0a4a63a57cd3ea
-  herdr:
-    commit: 9e01168b140ce8e3821131345dc82bc2bf9994eb
-    digest: 14329080845ab156f7bffcdff55b82ab4b68679a6c34bf6bccc9ac24667b6841
   openai-docs:
     commit: 49f948faa9258a0c61caceaf225e179651397431
     digest: d41587eb5078a178987ab2a69d0037643066907068c2b6552bba0039d6dde1c3
@@ -99,24 +93,12 @@ skills:
   visual-pr:
     commit: ca7c8088db69e315a8b2deea43820270457f8f3c
     digest: 1126dfee31e388e2b0e78520606721b760ddf8e294cd24c87cc7934695373f1f
-  browser-control:
-    commit: b4e4238742fa73daabfb664f1108113e9577849d
-    digest: 1de177b41b0dee9c30580091bc9e37456446eb8c4692137b9cfd2b959efcde48
   open-pencil:
     commit: 6cf1748e31a0e43d3794d43abbd003ce9caa3c6f
     digest: 5516b4f917ac6b1862ba76cdbe011dae5bdb08862fe5d75b6a1fbb80dfebc86f
-  terminal-control:
-    commit: c1d4f95e4f1b7638f6229e9bfc9599a955f95ce2
-    digest: 64f6cfb0c1682a28aa3b6df68b0145ad730162c3775595aadc22fb37ca03e0b1
   transitions-dev:
     commit: e2d5551656e4d3274e075d1cbd9a95af50f53225
     digest: ad6d7e548390f62a89c746aa980cb50c5247a1f0269685033ace3a643b58dd31
-  shadcn:
-    commit: 2d3f1cd436b18ea12f24130de4df781355925b08
-    digest: c74f59dbad3c4a60959da5930ac4f239e26997360a38b22c6aa663eed7f96e48
   pr-lens:
     commit: 7a9115c8202da4db030be5954ada8862e6135dce
     digest: 82f86c87d116c035b8a8e1dfa563c0226e38ad3679c8f221181719006ffaee2c
-  fframes-video:
-    commit: 055bb6b9dcbbcca6532206847d43ea8e81fa2a0b
-    digest: dad7a9ca8c8ba8b7af19e50172070d20b4a493e478601ff390a54af0725e33b2

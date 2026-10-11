@@ -5,7 +5,7 @@ go = "1"
 python = "3.14"
 rust = "1"
 zig = "0.17"
-"cargo:terminal-control" = "1"
+"cargo:terminal-control" = { version = "1", postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
 aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.16"
@@ -33,22 +33,22 @@ yamllint = "1"
 "npm:aws-cdk" = "2"
 "npm:sfw" = "2"
 # "npm:executor" = "1"
-"npm:@fission-ai/openspec" = "1"
+# Tool skills follow the installed version; a failed refresh must not fail the install.
+"npm:@fission-ai/openspec" = { version = "1", postinstall = "mfz skills refresh --tool npm:@fission-ai/openspec || echo 'openspec: skill refresh failed; rerun mfz skills refresh' >&2" }
 "npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
 "github:Infisical/agent-vault" = "0"
 "github:kitlangton/ghui" = "0"
 "npm:agent-browser" = "0"
 # Refresh the unpacked extension Windows Chrome loads; a failed sync must not fail the install.
-"npm:@opencode-ai/browser-control" = { version = "0", postinstall = "mise run browser-control:sync-extension || echo 'browser-control: extension sync failed; rerun mise run browser-control:sync-extension' >&2" }
-"npm:opencode-drive" = { version = "2" }
+"npm:@opencode-ai/browser-control" = { version = "0", postinstall = "mise run browser-control:sync-extension || echo 'browser-control: extension sync failed; rerun mise run browser-control:sync-extension' >&2; mfz skills refresh --tool npm:@opencode-ai/browser-control || echo 'browser-control: skill refresh failed; rerun mfz skills refresh' >&2" }
+"npm:opencode-drive" = { version = "2", postinstall = "mfz skills refresh --tool npm:opencode-drive || echo 'opencode-drive: skill refresh failed; rerun mfz skills refresh' >&2" }
 "github:dandavison/delta" = "0"
 "github:charmbracelet/glow" = "3"
 bat = "0"
 imagemagick = "7"
 "aqua:sharkdp/fd" = "10"
 "pipx:git-filter-repo" = "2"
-# Pinned to the release of the vendored fframes-video skill; new projects pin the same fframes crates.
-"cargo:cargo-fframes" = "1.2.0"
+"cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
 
 [settings]
 minimum_release_age = "3d"
