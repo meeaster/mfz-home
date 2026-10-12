@@ -22,5 +22,6 @@
 
 ## Skill authoring records
 
-- **Fact:** The Skill Authoring record root is `/home/mark/workspace/knowledge/personal-knowledge/authoring-records`.
-- **Behavior:** Follow Skill Authoring's structure beneath that root.
+- **Fact:** A skill's authoring record is the `AUTHORING.md` in its own directory.
+- **Fact:** `/home/mark/workspace/knowledge/personal-knowledge/authoring-records` holds legacy multi-file records at `<repository>/<artifact-kind>/<artifact-name>/`. When revising an artifact that has one, merge it into a single record as Skill Authoring describes.
+- **Behavior:** For single-file OpenCode commands and agents, keep the record as `AUTHORING.md` under that root at the same path.

@@ -9,116 +9,72 @@ argument-hint: "What skill or command are you authoring, reviewing, or evaluatin
 
 # Skill Authoring
 
-Turn intended agent behavior into useful, economical instructions. Runtime content serves the agent; its organization also lets the human inspect what it asks the agent to do. Preserve intent and maintenance knowledge that would be costly to reconstruct.
+Turn intended agent behavior into economical instructions, and keep one record of why the skill is the way it is so the next author doesn't have to reconstruct it.
 
-## Use the authoring guidance
+## Before changing anything
 
-Skill Authoring owns the local authoring process and writing preferences. Writing for Agents supplies supporting guidance on organization, references, and pruning.
+- Load `writing-for-agents` for writing and packaging guidance.
+- Also load `skill-creator` when it's available (in Claude Code it may be listed as `anthropic-skills:skill-creator`) and follow its draft, test, and iterate loop. In OpenCode, read [references/skill-creator-opencode.md](references/skill-creator-opencode.md) first; `skill-creator` is written for Claude Code. This skill adds the authoring record, local writing preferences, and cross-harness mechanics; where the two differ on where files go or when tests run, this skill wins.
+- Read the target's runtime files and its authoring record, if one exists. The record holds accepted intent; if a requested change conflicts with it, raise the conflict before editing.
+- For review, diagnosis, or evaluation without an edit request, return findings only.
+- Ask about choices that change what the skill does or who it acts for. State reversible assumptions and proceed.
 
-- Load `writing-for-agents` and read [planning guidance](references/openai-skill-creation.md) before authoring work.
-- Apply the local writing policy below where it differs from Writing for Agents. Keep local preferences here rather than editing a vendored dependency to encode them.
-- Follow Writing for Agents' `SKILL-MECHANICS.md` pointer for packaging concepts. Verify version-sensitive mechanics against the destination harness; distinguish automatic discovery from explicit invocation and named workflow access.
-- Read [OpenCode command mechanics](references/opencode-commands.md) when a command is the target or a genuine candidate.
-- Read Skill Authoring's own record only when assessing or changing Skill Authoring itself, using the same selective-loading rules as for any target.
+## The authoring record
 
-### OpenCode invocation
+Each skill keeps one record, `AUTHORING.md`, in its own directory beside `SKILL.md`, so the record travels with the skill. Never link to it from `SKILL.md` or its references; harnesses load only `SKILL.md`, so the record stays out of runtime context unless something points the agent to it. Don't add a record to a vendored skill, since updates overwrite it. For a single-file artifact such as a command, use the location the user or repository guidance names, keeping it outside command and agent discovery paths.
 
-- For OpenCode skills that should not be automatically selected, set `metadata: { opencode/autoinvoke: false }` in `SKILL.md` frontmatter. Do not rely on `disable-model-invocation: true` or description wording to control OpenCode discovery.
-- This setting hides the skill from the model's available list while preserving registration and explicit loading by ID, including named access from a workflow. It is not a permission boundary. Keep any human-only invocation rule explicit in the skill's behavior.
-- Control interactive visibility separately: keep `slash: true` or its default for a user-facing skill; use `slash: false` only when it should also be absent from command catalogs. Retain other harnesses' invocation metadata when they are targets.
-- Verify version-sensitive behavior against the [OpenCode skills guide](https://opencode.ai/v2/docs/skills). These destination mechanics qualify the broader invocation claims in Writing for Agents.
+The record has exactly these sections, in this order, each only where there is something real to say. Don't add others, such as open questions or assumptions to confirm; raise those with the human in your report instead.
 
-## Establish intent and authority
+- **Intent**: what the skill is for, what it isn't for, and what success looks like.
+- **Scenarios**: the situations the skill must support, including plausible wrong behavior to rule out. These describe intent and can be broader than anything a single test can run.
+- **Decisions**: choices whose reason a future author couldn't recover from `SKILL.md` or from the authoring guidance used to write it (this skill, `skill-creator`, `writing-for-agents`, harness docs). Give the reason, and mark which ones the human set. Don't restate rules the skill already states, and don't record choices any author following that guidance would make, such as a one-line description for a user-invoked skill. Good entries: a human preference with its motivation, an interpretation of an ambiguous requirement, and a rule added because a test failed without it.
+- **Sources**: upstream URLs or repositories, adopted revision, and local departures.
 
-The user's intended outcome determines both the work and its authority. A suggested implementation detail does not automatically become a requirement.
+Extract content from the conversation and the human's stated direction; don't invent requirements to fill a section. Update the record in the same change as the skill. Git holds routine history, so don't log every edit. Keep the record short enough to read in full before each revision.
 
-- For creation or revision, implement within the request. For review, diagnosis, evaluation, or design, return findings or proposals unless changes are also authorized. Clarify ambiguous maintenance requests.
-- Inspect the target and destination instructions. Establish the problem, desired outcome, invocation, representative uses, important variation, authority boundaries, and failure conditions.
-- Use available evidence before asking questions. State reversible assumptions and ask about unresolved choices that change the behavioral contract.
-- Distinguish tuning from redesign. Reconcile consequential changes with human intent and the target's authoring principles.
+Runnable tests live separately in `evals/evals.json` beside `SKILL.md`, in `skill-creator`'s format, and only once the human has approved them. Each eval is a concrete, scoped-down proxy for a scenario; name the scenario it approximates in the eval's `expected_output`. A scenario with no eval is fine. `evals.json` is the only test artifact in the skill: runners, fixtures, test repositories, and outputs belong in a temporary directory, so they don't ship with it.
 
-### Resolve the authoring record
+When revising a skill that still has an older multi-file record, merge it into one record as part of that change, pruning anything Git or the skill itself already says.
 
-One record preserves the target's authoring intent outside ordinary runtime loading. Resolve its location in this order:
+## Keep it portable
 
-1. Use the user's selected location.
-2. Otherwise, if environment guidance declares a record root, derive `<root>/<repository-name>/<artifact-kind>/<artifact-name>`. Use the Git root basename, `skills` or `opencode-commands`, and the declared skill name or logical command name.
-3. Otherwise, use `<skill>/meta` or a destination-owned `meta/` beside an unrendered command source package. Ask for a safe location if a command has only a runtime file.
+Skills are meant to work on any machine and in any supported harness. Everything in the skill directory, including `AUTHORING.md` and `evals.json`, follows this:
 
-- For external records, verify `TARGET.md` identifies the repository, artifact kind, and source path. Create it when establishing an external record.
-- Surface competing local and external records or ambiguous identities for a user decision.
-- Keep command records outside rendered command-discovery paths, including when the user selects the location.
+- No absolute paths, home directories, usernames, or this machine's workspace layout. Refer to bundled files by paths relative to the skill directory, and to the user's project by paths relative to its root.
+- No dependence on private tools, local services, or other skills that aren't declared as requirements.
+- Where a skill needs something environment-specific, such as a configurable location, say what it needs and let the user or repository guidance supply it.
+- A skill is environment-specific only when the human says so; then state that boundary in `AUTHORING.md`.
 
-### Load by relevance
+## Writing the skill
 
-Load enough context to understand the affected behavior and its rationale. Existing files do not all need to enter the authoring session.
+Writing for Agents covers most of this. Local preferences:
 
-- Start with the target's runtime instructions and its record's `PRINCIPLES.md` and `VISION.md`, when present. Read principles before proposing changes.
-- For narrow revisions, read affected scenarios and references. For dependency refreshes, read relevant maintenance guidance and source changes.
-- For regressions or unexplained constraints, inspect related evidence and historical rationale. For a full assessment or redesign, review the broader relevant package for coherence and coverage.
-- Search headings or relevant terms before reading a large record in full. Expand when a conflict, dependency, or unexplained constraint could affect the decision.
-- Treat missing optional records as acceptable. Authoring records guide changes to the skill, not ordinary execution of the target skill.
+- Use prose for context and rationale, bullets for independent rules, tables for comparisons, and numbered steps only where order matters.
+- Preserve concrete meaning when shortening; don't compress a criterion into a keyword that hides it.
+- Treat claims about prompting mechanics (negation, capitals, step hiding) as model-dependent, not settled.
+- For each line, ask whether the agent would get the task wrong without it. If not, cut it; don't add handling for edge cases nobody raised.
+- Add scripts, references, or assets only when execution needs them, and say when to read each.
 
-## Write for the agent and human inspection
+### Harness mechanics
 
-Every runtime passage should help the agent interpret or execute the task. Human readability makes those instructions easier to inspect and maintain; it does not justify explanatory filler.
+- **Claude Code**: `disable-model-invocation: true` hides a skill from the model; `user-invocable: false` hides it from the `/` menu.
+- **OpenCode**: `metadata: { opencode/autoinvoke: false }` hides a skill from the model and wins over `disable-model-invocation`. Skill IDs come from the path, not `name`. OpenCode also discovers `~/.claude/skills` and `~/.agents/skills`; use `skill` permission rules to hide one there.
+- **Codex**: `agents/openai.yaml` `policy.allow_implicit_invocation: false` blocks implicit use.
+- **OpenCode commands**: when a command is the target or a genuine candidate, read [references/opencode-commands.md](references/opencode-commands.md).
+- Verify these against current docs before relying on them in a new way.
 
-- Group related guidance under focused topic headings. Choose the form that makes the instructions easiest to understand and inspect: short prose for context and rationale, bullets for independently applicable rules, tables for comparisons or repeated relationships, and numbered lists for order or dependencies. Combine forms where useful rather than forcing one throughout.
-- Omit an introduction when the heading and bullets are sufficient. Avoid repeating the same meaning in prose and bullets.
-- Make each bullet express an independently understandable action, constraint, exception, or check. Keep qualifications beside the rule they change.
-- Treat prose as behavior-bearing context too. Make explicit requirements easy to locate in bullets without pretending that only bullets influence the agent.
-- Use clear wording to distinguish requirements, defaults, and discretionary choices. Add labels only when they resolve ambiguity.
-- Preserve concrete meaning when shortening text. Use familiar terms when their meaning is clear; keep explicit criteria when a compressed keyword would hide them.
-- Use numbered steps when order matters. Give genuine steps observable completion conditions where needed; topic sections do not each require a step or repeated completion statement.
-- Keep tables, examples, and code blocks when they communicate the relevant relationship or execution detail better than prose and bullets. Examples should not silently become mandatory output templates.
-- Prefer direct descriptions of desired behavior. Use explicit prohibitions when they communicate a necessary boundary clearly.
-- Treat claims about prompting mechanisms, such as effects of negation, keywords, or hidden later steps, as model-dependent hypotheses unless supported by relevant evidence.
+## Checking the change
 
-## Shape the artifact to its purpose
+Static checks are free: structure, links, frontmatter, and comparing a rewrite with the original by meaning. Live runs cost money, so they need the human's go-ahead.
 
-Choose the form and degree of prescription from the behavior being authored. Structure and additional resources should earn their place through a useful effect.
+- Don't run evals or test sessions on your own initiative. Propose them instead: the cases, which scenario each approximates, the models and harness to run them on, and the rough number of runs.
+- Run them only when the human asks, on the models they choose. They may want several models compared; a skill meant for cheaper models should be tested on one.
+- Run approved evals through `skill-creator`'s full loop when it's available, including its baseline: no skill for a new skill, the previous version for a revision. The baseline shows whether the skill changes anything. Without `skill-creator`, run each case and its baseline in fresh sessions and read the traces, not just the outputs. Include one adjacent prompt that shouldn't trigger the skill.
+- Put runners, test repositories, and outputs in one directory under the system's temporary location, outside the repository, and delete it when done. Keep only the static review page, outside the repository, and give its path in your report.
+- Wait for every run you start and read its results before finishing. Don't leave runs going in the background.
+- When a run exposes a failure, fix the skill, rerun that case, and record the rule and its reason under Decisions.
+- Structure, readability, and behavior are separate questions; evidence for one doesn't establish the others. Report what was run, on which models and harness, and what wasn't. Test sessions inherit the human's global instructions; say so when those could have helped the baseline.
 
-- Use a skill for model discovery, reusable cross-skill guidance, or packaged resources. Use an OpenCode command for a slash-invoked workflow that fits one prompt-template file; set `subtask: false` unless fresh context is intentional.
-- Write the smallest effective instructions. Preserve deliberate user preferences and necessary context; question general advice that the configured model already follows.
-- Match constraints to the cost of variance. Leave judgment open where several approaches are valid; prescribe methods when the accepted task needs repeatability or a particular boundary.
-- Add scripts, references, assets, or harness metadata only when execution needs them. Put branch-specific detail behind explicit reading conditions.
-- Keep ordinary reference filenames lowercase and descriptive. Keep directories flat unless grouping provides a real boundary. Consult patterns only to resolve a named structural uncertainty.
-- Keep portable behavior free of undeclared machine assumptions. Declare the boundary of deliberately environment-specific artifacts.
-- For assessment, return evidence-backed findings without repairs. For implementation, update the runtime artifact and affected record content; a change does not require touching every file.
+## Finishing
 
-## Preserve the next author's context
-
-Records preserve accepted intent and consequential authoring choices. Each file has a distinct job, and routine edit history can remain in Git.
-
-- Require `PRINCIPLES.md` for every skill record, including small skills. Create it for a new skill or when next revising an existing skill that lacks it; migrate only the target. In a read-only assessment, report the gap without creating it. Explicit-command records may use this form but are not required to.
-- Keep `VISION.md` for purpose, intended outcomes, and scope boundaries.
-- Keep `PRINCIPLES.md` for concise, target-specific authoring priorities, tradeoffs, and their rationale. Extract accepted direction rather than inventing requirements. Move principles out of vision instead of duplicating them; keep procedures in runtime instructions.
-- Treat principles as human-owned. Reconcile them when the user accepts a changed direction rather than treating earlier principles as immutable.
-- Keep `EVALS.md` for concrete scenarios and observable expectations that distinguish success from plausible failure. Consolidate overlapping cases. Keep run results, session IDs, hashes, activation reports, and revision history out of this file.
-- Keep principles in the resolved record, outside runtime discovery and ordinary skill loading. Beyond required principles and external identity, omit record documents that add no distinct value.
-- Create `MAINTENANCE.md` only when an outside source materially influences the skill and upkeep needs that relationship explained. Record the source, adopted revision when applicable, intentional adaptations, and refresh considerations.
-- Keep generic procedures with their owning authoring guidance and readily discoverable configuration with the environment.
-- Preserve still-relevant rationale beside its concern. Create a separate decision record only for substantial reasoning future authors are likely to revisit. Do not require `LOG.md`, a replacement decision file, or an entry for every edit.
-- Consult existing history when relevant and obtain authority before deleting or consolidating it. An authorized cleanup does not require another archive.
-- Give additional evidence files a concrete purpose and reading condition. Keep substantial traces outside routine authoring context; retain restatement only when it adds a distinct decision, testable assertion, or maintenance fact.
-
-## Check the change
-
-Structural correctness, human inspectability, and model behavior are separate questions. Evidence for one does not establish the others.
-
-- Check the target's principles and surface unresolved conflicts with the requested direction. Apply relevance, duplication, and default-behavior pruning with the local writing policy above.
-- Compare a structural rewrite with the source by meaning, preserving scope, exceptions, authority, and discretion. Identify intentional behavior changes separately from presentation changes.
-- Inspect whether each section's purpose and individual requirements are easy to locate. Treat improved human readability as a preference or human judgment, not something model scores alone establish.
-- Check structure, links, and coherence for changed branches. For records, retain passages that help a future author decide or verify something.
-- Evaluate invocation and execution separately when applicable: realistic positive and adjacent prompts for model discovery, explicit invocation and argument handling for commands, and observable outcomes after loading.
-- When the task requires live execution, session-based verification, or revision from an observed failure, read [testing workflow](references/testing-workflow.md). Static review and writing scenarios do not require live runs.
-- Report observed results with artifact or trace locators, the revision, model, harness, relevant configuration, and limitations. Verify self-reported success against available evidence and identify untested behavior.
-- Create a separate durable results report only for an authorized concrete reuse need, not as a routine authoring record or substitute log.
-
-## Complete the requested work
-
-The handoff makes the result and remaining uncertainty visible. Environment guidance owns activation procedures.
-
-- For implementation, report changed files, behavioral rationale, checks, unresolved uncertainty, and any activation or promotion still needed. For assessment, prioritize findings and distinguish recommendations from accepted changes.
-- When commits are authorized, commit runtime changes and record changes in their owning repositories. Report both commit identifiers when both changed. Do not leave an accepted change half-committed or modify an accurate record merely to create a companion commit.
-- Finish when the requested outcome is met, relevant behavior has evidence or an explicit untested status, and the record preserves what the next author needs without unrelated history.
+Report changed files, the reasoning behind behavior changes, checks run, and open uncertainty. When commits are authorized, commit the skill and its record together.

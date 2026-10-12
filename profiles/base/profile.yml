@@ -156,8 +156,9 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   claude-code-docs:
     agents: { opencode: true, claude-code: true, codex: true }
+  # Claude Code gets skill-creator from claude.ai sync or the official plugin; Codex ships its own.
   skill-creator:
-    agents: { opencode: false, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: false, codex: false }
   prototype:
     agents: { opencode: true, claude-code: true, codex: true }
   handoff:
@@ -236,9 +237,6 @@ opencode:
       effect: deny
     - action: skill
       resource: pptx
-      effect: deny
-    - action: skill
-      resource: skill-creator
       effect: deny
     - action: skill
       resource: xlsx
