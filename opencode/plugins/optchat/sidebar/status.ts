@@ -6,7 +6,7 @@ import { join } from "node:path"
 import type { z } from "zod"
 import { Registry } from "../chats.js"
 import { PLACEHOLDER } from "../memory.js"
-import { bytes, NodeRecord, ViewRecord } from "../store.js"
+import { bytes, CallRecord, NodeRecord, ViewRecord } from "../store.js"
 import { key, label } from "../tree.js"
 
 export interface ChatStatus {
@@ -21,12 +21,22 @@ export interface ChatStatus {
   readonly pending: number
   /** Whether the view is merging down to its low size. */
   readonly merging: boolean
+  readonly summaries: SummaryCalls
+}
+
+/** The chat's logged summary calls, the time they took, and the estimated cost of those whose model was priced. */
+export interface SummaryCalls {
+  readonly calls: number
+  readonly ms: number
+  readonly cost: number
+  readonly unpriced: number
 }
 
 /** Reads each chat's state on demand, keeping what it has read of each chat's append-only tree between reads. */
 export class StatusReader {
   readonly #dataDir: string
   readonly #trees = new Map<string, Tree>()
+  readonly #calls = new Map<string, Calls>()
   // The last readable registry and views, kept for a read that catches a file mid-write.
   #registry: z.infer<typeof Registry> | undefined
   readonly #views = new Map<string, ViewRecord>()
@@ -55,6 +65,11 @@ export class StatusReader {
     this.#trees.set(id, tree)
     tree.update()
 
+    const calls = this.#calls.get(id) ?? new Calls(join(directory, "usage.jsonl"))
+
+    this.#calls.set(id, calls)
+    calls.update()
+
     let size = 0
     let pending = 0
 
@@ -74,6 +89,7 @@ export class StatusReader {
       lines: view?.chat.length ?? 0,
       pending,
       merging: view?.merging ?? false,
+      summaries: { calls: calls.calls, ms: calls.ms, cost: calls.cost, unpriced: calls.unpriced },
     }
   }
 }
@@ -81,6 +97,50 @@ export class StatusReader {
 /** A chat's summary nodes, read from `tree.jsonl` as it grows. */
 class Tree {
   readonly nodes = new Map<string, string>()
+  readonly #lines: Lines
+
+  constructor(path: string) {
+    this.#lines = new Lines(path)
+  }
+
+  update(): void {
+    for (const line of this.#lines.read()) {
+      const node = parse(NodeRecord, line)
+
+      if (node !== undefined) this.nodes.set(key([node.l, node.i]), node.text)
+    }
+  }
+}
+
+/** A chat's summary calls, totaled from `usage.jsonl` as it grows. */
+class Calls {
+  calls = 0
+  ms = 0
+  cost = 0
+  unpriced = 0
+  readonly #lines: Lines
+
+  constructor(path: string) {
+    this.#lines = new Lines(path)
+  }
+
+  update(): void {
+    for (const line of this.#lines.read()) {
+      const call = parse(CallRecord, line)
+
+      if (call === undefined) continue
+
+      this.calls++
+      this.ms += call.ms
+
+      if (call.cost === undefined) this.unpriced++
+      else this.cost += call.cost
+    }
+  }
+}
+
+/** The complete lines appended to a file since the last read. */
+class Lines {
   readonly #path: string
   #offset = 0
   // The bytes after the last complete line, which the plugin may still be writing.
@@ -90,12 +150,12 @@ class Tree {
     this.#path = path
   }
 
-  update(): void {
-    if (!existsSync(this.#path)) return
+  read(): string[] {
+    if (!existsSync(this.#path)) return []
 
     const end = statSync(this.#path).size
 
-    if (end <= this.#offset) return
+    if (end <= this.#offset) return []
 
     const chunk = Buffer.alloc(end - this.#offset)
     const fd = openSync(this.#path, "r")
@@ -108,19 +168,19 @@ class Tree {
 
     this.#offset = end
 
+    const lines: string[] = []
     let text = Buffer.concat([this.#rest, chunk])
     let newline = text.indexOf(0x0a)
 
     while (newline !== -1) {
-      const node = parse(NodeRecord, text.subarray(0, newline).toString("utf8"))
-
-      if (node !== undefined) this.nodes.set(key([node.l, node.i]), node.text)
-
+      lines.push(text.subarray(0, newline).toString("utf8"))
       text = text.subarray(newline + 1)
       newline = text.indexOf(0x0a)
     }
 
     this.#rest = text
+
+    return lines
   }
 }
 

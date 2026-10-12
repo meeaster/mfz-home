@@ -29,6 +29,21 @@ export const ViewRecord = z.object({ chat: z.array(EntryRecord), compaction: z.a
 
 export type ViewRecord = z.infer<typeof ViewRecord>
 
+/**
+ * One summary call: the compactor model, the bytes sent and received, how long the call took in milliseconds, and its
+ * estimated cost when the model is priced.
+ */
+export const CallRecord = z.object({
+  date: z.string(),
+  model: z.string(),
+  prompt: z.number().int(),
+  reply: z.number().int(),
+  ms: z.number().int(),
+  cost: z.number().optional(),
+})
+
+export type CallRecord = z.infer<typeof CallRecord>
+
 /** Where chats are stored unless the `dataDir` option says otherwise. */
 export const defaultDataDir = (): string => join(process.env.XDG_DATA_HOME ?? join(homedir(), ".local", "share"), "optchat")
 
@@ -57,6 +72,7 @@ export class Store {
   readonly sources = new Set<string>()
   readonly #mainFd: number
   readonly #treeFd: number
+  readonly #usageFd: number
   readonly #viewPath: string
   readonly #lockPath: string
   readonly #lock: string
@@ -78,6 +94,7 @@ export class Store {
 
     this.#mainFd = openSync(mainPath, "a")
     this.#treeFd = openSync(treePath, "a")
+    this.#usageFd = openSync(join(directory, "usage.jsonl"), "a")
   }
 
   /** Returns undefined when another live process holds the chat. */
@@ -137,6 +154,16 @@ export class Store {
     this.nodes.set(key([l, i]), text)
   }
 
+  get closed(): boolean {
+    return this.#closed
+  }
+
+  /** Logs a summary call for the sidebar; a lost line only drops a call from its estimate, so it isn't synced. */
+  recordCall(call: CallRecord): void {
+    this.#assertOpen()
+    writeSync(this.#usageFd, `${JSON.stringify(call)}\n`)
+  }
+
   loadView(): ViewRecord | undefined {
     if (!existsSync(this.#viewPath)) return undefined
 
@@ -160,6 +187,7 @@ export class Store {
     this.#closed = true
     closeSync(this.#mainFd)
     closeSync(this.#treeFd)
+    closeSync(this.#usageFd)
 
     // A later store for this chat may already hold the lock; leave its lock in place.
     if (existsSync(this.#lockPath) && readFileSync(this.#lockPath, "utf8") === this.#lock) rmSync(this.#lockPath, { force: true })

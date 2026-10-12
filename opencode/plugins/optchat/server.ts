@@ -15,7 +15,8 @@ import { hintedText, hintedView, withEndHint } from "./cache-hints.js"
 import { AFFINITY, type CacheProfile, type CacheRoute, cacheProfile } from "./cache-profile.js"
 import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
-import { defaultDataDir } from "./store.js"
+import { bytes, type CallRecord, defaultDataDir } from "./store.js"
+import { catalogRates, estimateCost, type Rate } from "./usage.js"
 
 const AGENT = "optchat"
 
@@ -130,13 +131,47 @@ export default Plugin.define({
 
     const { providerID, id, variant } = options.compactor
     const compactor = variant === undefined ? { providerID, id } : { providerID, id, variant }
+    const compactorName = [providerID, id, variant].filter((part) => part !== undefined).join("/")
+
+    // The compactor's rates, looked up once; a failed lookup is retried on the next call. OpenCode lists no rates for a
+    // model it serves through a subscription login, so those calls are priced at models.dev's API rates.
+    let compactorRates: Promise<readonly Rate[] | undefined> | undefined
+
+    const ratesOfCompactor = (): Promise<readonly Rate[] | undefined> => {
+      compactorRates ??= (async () => {
+        const { data } = await ctx.model.list()
+        const rates = data.find((model) => model.providerID === providerID && model.id === id)?.cost
+
+        return rates !== undefined && rates.length > 0 ? rates : await catalogRates(providerID, id)
+      })().catch(() => {
+        compactorRates = undefined
+
+        return undefined
+      })
+
+      return compactorRates
+    }
 
     const chats = new Chats(directory, (store) =>
       new Memory({
         store,
         budget: { viewHigh: options.viewHigh, viewLow: options.viewLow, compactionHigh: options.compactionHigh, compactionLow: options.compactionLow },
         concurrency: options.concurrency,
-        generate: async (prompt) => (await ctx.generate.text({ prompt, model: compactor })).text,
+        generate: async (prompt) => {
+          const started = Date.now()
+          const { text } = await ctx.generate.text({ prompt, model: compactor })
+          const ms = Date.now() - started
+          const rates = await ratesOfCompactor()
+
+          if (!store.closed) {
+            const call: CallRecord = { date: new Date().toISOString(), model: compactorName, prompt: bytes(prompt), reply: bytes(text), ms }
+            const cost = rates && estimateCost(rates, call.prompt, call.reply)
+
+            store.recordCall(cost === undefined ? call : { ...call, cost })
+          }
+
+          return text
+        },
         report: warn,
       }),
     )

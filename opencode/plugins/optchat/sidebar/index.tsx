@@ -1,12 +1,13 @@
 /** @jsxImportSource @opentui/solid */
-// The OptChat box in the session sidebar: which chat this is, how full its view is, and how many summaries are pending.
+// The OptChat box in the session sidebar: which chat this is, how full its view is, how many summaries are pending,
+// and what the summaries have cost and how long they take.
 // OpenCode loads it as this server plugin's TUI part, without the plugin's options, so it reads the default data
 // directory.
 
 import type { Context, Definition } from "@opencode/plugin/tui/plugin"
 import { createSignal, onCleanup, Show } from "solid-js"
 import { defaultDataDir } from "../store.js"
-import { fit, pendingLine, viewLine } from "./format.js"
+import { fit, pendingLine, summariesLine, summaryTimeLine, viewLine } from "./format.js"
 import { type ChatStatus, StatusReader } from "./status.js"
 
 // The view and summaries change in the background, after the turn's events, so the box rereads on a timer.
@@ -33,6 +34,8 @@ function Sidebar(props: { context: Context; sessionID: () => string; reader: Sta
           {line(() => value().id)}
           {line(() => viewLine(value()))}
           {line(() => pendingLine(value()))}
+          <Show when={summariesLine(value())}>{(text) => line(text)}</Show>
+          <Show when={summaryTimeLine(value())}>{(text) => line(text)}</Show>
         </box>
       )}
     </Show>

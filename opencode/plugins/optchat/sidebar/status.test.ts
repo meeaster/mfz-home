@@ -4,6 +4,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { Memory } from "../memory.js"
 import { Store } from "../store.js"
+import { summariesLine, summaryTimeLine } from "./format.js"
 import { StatusReader } from "./status.js"
 
 const directories: string[] = []
@@ -52,6 +53,7 @@ test("reports the chat's view as the plugin measures it, with the summaries stil
     lines: memory.viewLines(),
     pending: 2,
     merging: false,
+    summaries: { calls: 0, ms: 0, cost: 0, unpriced: 0 },
   })
 })
 
@@ -71,4 +73,25 @@ test("picks up a summary the plugin was still writing at the last read", () => {
   expect(reader.read("ses_a")?.pending).toBe(1)
   appendFileSync(tree, `${node.slice(20)}\n`)
   expect(reader.read("ses_a")?.pending).toBe(0)
+})
+
+test("totals the chat's summary calls, their time and their estimated cost", () => {
+  const { dataDir: directory, store } = dataDir()
+  const reader = new StatusReader(directory)
+  const call = { date: new Date().toISOString(), model: "openai/gpt-6-luna/high", prompt: 40_000, reply: 400, ms: 3_000 }
+
+  store.recordCall({ ...call, cost: 0.25 })
+  store.recordCall({ ...call, cost: 0.5 })
+
+  const priced = reader.read("ses_a")
+
+  expect(priced?.summaries).toEqual({ calls: 2, ms: 6_000, cost: 0.75, unpriced: 0 })
+  expect(priced && summariesLine(priced)).toBe("Summaries 2 calls · ~$0.75")
+  expect(priced && summaryTimeLine(priced)).toBe("Avg 3.0s a call · 6.0s total")
+
+  store.recordCall(call)
+
+  const partly = reader.read("ses_a")
+
+  expect(partly && summariesLine(partly)).toBe("Summaries 3 calls · ~$0.75+")
 })

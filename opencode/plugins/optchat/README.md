@@ -94,6 +94,7 @@ Each chat is a folder under `dataDir/chats/<chat id>/`:
 - `main.jsonl`: every message, append-only
 - `tree.jsonl`: every summary node, append-only
 - `view.json`: the current view, and the `viewHigh` it was saved under
+- `usage.jsonl`: one line per summary call, with the bytes sent and received, how long it took, and an estimated cost
 - `agents/`: one log per subagent
 
 `chats.json` holds each chat's ID and name and which session belongs to which chat. Nothing is ever deleted except the empty
@@ -109,12 +110,21 @@ Temporary Todo App
 chat_abde357cbd1e4734
 View 17.1k / 128k · 50 lines
 No summaries pending
+Summaries 412 calls · ~$0.83
+Avg 4.2s a call · 29m total
 ```
 
 - The chat's name and ID, which `chat_resume` takes.
 - The view's size against `viewHigh`, where one batch of merges brings it back to `viewLow` and rewrites the cached
   prompt; its line count, or "merging" while that batch runs.
 - How many view lines are still waiting for their summaries. A turn waits up to `waitMs` for them.
+- How many summary calls the chat has made, across all its sessions, and roughly what they cost. OpenCode doesn't
+  report usage for these calls, so the cost is estimated at four bytes a token and priced with OpenCode's rates for
+  the compactor. It runs low for a reasoning compactor, whose reasoning tokens aren't counted, and "+" marks calls
+  whose model had no price. Calls made before this was added aren't counted.
+- How long a summary call takes on average, and the time all of them took. A summary that the "Too long" retry
+  re-asks counts as one call per attempt. Calls run up to `concurrency` at once, so the total is more than the
+  time that passed.
 
 OpenCode loads it as this plugin's TUI part (`tui.tsx`), with no options, so it reads the default data directory. It
 reads the stored files every two seconds, since summaries are written in the background between turns.
