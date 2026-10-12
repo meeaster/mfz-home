@@ -22,7 +22,7 @@ Success: the human gets a reasoned recommendation or the next material questions
 - **Separate from `orchestrate`** (human, 2026-10-09). The human wants a design partner without orchestration too.
 - **Collaboration guidance lives in `SKILL.md`, no reference file** (human, 2026-10-09); the nesting added nothing.
 - **Bring a view and ask everything at once** (human, 2026-10-09). In a trial the agent recommended without explaining why it preferred an option, and asked one question at a time; the human prefers to answer everything in one pass.
-- **Manual invocation only.** Ordinary design talk should use native behavior, and loading this changes how the session works.
+- **Hidden from automatic selection, but loadable by `orchestrate`** (human, 2026-10-11). Ordinary design talk should use native behavior, and loading this changes how the session works. OpenCode gets this from `opencode/autoinvoke: false`, which hides the skill but still allows an explicit load by ID. Claude Code has no equivalent: `disable-model-invocation: true` blocks every model-initiated load, including `orchestrate`'s, so it was removed, and in Claude Code only the description keeps the skill out of ordinary brainstorming.
 - **Design dialogue creates no records** (human, 2026-09-25). Recommend an effort once there's a subject, because design work is usually worth coming back to, but preserve decisions only on a capture request.
 
 ## Sources

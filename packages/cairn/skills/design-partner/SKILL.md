@@ -1,7 +1,6 @@
 ---
 name: design-partner
 description: Use when the human explicitly selects design partnership, or when `orchestrate` loads it. Ordinary brainstorming alone does not select this workflow.
-disable-model-invocation: true
 metadata:
   opencode/autoinvoke: false
 ---

@@ -29,7 +29,7 @@ Success: a future author, possibly on a cheaper model, can make a relevant chang
 - **Skills are portable by default** (human, 2026-10-11). The same skills serve personal and work machines and several harnesses. A trial run left an eval runner in the skill with this machine's scratch path and model hardcoded.
 - **Only `evals.json` ships; runners and outputs stay temporary** (human, 2026-10-11). Same trial: a 135-line runner landed in the skill folder.
 - **Approved evals include a baseline** (human, 2026-10-11). In trials Sonnet skipped it; Opus's baseline was what showed the skill fixing a real failure.
-- **User-invoked only** (human). Skill authoring is deliberate work and shouldn't spend context on unrelated turns.
+- **Hidden from automatic selection, but loadable by workflows** (human, 2026-10-12). Skill authoring is deliberate work and shouldn't spend context on unrelated turns, but `orchestrate` has subagents that edit skills load it. OpenCode's `opencode/autoinvoke: false` hides it and still allows an explicit load; Claude Code's `disable-model-invocation: true` would block that load, so it isn't set. Codex keeps `allow_implicit_invocation: false`.
 - **`writing-for-agents` stays a separate dependency.** Bundling it meant maintaining a lossy duplicate. Revisit only if a supported harness can't load it reliably.
 - **Local writing preferences live here, not as patches to the vendored writing skill**, so vendor updates can't silently drop them.
 

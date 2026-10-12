@@ -1,7 +1,6 @@
 ---
 name: skill-authoring
-description: Design, create, revise, review, or evaluate an agent skill or explicit command from intended behavior. User-invoked.
-disable-model-invocation: true
+description: Design, create, revise, review, or evaluate an agent skill or explicit command from intended behavior. Use when the user asks for it or a workflow requires it.
 metadata:
   opencode/autoinvoke: false
 argument-hint: "What skill or command are you authoring, reviewing, or evaluating?"
@@ -57,7 +56,7 @@ Writing for Agents covers most of this. Local preferences:
 
 ### Harness mechanics
 
-- **Claude Code**: `disable-model-invocation: true` hides a skill from the model; `user-invocable: false` hides it from the `/` menu.
+- **Claude Code**: `disable-model-invocation: true` hides a skill from the model and blocks every model-initiated load, including one another skill or workflow asks for, so don't set it on a skill that workflows load. `user-invocable: false` hides it from the `/` menu.
 - **OpenCode**: `metadata: { opencode/autoinvoke: false }` hides a skill from the model and wins over `disable-model-invocation`. Skill IDs come from the path, not `name`. OpenCode also discovers `~/.claude/skills` and `~/.agents/skills`; use `skill` permission rules to hide one there.
 - **Codex**: `agents/openai.yaml` `policy.allow_implicit_invocation: false` blocks implicit use.
 - **OpenCode commands**: when a command is the target or a genuine candidate, read [references/opencode-commands.md](references/opencode-commands.md).
