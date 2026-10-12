@@ -372,6 +372,12 @@ claude:
       commit: ""
       pr: ""
     syncClaudeAiSkills: true
+    # The built-in agents-md plugin defaults to loading AGENTS.md only in projects without a CLAUDE.md.
+    # Load nested AGENTS.md files beside CLAUDE.md too; files CLAUDE.md already imports aren't loaded twice.
+    pluginConfigs:
+      agents-md@builtin:
+        options:
+          instructionFiles: claude-md-and-agents-md
     hooks:
       SessionStart:
         - hooks:
