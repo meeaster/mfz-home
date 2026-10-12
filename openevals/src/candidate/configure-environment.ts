@@ -48,6 +48,9 @@ const projectConfig = join(projectRoot, "opencode.json");
 
 const overridesPath = join(workspace, ".openeval", "agent-models.json");
 
+/** A preset's `orchestration-routing` skill, which replaces the rendered one; absent for live routing. */
+const routingPath = join(workspace, ".openeval", "orchestration-routing.md");
+
 /** Cairn built from the environment's source; its MCP server, CLI, and OpenCode plugin. */
 const cairnBuild = join(environment, "cairn");
 
@@ -182,6 +185,14 @@ async function installPlugins(): Promise<string[]> {
 }
 
 await cp(join(environment, "mindframe-z"), join(home, ".mindframe-z"), { recursive: true });
+
+if (existsSync(routingPath)) {
+  const routing = join(profile, "opencode", "skills", "orchestration-routing", "SKILL.md");
+
+  if (!existsSync(routing)) throw new Error("The rendered environment has no orchestration-routing skill to replace");
+
+  await cp(routingPath, routing);
+}
 
 await mkdir(configRoot, { recursive: true });
 

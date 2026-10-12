@@ -2,4 +2,5 @@ node_modules/
 results/
 .materialized/
 **/.openeval/environment/
-benchmarks/orchestrator-mode/selected-preset.json
+benchmarks/*/selected-preset.json
+**/.openeval/orchestration-routing.md

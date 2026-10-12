@@ -1,12 +1,13 @@
 import { z } from "zod";
 
 /**
- * Model presets for the orchestrator-mode benchmark.
+ * Model presets for a benchmark.
  *
- * A preset names the candidate session model, the judge model, and the agent
- * model overrides that must travel with them. `select-preset.ts` writes the
- * selection and the per-eval `agent-models.json` files; `benchmark.ts` reads
- * the selection so the model list and the overrides can never disagree.
+ * A preset names the candidate session model, the judge model, and the worker
+ * models that must travel with them: named-agent overrides, or an
+ * `orchestration-routing` skill variant for role-based delegation.
+ * `select-preset.ts` writes the selection and each eval's copies; `benchmark.ts`
+ * reads the selection so the model list and the worker models can never disagree.
  */
 
 /** Agent model overrides keyed by role name. */
@@ -19,12 +20,14 @@ export type Preset = {
   judge: `${string}/${string}`;
   /** Agent overrides keyed by role, with an optional `"*"` fallback. */
   agents: AgentModels;
+  /** Benchmark-relative `orchestration-routing` skill that replaces the rendered one; omit to keep live routing. */
+  routing?: string;
 };
 
 export type PresetFile = {
   /** Preset used when no selection is recorded. */
   default: string;
-  /** Agent roles that every preset must cover, explicitly or through `"*"` */
+  /** Agent roles that every preset must cover, explicitly or through `"*"`; empty when workers are routed by skill. */
   roles: readonly string[];
   presets: Record<string, Preset>;
 };
@@ -38,12 +41,13 @@ const modelRef = z
 const presetSchema = z.object({
   candidate: modelRef,
   judge: modelRef,
-  agents: z.record(z.string(), modelRef),
+  agents: z.record(z.string(), modelRef).default({}),
+  routing: z.string().min(1).optional(),
 });
 
 const presetsFileSchema = z.object({
   default: z.string().min(1),
-  roles: z.array(z.string().min(1)).min(1),
+  roles: z.array(z.string().min(1)).default([]),
   presets: z.record(z.string(), presetSchema),
 });
 

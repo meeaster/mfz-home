@@ -1,0 +1,7 @@
+CREATE TABLE items (
+  id INTEGER PRIMARY KEY,
+  sku TEXT NOT NULL UNIQUE,
+  name TEXT NOT NULL,
+  on_hand INTEGER NOT NULL CHECK (on_hand >= 0),
+  created_at INTEGER NOT NULL
+);

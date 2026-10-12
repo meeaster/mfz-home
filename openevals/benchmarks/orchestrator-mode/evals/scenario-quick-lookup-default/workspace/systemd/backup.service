@@ -1,6 +1,0 @@
-[Unit]
-Description=Back up the media library
-
-[Service]
-Type=oneshot
-ExecStart=/opt/homelab/scripts/backup.sh

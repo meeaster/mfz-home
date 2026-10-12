@@ -2,6 +2,7 @@ import { relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
 import {
   assertEnvironmentContract,
+  defaultBenchmark,
   environmentLabel,
   materializeEnvironment,
   stageEnvironment,
@@ -10,13 +11,14 @@ import {
 
 const usage = `Usage:
   bun src/environment-cli.ts materialize [--no-instructions] [--no-extra-skills] [--revision <rev>] [--working-tree] [--out <dir>]
-  bun src/environment-cli.ts stage [--no-instructions] [--no-extra-skills] [--revision <rev>] [--working-tree]
-  bun src/environment-cli.ts sync
+  bun src/environment-cli.ts stage [--benchmark <dir>] [--no-instructions] [--no-extra-skills] [--revision <rev>] [--working-tree]
+  bun src/environment-cli.ts sync [--benchmark <dir>]
 
 materialize  Render the environment from mfz-home source into --out (default .materialized/<label>).
 stage        Materialize, check the contract, and install the environment into every eval fixture.
 sync         Copy the canonical configure script into every eval fixture.
 
+--benchmark        Benchmark whose eval fixtures receive the environment (default benchmarks/orchestrate-scenarios).
 --no-instructions  Omit the global instructions and their capability, reference, and extra-folder pointers.
 --no-extra-skills  Keep only the required orchestration skills.
 --revision         mfz-home commit to archive (default HEAD).
@@ -27,6 +29,7 @@ const openevals = resolve(import.meta.dirname, "..");
 const { positionals, values } = parseArgs({
   allowPositionals: true,
   options: {
+    benchmark: { type: "string" },
     "no-instructions": { type: "boolean", default: false },
     "no-extra-skills": { type: "boolean", default: false },
     revision: { type: "string" },
@@ -38,6 +41,8 @@ const { positionals, values } = parseArgs({
 
 const [command] = positionals;
 
+const benchmark = values.benchmark === undefined ? defaultBenchmark : resolve(values.benchmark);
+
 function report(label: string, paths: readonly string[]): void {
   console.log(`${label}:`);
 
@@ -47,7 +52,7 @@ function report(label: string, paths: readonly string[]): void {
 if (values.help || command === undefined) {
   console.log(usage);
 } else if (command === "sync") {
-  report("Synced configure-environment.ts", await syncConfigureScripts());
+  report("Synced configure-environment.ts", await syncConfigureScripts(benchmark));
 } else if (command === "materialize" || command === "stage") {
   const options = { instructions: !values["no-instructions"], extraSkills: !values["no-extra-skills"] };
 
@@ -65,7 +70,7 @@ if (values.help || command === undefined) {
   console.log(`Rendered ${label} from ${result.manifest.sourceCommit}${overrides > 0 ? ` with ${overrides} working-tree overrides` : ""}`);
   console.log(`Environment: ${relative(openevals, result.environment)}`);
 
-  if (command === "stage") report("Staged into", await stageEnvironment(result.environment));
+  if (command === "stage") report("Staged into", await stageEnvironment(result.environment, benchmark));
 } else {
   console.error(usage);
   process.exitCode = 1;

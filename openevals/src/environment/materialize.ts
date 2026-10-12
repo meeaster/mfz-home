@@ -129,7 +129,8 @@ async function buildCairn(sourceHome: string, source: string, environment: strin
   try {
     await cp(resolve(source, "packages", "cairn"), cairn, { recursive: true });
     await symlink(resolve(sourceHome, "packages", "cairn", "node_modules"), resolve(cairn, "node_modules"));
-    await run(["node", "build.ts"], cairn);
+    // `bun test` sets NODE_ENV=test, which would build development JSX that embeds host paths.
+    await run(["env", "NODE_ENV=production", "node", "build.ts"], cairn);
 
     const target = resolve(environment, cairnDirectory);
 

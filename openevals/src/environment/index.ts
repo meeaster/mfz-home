@@ -18,4 +18,4 @@ export { defaultOptions, environmentLabel, requiredComponents, type EnvironmentO
 
 export { overridable, workingTreeChanges } from "./sources.js";
 
-export { configureScript, defaultBenchmark, driftedConfigureScripts, evalFixtures, stageEnvironment, syncConfigureScripts } from "./stage.js";
+export { configureScript, defaultBenchmark, driftedConfigureScripts, evalFixtures, routingFixture, stageEnvironment, syncConfigureScripts } from "./stage.js";

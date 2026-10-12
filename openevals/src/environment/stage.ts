@@ -3,10 +3,13 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { z } from "zod";
 
-export const defaultBenchmark = resolve(import.meta.dirname, "../../benchmarks/orchestrator-mode");
+export const defaultBenchmark = resolve(import.meta.dirname, "../../benchmarks/orchestrate-scenarios");
 
 /** Canonical candidate preparation script; each eval fixture carries a byte-identical copy. */
 export const configureScript = resolve(import.meta.dirname, "../candidate/configure-environment.ts");
+
+/** Fixture copy of a preset's routing skill; preparation installs it over the rendered one. */
+export const routingFixture = "orchestration-routing.md";
 
 const evalSchema = z.object({ default: z.object({ workspace: z.object({ overlay: z.string().optional() }).optional() }) });
 

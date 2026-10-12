@@ -61,3 +61,49 @@ test("writes the resolved agent map into every eval fixture and records the sele
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("installs a preset's routing skill into every eval fixture and removes it for live routing", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-select-routing-");
+
+  try {
+    await write(
+      join(root, "presets.json"),
+      JSON.stringify({
+        default: "live",
+        presets: {
+          live: { candidate: "openai/gpt-6.1-sol#medium", judge: "openai/gpt-6.1-sol#high" },
+          variant: { candidate: "openai/gpt-6.1-sol#medium", judge: "openai/gpt-6.1-sol#high", routing: "routing/variant.md" },
+        },
+      }),
+    );
+
+    await write(join(root, "routing/variant.md"), "# Variant routing\n");
+
+    await write(join(root, "evals/local/eval.ts"), "export default {};\n");
+
+    await write(join(root, "evals/local/workspace/.openeval/agent-models.json"), `{"orchestrator": "old"}\n`);
+
+    const select = async (preset: string) => {
+      const child = Bun.spawn(["bun", script, preset, root], { stdout: "pipe", stderr: "pipe" });
+
+      const [code, stderr] = await Promise.all([child.exited, new Response(child.stderr).text()]);
+
+      expect(stderr).toBe("");
+      expect(code).toBe(0);
+    };
+
+    const fixture = join(root, "evals/local/workspace/.openeval");
+
+    await select("variant");
+
+    expect(await readFile(join(fixture, "orchestration-routing.md"), "utf8")).toBe("# Variant routing\n");
+    // Without roles, no named-agent overrides remain from an earlier selection.
+    expect(await Bun.file(join(fixture, "agent-models.json")).exists()).toBe(false);
+
+    await select("live");
+
+    expect(await Bun.file(join(fixture, "orchestration-routing.md")).exists()).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

@@ -1,13 +1,22 @@
 import { z } from "zod";
 import type { JudgeContext, RecordedEvent, RecordedFile, ToolCall } from "@hona/openeval";
 
+/** A recorded session: its parent, agent, dispatch description, and the model it actually ran on. */
+export type RecordedSession = {
+  id: string;
+  parentID?: string;
+  agent?: string;
+  title?: string;
+  model?: { providerID: string; id: string; variant?: string };
+};
+
 /**
  * Archive facts shared by the code judges. Code judges grade only what the
  * recording establishes; response meaning belongs in each eval's `judge.md`.
  */
 export type RunFacts = {
   tools: readonly ToolCall[];
-  sessions: readonly { id: string; parentID?: string; agent?: string }[];
+  sessions: readonly RecordedSession[];
   initial: readonly RecordedFile[];
   final: readonly RecordedFile[];
   /** Completed Cairn catalog calls, which OpenCode runs inside `execute`; absent when a fixture records none. */
@@ -257,7 +266,7 @@ function redirectedPaths(command: string): string[] {
 }
 
 /** Paths a successful call wrote, through a file tool or a shell redirect. */
-function writtenPaths(tool: ToolCall): string[] {
+export function writtenPaths(tool: ToolCall): string[] {
   if (tool.status !== "succeeded") return [];
 
   if (shellTools.has(tool.name)) {

@@ -1,0 +1,24 @@
+{
+  "default": "budget",
+  "presets": {
+    "live": {
+      "candidate": "openai/gpt-6.1-sol#medium",
+      "judge": "openai/gpt-6.1-sol#high"
+    },
+    "implementer-luna-max": {
+      "candidate": "openai/gpt-6.1-sol#medium",
+      "judge": "openai/gpt-6.1-sol#high",
+      "routing": "routing/implementer-luna-max.md"
+    },
+    "reviewer-sol-xhigh": {
+      "candidate": "openai/gpt-6.1-sol#medium",
+      "judge": "openai/gpt-6.1-sol#high",
+      "routing": "routing/reviewer-sol-xhigh.md"
+    },
+    "budget": {
+      "candidate": "openai/gpt-6.1-sol#medium",
+      "judge": "openai/gpt-6.1-sol#high",
+      "routing": "routing/budget.md"
+    }
+  }
+}

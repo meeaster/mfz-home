@@ -18,9 +18,10 @@ export const defaultOptions: EnvironmentOptions = { instructions: true, extraSki
 
 /**
  * Agents OpenCode core defines with their own prompt. Their config entries merge into the built-in
- * definition, so their permissions render without an agent file, as they do live.
+ * definition, so their permissions render without an agent file, as they do live. Orchestration
+ * dispatches every role to `general`, so the environment renders no custom agents.
  */
-const builtinAgents: ReadonlySet<string> = new Set(["explore"]);
+const builtinAgents: ReadonlySet<string> = new Set(["general", "explore"]);
 
 /** Directory name that keeps each option combination's rendering apart. */
 export function environmentLabel(options: EnvironmentOptions): string {
@@ -148,7 +149,7 @@ export async function requiredComponents(): Promise<{ skills: string[]; agents: 
 /**
  * Flatten the live base and Personal profiles into the environment's profile.
  *
- * Keeps every OpenCode agent with its live permissions and the experimental
+ * Keeps the built-in agents' live permissions, the required agents, the experimental
  * settings, the credential-free documentation servers, and the in-container
  * Cairn catalog server. The options decide
  * whether global instructions with their pointers and the skills beyond the
@@ -161,7 +162,7 @@ export async function requiredComponents(): Promise<{ skills: string[]; agents: 
 function environmentProfile(base: Profile, personal: Profile, required: { skills: string[]; agents: string[] }, options: EnvironmentOptions) {
   const skills = new Set([...(options.extraSkills ? enabledSkills(base, personal) : []), ...required.skills]);
 
-  const agents = [...new Set([...(base.opencode?.agents ?? []), ...(personal.opencode?.agents ?? []), ...required.agents])];
+  const agents = [...new Set(required.agents)];
 
   const permissions: AgentPermissions = {};
 

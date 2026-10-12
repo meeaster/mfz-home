@@ -211,3 +211,36 @@ test("installs Cairn and the server plugins and loads them beside OpenEval's", a
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("a preset's routing skill replaces the rendered one and leaves with the harness files", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-routing-");
+
+  try {
+    await fixture(root);
+
+    const rendered = join(root, "workspace", ".openeval", "environment", "mindframe-z", "configs", "openeval", "opencode", "skills", "orchestration-routing", "SKILL.md");
+
+    await write(rendered, "# Live routing\n");
+    await write(join(root, "workspace", ".openeval", "orchestration-routing.md"), "# Variant routing\n");
+
+    await configure(root);
+
+    expect(await readFile(join(root, "home", ".mindframe-z", "configs", "openeval", "opencode", "skills", "orchestration-routing", "SKILL.md"), "utf8")).toBe("# Variant routing\n");
+    expect(existsSync(join(root, "workspace", ".openeval"))).toBe(false);
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("a routing skill without a rendered one to replace fails preparation", async () => {
+  const root = await mkdtemp("/tmp/opencode/mfz-routing-missing-");
+
+  try {
+    await fixture(root);
+    await write(join(root, "workspace", ".openeval", "orchestration-routing.md"), "# Variant routing\n");
+
+    await expect(configure(root)).rejects.toThrow("no orchestration-routing skill");
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});

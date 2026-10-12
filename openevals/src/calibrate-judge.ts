@@ -2,7 +2,7 @@ import { readFile, rm } from "node:fs/promises";
 import { resolve } from "node:path";
 import { judgeEvidence, recordEvidence } from "@hona/openeval";
 import { z } from "zod";
-import benchmark from "../benchmarks/orchestrator-mode/benchmark.js";
+import benchmark from "../benchmarks/orchestrate-scenarios/benchmark.js";
 import { defaultBenchmark } from "./environment/stage.js";
 
 /**

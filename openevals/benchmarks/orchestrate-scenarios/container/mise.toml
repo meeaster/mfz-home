@@ -1,0 +1,16 @@
+# Tools the rendered skills and global instructions invoke that the OpenEval runtime
+# lacks or has too old (its Node 20 cannot load TypeScript plugins), at the versions
+# the live setup resolves from `profiles/base/mise.toml`. Live installs npm tools
+# through pnpm. The global instructions require actionlint and zizmor for GitHub
+# Actions changes; actionlint checks `run:` scripts with shellcheck when it is present.
+[tools]
+node = "26.11.1"
+pnpm = "12.11.2"
+"npm:oxlint" = "1.87.0"
+"npm:@oxlint/plugins" = "1.87.0"
+actionlint = "1.7.12"
+zizmor = "1.30.1"
+shellcheck = "0.11.0"
+
+[settings.npm]
+package_manager = "pnpm"

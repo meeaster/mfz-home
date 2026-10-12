@@ -21,7 +21,10 @@ const sourceHome = resolve(import.meta.dir, "../../../");
 
 const renderedConfigSchema = z.object({
   experimental: z.record(z.string(), z.number()),
-  agents: z.object({ explore: z.object({ permissions: z.array(z.object({ action: z.string() })) }) }),
+  agents: z.object({
+    general: z.object({ permissions: z.array(z.object({ action: z.string() })) }),
+    explore: z.object({ permissions: z.array(z.object({ action: z.string() })) }),
+  }),
   mcp: z.object({ servers: z.record(z.string(), z.object({ command: z.array(z.string()).optional() }).passthrough()) }),
 });
 
@@ -44,7 +47,7 @@ test("the default environment renders the live roster, instructions, references,
     const paths = report.manifest.files.map((file) => file.path);
 
     expect(paths).toContain(`${profileDirectory}/AGENTS.md`);
-    expect(paths).toContain(`${profileDirectory}/opencode/agents/worker.md`);
+    expect(paths.some((path) => path.startsWith(`${profileDirectory}/opencode/agents/`))).toBe(false);
     expect(paths).toContain(`${profileDirectory}/opencode/skills/development-principles/SKILL.md`);
     expect(report.manifest.references.map((reference) => reference.name)).toContain("openevals");
     expect(await Bun.file(resolve(result.environment, referencesDirectory, "openevals/README.md")).exists()).toBe(true);
@@ -53,6 +56,7 @@ test("the default environment renders the live roster, instructions, references,
 
     expect(config.experimental).toEqual({ subagent_depth: 3 });
     expect(config.agents.explore.permissions.length).toBeGreaterThan(0);
+    expect(config.agents.general.permissions.length).toBeGreaterThan(0);
 
     // Cairn's catalog server runs in the container from the environment's own build.
     expect(config.mcp.servers.cairn?.command).toEqual(["cairn-mcp"]);
@@ -90,7 +94,6 @@ test("options omit the global instructions and the skills beyond the required se
     expect([...skills].filter((skill) => !required.skills.includes(skill))).toEqual(["mindframe-z"]);
     expect(required.skills.every((skill) => skills.has(skill))).toBe(true);
     expect(report.manifest.files.some((file) => file.path.endsWith("/AGENTS.md"))).toBe(false);
-    expect(report.manifest.files.map((file) => file.path)).toContain(`${profileDirectory}/opencode/agents/worker.md`);
   });
 }, 300_000);
 
