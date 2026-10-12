@@ -1,0 +1,126 @@
+{
+  "skill_name": "debugging",
+  "evals": [
+    {
+      "id": 1,
+      "name": "latency-flag",
+      "prompt": "We turned on the `fast_routing` flag for the ledger client on canary-a last night, and ledger's server-side p99 went from ~40ms to ~850ms within minutes, so we turned it back off. canary-a's log and the ledger dashboard export are in this repo, and `sim/` is our load harness. Figure out what's causing the latency and fix it.",
+      "expected_output": "Scenario: latency regression behind a feature flag, where the agent must build its own control and gather facts one layer down. Fixture: a Python client whose flag-on path resolves the unsharded service name (412 addresses) so a per-address pool with a 2.5s idle timeout rarely reuses connections; a certificate-reload function that looks suspicious; an INFO-level canary log with no DNS or connection lines; server p99/CPU export; a simulated load harness with --flag and --log-level. The agent runs the harness with the flag on and off, enables DEBUG (or instruments) to see address and new-connection counts, attributes the regression to connection churn from the unsharded name, rules out certificate reloading, and verifies a fix in the harness.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "builds-control",
+          "text": "Builds a flag-off comparison itself (e.g. runs sim/run_load.py with fast_routing=false) and compares it with flag-on"
+        },
+        {
+          "id": "deeper-signal",
+          "text": "Gathers connection- or DNS-level data that the INFO log lacks (DEBUG logging, instrumentation, or counters), e.g. new-connection counts or 412 vs 5 addresses"
+        },
+        {
+          "id": "correct-cause",
+          "text": "Attributes the regression to fast_routing resolving the unsharded name so connections are spread over ~412 addresses and rarely reused (connection churn), not to certificate reloading"
+        },
+        {
+          "id": "cert-not-blamed",
+          "text": "Does not name certificate reloading as the cause"
+        },
+        {
+          "id": "fix-verified",
+          "text": "Changes the code to remove the churn (shard-aware routing, pool reuse across addresses, or similar) and verifies with the harness that new connections or p99 drop to roughly the flag-off level"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "auth-leak",
+      "prompt": "authd is getting OOM-killed on a bunch of laptops since we shipped 2.4.0. ISSUE.md has the helpdesk report and a heap profile. Find the root cause and fix it.",
+      "expected_output": "Scenario: memory leak with two necessary causes. Fixture: git history v2.3.2 -> v2.4.0, where 2.4.0 added a process-wide engine cache and opt-in amortization (off); a state machine whose exhaustion exit still appends history on re-entry; report says no credentials, AMORTIZE off; heap profile at run_state_machine via the plain path. The agent rules out amortization and a long-standing state-machine bug alone using the stated facts, identifies the combination (cached engine re-entered on every retry + single-use state machine that keeps appending history), and presents both fix options (stop caching/reusing the exhausted engine vs make the state machine safe to re-enter) with their tradeoffs.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "amortize-ruled-out",
+          "text": "States that amortization/deduped path cannot be the cause because AMORTIZE is off (or the profile shows no amortize frames)"
+        },
+        {
+          "id": "combined-cause",
+          "text": "Root cause names both parts: the 2.4.0 process-wide engine cache re-entering the same engine on each retry, AND the state machine appending to history on re-entry after exhaustion (single-use design)"
+        },
+        {
+          "id": "version-fact-used",
+          "text": "Uses the fact that 2.3.2 is unaffected (a fresh engine per attempt) to explain why the state-machine behavior alone is not the cause"
+        },
+        {
+          "id": "fix-options",
+          "text": "Presents both fix directions (don't cache/reuse an exhausted or failed engine, vs make the state machine safe to re-enter / stop unbounded history) with a tradeoff, rather than silently picking one"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "syncd-hang",
+      "prompt": "We've been chasing INC-2291 (the /Sync hang) for a week. Priya thinks she finally reproduced it with clock skew; her notes, data and a patch are in repro/. Can you confirm her repro is the same bug so we can ship fix.patch tomorrow?",
+      "expected_output": "Scenario: a reproduction whose symptoms match but whose signals don't, with unlabeled diagnostics. Fixture: three users' bundles (packet captures that go silent after the 64-byte server reply, spindumps among unrelated processes showing syncd blocked in authd_client_request_token, lsmp showing authd holding a send-once right to syncd); Priya's bundle shows repeated 412/72-byte exchanges, syncd running in session_send_token, and no send-once right. The agent says the repro is a different bug, cites the capture and spindump/lsmp mismatches, advises against shipping fix.patch for INC-2291, and points at authd parking the token request until unlock.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "repro-rejected",
+          "text": "Concludes Priya's repro is not the same bug as INC-2291"
+        },
+        {
+          "id": "capture-mismatch",
+          "text": "Cites the packet-capture difference: users' connections go quiet (keepalives only) after the server's first reply, while the repro shows repeated client/server exchanges (token sent and rejected)"
+        },
+        {
+          "id": "ipc-mismatch",
+          "text": "Cites the spindump or lsmp difference: users' syncd is blocked waiting on authd and authd holds a send-once right to syncd, absent in the repro"
+        },
+        {
+          "id": "no-ship",
+          "text": "Advises not to ship fix.patch as the fix for INC-2291 (it may be a valid fix for a different issue)"
+        },
+        {
+          "id": "points-at-authd",
+          "text": "Points at authd not answering the token request (parked until unlock / presence) as where the real cause lies"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "trivial-typeerror",
+      "prompt": "tests broke after my last commit:\n\nTypeError: apply_discount() got an unexpected keyword argument 'percent'\n\ncan you fix it",
+      "expected_output": "Scenario: a trivial bug where one fact pins the cause. Fixture: last commit renamed apply_discount's parameter percent -> rate; cart.py and a test still pass percent=. The agent updates the call sites (or otherwise reconciles the rename), runs the tests, and finishes without a control, hypothesis table, or layer-by-layer investigation.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "tests-pass",
+          "text": "After the change, python3 -m unittest passes"
+        },
+        {
+          "id": "proportionate",
+          "text": "Does not build a hypothesis-by-fact table, set up a control, or run a multi-step investigation; the answer is brief"
+        },
+        {
+          "id": "keeps-rename",
+          "text": "Keeps the last commit's percent -> rate rename and updates the callers"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "adjacent-regression-test",
+      "prompt": "Write a regression test for the empty-cart fix in the last commit.",
+      "expected_output": "Scenario: an adjacent request that should not trigger the skill. Fixture: last commit fixed ZeroDivisionError for an empty cart. The agent adds a test for total([]) and does not load the debugging skill.",
+      "files": [],
+      "assertions": [
+        {
+          "id": "no-trigger",
+          "text": "The debugging skill is not loaded"
+        },
+        {
+          "id": "test-added",
+          "text": "A test covering total([]) is added and the suite passes"
+        }
+      ]
+    }
+  ]
+}

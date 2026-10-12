@@ -64,6 +64,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
     agents: { opencode: true, claude-code: true, codex: true }
+  debugging:
+    agents: { opencode: true, claude-code: true, codex: true }
   pr-review:
     agents: { opencode: true, claude-code: true, codex: true }
   effect:

@@ -40,6 +40,10 @@ skills:
     description: >
       Shared engineering judgment for explicit requests or workflows that require
       Development Principles.
+  - name: debugging
+    source: local
+    skill: skills/active/debugging
+    description: Fact-constrained diagnosis of bugs using controls, signals, and hypothesis elimination.
   - name: pr-review
     source: local
     skill: skills/active/pr-review
