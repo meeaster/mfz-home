@@ -14,8 +14,8 @@
     "viewer": "bun viewer/cli.ts"
   },
   "dependencies": {
-    "@opencode/ai": "2.0.26",
-    "@opencode/plugin": "2.0.26",
+    "@opencode/ai": "2.0.27",
+    "@opencode/plugin": "2.0.27",
     "zod": "4.1.8"
   },
   "devDependencies": {
