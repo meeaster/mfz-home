@@ -93,3 +93,9 @@ skills:
   pr-lens:
     commit: 7a9115c8202da4db030be5954ada8862e6135dce
     digest: 82f86c87d116c035b8a8e1dfa563c0226e38ad3679c8f221181719006ffaee2c
+  psychopomp:
+    commit: 3a50a2bf1897ddeaa4e5a71df85224107aaf734b
+    digest: 6071522db38eabaed2fba1c1301ae62d4ccfd5e8640b1d636e4c9c3ed0beedb1
+  explainer-motion:
+    commit: 3a50a2bf1897ddeaa4e5a71df85224107aaf734b
+    digest: 02eae90e70e5d1067ea29a931f0f3ffe845966acdbd2d82333a6a55e269d25aa

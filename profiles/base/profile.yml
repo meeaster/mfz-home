@@ -25,6 +25,9 @@ capability_groups:
   - name: knowledge-and-artifacts
     title: Knowledge and Artifacts
     summary: Specifications, knowledge, evidence, work artifacts, and workspace coordination paths.
+  - name: motion-graphics
+    title: Motion Graphics
+    summary: Code-first motion graphics, explainer videos, and rendered presentation backgrounds.
 references:
   - opencode
   - openspec
@@ -80,6 +83,10 @@ skills:
   terminal-control:
     agents: { opencode: true, claude-code: true, codex: true }
   fframes-video:
+    agents: { opencode: true, claude-code: true, codex: true }
+  psychopomp:
+    agents: { opencode: true, claude-code: true, codex: true }
+  explainer-motion:
     agents: { opencode: true, claude-code: true, codex: true }
   thermo-nuclear-code-quality-review:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -425,3 +432,9 @@ extra_folders:
     summary: Agent diagram artifacts
     signals: [diagrams, SVG, architecture visuals]
     description: Agent diagram files and exports.
+  - path: ~/workspace/repos/psychopomp
+    group: motion-graphics
+    summary: Psychopomp
+    signals: [Psychopomp, motion graphics, explainer video, Scene Plans]
+    description: "Code-first motion graphics and explainer videos: Rust Scene Programs write Scene Plans that a wgpu renderer turns into video or native presentations. The meeaster fork of kitlangton/psychopomp; the psychopomp skill's commands run from this checkout."
+    url: https://github.com/meeaster/psychopomp

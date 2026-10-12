@@ -612,6 +612,23 @@ skills:
     tool: cargo:cargo-fframes
     repo: https://github.com/dmtrKovalenko/fframes
     subtree: skills/fframes-video
+  - name: psychopomp
+    description: >
+      Make explainer reels and deterministic motion graphics with Psychopomp:
+      Scene Plans, GPU Stage choreography, callouts, animated diffs, and
+      optional narration.
+    source: vendored
+    repo: https://github.com/kitlangton/psychopomp
+    ref: main
+    subtree: .agents/skills/psychopomp
+  - name: explainer-motion
+    description: >
+      Motion design for explainer diagrams and films: lines that draw on,
+      messages that travel and land, and cards that move physically.
+    source: vendored
+    repo: https://github.com/kitlangton/psychopomp
+    ref: main
+    subtree: .agents/skills/explainer-motion
   - name: xurl
     description: >
       Authenticated X (Twitter) API requests with the xurl CLI: posts, search,
