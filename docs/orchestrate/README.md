@@ -1,7 +1,8 @@
 # Orchestrate
 
-`orchestrate` is how Mark does software work with AI in OpenCode. The orchestrator is a design partner that thinks and decides with him and gets the work done by delegating to role-based subagents.
+`orchestrate` is Cairn's orchestration part: how Mark does software work with AI in OpenCode. The orchestrator is a design partner that thinks and decides with him and gets the work done by delegating to role-based subagents.
 
+- [Cairn vision](../../packages/cairn/VISION.md): what orchestration is for, as part of Cairn.
 - [Design](design.md): the primitives, roles, models, and what this replaced.
 - [Scenarios](scenarios/README.md): how Mark actually uses it, and what the skill is checked against.
 - The skill: [`packages/cairn/skills/orchestrate`](../../packages/cairn/skills/orchestrate/SKILL.md), which loads [`design-partner`](../../packages/cairn/skills/design-partner/SKILL.md) and the profile's `orchestration-routing` skill.

@@ -2,7 +2,7 @@
 
 This document turns the later storage-service discussion in [modular workflows](../archive/orchestrator/modular-workflows/design.md#later-storage-service) into a design that can be built. Terms follow [TERMINOLOGY.md](../../packages/cairn/TERMINOLOGY.md). The design was worked out in a design-partner session on 2026-09-24 and 2026-09-25. Decisions attributed to the human were stated or accepted by the human in that session. Everything else follows from those decisions. [How the design evolved](#how-the-design-evolved) records the proposals that were replaced, so they aren't proposed again. [Continuation](#continuation) records the working state for the next session.
 
-Cairn is named after the stacked stones that mark a trail: markers that point the way without being the destination. The name covers the package, CLI, MCP server, plugin, environment variable, and storage root. The database of pointers is still called the catalog, and the MCP tools keep the self-describing `catalog_` prefix.
+Cairn is named after the stacked stones that mark a trail: markers that point the way without being the destination. The name now covers the whole system, including orchestration and the other workflow skills, as set out in [VISION.md](../../packages/cairn/VISION.md); this document designs the catalog part. The package, CLI, MCP server, plugin, environment variable, and storage root carry the name. The database of pointers is still called the catalog, and the MCP tools keep the self-describing `catalog_` prefix.
 
 ## Purpose
 

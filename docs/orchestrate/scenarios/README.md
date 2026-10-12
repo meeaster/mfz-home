@@ -16,7 +16,11 @@ Each scenario has four parts:
 | Scenario | Shape |
 | --- | --- |
 | [Design doc](design-doc.md) | Gather, write up knowledge, architect options, writer builds the doc |
-| [Feature delivery](feature-delivery.md) | Units built and verified one at a time, review, repair, PR |
+| [Feature delivery](feature-delivery.md) | Criteria agreed, units built and verified, review, repair, evidence handed off in a PR |
+| [Small change](small-change.md) | Shape proposed small: one implementer verifies, evidence offered, not forced |
+| [Legacy repository](legacy-repo.md) | Learn to run it first, plan verification with the design, leave a verification article |
+| [Change that can't be run locally](unverifiable-locally.md) | Strongest evidence level available, gap recorded for Mark to decide |
+| [Autonomous feature delivery](autonomous-feature-delivery.md) | Planned: two checkpoints, then a PR reviewable from its evidence |
 | [Infrastructure change](infra-change.md) | One implementer edits, plans, and applies after approval |
 | [Quick question](quick-question.md) | One explorer, no ceremony |
 | [External research](external-research.md) | Researcher answers a version-sensitive question |

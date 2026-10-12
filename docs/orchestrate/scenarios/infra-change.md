@@ -9,7 +9,8 @@
 1. **One owner.** An implementer (`implementer/backend`) owns the change from edit to verification: it knows the module layout and why the plan shows what it shows, so it is the one to fix a failed apply.
 2. **Plan before apply.** The implementer edits, runs `terraform plan`, and returns the plan.
 3. **Review the plan when it matters.** For a consequential change, a reviewer examines the plan output, not only the diff, because the plan is what will change. Mark approves the apply.
-4. **Apply with the same implementer.** The orchestrator continues the same implementer, which applies, reads the resulting state, and verifies the outcome.
+4. **Apply with the same implementer.** The orchestrator continues the same implementer, which applies, reads the resulting state, and verifies the outcome against the acceptance criteria at the evidence levels agreed, often a plan before apply and observed state after.
+5. **Record gaps.** What couldn't be verified before apply, with an idea that would allow it, goes into the repository's verification article as a gap.
 
 ## What must not happen
 

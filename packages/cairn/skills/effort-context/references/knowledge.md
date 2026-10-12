@@ -33,6 +33,14 @@ Write up evidence when the human asks, or when a brief assigns the article. A ca
 
 A large write-up can be dispatched: the brief assigns the article as the file to write and names the evidence in scope.
 
+## Verification articles
+
+A repository's verification article, `knowledge/<repo>-verification.md` under the Cairn root, says how work there is verified: how to check each kind of change and at what evidence level, and its verification gaps. The Cairn root is the owned location: create `knowledge/` there when it doesn't exist yet, since a missing folder only means no article has been written. Write it up like any article, with one difference. A gap pairs a fact (what can't be verified, and the strongest evidence available) with a proposal (an idea that would close it, and its cost), and its status is the human's decision:
+
+- A new gap starts `proposed`. Merge a reported gap into an existing one on the same thing rather than adding a duplicate.
+- Keep each gap's status as the human set it: `proposed`, `accepted`, or `declined`, with their reason. Keeping the article current replaces superseded facts, never those decisions.
+- Keep declined gaps listed, so they aren't proposed again.
+
 ## Origins
 
 An origin is a system knowledge comes from, described once in the catalog with how to reach it: an AWS account, a Datadog org, a repository, a Confluence space, a documentation site. Its key is `<kind>:<identifier>`, such as `aws:4471-0938-2215` or `docs:docs.datadoghq.com`.

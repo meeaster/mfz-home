@@ -1,8 +1,13 @@
 # Cairn
 
-Cairn keeps the catalog: a SQLite database of sessions, efforts, and pointers to the files and URLs they produce. Files hold the content. The catalog holds descriptions and relationships, and never returns file contents.
+Cairn is a system for doing software work with AI: design partnership, delegated and verified delivery, and a record of the work that lasts across sessions. [VISION.md](VISION.md) sets its direction.
 
-The design is in [docs/cairn/design.md](../../docs/cairn/design.md), and the vocabulary is in [TERMINOLOGY.md](TERMINOLOGY.md).
+This package holds Cairn's parts:
+
+- **The catalog**: a SQLite database of sessions, efforts, and pointers to the files and URLs they produce, with the CLI, MCP server, and harness plugins that keep it. Files hold the content. The catalog holds descriptions and relationships, and never returns file contents. Most of this README covers it.
+- **Workflow skills** in `skills/`: orchestration (`orchestrate` and `design-partner`), `effort-context`, `learnings`, and `design-docs`.
+
+The catalog's design is in [docs/cairn/design.md](../../docs/cairn/design.md), orchestration's is in [docs/orchestrate/](../../docs/orchestrate/README.md), and the vocabulary is in [TERMINOLOGY.md](TERMINOLOGY.md).
 
 ## Installing
 

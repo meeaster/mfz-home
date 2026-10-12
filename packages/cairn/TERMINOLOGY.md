@@ -8,7 +8,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 
 | Term | Meaning | Example |
 | --- | --- | --- |
-| Cairn | The package, CLI, MCP server, and plugin that keep the catalog. MCP tools keep the `catalog_` prefix. | `cairn find --effort asa-ingestion` |
+| Cairn | The whole system for doing software work with AI: the catalog, orchestration, and the other workflow skills. The package, CLI, MCP server, plugin, and root carry its name. MCP tools keep the `catalog_` prefix. | `cairn find --effort asa-ingestion` |
 | Catalog | Cairn's database of sessions, efforts, artifacts, and their relationships, plus the files it points to. It returns pointers, never file contents. | `catalog_find(effort: "asa-ingestion")` |
 | Cairn root | The one folder Cairn manages, set by `CAIRN_ROOT`. Each profile has its own root. | `~/workspace/artifacts/cairn/` |
 | Harness | The agent application a session runs in. | OpenCode, Claude Code |
@@ -41,6 +41,8 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Suggestion | A link proposed by the service rather than by an agent or the human. It is hidden until accepted. | Y was written after X was read, so the service suggests "Y informs X" |
 | Index | A view rendered as Markdown from the database: an effort's view, or the list of knowledge articles. The service generates it, and it is a view only. | `efforts/asa-ingestion/index.md`, `knowledge/index.md` |
 | Knowledge article | What is known about one existing subject, such as an AWS environment, a vendor product, or a codebase, written for a reader who never saw the evidence and kept current. It lives at the root under `knowledge/`, named for its subject, and joins the efforts that rely on it or add to it. The evidence it is written from `informs` it. | `knowledge/aws-environment.md` |
+| Verification article | The knowledge article for how work in one repository is verified: how to check each kind of change and at what evidence level, and its verification gaps. One per repository, kept in the Cairn root rather than the repository. | `knowledge/infra-terraform-verification.md` |
+| Verification gap | Something in a repository that can't be verified with what exists, recorded in its verification article: what can't be checked, the strongest evidence available, an idea that would close it, and its cost. The gap is a fact; the idea is a proposal. Its status (`proposed`, `accepted`, `declined`) changes only when the human decides. Declined gaps stay listed so they aren't proposed again. | "SSM documents can't run before deploy; a sandbox test instance would allow it" |
 | Write up | Turn evidence into a knowledge article, or fold new evidence into an existing one. | Writing up the session's AWS evidence |
 | Record | A file that holds state rather than findings or instructions: where things stand, the human's views, what was decided and by whom, and what is open, never next steps. Where the work stands lives in the effort's `effort.md`; what is being built and why lives in a design. The skills name records, not the catalog. | `efforts/asa-ingestion/effort.md` |
 | Design | What is being built or changed and why. A stable design (`designs/<slug>/`) is the agreed record of a body of work, shared by its efforts and shown to the people who approve it: problem and value, goals, how it works, requirements, phases, and decisions. A local design (`efforts/<slug>/design.md`) is one connected document for small work, or for detail below a stable design. | `designs/log-ingestion/`, `efforts/opw-deployment/design.md` |
@@ -80,7 +82,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 
 ## Naming rules
 
-- Say **Cairn** for the system (package, CLI, MCP server, plugin, root) and **catalog** for its database of pointers. MCP tools keep the `catalog_` prefix.
+- Say **Cairn** for the whole system and name its parts for what they do: the **catalog** for the record of sessions, efforts, and pointers, and **orchestration** for `orchestrate` and `design-partner`. When describing the database itself (its contents, queries, and pointers), say catalog. MCP tools keep the `catalog_` prefix.
 - Say **session** for a conversation and **effort** for the body of work. Don't use "workspace", "work unit", "ledger", or "thread" for either one. Those names belong to other systems.
 - Say **attach** for session-to-effort association and **membership** for artifact-to-effort association. Don't say a session "is in" or "belongs to" an effort, because a session can serve several.
 - Say **capture** for the automatic step and **describe** for the agent step. Registration is not a separate operation.
