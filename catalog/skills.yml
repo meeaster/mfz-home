@@ -44,6 +44,10 @@ skills:
     source: local
     skill: skills/active/debugging
     description: Fact-constrained diagnosis of bugs using controls, signals, and hypothesis elimination.
+  - name: verification
+    source: local
+    skill: skills/active/verification
+    description: Prove a change works by exercising it as its user would, with evidence per acceptance criterion.
   - name: pr-review
     source: local
     skill: skills/active/pr-review
