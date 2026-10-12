@@ -37,7 +37,7 @@ All roles run on `general`. Read-only is a boundary stated in the brief rather t
 | Gather | inspector | | `inspect` |
 | Gather | prototyper | | `prototype` |
 | Advise | architect | | `architect` |
-| Advise | triage | | `triage` |
+| Advise | triage | `escalation` | `triage` |
 | Advise | reviewer | `code`, `pr` | `reviewer`, `pr-reviewer` |
 | Advise | qa | | new: judges look and feel in the browser |
 | Build | implementer | `frontend`, `backend` | `worker` |
@@ -55,6 +55,7 @@ Deferred: ui-ux-designer, session-analyst, agent-author. Experimental: scribe. R
 - **Routing stays current.** Continuing orchestration in a fresh session, changing profiles, or editing bindings requires loading the current routing skill again. Worker routing leaves the lead's selected model unchanged. Orchestration does not select or depend on a primary agent's memory implementation.
 - **One owner for coupled work.** An implementer owns infrastructure changes from edit through plan, apply, and verify, with review of the plan and Mark's approval before apply. Splitting work between agents needs a concrete gain: a different model worth paying for, different access, independence, or a procedure the first owner lacks.
 - **Verify, review, and QA are separate.** The implementer verifies its own work, including in the browser. After UI work an inspector checks the accepted requirements in the background, cheaply and independently. A reviewer reads the code. QA, on request, judges whether the interface looks and feels right, which needs a stronger model.
+- **Triage is cheap and makes a case.** Default triage runs on `gpt-6-luna#max` and loads the `debugging` skill, which the brief names because cheap models rarely load it from its description. It returns a case for the lead to accept or reject: the likely cause, the facts behind it, and what it ruled out. The lead decides the fix with Mark. The orchestrator dispatches default triage without asking, because it costs about a cent. Escalation reruns triage on `gpt-6.1-sol#high` when the case is weak or a fix based on it fails, and needs Mark's agreement. Triage gathers its own evidence unless that evidence is too large, scattered, or access-restricted for one agent. The [debugging skill evaluation](../debugging-skill-evaluation.md) is the evidence for this choice. This replaces the earlier rule that triage ran on Sol and needed Mark's explicit request.
 - **Review repairs go to a fresh implementer.** Its scope is the findings and the files involved, and browser checks aren't cached, so a continued session saves little. Continuing the same subagent is for follow-ups on one assignment, such as applying an approved infrastructure plan.
 - **Efforts are opt-in.** Orchestration no longer creates a provisional effort on entry; `effort-context` loads when Mark asks to capture, attach, or resume. This replaces the 2026-09-25 decision in the [Cairn design](../cairn/design.md) that orchestration creates a provisional effort.
 - **Chief is archived.** The nested orchestrator wasn't being used and felt clunky. The catalog keeps its `workstream` and `subject` fields for a future multi-session mode.

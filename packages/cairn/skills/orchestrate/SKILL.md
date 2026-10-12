@@ -43,6 +43,7 @@ A subagent's final message is its result, and Cairn saves it. Read the whole res
 Frame, gather, design, build, verify, review, ship, record. Scale it to the task: a quick question needs one explorer, and most work skips stages.
 
 - **Gather wide.** Split evidence work when parallelism or smaller source, context, or access scopes offer a concrete gain over repeated setup and coordination. Keep questions with substantially shared evidence together. Search the catalog and knowledge articles when existing findings could help; fill the remaining gaps with explorers, researchers, and inspectors.
+- **Diagnose.** When the cause of a failure isn't evident, dispatch triage; it gathers its own evidence. Gather first only when the evidence is too large for one context, spread across systems, behind access triage shouldn't hold, or splits into independent sources worth fetching in parallel. Brief those gatherers to return raw facts without conclusions: counts and measurements, excerpts with paths, the comparison case used, and what they didn't find. Pass their saved results to triage. Triage's result is a case for you to accept or reject against the facts; decide the fix with the human. When the error already names the cause, skip triage and go to an implementer.
 - **Design.** Work it through with the human. Use an architect for options on a consequential choice, a prototyper to settle a question by building, and an OpenSpec change when the work spans several units.
 - **Build.** Before an implementer starts work that uses libraries, frameworks, APIs, or services, have a researcher gather the documentation it will need: the versions in use, the exact APIs and configuration, and working examples. Give the implementer the researcher's saved result to read first; it looks up only what that leaves out. Split the work into units that each fit one implementer and can be verified alone. Run units in parallel only when they share no files or state. One implementer owns a coupled change from edit to verification, including plan and apply for infrastructure.
 - **Verify.** After UI work, run an inspector in the background against the accepted requirements; it's cheap and independent of the implementer's own checks. Use QA when the human wants a judgment on whether the interface looks and feels right.
@@ -53,7 +54,7 @@ Frame, gather, design, build, verify, review, ship, record. Scale it to the task
 ## Approval
 
 - Architects, reviewers, and QA run on expensive models. Recommend one with a reason, and dispatch when the human agrees. Asking for options, a review, or QA is agreement.
-- Triage uses a more expensive model and requires the human's explicit request for triage. A failure report or a generic request to investigate or diagnose is not agreement; use an inspector for investigation and initial triage evidence as needed.
+- Default triage is cheap; dispatch it when diagnosis is needed. Escalation triage runs on an expensive model: recommend it with a reason and dispatch when the human agrees.
 - Commit, push, PR, merge, deploy, and changes to other systems each need the human's request. One does not imply the next.
 - Discussing a change authorizes investigating it, not making it.
 
@@ -74,7 +75,7 @@ Don't create or maintain an effort unless the human asks. When they ask to captu
 | Gather | inspector | | |
 | Gather | prototyper | | |
 | Advise | architect | | |
-| Advise | triage | | |
+| Advise | triage | `escalation` | |
 | Advise | reviewer | `code`, `pr` | |
 | Advise | qa | | |
 | Build | implementer | `frontend`, `instructions`, `backend` | explorer, researcher |
@@ -97,7 +98,8 @@ A role that may dispatch gets told which roles it may use and to load `orchestra
 
 **architect.** From the goals, accepted constraints, and evidence given, develop two or three credible options with each one's strongest case, costs, and risks. Recommend one and say what would reverse the recommendation. Return missing evidence as specific requests rather than gathering it. Don't decide, implement, or change files. Load `development-principles`.
 
-**triage.** Diagnose without fixing: reproduce or falsify, name the likely cause and your confidence, and return the smallest next action, with what you ruled out.
+**triage.** Diagnose without fixing, and return a case for the lead to judge: the likely cause and your confidence, the facts that establish it and where each came from, each hypothesis you ruled out with the fact that ruled it out, and the smallest next action. Load `debugging`.
+- `escalation`: rerun when the default triage's case is low-confidence, no hypothesis fits every fact, a fix based on it didn't hold, or a reviewer found a contradicting fact. Give it the earlier saved result and what has changed since.
 
 **reviewer.** Read the finished code independently and return concrete findings with evidence. Don't fix anything or exercise the app beyond what a finding needs.
 - `code`: work whose intent and design are known. Load `thermo-nuclear-code-quality-review`.

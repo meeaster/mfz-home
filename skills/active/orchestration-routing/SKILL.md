@@ -16,7 +16,8 @@ This skill selects worker models only. The lead's selected model remains separat
 | inspector | default | `openai/gpt-6-luna#high` |
 | prototyper | default | `openai/gpt-6.1-sol#high` |
 | architect | default | `openai/gpt-6-astra#medium` |
-| triage | default | `openai/gpt-6.1-sol#high` |
+| triage | default | `openai/gpt-6-luna#max` |
+| triage | escalation | `openai/gpt-6.1-sol#high` |
 | reviewer | code | `openai/gpt-6-astra#medium` |
 | reviewer | pr | `openai/gpt-6.1-sol#high` |
 | qa | default | `openai/gpt-6.1-sol#high` |

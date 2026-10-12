@@ -21,6 +21,7 @@ Each scenario has four parts:
 | [Quick question](quick-question.md) | One explorer, no ceremony |
 | [External research](external-research.md) | Researcher answers a version-sensitive question |
 | [Live investigation](live-investigation.md) | Inspector reads live systems through MCP and the shell |
+| [Diagnose a failure](diagnose-failure.md) | Cheap triage makes a case, Mark picks the fix |
 | [Stuck bug](stuck-bug.md) | Implementer stops narrowing, triage diagnoses |
 | [Prototype question](prototype-question.md) | Settle a design question by building something throwaway |
 | [Capture and resume](capture-and-resume.md) | Opt into an effort mid-session, pick it up later |

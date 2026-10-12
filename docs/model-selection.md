@@ -228,6 +228,7 @@ separate so a successful task does not hide the cost of escalation.
 
 | Date | Task shape | Executor | Effort | Advisor | Outcome | Latency/cost notes | Escalation needed |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-10-12 | Diagnosis of five bug fixtures with and without the `debugging` skill ([evaluation](debugging-skill-evaluation.md)) | Luna | `high` and `max` | Not evaluated | Diagnosed every case; with the skill loaded, 17 and 18 of 19 assertions against 16 and 15 without; Sol `high` and Claude models reached the same diagnoses | About $0.007 (`high`) and $0.011 (`max`) per run at API prices; `max` took about twice as long | No; default `triage` now uses Luna `max` with Sol `high` as escalation |
 | 2026-09-03 | Three native worker calls performing procedural or operational work | Luna | `max` | Not evaluated | Trace analysis `ses_f9a2b38e5ffezyn6L4YBihRlgw` found all three plausibly suitable for Luna/high operator routing | Observational classification only; no matched Luna/high versus Luna/max A/B run | Unknown |
 | 2026-07-11 | Top-level advisor availability probe | Luna | `xhigh` | Sol `high`, called successfully | Availability confirmed; no quality conclusion | Advisor reported 21,508 tokens and `$0.000000`; treat the cost as a harness value, not billing data | N/A (probe) |
 | 2026-07-11 | `delegate_general` child plus advisor | Luna | `xhigh` | Sol `high`, completed in child session `ses_0ac27a2f6ffemiy0O6BfmhzT9F` | Exported child transcript confirms an actual completed advisor call | Harness reported separate executor and advisor usage; reported costs were `$0.000000`, so treat them as harness values rather than additive billing data | No |
@@ -252,7 +253,9 @@ tokens, latency, cost, and whether escalation was required.
 
 ## Local Runtime Notes
 
-The current native agent assignments are:
+Orchestration roles now take their models from [`orchestration-routing`](../skills/active/orchestration-routing/SKILL.md), and the native agents below are archived (see [orchestrate design](orchestrate/design.md)). The block records their last assignments.
+
+The last native agent assignments were:
 
 ```text
 worker: openai/gpt-6-luna@max
