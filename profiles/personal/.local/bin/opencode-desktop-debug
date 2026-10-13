@@ -1,0 +1,280 @@
+#!/usr/bin/env node
+// Exposes OpenCode Desktop's Chrome DevTools Protocol port to WSL so agent-browser can
+// drive and record the Windows app: `agent-browser connect <port>`.
+//
+// WSL runs in NAT mode here (mirrored networking breaks Docker), so Windows loopback is not
+// reachable from WSL. Instead of a port proxy or firewall rule, each connection to WSL
+// 127.0.0.1:<port> is bridged through a Windows node.exe launched over WSL interop, which
+// dials Windows 127.0.0.1:<port>. Nothing listens on a network interface.
+//
+// Windows node.exe is taken from mise's install directory, never from its shims: running a
+// Windows mise shim from WSL triggers a full install of the Windows toolset.
+import { spawn, execFileSync } from "node:child_process";
+import { existsSync, mkdirSync, openSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import net from "node:net";
+import { homedir } from "node:os";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const DEFAULT_PORT = 9222;
+
+const POWERSHELL = "/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe";
+
+const LAUNCH_TIMEOUT_MS = 30_000;
+
+const STATE_DIR = path.join(process.env.XDG_STATE_HOME ?? path.join(homedir(), ".local", "state"), "opencode-desktop-debug");
+
+const USAGE = `Usage: opencode-desktop-debug <start|stop|status> [--port ${DEFAULT_PORT}]
+
+  start   Start the WSL relay, launch OpenCode Desktop with remote debugging if the port
+          is not answering yet, and wait until the DevTools endpoint responds.
+  stop    Stop the relay. OpenCode Desktop keeps running; restart it normally to close
+          the debugging port on Windows.
+  status  Show relay and DevTools endpoint state.
+
+Environment overrides:
+  OPENCODE_DESKTOP_EXE         Windows path to OpenCode.exe
+  OPENCODE_DESKTOP_WINDOWS_NODE  WSL path to a Windows node.exe`;
+
+function powershell(command) {
+  return execFileSync(POWERSHELL, ["-NoProfile", "-NonInteractive", "-Command", command], { encoding: "utf8" }).replace(/\r/g, "").trim();
+}
+
+function windowsLocalAppData() {
+  const windowsPath = powershell("$env:LOCALAPPDATA");
+
+  return execFileSync("wslpath", ["-u", windowsPath], { encoding: "utf8" }).trim();
+}
+
+function compareVersions(left, right) {
+  const a = left.split(".").map(Number);
+  const b = right.split(".").map(Number);
+
+  for (let i = 0; i < 3; i += 1) {
+    if (a[i] !== b[i]) {
+      return a[i] - b[i];
+    }
+  }
+
+  return 0;
+}
+
+/** Newest exact-version node.exe under Windows mise installs; aliases like `lts` are skipped. */
+function findWindowsNode() {
+  const override = process.env.OPENCODE_DESKTOP_WINDOWS_NODE;
+
+  if (override) {
+    return override;
+  }
+
+  const installs = path.join(windowsLocalAppData(), "mise", "installs", "node");
+
+  const versions = existsSync(installs)
+    ? readdirSync(installs).filter((name) => /^\d+\.\d+\.\d+$/.test(name) && existsSync(path.join(installs, name, "node.exe")))
+    : [];
+
+  if (versions.length === 0) {
+    throw new Error(`no Windows node.exe found under ${installs}; set OPENCODE_DESKTOP_WINDOWS_NODE`);
+  }
+
+  const newest = versions.sort(compareVersions).at(-1);
+
+  return path.join(installs, newest, "node.exe");
+}
+
+function parsePort(args) {
+  const index = args.indexOf("--port");
+
+  if (index === -1) {
+    return DEFAULT_PORT;
+  }
+
+  const port = Number(args[index + 1]);
+
+  if (!Number.isInteger(port) || port < 1 || port > 65_535) {
+    throw new Error(`invalid --port value: ${args[index + 1]}`);
+  }
+
+  return port;
+}
+
+function pidFile(port) {
+  return path.join(STATE_DIR, `relay-${port}.pid`);
+}
+
+function logFile(port) {
+  return path.join(STATE_DIR, `relay-${port}.log`);
+}
+
+function runningRelayPid(port) {
+  const file = pidFile(port);
+
+  if (!existsSync(file)) {
+    return undefined;
+  }
+
+  const pid = Number(readFileSync(file, "utf8"));
+
+  try {
+    process.kill(pid, 0);
+
+    return pid;
+  } catch {
+    rmSync(file, { force: true });
+
+    return undefined;
+  }
+}
+
+/** Resolves with the DevTools version payload, or undefined when nothing answers. */
+async function probe(port) {
+  try {
+    const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(5_000) });
+
+    return response.ok ? await response.json() : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function waitForEndpoint(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const version = await probe(port);
+
+    if (version) {
+      return version;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+
+  return undefined;
+}
+
+function launchDesktop(port) {
+  const exe = process.env.OPENCODE_DESKTOP_EXE ?? "$env:LOCALAPPDATA\\Programs\\@opencode-aidesktop\\OpenCode.exe";
+
+  powershell(`Start-Process -FilePath "${exe}" -ArgumentList '--remote-debugging-port=${port}'`);
+}
+
+function desktopRunning() {
+  return powershell("@(Get-Process -Name OpenCode -ErrorAction SilentlyContinue).Count") !== "0";
+}
+
+/** Foreground relay; `start` runs this detached. */
+function relay(port) {
+  const windowsNode = findWindowsNode();
+
+  const bridge = [
+    `const socket = require("net").connect(${port}, "127.0.0.1");`,
+    "process.stdin.pipe(socket);",
+    "socket.pipe(process.stdout);",
+    "socket.on('close', () => process.exit(0));",
+    "socket.on('error', () => process.exit(1));",
+  ].join("");
+
+  const server = net.createServer((client) => {
+    const child = spawn(windowsNode, ["-e", bridge], { stdio: ["pipe", "pipe", "ignore"] });
+
+    client.pipe(child.stdin);
+    child.stdout.pipe(client);
+    child.on("exit", () => client.destroy());
+    child.on("error", () => client.destroy());
+    client.on("close", () => child.kill());
+    client.on("error", () => child.kill());
+  });
+
+  server.listen(port, "127.0.0.1", () => console.error(`relay listening on 127.0.0.1:${port} via ${windowsNode}`));
+
+  for (const signal of ["SIGINT", "SIGTERM"]) {
+    process.once(signal, () => server.close(() => process.exit(0)));
+  }
+}
+
+async function start(port) {
+  mkdirSync(STATE_DIR, { recursive: true });
+
+  if (runningRelayPid(port) === undefined) {
+    findWindowsNode();
+
+    const log = openSync(logFile(port), "a");
+
+    const child = spawn(process.execPath, [fileURLToPath(import.meta.url), "relay", "--port", String(port)], {
+      detached: true,
+      stdio: ["ignore", log, log],
+    });
+
+    child.unref();
+    writeFileSync(pidFile(port), String(child.pid));
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  let version = await probe(port);
+
+  if (!version) {
+    if (desktopRunning()) {
+      throw new Error(
+        `OpenCode Desktop is running without remote debugging on port ${port}. Quit it, then rerun start; ` +
+          "a second launch only hands its arguments to the running instance.",
+      );
+    }
+
+    launchDesktop(port);
+    version = await waitForEndpoint(port, LAUNCH_TIMEOUT_MS);
+  }
+
+  if (!version) {
+    throw new Error(`DevTools endpoint did not answer on port ${port}; see ${logFile(port)}`);
+  }
+
+  console.log(`ready: ${version["User-Agent"]}`);
+  console.log(`connect: agent-browser connect ${port}`);
+}
+
+function stop(port) {
+  const pid = runningRelayPid(port);
+
+  if (pid === undefined) {
+    console.log("relay is not running");
+
+    return;
+  }
+
+  process.kill(pid, "SIGTERM");
+  rmSync(pidFile(port), { force: true });
+  console.log(`stopped relay pid ${pid}; OpenCode Desktop keeps its debugging port until restarted`);
+}
+
+async function status(port) {
+  const pid = runningRelayPid(port);
+  const version = pid === undefined ? undefined : await probe(port);
+
+  console.log(`relay: ${pid === undefined ? "stopped" : `running (pid ${pid})`}`);
+  console.log(`devtools: ${version ? version["User-Agent"] : "not reachable"}`);
+}
+
+async function main() {
+  const [command, ...args] = process.argv.slice(2);
+  const port = parsePort(args);
+
+  switch (command) {
+    case "start":
+      return start(port);
+    case "stop":
+      return stop(port);
+    case "status":
+      return status(port);
+    case "relay":
+      return relay(port);
+    default:
+      console.log(USAGE);
+      process.exitCode = command === undefined || command === "--help" || command === "-h" ? 0 : 2;
+  }
+}
+
+main().catch((error) => {
+  console.error(`opencode-desktop-debug: ${error instanceof Error ? error.message : String(error)}`);
+  process.exitCode = 1;
+});
