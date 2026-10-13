@@ -1,6 +1,6 @@
 ---
 name: orchestration-routing
-description: Personal model bindings for role-based delegation. Load when orchestrate or a delegated implementation command selects a role's model.
+description: Personal model bindings for role-based delegation. Load when `roles` or a delegated implementation command selects a role's model.
 ---
 
 # Orchestration routing
@@ -16,6 +16,7 @@ This skill selects worker models only. The lead's selected model remains separat
 | inspector | default | `openai/gpt-6-luna#high` |
 | prototyper | default | `openai/gpt-6.1-sol#high` |
 | architect | default | `openai/gpt-6-astra#medium` |
+| creative-director | default | `openai/gpt-6-astra#high` |
 | triage | default | `openai/gpt-6-luna#max` |
 | triage | escalation | `openai/gpt-6.1-sol#high` |
 | reviewer | code | `openai/gpt-6.1-sol#high` |
@@ -24,6 +25,7 @@ This skill selects worker models only. The lead's selected model remains separat
 | qa | default | `openai/gpt-6.1-sol#high` |
 | implementer | default | `openai/gpt-6.1-sol#medium` |
 | implementer | instructions | `openai/gpt-6.1-sol#high` |
+| implementer | motion | `openai/gpt-6-luna#high` |
 | operator | default | `openai/gpt-6.1-sol#medium` |
 | operator | git | `openai/gpt-6-luna#high` |
 | writer | default | `openai/gpt-6.1-sol#medium` |

@@ -27,12 +27,15 @@ The human can say "this is what I want, go build it" and trust that the result m
 - **Mistakes become structure.** A repeated failure becomes a check, a type, a test, a plugin fix, or a learning before it becomes another rule. Instructions stay light because the structure carries the lessons.
 - **Keep what earns its place.** Every skill, rule, role, and plugin should demonstrably change outcomes. Ones that don't are removed, and an addition replaces something or justifies its cost.
 - **Spend expensive context on thinking.** The lead's context goes to the human and to decisions. Source-heavy work is delegated, and briefs point to files rather than restating them.
+- **Every handoff loses intent.** Passing work between roles or models compresses what was meant into a brief or a result, and each further translation, such as spec to mockup to build, loses more. A handoff earns its place by saving cost or settling a decision the human can see. When later work needs the original intent, such as revising a creative direction, continuing the session that holds it is preferred to briefing a fresh one. Roles and stages are added when measured outcomes show they help, not to complete a process.
+- **Skills are chosen, not matched.** A subagent loads the skills its brief names, and a session assuming a role loads the skills that role names, not whatever skill descriptions happen to match. Skills that teach a tool load whenever that tool is used. Skills that bring their own taste, such as a visual or writing style, load only when the role or task calls for them, because they make decisions that belong to the human or to a creative role.
 - **Plain names.** Cairn is the one proper noun. Its parts are named for what they do.
 
 ## Parts
 
 - **Catalog**: the record of sessions, efforts, and the files and URLs they produce. It holds pointers and descriptions, never file contents.
-- **Orchestration**: `orchestrate` and `design-partner`, which hold the conversation with the human and deliver work through role-based subagents on models chosen per role.
+- **Roles**: each role defines a job (its purpose, boundaries, expected result, skills, and model), where a task type can add skills, exclude them, or require that they be chosen explicitly. A role can be delegated, briefed to a subagent, or assumed by the main session when the human wants to work with it directly; a session in any role can still delegate to others. Any session can use roles without entering orchestration.
+- **Orchestration**: the lead role, which holds the conversation with the human and proactively delivers work through other roles, and `design-partner`, which is how the conversation is held.
 - **Effort context, learnings, and design docs**: continuity across sessions, operational lessons, and the agreed record of what is being built and why.
 
 A new part belongs in Cairn when it serves the goals above. A general-purpose skill that stands on its own does not.

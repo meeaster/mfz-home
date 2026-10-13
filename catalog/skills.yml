@@ -19,6 +19,10 @@ skills:
     source: local
     skill: packages/cairn/skills/orchestrate
     description: Human-only orchestration entry, delegating by role.
+  - name: roles
+    source: local
+    skill: packages/cairn/skills/roles
+    description: Role definitions for delegating work to subagents or assuming a role in the main session.
   - name: orchestration-routing
     source: local
     skill: skills/active/orchestration-routing

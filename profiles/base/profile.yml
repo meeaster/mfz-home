@@ -63,6 +63,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: false }
   orchestrate:
     agents: { opencode: true, claude-code: true, codex: false }
+  roles:
+    agents: { opencode: true, claude-code: false, codex: false }
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:

@@ -5,7 +5,7 @@
 - [Cairn vision](../../packages/cairn/VISION.md): what orchestration is for, as part of Cairn.
 - [Design](design.md): the primitives, roles, models, and what this replaced.
 - [Scenarios](scenarios/README.md): how Mark actually uses it, and what the skill is checked against.
-- The skill: [`packages/cairn/skills/orchestrate`](../../packages/cairn/skills/orchestrate/SKILL.md), which loads [`design-partner`](../../packages/cairn/skills/design-partner/SKILL.md) and the profile's `orchestration-routing` skill.
+- The skill: [`packages/cairn/skills/orchestrate`](../../packages/cairn/skills/orchestrate/SKILL.md), the lead's playbook, which loads [`design-partner`](../../packages/cairn/skills/design-partner/SKILL.md) and [`roles`](../../packages/cairn/skills/roles/SKILL.md). `roles` defines the roles and loads the profile's `orchestration-routing` skill; any session can load it to delegate one piece of work or to act as a role.
 - Personal model bindings: [`skills/active/orchestration-routing`](../../skills/active/orchestration-routing/SKILL.md). Work selects its own routing skill from the Work home.
 
 The previous orchestrator design, including Chief, is in [`docs/archive/orchestrator`](../archive/orchestrator/architecture.md), and its skills are in `skills/archive/`.

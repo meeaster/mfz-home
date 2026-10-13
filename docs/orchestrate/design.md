@@ -28,7 +28,7 @@ A new job is a new role. Only a different model or skills is a task type. How to
 
 ## Roles
 
-All roles run on `general`. Read-only is a boundary stated in the brief rather than a permission: current models follow it well, and an `execute.before` hook can block edits for read-only roles later if runs show it's needed. Built-in `explore` stays available outside orchestration.
+The role definitions live in the `roles` skill, which any session can load; `orchestrate` is the lead's playbook built on it. All roles run on `general`. Read-only is a boundary stated in the brief rather than a permission: current models follow it well, and an `execute.before` hook can block edits for read-only roles later if runs show it's needed. Built-in `explore` stays available outside orchestration.
 
 | Group | Role | Task types | Came from |
 | --- | --- | --- | --- |
@@ -37,10 +37,11 @@ All roles run on `general`. Read-only is a boundary stated in the brief rather t
 | Gather | inspector | | `inspect` |
 | Gather | prototyper | | `prototype` |
 | Advise | architect | | `architect` |
+| Advise | creative-director | `spec`, `storyboard` | new: creative direction and build packages |
 | Advise | triage | `escalation` | `triage` |
 | Advise | reviewer | `code`, `pr`, `instructions` | `reviewer`, `pr-reviewer` |
 | Advise | qa | | new: judges look and feel in the browser |
-| Build | implementer | `frontend`, `instructions`, `backend` | `worker` |
+| Build | implementer | `frontend`, `motion`, `instructions`, `backend` | `worker` |
 | Operate | operator | `git`, `pr`, other | `operator`, the global Git delegation rule |
 | Record | writer | | `artifact-author` |
 
@@ -69,6 +70,22 @@ Deferred: ui-ux-designer, session-analyst, agent-author. Experimental: scribe. R
 - **design-partner stays separate.** It is how to think with Mark and can be selected alone. `orchestrate` loads it as a skill and adds delegation; its `SKILL.md` holds the whole method with no references. Its briefing guidance for architects and prototypes moved into the roles.
 - **The old agents are archived.** Their files are in `opencode/agents/archive/` and their profile entries are removed; only `scheduled-worker` and `omp-advisor` remain. The `apply-spec`, `implement-design`, and `openspec-rolling-apply` commands now dispatch `general` with the matching role's model.
 - **Briefs point to files.** The orchestrator's words are its expensive output tokens; a subagent reading a file is cheap input.
+
+- **Roles as their own skill, delegated or assumed** (human, 2026-10-13). Orchestrate always hands work to subagents; the human also wants to delegate a single piece of work from an ordinary session and have the right role, model, and skills chosen for it. The role definitions (purpose, boundaries, expected result, skills, model binding) move into a separate skill that any session can load. A role can be used two ways:
+  - **delegated**: briefed to a subagent on the role's bound model, as today;
+  - **assumed**: the human asks the main session to act as the role ("act as the creative director now") and works with it directly. This removes the relay between the human, the lead, and a subagent, and keeps the context the session has built, which matters most for back-and-forth work such as creative direction. A session in an assumed role can still delegate to other roles.
+
+  The orchestrator becomes a role too: the lead, whose job is the conversation and delegation, and `orchestrate` becomes "assume the lead, plus the delivery flow". Only conversational roles are marked assumable, such as lead, creative director, and architect; assuming the implementer is just an ordinary session. A switch states what changes: what the role does itself and what it delegates, which skills it loads, and how to return, because the previous role's instructions stay in context. The model doesn't follow an assumed role: the session keeps its model, so the switch names the role's bound model when it differs and leaves the choice to the human.
+
+  Delegating is a capability any role can have; orchestrating is the lead's way of working. The lead isn't defined in `roles`: assuming it means loading `orchestrate`, so it has one definition. `roles` is model-invocable so an ordinary session can reach it, and enabled only in OpenCode. Each step is tested with `opencode run`: `orchestrate` behaving as before, per-role skills, delegating from an ordinary session, and assuming a role.
+- **Skills per role and task type** (human, 2026-10-13). Subagents load the skills their brief names rather than relying on skill descriptions. Each role lists the skills it applies and the ones it may use; a task type can add skills, exclude them, or mark them explicit-only. Tool skills, which teach how to operate something such as OpenPencil or fframes, load whenever the work uses that tool. Taste skills, which bring a visual or writing style such as `impeccable` or `diagram-design`, load only where the task type lists them: an HTML page might always take `impeccable`, and `diagram-design` only when it has diagrams, while an animated presentation or video leaves both out unless asked. This categorization belongs to Cairn's role definitions, not to the configuration catalog. The trigger was a Sonnet run that loaded both taste skills for three animated-slide designs, which may have narrowed them; a run with and without them would show whether they do.
+- **Creative direction** (human, 2026-10-13). A `creative-director` role in the Advise group, alongside the architect: it proposes two or three creative directions (concept, palette, type, motion language, a sample frame) and recommends one; once the human picks, it produces a build package detailed enough that implementers make no creative decisions, and a series of slides shares one package. The package is either a text spec or storyboards drawn in OpenPencil with motion notes, whichever the human asks for (human, 2026-10-13): both pin the design down equally well, so the choice is whether the human wants to see and steer the design before anything is built. The package has one authority: a mockup made from a text spec is a preview, not a second spec. A 2026-10-13 test on one 15-second fframes scene found:
+  - the designer model sets the quality and the builder barely matters: every builder reproduced its design closely, so Haiku is the builder;
+  - an Opus text spec cost $1.75 and Opus storyboards drawn in OpenPencil $2.32, for about the same build quality, and building from storyboards cost Haiku more ($1.34 vs $0.79);
+  - Sonnet storyboards ($1.20) were nearly as good as Opus's, and Haiku's were weak;
+  - what storyboards add is a design the human can see, comment on, and change before anything is built.
+
+  `implementer/motion` builds the package on Luna High, followed by an inspector that compares rendered frames with the boards: Luna High built storyboards for about a tenth of Haiku's cost with the right layout and motion, but rendered bold weights as regular and skipped the comparison its brief asked for. The Personal profile reaches only OpenAI models in OpenCode, so the creative director runs on Astra (human); its design quality hasn't been tested. Still open: whether that review loop is cheaper than reviewing renders, and whether revisions should resume the director's session or go to a cheaper model. OpenPencil can't serve design agents in parallel: only the active tab exports images, and the server's session limit fills up.
 
 ## Planned
 
