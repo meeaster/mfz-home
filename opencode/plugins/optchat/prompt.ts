@@ -2,9 +2,22 @@
 // (https://gist.github.com/VictorTaelin/91837951a5ce5b38f341ec1ba1df6449): the agent is renamed, the computers
 // paragraph and the delegation rule are dropped (OpenCode and user instructions govern those), chat tools are
 // added, and the view rule lets files settle what exists, which kept agents closer to existing code conventions.
+// The compaction wording differs from the gist's, each change measured on GPT-6 Luna to cut "Too long" retries: the
+// model is asked for at most 55 words, with no byte count or ruler (it follows a word count but not a byte count; these
+// lines run about 8 bytes a word), the space rule is a word budget, and each task restates the limit after its input.
+// The byte limit still holds in code: `memory.ts` measures each line and re-asks with the gist's cut.
 
 /** Every summary line fits in this many UTF-8 bytes. */
 export const LIMIT = 512
+
+/** The words a compaction is asked for: about 440 bytes at these lines' density, under `LIMIT`. */
+export const WORDS = 55
+
+/**
+ * The longest reply kept without asking again. The gist accepts "a few bytes over", since the view measures real
+ * sizes; most over-long replies land within an eighth of the limit, and re-asking for them rarely got under it.
+ */
+export const ACCEPT = 576
 
 export const SYSTEM = `You are OptChat, an AI agent that works for one user in a chat that never
 ends. Each call to you is a turn or a compaction. Only a task after the view
@@ -83,7 +96,8 @@ Call no tools, and output only the line, without an id+n| head.
 
 Goal: let OptChat work later as well as if it remembered everything.
 
-Use the space up to the limit, and give it by value:
+You have ${WORDS} words. Spend them by value, and when the input holds more than fits,
+shorten the least valuable items to a word or two, then drop them:
 
 1. The user's words matter most: orders, decisions, corrections, questions and
    reasons. Keep them close to verbatim, however short.
@@ -100,35 +114,60 @@ exactly. Tag each item with its kind ("user: ...; echo: ..."), and credit quoted
 text to its real author. Never make anything look further along than it was. If
 told the line is too long, shorten it. Non-ASCII characters cost 2-4 bytes.`
 
-const RULER = "-".repeat(LIMIT)
+// The limit again, last, so it is what the model reads just before it writes.
+const WRITE = `Now write the one line: at most ${WORDS} words.`
 
 export const compressTask = (id: number, kind: string, text: string): string =>
-  `Compaction: compress message ${id} into one line of at most ${LIMIT} bytes
-(about 70 words), the length of this ruler:
-${RULER}
+  `Compaction: compress message ${id} into one line of at most ${WORDS} words.
 <input>
 ${kind}: ${text}
-</input>`
+</input>
+
+${WRITE}`
 
 export const mergeTask = (a: string, b: string, from: number, to: number, lineA: string, lineB: string): string =>
   `Compaction: merge lines ${a} and ${b}, adjacent, into one line of at most
-${LIMIT} bytes (about 70 words), the length of this ruler:
-${RULER}
+${WORDS} words.
 <chat> may hold their messages, ${from} to ${to}, in more detail: take details
 of them from there too.
 <input>
 ${lineA}
 ${lineB}
-</input>`
+</input>
 
-export const tooLong = (size: number, head: string): string =>
-  `Too long: your line is ${size} bytes, over the ${LIMIT}-byte limit. Write
+${WRITE}`
+
+export const tooLong = (words: number, size: number, head: string): string =>
+  `Too long: your line is ${words} words (${size} bytes), over the limit. Write
 the whole line again for the same <input>, cutting just enough of the
 least valuable items to fit before this cut:
 ${head}| ← LIMIT`
 
+// A section of the system prompt, from its heading line to the next one. The intro names headings in passing, so a
+// heading is matched only on a line of its own.
+const section = (heading: string): string => {
+  const start = SYSTEM.indexOf(`\n${heading}\n`)
+  const end = SYSTEM.indexOf("\n# ", start + heading.length + 2)
+
+  if (start < 0) throw new Error(`the system prompt has no "${heading}" section`)
+
+  return SYSTEM.slice(start, end < 0 ? undefined : end).trim()
+}
+
 /** The part of the system prompt that explains the view and its tools, shared with subagents. */
-const VIEW_GUIDE = SYSTEM.slice(SYSTEM.indexOf("# The view"), SYSTEM.indexOf("# Turns")).trim()
+const VIEW_GUIDE = section("# The view")
+
+/**
+ * The compactor's whole system prompt: what the view is and how to write a line, from the turns' prompt word for word,
+ * without the turn instructions or the tools the compactor doesn't have.
+ */
+export const COMPACTOR = `You write the memory of OptChat, an AI agent that works for one user in a chat that
+never ends. Each call to you is one compaction: the view below, then a task
+starting "Compaction:".
+
+${VIEW_GUIDE.slice(0, VIEW_GUIDE.indexOf("\nTools:")).trim()}
+
+${section("# Compactions")}`
 
 export const SUBAGENT = `You are a subagent working for OptChat, an AI agent in a chat with one user that never ends. OptChat gave you one task; it follows the view below.
 

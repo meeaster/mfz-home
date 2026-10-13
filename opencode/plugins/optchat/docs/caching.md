@@ -67,6 +67,12 @@ each turn's end, sends a warm-up request built from that turn's request, ending 
 at 16 output tokens. The next turn's request shares that ending, so it reads the block. An entry is readable only
 when it lies at least 1,024 tokens past the previous one, which is why blocks are 5 KB.
 
+Rechecked on OpenCode 2.0.27 with GPT-6 Luna over HTTP: `prompt_cache_breakpoint` is still rejected ("not supported
+on this model"), and so is `prompt_cache_options`, including `prewarm: true` ("prompt_cache_options is not supported
+on this model", HTTP 400). The OpenAI API documents both for GPT-5.6 and later, but this backend accepts neither, so
+the warm-up request stays the only way to place an entry. OpenCode sets `prompt_cache_key` to the session by default,
+so requests in different sessions don't share entries unless OptChat sets the chat's key.
+
 ### Anthropic Messages, including Claude, Qwen and MiniMax on OpenCode Go
 
 OpenCode already places up to four `cache_control` marks on these requests, and Anthropic rejects a fifth ("A maximum
@@ -102,6 +108,22 @@ runs to call settled. The remaining misses depend on how OpenCode Go routes to x
 - **OpenRouter models other than Claude.** OpenRouter's other upstreams cache without marks, and Gemini reads only the
   last mark, so a mark at the request's end would write a new entry at every step.
 - **GPT before 5.6.** These models reject explicit breakpoints.
+
+## Compactions
+
+On the session route, a compaction request is `[compactor prompt] [compaction view] [task]`, with a "Too long" retry
+appended in the same session. It carries the chat's cache key, and on a `hints` route a mark on the view, so
+compactions share the view's cached prefix. On routes that save an entry only where a request ends (the ChatGPT
+login), compactions end at different tasks, so a first attempt reads nothing of the view; a retry contains the
+previous attempt's whole request and reads it. Measured over 10 turns with the bare compactor:
+
+| Compactor | Route | Calls | Cache read per call | Summary cost |
+|---|---|---|---|---|
+| Claude Haiku 5.5 `high`, OpenCode Go | `hints` | 53 | about 2,800 tokens on every call | $0.054 |
+| GPT-6 Luna `high`, ChatGPT login | `warm` (no compaction warm-up) | 70 | about 2,200 tokens on 38 calls, mostly retries | $0.022 at API rates |
+
+Sending the turns' system prompt and tools, as the gist does to share the turns' cache, cost about $0.085 for the same
+10 turns on Haiku: OpenCode's prompt, the user's instructions and the tools came to about 20k tokens a call.
 
 ## Affinity
 

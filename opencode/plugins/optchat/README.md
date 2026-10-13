@@ -48,6 +48,7 @@ Pass options through the plugin entry in `opencode.json`. Sizes are UTF-8 bytes.
 | `compactor` | `openai/gpt-6-luna`, variant `high` | The model that writes summaries |
 | `viewHigh` / `viewLow` | 128000 / 64000 | The view grows to `viewHigh`, then one batch of merges brings it back to `viewLow` |
 | `compactionHigh` / `compactionLow` | 32000 / 16000 | The smaller view used by summary calls and, by default, subagents |
+| `compactorRoute` | `generate` | How summary calls run. `generate` sends each as one stateless prompt, with its cost estimated. `session` runs each in a bare child session of the chat's session, with its real usage recorded (see [Compaction route](#compaction-route)) |
 | `concurrency` | 8 | Summary calls in flight at once |
 | `waitMs` | 120000 | How long a turn waits for earlier messages to be summarized |
 | `subagentView` | `compaction` | What subagents start from: `compaction`, `full` or `none` |
@@ -88,13 +89,36 @@ It runs a chat on the OpenCode service and prints each call's input, cache read 
 that caches the view, `read` grows in steps as view blocks complete and `write` stays within one block plus the
 turn's messages. Once a style works, add a rule for the route in `cache-profile.ts`.
 
+## Compaction route
+
+With `compactorRoute: "session"`, a summary runs in a bare session: its own short system prompt (what the view is and
+how to write a line, from the turns' prompt word for word), then the compaction view and the task, with no tools and
+none of OpenCode's system prompt or the user's instructions. OptChat creates a child session of the chat's
+`optchat` session for it, sends a "Too long" retry as a follow-up in the same session, and removes the session once
+the line is final. Child sessions don't appear in the session list and never get a generated title. The request
+carries the chat's cache key and, on a `hints` route, cache marks on the view, so compactions can share a cached
+prefix and each retry reads the attempts before it. OpenCode records each call's real tokens and cost, including
+reasoning, which `usage.jsonl` keeps, and the sessions show in OpenCode while they run.
+
+Unlike the gist, a compaction doesn't share the turns' system prompt and tools. The gist sends them so compactions read
+them from the turns' cache, but OpenCode's prompt, the user's instructions and the tools ran to about 20k tokens a
+call, and over a 10-turn chat reading them on every compaction cost more than the stateless prompt did. The turns'
+cache is also only shared when the compactor is the turns' model. The session route relies on OpenCode's experimental
+`session.wait`.
+
+By default (`compactorRoute: "generate"`), each summary is one stateless `generate` call: the system prompt, the compaction
+view and the task in a single prompt, re-sent whole for each "Too long" retry. OpenCode reports no usage for it, so
+its cost is estimated from bytes and misses reasoning tokens. It is the default because the session route shows every
+running compaction as a session in OpenCode.
+
 ## Storage
 
 Each chat is a folder under `dataDir/chats/<chat id>/`:
 - `main.jsonl`: every message, append-only
 - `tree.jsonl`: every summary node, append-only
 - `view.json`: the current view, and the `viewHigh` it was saved under
-- `usage.jsonl`: one line per summary call, with the bytes sent and received, how long it took, and an estimated cost
+- `usage.jsonl`: one line per summary call, with the bytes sent and received, how long it took, and its cost:
+  estimated, or from the tokens OpenCode recorded on the session route
 - `agents/`: one log per subagent
 
 `chats.json` holds each chat's ID and name and which session belongs to which chat. Nothing is ever deleted except the empty
@@ -111,7 +135,7 @@ chat_abde357cbd1e4734
 View 17.1k / 128k · 50 lines
 No summaries pending
 Summaries 412 calls · ~$0.83
-Avg 4.2s a call · 29m total
+Avg 4.2s a call
 ```
 
 - The chat's name and ID, which `chat_resume` takes.
@@ -122,9 +146,8 @@ Avg 4.2s a call · 29m total
   report usage for these calls, so the cost is estimated at four bytes a token and priced with OpenCode's rates for
   the compactor. It runs low for a reasoning compactor, whose reasoning tokens aren't counted, and "+" marks calls
   whose model had no price. Calls made before this was added aren't counted.
-- How long a summary call takes on average, and the time all of them took. A summary that the "Too long" retry
-  re-asks counts as one call per attempt. Calls run up to `concurrency` at once, so the total is more than the
-  time that passed.
+- How long a summary call takes on average. A summary that the "Too long" retry re-asks counts as one call per
+  attempt.
 
 OpenCode loads it as this plugin's TUI part (`tui.tsx`), with no options, so it reads the default data directory. It
 reads the stored files every two seconds, since summaries are written in the background between turns.

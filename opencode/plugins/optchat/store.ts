@@ -40,6 +40,8 @@ export const CallRecord = z.object({
   reply: z.number().int(),
   ms: z.number().int(),
   cost: z.number().optional(),
+  /** The tokens OpenCode recorded, when the call ran in a session rather than as a stateless prompt. */
+  tokens: z.object({ input: z.number(), output: z.number(), reasoning: z.number(), cacheRead: z.number(), cacheWrite: z.number() }).optional(),
 })
 
 export type CallRecord = z.infer<typeof CallRecord>

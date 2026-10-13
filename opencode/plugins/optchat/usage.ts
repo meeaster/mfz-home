@@ -9,6 +9,15 @@ export interface Rate {
   readonly tier?: { readonly type: "context"; readonly size: number }
   readonly input: number
   readonly output: number
+  readonly cache?: { readonly read: number; readonly write: number }
+}
+
+/** A call's token usage as OpenCode records it. */
+export interface Tokens {
+  readonly input: number
+  readonly output: number
+  readonly reasoning: number
+  readonly cache: { readonly read: number; readonly write: number }
 }
 
 /** Rough tokens in a UTF-8 text of `size` bytes: about four bytes a token in English prose and code. */
@@ -20,18 +29,41 @@ export const estimateTokens = (size: number): number => Math.ceil(size / 4)
  */
 export const estimateCost = (rates: readonly Rate[], promptBytes: number, replyBytes: number): number | undefined => {
   const input = estimateTokens(promptBytes)
-  let rate = rates.find((candidate) => candidate.tier === undefined)
-
-  for (const candidate of rates) {
-    if (candidate.tier !== undefined && input > candidate.tier.size && (rate?.tier === undefined || candidate.tier.size > rate.tier.size)) rate = candidate
-  }
+  const rate = rateFor(rates, input)
 
   if (rate === undefined) return undefined
 
   return (input * rate.input + estimateTokens(replyBytes) * rate.output) / 1_000_000
 }
 
-const Price = z.object({ input: z.number(), output: z.number() })
+/** The cost of a call's recorded tokens, priced the way OpenCode prices a step. */
+export const priceTokens = (rates: readonly Rate[], tokens: Tokens): number | undefined => {
+  const rate = rateFor(rates, tokens.input + tokens.cache.read + tokens.cache.write)
+
+  if (rate === undefined) return undefined
+
+  const cache = rate.cache ?? { read: rate.input, write: rate.input }
+
+  return (tokens.input * rate.input + (tokens.output + tokens.reasoning) * rate.output + tokens.cache.read * cache.read + tokens.cache.write * cache.write) / 1_000_000
+}
+
+// The rate of the largest context tier the prompt passes, else the base rate.
+const rateFor = (rates: readonly Rate[], prompt: number): Rate | undefined => {
+  let rate = rates.find((candidate) => candidate.tier === undefined)
+
+  for (const candidate of rates) {
+    if (candidate.tier !== undefined && prompt > candidate.tier.size && (rate?.tier === undefined || candidate.tier.size > rate.tier.size)) rate = candidate
+  }
+
+  return rate
+}
+
+const Price = z.object({ input: z.number(), output: z.number(), cache_read: z.number().optional(), cache_write: z.number().optional() })
+
+const toRate = (price: z.infer<typeof Price>): Rate =>
+  price.cache_read === undefined
+    ? { input: price.input, output: price.output }
+    : { input: price.input, output: price.output, cache: { read: price.cache_read, write: price.cache_write ?? price.input } }
 
 const CatalogProvider = z.object({ models: z.record(z.string(), z.unknown()) })
 
@@ -55,11 +87,11 @@ export const catalogRates = async (providerID: string, modelID: string): Promise
 
   if (cost === undefined) return undefined
 
-  const base: Rate = { input: cost.input, output: cost.output }
+  const base = toRate(cost)
 
-  if (cost.tiers !== undefined) return [base, ...cost.tiers]
+  if (cost.tiers !== undefined) return [base, ...cost.tiers.map((tier) => ({ ...toRate(tier), tier: tier.tier }))]
 
-  if (cost.context_over_200k !== undefined) return [base, { ...cost.context_over_200k, tier: { type: "context", size: 200_000 } }]
+  if (cost.context_over_200k !== undefined) return [base, { ...toRate(cost.context_over_200k), tier: { type: "context", size: 200_000 } }]
 
   return [base]
 }

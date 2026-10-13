@@ -87,7 +87,7 @@ test("totals the chat's summary calls, their time and their estimated cost", () 
 
   expect(priced?.summaries).toEqual({ calls: 2, ms: 6_000, cost: 0.75, unpriced: 0 })
   expect(priced && summariesLine(priced)).toBe("Summaries 2 calls · ~$0.75")
-  expect(priced && summaryTimeLine(priced)).toBe("Avg 3.0s a call · 6.0s total")
+  expect(priced && summaryTimeLine(priced)).toBe("Avg 3.0s a call")
 
   store.recordCall(call)
 

@@ -48,8 +48,11 @@ gist before changing the tree, view or compaction logic; it is the specification
   message's first request is built.
 - `main.jsonl` and `tree.jsonl` are append-only and flushed on every write; one OpenCode process owns a chat
   through its `lock` file. Changing stored formats needs a migration for existing chats under `dataDir`.
-- Lines are at most 512 bytes. Models can't count bytes, so keep the ruler, the "Too long" retry and the
-  keep-the-shortest rule in `memory.ts`.
+- Lines are at most 512 bytes. Models can't count bytes, so compactions are asked for `WORDS` (55) words, with
+  no byte count or ruler, and `memory.ts` measures each line: one up to `ACCEPT` (576 bytes, the gist's "a few
+  bytes over") is kept, a longer one is re-asked with the gist's cut, and the shortest is kept. This and the other
+  departures from the gist's wording are measured (see `prompt.ts`); measure first-try fit on real compaction
+  prompts, in the session route's request shape, before changing them.
 
 ## Sidebar
 
@@ -89,8 +92,11 @@ gist before changing the tree, view or compaction logic; it is the specification
   this upsert is undocumented: check it first if the agent disappears after an OpenCode upgrade.
 - The `context` hook can replace `event.messages` entirely; new messages are built with `Message.user` from
   `@opencode/ai`.
-- `ctx.generate.text` takes only a prompt and a model: no system prompt, tools or usage. Compaction prompts
-  therefore embed the system text themselves.
+- Compactions run through `ctx.generate.text` by default; with `compactorRoute: "session"` they run in child sessions: `ctx.session.create` with the
+  optchat session as `parentID`, then `prompt`, the experimental `session.wait`, and `context` to read the reply,
+  whose tokens and cost OpenCode records. Child sessions get no generated title. The `context` hook gives them only
+  `COMPACTOR` as the system prompt and no tools; keep them bare. `generate` mode uses `ctx.generate.text`, which
+  takes only a prompt and a model (no system prompt, tools or usage), so its prompt embeds the system text.
 - Assistant final replies are only seen through the `session.text.ended` event; `session.execution.*` events
   release the per-chat turn lock.
 - Prompt-cache routing uses the experimental `experimental.ws.send` and `experimental.ws.handshake` hooks
@@ -102,7 +108,8 @@ gist before changing the tree, view or compaction logic; it is the specification
 
 - `pnpm test opencode/plugins/optchat` and `pnpm typecheck` from the repository root.
 - For a cache change, run `cache-probe.sh <provider/model> [turns]` against each affected route after restarting the
-  OpenCode service (this plugin loads from a directory, which doesn't hot-reload). Check that `read` steps up as view
+  OpenCode service. OpenCode watches the plugin directory and reloads the plugin when a file changes, which closes
+  each open chat's store and fails that chat's next turn, so don't edit the plugin under a running test. Check that `read` steps up as view
   blocks complete and `write` stays within a block; a Messages route that errors with "A maximum of 4 blocks with
   cache_control" has a mark outside the hints. Update `docs/caching.md` when a route's rule or measured behavior
   changes. Probe the cheaper model of a family (for example `opencode-go/glm-5.3-flash`) unless the change is

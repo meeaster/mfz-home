@@ -1,5 +1,5 @@
 import { expect, test } from "vitest"
-import { estimateCost } from "./usage.js"
+import { estimateCost, priceTokens } from "./usage.js"
 
 const rates = [
   { input: 1, output: 4 },
@@ -13,4 +13,11 @@ test("prices a call at the base rate until its prompt passes a context tier", ()
 
 test("has no estimate for a model without rates", () => {
   expect(estimateCost([], 1_000, 1_000)).toBeUndefined()
+})
+
+test("prices recorded tokens with the cache rates, counting reasoning as output", () => {
+  const cached = [{ input: 1, output: 4, cache: { read: 0.1, write: 1.25 } }]
+  const tokens = { input: 1_000, output: 100, reasoning: 100, cache: { read: 20_000, write: 2_000 } }
+
+  expect(priceTokens(cached, tokens)).toBeCloseTo((1_000 * 1 + 200 * 4 + 20_000 * 0.1 + 2_000 * 1.25) / 1_000_000)
 })

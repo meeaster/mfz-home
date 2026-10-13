@@ -9,14 +9,14 @@ import { Message } from "@opencode/ai"
 import { Plugin } from "@opencode/plugin"
 import { z } from "zod"
 import { type Chat, Chats } from "./chats.js"
-import { Memory } from "./memory.js"
+import { ATTEMPTS, clean, type Compaction, flatPrompt, Memory } from "./memory.js"
 import { markCache, splitView, type TurnParts, type ViewCacheMode, viewPrefix, warmBody } from "./cache-marks.js"
 import { hintedText, hintedView, withEndHint } from "./cache-hints.js"
 import { AFFINITY, type CacheProfile, type CacheRoute, cacheProfile } from "./cache-profile.js"
 import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "./messages.js"
-import { SUBAGENT, SYSTEM } from "./prompt.js"
-import { bytes, type CallRecord, defaultDataDir } from "./store.js"
-import { catalogRates, estimateCost, type Rate } from "./usage.js"
+import { ACCEPT, COMPACTOR, SUBAGENT, SYSTEM } from "./prompt.js"
+import { bytes, type CallRecord, defaultDataDir, type Store } from "./store.js"
+import { catalogRates, estimateCost, priceTokens, type Rate, type Tokens } from "./usage.js"
 
 const AGENT = "optchat"
 
@@ -38,6 +38,12 @@ const Options = z.object({
   /** The smaller view summary calls (and, by default, subagents) see. */
   compactionHigh: z.number().int().positive().default(32_000),
   compactionLow: z.number().int().positive().default(16_000),
+  /**
+   * How summary calls run. `session` runs each in a bare child session of the chat's optchat session: the compactor's
+   * own system prompt, the compaction view and the task, re-asked in the same conversation when the line is too long,
+   * with OpenCode recording its real usage. `generate` sends each as one stateless prompt with no usage reported.
+   */
+  compactorRoute: z.enum(["generate", "session"]).default("generate"),
   /** Summary calls in flight at once. */
   concurrency: z.number().int().positive().default(8),
   /** How long a turn waits for earlier messages to be summarized before it starts anyway. */
@@ -80,6 +86,15 @@ interface RequestParts {
 }
 
 const CacheKeyed = z.looseObject({ prompt_cache_key: z.string() })
+
+/** How long a compaction session may take to answer before it is given up on and tried again. */
+const COMPACTION_TIMEOUT = 180_000
+
+/** A compaction running in a child session: its chat, for the cache key, and the view it is sent with. */
+interface CompactionSession {
+  readonly chatID: string
+  readonly view: string
+}
 
 // OpenCode's system prompt carries today's date; the view's cached prefix must not change daily.
 const DATE_LINE = /^Today's date: .*$\n?/m
@@ -152,26 +167,129 @@ export default Plugin.define({
       return compactorRates
     }
 
-    const chats = new Chats(directory, (store) =>
+    const record = (store: Store, call: CallRecord): void => {
+      if (!store.closed) store.recordCall(call)
+    }
+
+    const compactStateless = async (store: Store, compaction: Compaction): Promise<string> => {
+      const prompt = flatPrompt(compaction)
+      const started = Date.now()
+      const { text } = await ctx.generate.text({ prompt, model: compactor })
+      const ms = Date.now() - started
+      const rates = await ratesOfCompactor()
+      const call: CallRecord = { date: new Date().toISOString(), model: compactorName, prompt: bytes(prompt), reply: bytes(text), ms }
+      const cost = rates && estimateCost(rates, call.prompt, call.reply)
+
+      record(store, cost === undefined ? call : { ...call, cost })
+
+      return text
+    }
+
+    // Each chat's latest optchat session in this process, which its compaction sessions run under (chat ID -> session
+    // ID), and the compaction sessions running now.
+    const hosts = new Map<string, string>()
+    const compactionSessions = new Map<string, CompactionSession>()
+    // A compaction re-asked for a shorter line continues its session: task -> session ID.
+    const openCompactions = new Map<string, string>()
+
+    // Runs one attempt of a compaction in a child session. The first attempt creates the session and sends the task;
+    // a retry sends the note that asks again, so the earlier attempts stay in the conversation and its cached prefix.
+    // The session is removed once its line is final.
+    // A chat opened before any of its turns in this process, as on a restart or a resume, runs its compactions under
+    // the last session that used it.
+    const compactInSession = async (chatID: string, store: Store, compaction: Compaction): Promise<string> => {
+      const parentID = hosts.get(chatID) ?? chats.sessionsOf(chatID).at(-1)
+
+      if (parentID === undefined) throw new Error(`no session of ${chatID} to run the compaction under`)
+
+      const note = compaction.attempts.at(-1)?.note
+      let sessionID = note === undefined ? undefined : openCompactions.get(compaction.task)
+
+      if (sessionID === undefined) {
+        const session = await ctx.session.create({ parentID, agent: AGENT, model: compactor, title: "OptChat compaction" })
+
+        sessionID = session.id
+        compactionSessions.set(sessionID, { chatID, view: compaction.view })
+        openCompactions.set(compaction.task, sessionID)
+      }
+
+      let final = true
+
+      try {
+        const started = Date.now()
+        const reply = await ask(sessionID, note ?? compaction.task)
+        const ms = Date.now() - started
+        const text = reply.content.flatMap((part) => (part.type === "text" ? [part.text] : [])).join("")
+
+        final = bytes(clean(text)) <= ACCEPT || compaction.attempts.length >= ATTEMPTS - 1
+        record(store, await sessionCall(compaction, reply, text, ms))
+
+        return text
+      } finally {
+        if (final) {
+          openCompactions.delete(compaction.task)
+          compactionSessions.delete(sessionID)
+
+          try {
+            await ctx.session.remove({ sessionID })
+          } catch (error) {
+            warn(`could not remove compaction session ${sessionID}: ${String(error)}`)
+          }
+        }
+      }
+    }
+
+    type Reply = Extract<Awaited<ReturnType<typeof ctx.session.context>>[number], { type: "assistant" }>
+
+    // Sends a message and waits for the reply to it. `wait` returns at once when the session is idle, so it is
+    // repeated until a reply newer than the message has completed. A run that ended without one, or with an error,
+    // fails at once, so the compaction is tried again instead of holding its line pending.
+    const ask = async (sessionID: string, text: string): Promise<Reply> => {
+      const sent = Date.now()
+      const deadline = sent + COMPACTION_TIMEOUT
+
+      await ctx.session.prompt({ sessionID, text })
+
+      while (Date.now() < deadline) {
+        await ctx.session.wait({ sessionID })
+
+        const reply = (await ctx.session.context({ sessionID })).findLast((message): message is Reply => message.type === "assistant")
+        const answered = reply !== undefined && reply.time.created >= sent && reply.time.completed !== undefined
+
+        if (answered && reply.finish === "error") throw new Error(`compaction session ${sessionID} failed`)
+
+        if (answered) return reply
+
+        const session = await ctx.session.get({ sessionID })
+
+        if (session.time.idle !== undefined && session.time.idle >= sent) throw new Error(`compaction session ${sessionID} ended without a reply (${session.outcome ?? "no outcome"})`)
+
+        await new Promise((resolve) => setTimeout(resolve, 250))
+      }
+
+      throw new Error(`compaction session ${sessionID} did not reply in ${COMPACTION_TIMEOUT / 1000}s`)
+    }
+
+    const sessionCall = async (compaction: Compaction, reply: Reply, text: string, ms: number): Promise<CallRecord> => {
+      const call: CallRecord = { date: new Date().toISOString(), model: compactorName, prompt: bytes(flatPrompt(compaction)), reply: bytes(text), ms }
+
+      if (reply.tokens === undefined) return call
+
+      const tokens: Tokens = reply.tokens
+      const recorded = { input: tokens.input, output: tokens.output, reasoning: tokens.reasoning, cacheRead: tokens.cache.read, cacheWrite: tokens.cache.write }
+      // A subscription login records no cost, so its tokens are priced at the API's rates.
+      const rates = reply.cost !== undefined && reply.cost > 0 ? undefined : await ratesOfCompactor()
+      const cost = rates === undefined ? reply.cost : priceTokens(rates, tokens)
+
+      return cost === undefined ? { ...call, tokens: recorded } : { ...call, tokens: recorded, cost }
+    }
+
+    const chats = new Chats(directory, (store, chatID) =>
       new Memory({
         store,
         budget: { viewHigh: options.viewHigh, viewLow: options.viewLow, compactionHigh: options.compactionHigh, compactionLow: options.compactionLow },
         concurrency: options.concurrency,
-        generate: async (prompt) => {
-          const started = Date.now()
-          const { text } = await ctx.generate.text({ prompt, model: compactor })
-          const ms = Date.now() - started
-          const rates = await ratesOfCompactor()
-
-          if (!store.closed) {
-            const call: CallRecord = { date: new Date().toISOString(), model: compactorName, prompt: bytes(prompt), reply: bytes(text), ms }
-            const cost = rates && estimateCost(rates, call.prompt, call.reply)
-
-            store.recordCall(cost === undefined ? call : { ...call, cost })
-          }
-
-          return text
-        },
+        generate: (compaction) => (options.compactorRoute === "session" ? compactInSession(chatID, store, compaction) : compactStateless(store, compaction)),
         report: warn,
       }),
     )
@@ -381,6 +499,9 @@ export default Plugin.define({
 
           const turn = turns.get(context.sessionID)
           const result = chats.resume(context.sessionID, chat, (chatID) => activeTurns.get(chatID), turn?.startTotal)
+          const resumed = chats.chatIdOf(context.sessionID)
+
+          if (resumed !== undefined) hosts.set(resumed, context.sessionID)
 
           if (turn !== undefined && chats.chatIdOf(context.sessionID) !== turn.chat) activeTurns.delete(turn.chat)
 
@@ -437,6 +558,24 @@ export default Plugin.define({
     }
 
     await ctx.session.hook("context", async (event) => {
+      const compaction = compactionSessions.get(event.sessionID)
+
+      // A compaction runs bare: its own system prompt and nothing else of OpenCode's (no coding-agent prompt, no user
+      // instructions, no tools), then the compaction view and the task and any re-asks; a hints route marks the view in
+      // blocks. The gist sends the turns' system prompt and tools to share their cache, but OpenCode's prompt and tools
+      // cost more to read on every call than they save, and a compaction only writes a line.
+      if (compaction !== undefined) {
+        const profile = cacheProfile((await routeOf(event.model, undefined)).route, forced)
+        const hinted = profile.writer === "hints"
+        const conversation = [hinted ? hintedView(compaction.view, blockSize(profile)) : Message.user(compaction.view), ...event.messages]
+
+        hide(event.tools, Object.keys(event.tools))
+        event.messages.splice(0, event.messages.length, ...(hinted ? withEndHint(conversation) : conversation))
+        event.system.splice(0, event.system.length, { type: "text", text: COMPACTOR })
+
+        return
+      }
+
       const role = await roleOf(event.sessionID)
 
       if (role.kind === "child") {
@@ -471,6 +610,8 @@ export default Plugin.define({
 
         return
       }
+
+      hosts.set(chat.info.id, event.sessionID)
 
       const { turn, start } = await currentTurn(chat, event.sessionID, event.messages)
 
@@ -584,7 +725,8 @@ export default Plugin.define({
     // OpenAI's prompt cache, and the ChatGPT backend's session affinity, should follow the chat rather than the
     // OpenCode session, so a resumed chat reuses its cached view. Both hooks are experimental OpenCode APIs.
     const cacheKeyFor = (sessionID: string, kind: string): string | undefined => {
-      const chatID = (kind === "primary" || (kind === "generate" && warmViews.has(sessionID))) && optchatSessions.has(sessionID) ? chats.chatIdOf(sessionID) : undefined
+      const turnChat = (kind === "primary" || (kind === "generate" && warmViews.has(sessionID))) && optchatSessions.has(sessionID) ? chats.chatIdOf(sessionID) : undefined
+      const chatID = turnChat ?? (kind === "primary" ? compactionSessions.get(sessionID)?.chatID : undefined)
 
       return chatID === undefined ? undefined : `optchat-${createHash("sha1").update(chatID).digest("hex").slice(0, 24)}`
     }
@@ -655,7 +797,10 @@ export default Plugin.define({
       await ctx.session.hook(
         "http.request",
         async (event) => {
-          if (event.agent !== AGENT || !optchatSessions.has(event.sessionID) || (event.kind !== "primary" && !warmViews.has(event.sessionID))) return
+          const turn = optchatSessions.has(event.sessionID) && (event.kind === "primary" || warmViews.has(event.sessionID))
+          const compaction = event.kind === "primary" && compactionSessions.has(event.sessionID)
+
+          if (event.agent !== AGENT || (!turn && !compaction)) return
 
           const raw = await event.request.clone().text()
           const rewritten = rewriteFor(event.sessionID, event.kind, raw, "http")
@@ -698,7 +843,7 @@ export default Plugin.define({
             continue
           }
 
-          if (event.type !== "session.text.ended") continue
+          if (event.type !== "session.text.ended" || compactionSessions.has(event.data.sessionID)) continue
 
           const chat = chatOfSession(event.data.sessionID)
 

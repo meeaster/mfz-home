@@ -48,6 +48,7 @@ test("a named chat can be resumed from a new session, which then sees its messag
   later.forSession("ses_b", "/work")
   expect(later.resume("ses_b", "heron planning", idle, 0)).toContain('continues "Heron planning"')
   expect(later.chatIdOf("ses_b")).toBe(later.chatIdOf("ses_a"))
+  expect(later.sessionsOf(later.chatIdOf("ses_a") ?? "")).toEqual(["ses_a", "ses_b"])
   expect(later.forSession("ses_b", "/work")?.memory.zoom(0, 1)).toBe("0+1|user: Remember the codename BLUE HERON")
 })
 

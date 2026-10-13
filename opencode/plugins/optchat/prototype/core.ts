@@ -10,7 +10,7 @@ import { Message } from "@opencode/ai"
 import { Plugin } from "@opencode/plugin"
 import { z } from "zod"
 import { type Chat, Chats } from "../chats.js"
-import { Memory } from "../memory.js"
+import { flatPrompt, Memory } from "../memory.js"
 import { markCache, splitView, type TurnParts, viewPrefix, warmBody } from "../cache-marks.js"
 import { completedReply, loadedSkills, messageKey, pendingInput, textKey, toLogged } from "../messages.js"
 import { SUBAGENT, SYSTEM } from "./prompt.js"
@@ -135,7 +135,7 @@ export default Plugin.define({
         store,
         budget: { viewHigh: options.viewHigh, viewLow: options.viewLow, compactionHigh: options.compactionHigh, compactionLow: options.compactionLow },
         concurrency: options.concurrency,
-        generate: async (prompt) => (await ctx.generate.text({ prompt: prompt.replace(ORIGINAL_SYSTEM, SYSTEM), model: compactor })).text,
+        generate: async (compaction) => (await ctx.generate.text({ prompt: flatPrompt(compaction).replace(ORIGINAL_SYSTEM, SYSTEM), model: compactor })).text,
         report: warn,
       }),
     )

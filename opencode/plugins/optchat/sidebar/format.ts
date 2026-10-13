@@ -57,6 +57,6 @@ export const duration = (ms: number): string => {
   return `${(ms / 3_600_000).toFixed(1)}h`
 }
 
-/** How long a summary call takes on average, and the time all of them took, or undefined before the first. */
+/** How long a summary call takes on average, or undefined before the first. */
 export const summaryTimeLine = ({ summaries }: ChatStatus): string | undefined =>
-  summaries.calls === 0 ? undefined : fit(`Avg ${duration(summaries.ms / summaries.calls)} a call · ${duration(summaries.ms)} total`)
+  summaries.calls === 0 ? undefined : fit(`Avg ${duration(summaries.ms / summaries.calls)} a call`)

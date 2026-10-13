@@ -49,11 +49,11 @@ const NAME = /^[\p{L}\p{N}][\p{L}\p{N} ._-]{0,59}$/u
  */
 export class Chats {
   readonly #directory: string
-  readonly #open: (store: Store) => Memory
+  readonly #open: (store: Store, chatID: string) => Memory
   readonly #chats = new Map<string, Chat>()
   #registry: z.infer<typeof Registry>
 
-  constructor(directory: string, open: (store: Store) => Memory) {
+  constructor(directory: string, open: (store: Store, chatID: string) => Memory) {
     this.#directory = directory
     this.#open = open
     mkdirSync(join(directory, "chats"), { recursive: true })
@@ -66,6 +66,11 @@ export class Chats {
 
   chatIdOf(sessionID: string): string | undefined {
     return this.#registry.sessions[sessionID]
+  }
+
+  /** The sessions that have used a chat, oldest first. */
+  sessionsOf(chatID: string): string[] {
+    return Object.keys(this.#registry.sessions).filter((sessionID) => this.#registry.sessions[sessionID] === chatID)
   }
 
   /** The session's chat, created on first use; undefined when another OpenCode process holds it. */
@@ -183,7 +188,7 @@ export class Chats {
 
     if (store === undefined) return undefined
 
-    const chat: Chat = { info, store, memory: this.#open(store), subagents: new SubagentLogs(join(this.#directory, "chats", id, "agents")) }
+    const chat: Chat = { info, store, memory: this.#open(store, id), subagents: new SubagentLogs(join(this.#directory, "chats", id, "agents")) }
 
     this.#chats.set(id, chat)
 

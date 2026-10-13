@@ -1,4 +1,4 @@
-import { compressTask, LIMIT, mergeTask, SYSTEM, tooLong } from "./prompt.js"
+import { ACCEPT, compressTask, LIMIT, mergeTask, SYSTEM, tooLong } from "./prompt.js"
 import { bytes, type Kind, type Store } from "./store.js"
 import { children, first, fromLabel, key, label, last, parent, shrink, sibling, type Entry } from "./tree.js"
 
@@ -9,21 +9,36 @@ export interface Budget {
   readonly compactionLow: number
 }
 
+/**
+ * One summary call: the compaction view, the task, and each earlier attempt that came back too long with the note
+ * that asked for it again, oldest first.
+ */
+export interface Compaction {
+  readonly view: string
+  readonly task: string
+  readonly attempts: readonly { readonly line: string; readonly note: string }[]
+}
+
 export interface MemoryOptions {
   readonly store: Store
   readonly budget: Budget
   readonly concurrency: number
-  /** One stateless model call; the prompt holds the whole conversation so far. */
-  readonly generate: (prompt: string) => Promise<string>
+  /** One model call that answers the compaction's latest message with a line. */
+  readonly generate: (compaction: Compaction) => Promise<string>
   readonly report: (message: string) => void
 }
+
+/** A compaction as one stateless prompt: the system prompt, view and task, then each attempt and the note after it. */
+export const flatPrompt = ({ view, task, attempts }: Compaction): string =>
+  attempts.reduce((prompt, { line, note }) => `${prompt}\n\n<your-line>\n${line}\n</your-line>\n\n${note}`, `${SYSTEM}\n\n${view}\n\n${task}`)
 
 /** A view line's text until its summary is written. */
 export const PLACEHOLDER = "(not summarized yet: zoom it)"
 
 const CHUNK = 30_000
 
-const ATTEMPTS = 5
+/** How many times a compaction is asked for its line before the shortest is kept. */
+export const ATTEMPTS = 5
 
 const RETRY_DELAY = 3_000
 
@@ -38,7 +53,8 @@ export const clip = (text: string, limit = CHUNK): string => {
 
 const headBytes = (text: string, size: number): string => Buffer.from(text, "utf8").subarray(0, size).toString("utf8")
 
-const clean = (reply: string): string => reply.trim().replace(/^\d+\+\d+\|/, "").replaceAll("\n", " ")
+/** A reply as a view line: trimmed, without an id+n| head, on one line. */
+export const clean = (reply: string): string => reply.trim().replace(/^\d+\+\d+\|/, "").replaceAll("\n", " ")
 
 export class Memory {
   readonly #store: Store
@@ -307,12 +323,12 @@ export class Memory {
   }
 
   async #build(entry: Entry): Promise<void> {
-    const prompt = this.#prompt(entry)
+    const request = this.#request(entry)
 
-    if (prompt === undefined) return
+    if (request === undefined) return
 
     try {
-      const text = await this.#write(prompt)
+      const text = await this.#write(request)
 
       // Closed while summarizing, as on a plugin reload: the store's files are closed, and whoever opens the chat next
       // summarizes this entry again.
@@ -331,34 +347,33 @@ export class Memory {
     }
   }
 
-  #prompt(entry: Entry): string | undefined {
+  #request(entry: Entry): Omit<Compaction, "attempts"> | undefined {
     if (entry[0] === 0) {
       const message = this.#store.messages[entry[1]]
 
       if (message === undefined) return undefined
 
-      return `${SYSTEM}\n\n${this.#context(entry[1] - 1)}\n\n${compressTask(entry[1], message.kind, message.text)}`
+      return { view: this.#context(entry[1] - 1), task: compressTask(entry[1], message.kind, message.text) }
     }
 
     const [left, right] = children(entry)
-    const task = mergeTask(label(left), label(right), first(entry), last(entry), this.#line(left), this.#line(right))
 
-    return `${SYSTEM}\n\n${this.#context(last(entry))}\n\n${task}`
+    return { view: this.#context(last(entry)), task: mergeTask(label(left), label(right), first(entry), last(entry), this.#line(left), this.#line(right)) }
   }
 
-  /** Asks for a line, re-asking with the ruler cut until it fits; keeps the shortest. */
-  async #write(prompt: string): Promise<string> {
-    let conversation = prompt
+  /** Asks for a line, re-asking in the same conversation with the ruler cut until it is within `ACCEPT`; keeps the shortest. */
+  async #write(request: Omit<Compaction, "attempts">): Promise<string> {
+    const attempts: { line: string; note: string }[] = []
     let shortest: string | undefined
 
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
-      const line = clean(await this.#options.generate(conversation))
+      const line = clean(await this.#options.generate({ ...request, attempts: [...attempts] }))
 
       if (shortest === undefined || bytes(line) < bytes(shortest)) shortest = line
 
-      if (bytes(line) <= LIMIT) return line
+      if (bytes(line) <= ACCEPT) return line
 
-      conversation = `${conversation}\n\n<your-line>\n${line}\n</your-line>\n\n${tooLong(bytes(line), headBytes(line, LIMIT))}`
+      attempts.push({ line, note: tooLong(line.split(/\s+/).filter(Boolean).length, bytes(line), headBytes(line, LIMIT)) })
     }
 
     return shortest ?? ""

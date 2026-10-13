@@ -2,7 +2,7 @@ import { afterEach, expect, test } from "vitest"
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
-import { Memory, type MemoryOptions } from "./memory.js"
+import { type Compaction, flatPrompt, Memory, type MemoryOptions } from "./memory.js"
 import { Store, bytes } from "./store.js"
 
 const directories: string[] = []
@@ -14,8 +14,7 @@ afterEach(() => {
 const budget = { viewHigh: 6_000, viewLow: 3_000, compactionHigh: 2_000, compactionLow: 1_000 }
 
 // A stand-in compactor that writes a 300-byte line naming what it summarized.
-const fakeGenerate = async (prompt: string): Promise<string> => {
-  const task = prompt.slice(prompt.lastIndexOf("Compaction:"))
+const fakeGenerate = async ({ task }: Compaction): Promise<string> => {
   const subject = /compress message (\d+)|merge lines (\S+) and (\S+)/.exec(task)?.[0] ?? "?"
 
   return `${subject} `.padEnd(300, "x")
@@ -103,8 +102,8 @@ test("a reopened chat renders the same view instead of rebuilding it", async () 
 test("an over-long line is re-asked with the ruler cut until it fits", async () => {
   const prompts: string[] = []
 
-  const generate = async (prompt: string): Promise<string> => {
-    prompts.push(prompt)
+  const generate = async (compaction: Compaction): Promise<string> => {
+    prompts.push(flatPrompt(compaction))
 
     return prompts.length === 1 ? "y".repeat(900) : "short enough"
   }
@@ -116,8 +115,29 @@ test("an over-long line is re-asked with the ruler cut until it fits", async () 
 
   expect(memory.zoom(0, 1)).toContain("z".repeat(100))
   expect(lines(memory.render())[0]).toBe("0+1|short enough")
-  expect(prompts[1]).toContain("Too long: your line is 900 bytes")
+  expect(prompts[1]).toContain("Too long: your line is 1 words (900 bytes)")
   expect(bytes(prompts[1]?.slice(prompts[1].lastIndexOf("\n") + 1).replace("| ← LIMIT", "") ?? "")).toBe(512)
+
+  memory.close()
+  store.close()
+})
+
+test("a line a few bytes over the limit is kept without asking again", async () => {
+  let calls = 0
+
+  const generate = async (): Promise<string> => {
+    calls++
+
+    return "y".repeat(560)
+  }
+
+  const { store, memory } = open(fresh(), generate)
+
+  memory.append("echo", "z".repeat(2_000), "long")
+  await memory.waitFor(1, 5_000)
+
+  expect(calls).toBe(1)
+  expect(lines(memory.render())[0]).toBe(`0+1|${"y".repeat(560)}`)
 
   memory.close()
   store.close()
@@ -126,12 +146,12 @@ test("an over-long line is re-asked with the ruler cut until it fits", async () 
 test("a turn waiting on a failed compaction gets it retried without a new message", async () => {
   let calls = 0
 
-  const generate = async (prompt: string): Promise<string> => {
+  const generate = async (compaction: Compaction): Promise<string> => {
     calls++
 
     if (calls === 1) throw new Error("HTTP 503")
 
-    return fakeGenerate(prompt)
+    return fakeGenerate(compaction)
   }
 
   const { store, memory } = open(fresh(), generate)
