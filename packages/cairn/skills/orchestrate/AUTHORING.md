@@ -21,6 +21,7 @@ Wrong behavior seen in trial runs, which the skill must keep ruling out:
 - **UI work reviewed**: one reviewer did code review and QA together.
 - **Implementer on an unfamiliar library**: spent its turns on documentation lookups that a cheap researcher could have done first.
 - **Evidence from inside the loop handed to the human**: an implementer's own report, or evidence captured before review repairs changed the code.
+- **Trivial action delegated**: asked to open an HTML page in the browser, the lead dispatched a subagent for a one-command action.
 - **Results already saved by Cairn**: the lead searched the catalog for them again, or re-read the saved copy of a result it had already received.
 
 ## Decisions
@@ -32,6 +33,7 @@ Wrong behavior seen in trial runs, which the skill must keep ruling out:
 - **Model bindings live in a separate, profile-selected `orchestration-routing` skill.** Personal and Work share this workflow but bind different models and gateway aliases, so the roles and briefing stay shared and each home owns its models. The initial bindings reused the old agents' models (human, 2026-10-09); tiers were deferred.
 - **Confirm a model once per session, not per dispatch.** In trial runs the lead spent two steps on model lookups before every round of dispatches.
 - **Researcher before implementer** (human, 2026-10-09). A trial implementer spent many turns on Context7 and web fetches. A saved documentation result is cheaper, and the implementer can still look up what it leaves out.
+- **Trivial actions stay with the lead** (human, 2026-10-13). "Delegate running commands" led the lead to dispatch a subagent to open a page in the browser, where the brief and the result cost more than the action. The exception is a cost test rather than a list of cases so it covers the next trivial action, and it excludes file edits so small implementation doesn't drift back to the lead.
 - **Parallelize cheap evidence gathering** (human, 2026-10-09), because gatherers run on cheap models.
 - **Acceptance criteria are agreed before building** (human, 2026-10-12). The human has to trust that the result matches what they meant, and nothing can check that unless it is written down as something observable. The criteria travel into implementer briefs and are the inspector's checklist. A request that already states observable requirements and asks to proceed gets the criteria stated, not a confirmation stop (2026-10-12): asking again adds a round trip without adding information, and it would stall every "build it" request.
 - **Two layers: the work loop and the handoff** (human, 2026-10-12). Inside the loop, agents check each other and their output is working material for the lead. Evidence for the human is gathered at handoff by a final inspector pass on the finished work, because review repairs can invalidate anything captured earlier. No new role: gathering evidence is observation, and presenting it belongs to the lead or `operator/pr`.
