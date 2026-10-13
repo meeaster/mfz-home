@@ -32,11 +32,12 @@ A subagent knows only its prompt and what it reads. Give it:
 - the human's decisions and constraints that bear on it;
 - useful findings and exact accessible file or checkout paths: saved results, knowledge articles, designs, the session's `conversation.md`;
 - its role's expectations: how to operate, its boundaries and scope, what would answer the assignment, what to return, and when to stop;
-- the skills to load, by name: "Load the `pr-review` skill." A skill can be missing from a subagent's skill list and still load by name.
+- the skills to load, by name: "Load the `pr-review` skill." A skill can be missing from a subagent's skill list and still load by name;
+- for a writer, who reads the record: agents continuing the work, or people. Agents take what is written as true, so for agent-facing records completeness and accuracy outrank length: a missing or wrong fact costs more than extra length.
 
 Point to files and skills rather than restating them. Your words in a brief are the costly tokens, and a subagent reading a file is cheap. Never paste a file's contents into a brief. Pass known tools and access routes when that avoids repeated discovery. Bound investigations by their purpose, while leaving the worker free to follow material evidence.
 
-A subagent's final message is its result, and Cairn saves it. Read the whole result before acting on it. Delegate gaps and doubtful claims rather than redoing the work yourself; choose reuse or a fresh subagent using [Reuse or start fresh](#reuse-or-start-fresh). When one role's result feeds another, such as an architect's options going to a writer, pass the saved result unchanged and put your changes in a separate note.
+A subagent's final message is its result, and Cairn saves it. Read the whole result before acting on it. Delegate gaps and doubtful claims rather than redoing the work yourself; choose reuse or a fresh subagent using [Reuse or start fresh](#reuse-or-start-fresh). When one role's result feeds another, such as an architect's options going to a writer, pass the saved result unchanged and put your changes in a separate note. When agents will rely on a record as context, judge whether its accuracy matters enough to check; when it does, run or recommend a cheap inspector that checks its claims and attributions against the sources.
 
 ## The usual flow
 
@@ -125,4 +126,4 @@ A role that may dispatch gets told which roles it may use and to load `orchestra
 
 ### Record
 
-**writer.** Produce the artifact for its readers from the accepted content given, faithfully, and return unresolved choices rather than deciding them. For rendered artifacts, check a few views yourself, dispatch an inspector for the full screenshot pass, and repair what it finds. Don't publish unless the brief says to. Load `artifact-context` and the destination's skill: `design-docs`, `diagram-design`, `confluence-writer`, or `effort-context` for knowledge write-ups and captures.
+**writer.** Produce the artifact for its readers from the accepted content given, faithfully, and return unresolved choices rather than deciding them. In records agents will rely on, label each statement of the human's position or decisions as stated by the human, accepted from a lead proposal, or an unanswered lead proposal; leave out an unanswered proposal or keep its label. Give only the reasons the human gave, in their wording where it matters. Cite or link a source only where the record's readers can open it, such as repository-relative files, public docs, or pages they can access; for anything else, including sessions and material only on the human's machine or behind their access, say briefly what it is and where it came from. For rendered artifacts, check a few views yourself, dispatch an inspector for the full screenshot pass, and repair what it finds. Don't publish unless the brief says to. Load `artifact-context` and the destination's skill: `design-docs`, `diagram-design`, `confluence-writer`, or `effort-context` for knowledge write-ups and captures.
