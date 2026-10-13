@@ -6,6 +6,8 @@
 // reachable from WSL. Instead of a port proxy or firewall rule, each connection to WSL
 // 127.0.0.1:<port> is bridged through a Windows node.exe launched over WSL interop, which
 // dials Windows 127.0.0.1:<port>. Nothing listens on a network interface.
+// Start Desktop before binding the WSL relay: localhost forwarding can otherwise claim the
+// Windows port and route the bridge back to the WSL listener.
 //
 // Windows node.exe is taken from mise's install directory, never from its shims: running a
 // Windows mise shim from WSL triggers a full install of the Windows toolset.
@@ -129,12 +131,43 @@ function runningRelayPid(port) {
 /** Resolves with the DevTools version payload, or undefined when nothing answers. */
 async function probe(port) {
   try {
-    const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(5_000) });
+    const response = await fetch(`http://127.0.0.1:${port}/json/version`, { signal: AbortSignal.timeout(20_000) });
 
     return response.ok ? await response.json() : undefined;
   } catch {
     return undefined;
   }
+}
+
+function probeWindows(port) {
+  try {
+    const response = powershell(`
+try {
+  $version = Invoke-RestMethod -Uri 'http://127.0.0.1:${port}/json/version' -TimeoutSec 3 -ErrorAction Stop
+  $version | ConvertTo-Json -Compress
+} catch {}
+    `);
+
+    return response ? JSON.parse(response) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function waitForWindowsEndpoint(port, timeoutMs) {
+  const deadline = Date.now() + timeoutMs;
+
+  while (Date.now() < deadline) {
+    const version = probeWindows(port);
+
+    if (version) {
+      return version;
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, 1_000));
+  }
+
+  return undefined;
 }
 
 async function waitForEndpoint(port, timeoutMs) {
@@ -161,6 +194,69 @@ function launchDesktop(port) {
 
 function desktopRunning() {
   return powershell("@(Get-Process -Name OpenCode -ErrorAction SilentlyContinue).Count") !== "0";
+}
+
+function windowsPortState(port) {
+  const result = powershell(`
+$port = ${port}
+$portproxyRules = @()
+foreach ($type in @('v4tov4', 'v4tov6', 'v6tov4', 'v6tov6')) {
+  $output = & netsh.exe interface portproxy show $type 2>$null
+  foreach ($line in $output) {
+    if ($line -match '^\\s*(\\S+)\\s+(\\d+)\\s+(\\S+)\\s+(\\d+)\\s*$') {
+      if ([int]$Matches[2] -eq $port) {
+        $portproxyRules += [pscustomobject]@{
+          type = $type
+          listenAddress = $Matches[1]
+        }
+      }
+    }
+  }
+}
+$listeners = @(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue | ForEach-Object {
+  $owner = Get-Process -Id $_.OwningProcess -ErrorAction SilentlyContinue
+  [pscustomobject]@{
+    address = $_.LocalAddress
+    pid = $_.OwningProcess
+    process = if ($owner) { $owner.ProcessName } else { $null }
+  }
+})
+[pscustomobject]@{
+  portproxyRules = @($portproxyRules)
+  listeners = @($listeners)
+} | ConvertTo-Json -Compress -Depth 3
+  `);
+
+  return JSON.parse(result);
+}
+
+function assertWindowsPortAvailable(port) {
+  const { listeners, portproxyRules } = windowsPortState(port);
+  const conflicts = [];
+
+  for (const rule of portproxyRules) {
+    conflicts.push(
+      `portproxy rule ${rule.type} holds Windows port ${rule.listenAddress}:${port}. ` +
+        `Remove it from an elevated PowerShell with: netsh interface portproxy delete ${rule.type} ` +
+        `listenaddress=${rule.listenAddress} listenport=${port}`,
+    );
+  }
+
+  for (const listener of listeners) {
+    if (listener.process?.toLowerCase() === "opencode") {
+      continue;
+    }
+
+    const owner = listener.process ? `${listener.process}.exe (PID ${listener.pid})` : `unknown process (PID ${listener.pid})`;
+    conflicts.push(
+      `Windows TCP listener on port ${port} (address ${listener.address}) is owned by ${owner}. ` +
+        "Stop the owning process/service or rerun with an unused --port.",
+    );
+  }
+
+  if (conflicts.length > 0) {
+    throw new Error(`Windows debug port ${port} is unavailable:\n${conflicts.map((conflict) => `  - ${conflict}`).join("\n")}`);
+  }
 }
 
 /** Foreground relay; `start` runs this detached. */
@@ -194,10 +290,33 @@ function relay(port) {
 }
 
 async function start(port) {
-  mkdirSync(STATE_DIR, { recursive: true });
+  assertWindowsPortAvailable(port);
+  const relayAlreadyRunning = runningRelayPid(port) !== undefined;
 
-  if (runningRelayPid(port) === undefined) {
+  if (!relayAlreadyRunning) {
     findWindowsNode();
+  }
+
+  let version = probeWindows(port);
+
+  if (!version) {
+    if (desktopRunning()) {
+      throw new Error(
+        `OpenCode Desktop is running without remote debugging on port ${port}. Quit it, then rerun start; ` +
+          "a second launch only hands its arguments to the running instance.",
+      );
+    }
+
+    launchDesktop(port);
+    version = await waitForWindowsEndpoint(port, LAUNCH_TIMEOUT_MS);
+  }
+
+  if (!version) {
+    throw new Error(`Windows DevTools endpoint did not answer on port ${port}; OpenCode Desktop did not open its debugging port`);
+  }
+
+  if (!relayAlreadyRunning) {
+    mkdirSync(STATE_DIR, { recursive: true });
 
     const log = openSync(logFile(port), "a");
 
@@ -211,22 +330,10 @@ async function start(port) {
     await new Promise((resolve) => setTimeout(resolve, 500));
   }
 
-  let version = await probe(port);
+  version = await waitForEndpoint(port, LAUNCH_TIMEOUT_MS);
 
   if (!version) {
-    if (desktopRunning()) {
-      throw new Error(
-        `OpenCode Desktop is running without remote debugging on port ${port}. Quit it, then rerun start; ` +
-          "a second launch only hands its arguments to the running instance.",
-      );
-    }
-
-    launchDesktop(port);
-    version = await waitForEndpoint(port, LAUNCH_TIMEOUT_MS);
-  }
-
-  if (!version) {
-    throw new Error(`DevTools endpoint did not answer on port ${port}; see ${logFile(port)}`);
+    throw new Error(`DevTools endpoint did not answer through the WSL relay on port ${port}; see ${logFile(port)}`);
   }
 
   console.log(`ready: ${version["User-Agent"]}`);
