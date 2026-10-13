@@ -5,7 +5,7 @@ instructions:
 instruction_references:
   - name: browser
     path: instructions/BROWSER.md
-    description: Frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
+    description: Before any task involving a browser, including opening a page for the user to view, frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
   - name: personal-knowledge
     path: instructions/PERSONAL_KNOWLEDGE.md
     description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity

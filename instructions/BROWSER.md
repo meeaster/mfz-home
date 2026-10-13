@@ -31,3 +31,14 @@
 - **Behavior:** Verify the rendered content at `http://localhost:<port>/<file>`.
 - **Behavior:** Reuse an appropriate existing development server and preserve servers started by others.
 - **Behavior:** Track servers you start; leave them running with their URLs when needed for user inspection, otherwise stop them when finished.
+
+## Opening a page for the user
+
+- **Tool:** When the user asks to open or view a local HTML page, run a server for its directory in the background, then open the URL in their default browser. Don't open `file://` paths or copy the page elsewhere; they don't open reliably from WSL.
+
+  ```sh
+  python3 -m http.server <port> --bind 127.0.0.1 --directory <absolute-content-directory>
+  xdg-open http://127.0.0.1:<port>/<file>
+  ```
+
+- **Behavior:** Leave the server running and reply with the URL.
