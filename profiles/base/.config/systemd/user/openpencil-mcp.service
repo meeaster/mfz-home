@@ -1,0 +1,18 @@
+[Unit]
+Description=OpenPencil MCP server in WSL
+After=network.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:%h/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+Environment=PORT=7600
+Environment=OPENPENCIL_MCP_AUTH_TOKEN=
+Environment=OPENPENCIL_MCP_APP_TIMEOUT_MS=0
+Environment=OPENPENCIL_MCP_DISCOVERY_PATH=/mnt/c/Users/Mark.Easterly/AppData/Local/OpenPencil/mcp.json
+ExecStart=%h/.local/share/mise/shims/openpencil-mcp-http
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

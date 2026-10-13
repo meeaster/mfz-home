@@ -85,7 +85,7 @@ skills:
     commit: ca7c8088db69e315a8b2deea43820270457f8f3c
     digest: 1126dfee31e388e2b0e78520606721b760ddf8e294cd24c87cc7934695373f1f
   open-pencil:
-    commit: 5a1f5aa9efcd9f10f37ec4516b6848f0ffab7817
+    commit: d354e0957a4cb429dd857ddecbd302efcb403cb3
     digest: 2c1019c12ff882b1c067a7091098c6969bd442aa373eb88f254d009286754a62
   transitions-dev:
     commit: e2d5551656e4d3274e075d1cbd9a95af50f53225

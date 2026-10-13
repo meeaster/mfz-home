@@ -132,10 +132,10 @@ servers:
     transport: http
     url: http://127.0.0.1:29980/mcp
   openpencil:
-    description: OpenPencil design editor MCP trial endpoint.
+    description: OpenPencil design editor MCP server running in WSL.
     type: remote
     transport: http
-    url: http://127.0.0.1:7601/mcp
+    url: http://127.0.0.1:7600/mcp
   cairn:
     description: Cairn artifact catalog of efforts, sessions, and the files they produce.
     type: local
