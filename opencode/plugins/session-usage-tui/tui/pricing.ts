@@ -67,7 +67,7 @@ export function aggregateCost(
     const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
     const providerID = alias?.providerID ?? usage.providerID;
     const modelID = alias?.modelID ?? usage.modelID;
-    const model = materializeModels(priceCatalog[providerID]?.models ?? {})[modelID];
+    const model = providerModels(priceCatalog, providerID)[modelID];
     const rates = model && ratesFor(model, usage);
 
     if (!rates) {
@@ -89,6 +89,27 @@ export function aggregateCost(
   }
 
   return { costs: [...costs.values()].sort((left, right) => right.amount - left.amount), unpriced };
+}
+
+// Each catalog is materialized once per provider, not once per priced step.
+const materialized = new WeakMap<Catalog, Map<string, Record<string, Model>>>();
+
+function providerModels(priceCatalog: Catalog, providerID: string) {
+  let providers = materialized.get(priceCatalog);
+
+  if (!providers) {
+    providers = new Map();
+    materialized.set(priceCatalog, providers);
+  }
+
+  let models = providers.get(providerID);
+
+  if (!models) {
+    models = materializeModels(priceCatalog[providerID]?.models ?? {});
+    providers.set(providerID, models);
+  }
+
+  return models;
 }
 
 export function materializeModels(models: Record<string, Model>): Record<string, Model> {
