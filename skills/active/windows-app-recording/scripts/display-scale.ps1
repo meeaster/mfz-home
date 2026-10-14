@@ -22,7 +22,7 @@ public static class Dpi {
   [DllImport("user32.dll")] public static extern int DisplayConfigSetDeviceInfo(ref SetScale p);
   [StructLayout(LayoutKind.Sequential)] public struct RECT { public int L, T, R, B; }
   [StructLayout(LayoutKind.Sequential)] public struct MONITORINFO { public int Size; public RECT Monitor; public RECT Work; public uint Flags; }
-  [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll")] public static extern bool SetProcessDpiAwarenessContext(IntPtr c);
   [DllImport("user32.dll")] public static extern IntPtr MonitorFromPoint(long pt, uint f);
   [DllImport("user32.dll")] public static extern bool GetMonitorInfo(IntPtr m, ref MONITORINFO i);
 }
@@ -60,7 +60,9 @@ if ($Set) {
   Start-Sleep -Milliseconds 500
   $s = Read-Scale
 }
-[void][Dpi]::SetProcessDPIAware()
+# Per-monitor awareness reads physical pixels at the current scale; plain SetProcessDPIAware keeps the scale the
+# process started with, so the work area came out halved after switching from 125% to 250%.
+[void][Dpi]::SetProcessDpiAwarenessContext([IntPtr]::new(-4))   # PER_MONITOR_AWARE_V2
 $mi = New-Object Dpi+MONITORINFO; $mi.Size = [Runtime.InteropServices.Marshal]::SizeOf($mi)
 [void][Dpi]::GetMonitorInfo([Dpi]::MonitorFromPoint(0, 1), [ref]$mi)   # primary monitor holds (0,0)
 "current={0} recommended={1} min={2} max={3} work={4}x{5}" -f $s.Cur, $s.RecPct, $s.Min, $s.Max, ($mi.Work.R - $mi.Work.L), ($mi.Work.B - $mi.Work.T)
