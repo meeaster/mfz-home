@@ -1,1 +1,4 @@
 minimumReleaseAge: 1440
+# OpenPencil's MCP server is pinned exactly in profiles/base/mise.toml and tracks the editor's beta releases.
+minimumReleaseAgeExclude:
+  - "@open-pencil/*"
