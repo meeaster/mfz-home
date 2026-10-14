@@ -67,8 +67,6 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   open-pencil-drive:
     agents: { opencode: true, claude-code: true, codex: false }
-  windows-app-recording:
-    agents: { opencode: true, claude-code: true, codex: false }
 mcp:
   x-docs:
     agents: [opencode, claude-code, codex]

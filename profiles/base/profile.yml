@@ -84,6 +84,8 @@ skills:
     agents: { opencode: false, claude-code: true, codex: true }
   browser-control:
     agents: { opencode: true, claude-code: true, codex: true }
+  windows-app-recording:
+    agents: { opencode: true, claude-code: true, codex: false }
   terminal-control:
     agents: { opencode: true, claude-code: true, codex: true }
   fframes-video:
