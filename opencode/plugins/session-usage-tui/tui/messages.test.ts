@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { loadFamilyMessages, loadSessionMessages, pricingUsage } from "./messages.js";
+import { loadSessionMessages, pricingUsage } from "./messages.js";
 
 describe("pricingUsage", () => {
   it("adapts a completed current V2 assistant message", () => {
@@ -61,25 +61,5 @@ describe("pricingUsage", () => {
 
     // SAFETY: The mock implements the subset of the generated client used by this test.
     await expect(loadSessionMessages(client as never, "one")).rejects.toThrow("repeated cursor");
-  });
-
-  it("loads complete pages for every currently known family session", async () => {
-    const calls: string[] = [];
-
-    const client = {
-      message: {
-        async list(input: { sessionID: string; cursor?: string }) {
-          calls.push(`${input.sessionID}:${input.cursor ?? "first"}`);
-
-          return input.cursor
-            ? { data: [{ type: "assistant" }], cursor: {} }
-            : { data: [{ type: "user" }], cursor: { next: `${input.sessionID}-next` } };
-        },
-      },
-    };
-
-    // SAFETY: The mock implements the subset of the generated client used by this test.
-    expect(await loadFamilyMessages(client as never, ["root", "child"])).toHaveLength(4);
-    expect(calls).toEqual(["root:first", "child:first", "root:root-next", "child:child-next"]);
   });
 });

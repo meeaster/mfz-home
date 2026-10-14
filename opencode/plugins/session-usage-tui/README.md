@@ -50,8 +50,10 @@ development peers. The SDK import is type-only; OpenCode provides the Solid and 
 TUI host. The SDK's theme type doesn't resolve here, so typecheck doesn't catch a wrong theme color name: compare
 them with `ResolvedThemeTokens` in OpenCode's `packages/theme/src/tui/types.ts`.
 
-It loads every family session's messages through the paginated `ctx.client.message.list` API, and reloads them on
-usage, execution, revert, compaction, model, and family events. Running state comes from `ctx.data.session.status`,
+It loads every family session's messages through the paginated `ctx.client.message.list` API once, keeping only the
+fields it reads, and recomputes on usage, execution, revert, compaction, model, and family events. An event marks its
+session to be read again from its latest assistant message, newest first, since only that message, any later ones,
+and a running compaction can still change. If that message is gone after a revert, the session is read in full. Running state comes from `ctx.data.session.status`,
 titles from `ctx.data.session.get`, and context windows from `ctx.data.location.model.list`.
 
 The root `index.ts` and `tui.tsx` files are the V2 local-plugin directory entry points. `tui.tsx` re-exports the

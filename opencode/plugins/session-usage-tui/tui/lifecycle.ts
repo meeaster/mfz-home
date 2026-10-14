@@ -1,6 +1,7 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
-import { familyPricingUsages, loadFamilySessionMessages, pricingUsage } from "./messages.js";
+import { createMessageCache, type MessageCache } from "./message-cache.js";
+import { familyPricingUsages, pricingUsage } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
 import type { ModelAliases } from "./models.js";
 import { sessionUsage, type SessionUsage } from "./usage.js";
@@ -25,6 +26,11 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   let currentSessionID: string | undefined;
   let failed = false;
   let familyIDs = new Set(options.context.data.session.family(options.sessionID()));
+  const cache = createMessageCache(options.context.client);
+
+  const estimate = options.estimate ?? (
+    (context: Context, sessionID: string, modelAliases: ModelAliases) => estimateCost(context, sessionID, modelAliases, cache)
+  );
 
   const refresh = (sessionID = options.sessionID()) => {
     familyIDs = new Set(options.context.data.session.family(sessionID));
@@ -37,7 +43,7 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     failed = false;
     options.setError(undefined);
     timer = setTimeout(() => {
-      void (options.estimate ?? estimateCost)(options.context, sessionID, options.modelAliases ?? {}).then(
+      void estimate(options.context, sessionID, options.modelAliases ?? {}).then(
         (value) => active && current === generation && options.setEstimate(value),
         (reason: RejectionReason) => {
           if (!active || current !== generation) return;
@@ -53,10 +59,20 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     familyIDs.has(sessionID) || options.context.data.session.family(options.sessionID()).includes(sessionID)
   );
 
+  // Refreshes for an event on a family session, marking that session's messages for reading again.
+  const changed = (sessionID: string) => {
+    if (!belongs(sessionID)) return;
+
+    cache.invalidate(sessionID);
+    refresh();
+  };
+
   const cleanups = [
-    options.context.data.on("session.usage.updated", (event) => belongs(event.data.sessionID) && refresh()),
-    options.context.data.on("session.execution.succeeded", (event) => belongs(event.data.sessionID) && refresh()),
-    options.context.data.on("session.revert.committed", (event) => belongs(event.data.sessionID) && refresh()),
+    options.context.data.on("session.usage.updated", (event) => changed(event.data.sessionID)),
+    options.context.data.on("session.execution.succeeded", (event) => changed(event.data.sessionID)),
+    options.context.data.on("session.execution.failed", (event) => changed(event.data.sessionID)),
+    options.context.data.on("session.execution.interrupted", (event) => changed(event.data.sessionID)),
+    options.context.data.on("session.revert.committed", (event) => changed(event.data.sessionID)),
     options.context.data.on("session.created", (event) => {
       if (belongs(event.data.sessionID) || (event.data.parentID && belongs(event.data.parentID))) refresh();
     }),
@@ -65,7 +81,8 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
     }),
     options.context.data.on("session.deleted", (event) => belongs(event.data.sessionID) && refresh()),
     options.context.data.on("session.model.selected", (event) => belongs(event.data.sessionID) && refresh()),
-    options.context.data.on("session.compaction.ended", (event) => belongs(event.data.sessionID) && refresh())
+    options.context.data.on("session.compaction.ended", (event) => changed(event.data.sessionID)),
+    options.context.data.on("session.compaction.failed", (event) => changed(event.data.sessionID))
   ];
 
   return {
@@ -81,13 +98,18 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   };
 }
 
-async function estimateCost(context: Context, sessionID: string, modelAliases: ModelAliases): Promise<UsageEstimate> {
+async function estimateCost(
+  context: Context,
+  sessionID: string,
+  modelAliases: ModelAliases,
+  cache: MessageCache
+): Promise<UsageEstimate> {
   const [priceCatalog, sessionIDs] = await Promise.all([
     loadCatalog(),
     Promise.resolve(context.data.session.family(sessionID))
   ]);
 
-  const familyMessages = await loadFamilySessionMessages(context.client, sessionIDs);
+  const familyMessages = await cache.load(sessionIDs);
   const usages = familyPricingUsages(familyMessages, sessionID, descendantsOf(context, sessionID, sessionIDs));
 
   const sessions = Object.fromEntries(familyMessages.map(({ sessionID: id, messages }) => {

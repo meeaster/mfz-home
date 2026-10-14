@@ -129,9 +129,12 @@ describe("session cost lifecycle", () => {
     for (const type of [
       "session.usage.updated",
       "session.execution.succeeded",
+      "session.execution.failed",
+      "session.execution.interrupted",
       "session.revert.committed",
       "session.model.selected",
-      "session.compaction.ended"
+      "session.compaction.ended",
+      "session.compaction.failed"
     ]) {
       test.handlers.get(type)?.({ data: { sessionID: "child" } });
       await vi.advanceTimersByTimeAsync(10);
@@ -143,7 +146,7 @@ describe("session cost lifecycle", () => {
     await vi.advanceTimersByTimeAsync(10);
     test.handlers.get("session.deleted")?.({ data: { sessionID: "child" } });
     await vi.advanceTimersByTimeAsync(10);
-    expect(estimate).toHaveBeenCalledTimes(8);
+    expect(estimate).toHaveBeenCalledTimes(11);
   });
 
   it("invalidates when a child is removed before the deletion listener runs", async () => {
@@ -177,7 +180,7 @@ describe("session cost lifecycle", () => {
     test.lifecycle.cleanup();
     await vi.runAllTimersAsync();
     expect(estimate).not.toHaveBeenCalled();
-    expect(test.cleanups).toHaveLength(8);
+    expect(test.cleanups.toSorted()).toEqual([...test.handlers.keys()].toSorted());
   });
 
   it("never leaves a prior estimate current after failure", async () => {
