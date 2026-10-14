@@ -2,13 +2,17 @@
 #   "x y width height clientX clientY"
 # The rectangle is the window's visible frame, trimmed to its monitor's work area so the taskbar stays out;
 # clientX/clientY is the top-left of the window's content area (below the title bar).
+# -Title picks the process's window with exactly that title instead of its main window (Windows Terminal runs
+# every window in one process).
 # Exits 3 when Windows refuses to bring the window to the front (focus-stealing protection), since a covered
 # window would be recorded as whatever is on top of it.
-param([Parameter(Mandatory)][string]$Name)
+param([Parameter(Mandatory)][string]$Name, [string]$Title)
 Add-Type @"
 using System; using System.Runtime.InteropServices;
 public static class Win {
   [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+  [DllImport("user32.dll", CharSet = CharSet.Unicode)] public static extern IntPtr FindWindow(string c, string t);
+  [DllImport("user32.dll")] public static extern uint GetWindowThreadProcessId(IntPtr h, out uint pid);
   [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
   [DllImport("user32.dll")] public static extern IntPtr GetForegroundWindow();
   [DllImport("user32.dll")] public static extern void mouse_event(uint f, int dx, int dy, uint d, UIntPtr e);
@@ -24,9 +28,16 @@ public static class Win {
 }
 "@
 [void][Win]::SetProcessDPIAware()
-$p = Get-Process -Name $Name -ErrorAction Stop | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
-if (-not $p) { throw "no window for process $Name" }
-$h = $p.MainWindowHandle
+if ($Title) {
+  # A plain $null would reach FindWindow as "" and match no class.
+  $h = [Win]::FindWindow([NullString]::Value, $Title)
+  $owner = 0; [void][Win]::GetWindowThreadProcessId($h, [ref]$owner)
+  if ($h -eq [IntPtr]::Zero -or (Get-Process -Id $owner).ProcessName -ne $Name) { throw "no $Name window titled '$Title'" }
+} else {
+  $p = Get-Process -Name $Name -ErrorAction Stop | Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+  if (-not $p) { throw "no window for process $Name" }
+  $h = $p.MainWindowHandle
+}
 [void][Win]::ShowWindow($h, 9)   # restore if minimized
 # A synthetic zero-distance mouse move makes this process the last input source, which Windows requires before
 # it lets a background process change the foreground window. (A synthetic Alt press also works but leaves the
