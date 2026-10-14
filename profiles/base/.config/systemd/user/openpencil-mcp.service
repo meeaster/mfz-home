@@ -10,6 +10,8 @@ Environment=PORT=7600
 Environment=OPENPENCIL_MCP_AUTH_TOKEN=
 Environment=OPENPENCIL_MCP_APP_TIMEOUT_MS=0
 Environment=OPENPENCIL_MCP_DISCOVERY_PATH=/mnt/c/Users/Mark.Easterly/AppData/Local/OpenPencil/mcp.json
+# Machine-local overrides, such as a different Windows user's discovery path; values here win.
+EnvironmentFile=-%h/.config/openpencil-mcp.env
 ExecStart=%h/.local/share/mise/shims/openpencil-mcp-http
 Restart=on-failure
 RestartSec=5

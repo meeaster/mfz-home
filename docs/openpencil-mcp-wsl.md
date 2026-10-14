@@ -6,6 +6,14 @@ The Personal base mise profile pins `@open-pencil/mcp` to `0.16.0-beta.3`. The s
 
 ## Install and start the service
 
+The unit writes discovery metadata for the Windows user `Mark.Easterly`. On a machine with a different Windows user, set the path in the machine-local `~/.config/openpencil-mcp.env`, which overrides the unit:
+
+```sh
+printf 'OPENPENCIL_MCP_DISCOVERY_PATH=%s\n' \
+  "$(wslpath -u "$(powershell.exe -NoProfile -Command '$env:LOCALAPPDATA' | tr -d '\r')")/OpenPencil/mcp.json" \
+  > ~/.config/openpencil-mcp.env
+```
+
 Run these commands from WSL after changing the mise or systemd source files:
 
 ```sh
@@ -37,6 +45,11 @@ Invoke-RestMethod http://127.0.0.1:7600/health
 ```
 
 `status: "no_app"` means the MCP server is running but OpenPencil has not attached. `status: "ok"` means the editor bridge is connected.
+
+## Troubleshooting
+
+- **Windows can't reach `127.0.0.1:7600`, but WSL can.** Another Windows process (an earlier Windows MCP server, or a `netsh interface portproxy` rule for the port) blocks WSL localhost forwarding, and forwarding may stay off after that process is gone. Stop the process or remove the rule, then bind the port again from WSL: `systemctl --user restart openpencil-mcp.service`. If that doesn't help, stop the service, briefly listen on the port with another server (`python3 -m http.server 7600 --bind 127.0.0.1`), then start the service again.
+- **`status: "no_app"` and OpenPencil doesn't say "managed externally".** OpenPencil checks `http://127.0.0.1:7600/health` only when it starts its MCP connection. After the WSL server becomes reachable, click **Restart** in OpenPencil's **Settings → MCP**, or relaunch the app.
 
 ## OpenCode connection
 
