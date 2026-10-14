@@ -16,6 +16,7 @@ Success: titles and bodies that read well for a reviewer, links that resolve to 
 - **Refresh an existing PR** after new commits: reconciles title and body with the full branch, posts a follow-up comment, keeps draft or ready status.
 - **"Create a PR and merge it"**: ready PR, waits for all reported CI checks, merges through the normal path; pending or failed CI blocks the merge.
 - **Links**: `#123` and `OWNER/REPO#123` for issues, full GitHub URLs for files, commit-pinned URLs for line evidence, explicit URLs for Jira keys when autolinks are unknown; `Refs` vs closing keywords chosen deliberately; no invented IDs; titles stay plain text.
+- **Screenshots or video**: references each image in the body file at its place and attaches the same path with `--attach`, so nothing is committed to the branch; media shows the change, not testing; a partial upload failure is fixed with `gh pr edit`, not a second `gh pr create`.
 
 ## Decisions
 
@@ -23,8 +24,11 @@ Success: titles and bodies that read well for a reviewer, links that resolve to 
 - **The request authorizes the named GitHub write**, so creating or updating doesn't wait for text approval. Merging still requires passing CI and the normal merge path, never an administrative bypass.
 - **Full GitHub URLs for repository files** (2026-08-11). Relative paths in PR conversation text can resolve against the conversation URL instead of the feature branch.
 
+- **Media guidance lives here, not in workflows that gather evidence** (human, 2026-10-12). Agents didn't know `gh` gained `--attach`; this skill runs the commands, so the fact belongs where it is used, and `verification` or `orchestrate` only pass media paths. Formats and size limits are left to `gh --help` because they change.
+
 ## Sources
 
 | Source | Revision | Local use |
 |---|---|---|
 | GitHub docs: [basic formatting](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax), [autolinked references](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/autolinked-references-and-urls), [permanent code links](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-a-permanent-link-to-a-code-snippet), [linking PRs to issues](https://docs.github.com/en/issues/tracking-your-work-with-issues/using-issues/linking-a-pull-request-to-an-issue) | read 2026-08-11, unpinned | Link and closing-keyword rules. When GitHub changes rendering, recheck the rendered body, not just the draft |
+| [GitHub changelog: media in issues, PRs and comments](https://github.blog/changelog/2026-09-01-github-cli-media-in-issues-pull-requests-and-comments), [Attaching files with GitHub CLI](https://docs.github.com/en/github-cli/github-cli/attaching-files-with-github-cli), `gh` 2.102.0 `--help` | read 2026-10-12 | `--attach` usage, body-reference rewriting, partial-failure behavior, auth and GHES limits |

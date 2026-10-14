@@ -77,6 +77,8 @@ EOF
 )"
 ```
 
+When the body or comment carries images or video, publish it with `gh` and `--attach` instead; see [Images and video](#images-and-video).
+
 For a merge request, check CI and then use the repository's normal merge path:
 
 ```bash
@@ -148,6 +150,26 @@ Add only when they cut the reviewer's reconstruction work, with one sentence say
 - **mermaid** — async flows, queues, retries, state transitions, multi-service interaction.
 - **review order** — broad, generated, or layered diffs: where to start.
 - **rollout/migration note** — when adopters or operators must adjust.
+- **screenshot or short video** — a change the reviewer would otherwise have to run to see: UI, terminal output, a flow. A before/after pair when the change is visual. Show the change itself, not proof that it was tested.
+
+## Images and video
+
+`gh` (v2.99.0 or later) uploads local images and video to GitHub with `--attach` on `gh pr create`, `gh pr edit`, and `gh pr comment`. GitHub hosts the file, so nothing gets committed to the branch. Check `gh pr create --help` for supported formats and limits.
+
+- Write the body to a file and reference each image at its place in the text with the exact path you pass to `--attach`: `![The login error state](./shots/login.png)`. `gh` replaces that path with the uploaded file's URL. Any attached file the body doesn't reference is appended at the end.
+- Give images alt text that says what the reader should see. Video plays inline and takes no alt text.
+- When refreshing a PR whose body already shows uploaded media, keep the existing GitHub URLs for media that hasn't changed and attach only new or replaced files.
+- If some uploads fail, the PR is still created or updated with the ones that worked, `gh` exits non-zero, and it prints the PR URL. Open the PR and fix it with `gh pr edit`; rerunning `gh pr create` opens a duplicate.
+- Attaching needs write access to the repository and the token from `gh auth login` or a classic personal access token. GitHub Enterprise Server isn't supported; there, describe the change in text.
+
+```bash
+gh pr create --title "<title>" --body-file body.md \
+  --attach './shots/login.png#The login error state' --attach ./shots/flow.mp4
+
+gh pr edit <N> --title "<title>" --body-file body.md --attach ./shots/after.png
+
+gh pr comment <N> --body-file comment.md --attach ./shots/fixed.png
+```
 
 ## Default body shape
 
