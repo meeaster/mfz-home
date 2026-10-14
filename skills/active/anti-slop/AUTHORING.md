@@ -12,6 +12,7 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 
 - **Ordinary JS/TS change** without mentioning anti-slop: loads the preflight before editing, runs the checkpoint once after the batch on the changed files (disjoint files stay separate, not widened to a common ancestor), reruns after fixes.
 - **Non-JS change**: doesn't load or run it.
+- **Throwaway agent script**, such as a Node script in a temp directory written to inspect data or drive a tool: doesn't load or run it.
 - **Explicit "run anti-slop on this directory"**: all pinned rules at error severity, known violations reported, target unchanged.
 - **Effect codebase**: `--effect` enables the Effect rules for the whole invocation; without it they stay off regardless of the target's dependencies.
 - **Readable-spacing findings during authorized implementation**: uses `--fix-spacing` instead of hand-editing, inspects the diff, handles remaining findings.
@@ -28,6 +29,7 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 - **Effect rules behind `--effect`** (human, 2026-08-19), so codebases that don't use Effect don't inherit its architecture policy. The checks are syntactic, not proof that code uses Effect.
 - **Suppressions fail the checkpoint** (human, 2026-08-20). An agent added a file-level `oxlint-disable` that silently bypassed the rules; the human considers them rules agents must follow.
 - **`--fix-spacing` is the only writing mode** (2026-09-10). Agents spent edits reproducing a mechanical spacing fix by hand. The fix pass gets a configuration with only the spacing rule, and always runs after a read-only pass under existing edit authority. The launcher prints a one-line stderr hint on spacing findings to steer agents to it. General `--fix`, `--config`, and other passthrough flags stay unsupported so the launcher can't drift into a general Oxlint front end with different policy.
+- **Project files only** (human, 2026-10-13). Agents were running it on throwaway scripts they wrote for themselves in temp directories; the human doesn't care how those look.
 - **Validate every operand before doing anything**, so a bad later path never produces a partial scan or partial fix. Operands go to Oxlint in their original order and are never widened to a common ancestor.
 - **The vendored plugin isn't held to its own rules.** Its ESTree boundary code legitimately uses `unknown`, `typeof`, and assertions, and upstream excludes it from linting too. Report this as an intended exclusion; don't patch upstream bytes to silence it.
 

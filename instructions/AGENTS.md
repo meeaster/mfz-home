@@ -68,5 +68,6 @@ opencode api post /api/session/<sessionID>/compact --data '{}'
 
 ## JavaScript and TypeScript
 
-- **Tool:** Load `anti-slop` before editing JavaScript or TypeScript and run its final check on the changed source and test files, including delegated changes.
+- **Tool:** Load `anti-slop` before editing JavaScript or TypeScript project files and run its final check on the changed source and test files, including delegated changes.
+- **Behavior:** Skip `anti-slop` for throwaway files agents create for their own work, such as scripts in temporary directories or one-off helpers that are not part of a project.
 - **Behavior:** Complete the anti-slop checkpoint without in-scope diagnostics or suppressions; follow the skill's scope and verification rules.

@@ -35,9 +35,10 @@ skills:
     source: local
     skill: skills/active/anti-slop
     description: >
-      Load concise preflight guidance before JavaScript or TypeScript edits,
-      then run the pinned upstream anti-slop Oxlint rules read-only as the final
-      checkpoint or when explicitly requested.
+      Load concise preflight guidance before JavaScript or TypeScript project
+      edits, then run the pinned upstream anti-slop Oxlint rules read-only as the
+      final checkpoint or when explicitly requested. Not for throwaway agent
+      scripts outside a project.
   - name: development-principles
     source: local
     skill: skills/active/development-principles

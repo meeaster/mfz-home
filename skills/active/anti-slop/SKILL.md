@@ -1,6 +1,6 @@
 ---
 name: anti-slop
-description: Load before JavaScript or TypeScript edits for concise anti-slop preflight guidance, then use as the final verification checkpoint or when explicitly asked for diagnostics. Run the pinned rules read-only against the narrowest relevant files or directories.
+description: Load before JavaScript or TypeScript project edits for concise anti-slop preflight guidance, then use as the final verification checkpoint or when explicitly asked for diagnostics. Run the pinned rules read-only against the narrowest relevant files or directories. Not for throwaway agent scripts outside a project.
 ---
 
 # Anti-slop
