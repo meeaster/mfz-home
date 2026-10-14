@@ -61,6 +61,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   home-assistant-best-practices:
     agents: { opencode: false, claude-code: false, codex: false }
+  open-pencil:
+    agents: { opencode: true, claude-code: true, codex: false }
 mcp:
   x-docs:
     agents: [opencode, claude-code, codex]
@@ -80,6 +82,8 @@ mcp:
     agents: [opencode]
   pencil:
     agents: [opencode, claude-code, codex]
+  openpencil:
+    agents: [opencode, claude-code]
 claude:
   settings:
     permissions:
