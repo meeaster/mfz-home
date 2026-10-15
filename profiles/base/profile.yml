@@ -3,6 +3,9 @@ description: Shared base config for all profiles.
 instructions:
   - instructions/AGENTS.md
 instruction_references:
+  - name: video-editing
+    path: instructions/VIDEO_EDITING.md
+    description: Before FFmpeg video processing or encoding, or Psychopomp or fframes rendering
   - name: browser
     path: instructions/BROWSER.md
     description: Before any task involving a browser, including opening a page for the user to view, frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
@@ -13,15 +16,6 @@ capability_groups:
   - name: agent-tooling
     title: Agent Tooling
     summary: Agent harnesses, configuration engines, workflow frameworks, and skill sources.
-  - name: public-safety-aws
-    title: Public Safety AWS
-    summary: Public Safety AWS provisioning, images, customer deployments, and cloud operations.
-  - name: public-safety-observability
-    title: Public Safety Observability
-    summary: Public Safety monitoring, Datadog operations, agent deployment, and observability sources.
-  - name: public-safety-products
-    title: Public Safety Products
-    summary: Public Safety product and integration implementation repositories.
   - name: knowledge-and-artifacts
     title: Knowledge and Artifacts
     summary: Specifications, knowledge, evidence, work artifacts, and workspace coordination paths.

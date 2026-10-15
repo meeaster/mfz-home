@@ -210,21 +210,6 @@ skills:
     repo: https://github.com/emilkowalski/skills
     ref: main
     subtree: skills/review-animations
-  - name: confluence-writer
-    source: local
-    skill: skills/active/confluence-writer
-    description: >
-      Draft, refine, and sync Confluence pages as local markdown, then publish
-      to Confluence on approval. Use when asked to write or update a Confluence
-      page, turn a design or thread into a shareable doc, or publish a page for
-      the team to read.
-  - name: jira-writer
-    source: local
-    skill: skills/active/jira-writer
-    description: >
-      Draft, refine, and sync Jira stories as local markdown, then push to Jira
-      on approval. Use when asked to write or update a Jira story, turn notes or
-      a bug into a ticket, or rewrite a story to read clearly.
   - name: agent-sessions
     source: local
     skill: skills/active/agent-sessions
