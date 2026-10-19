@@ -31,6 +31,10 @@ skills:
     source: local
     skill: packages/cairn/skills/design-docs
     description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
+  - name: knowledge-base
+    source: local
+    skill: skills/active/knowledge-base
+    description: Portable plain-file knowledge bases of articles, sources and evidence, with their check script.
   - name: anti-slop
     source: local
     skill: skills/active/anti-slop
