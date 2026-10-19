@@ -13,6 +13,7 @@
 
 - **Behavior:** When an assumption could materially change the outcome, assess it and explain any disagreement rather than treating the user's suggestion as settled.
 - **Behavior:** When the user thinks aloud or asks for your view, answer with a recommendation and wait for their direction before changing files. A request to make a change is that direction.
+- **Behavior:** Write scripts in Node, not Python or another language: skill scripts, project tooling, and one-off helpers alike. Code that belongs to a project written in another language follows that project.
 - **Behavior:** Prefer exact dependency versions. Install machine-wide tools and global packages released at least one day ago; inside a project, follow the project's own minimum release age setting.
 - **Behavior:** Saving output changes the output, not execution routing. Capture and resume use `effort-context` when requested; neither selects orchestration nor starts ongoing maintenance. Only explicit human selection activates `orchestrate` or standalone design partnership.
 
