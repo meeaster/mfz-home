@@ -29,7 +29,7 @@ skills:
     description: Personal model bindings for role-based delegation.
   - name: design-docs
     source: local
-    skill: packages/cairn/skills/design-docs
+    skill: skills/active/design-docs
     description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
   - name: knowledge-base
     source: local

@@ -15,7 +15,7 @@ Success: a new design looks and behaves like the bundled example without copying
 - **Hand the doc to a security team** (GovCloud, FIPS, CUI): each option has a security view with the compliance boundary, numbered flows, and where data rests.
 - **Research open questions**: checks the knowledge base first, records evidence and answers directly, and considers what belongs in a knowledge article.
 - **"What should we decide?"**: writes an AI recommendation labeled with the model that made it.
-- **Fresh session picking up an existing design**: finds it through the effort's link and reads what the task needs.
+- **Fresh session picking up an existing design**: finds it through the effort's link, or the folder the user names, and reads what the task needs.
 - **Folder in an older format**: `check` refuses it and `migrate` converts it.
 - **"Write the implementation plan"** or "make a task list": not this skill.
 
@@ -34,6 +34,8 @@ Success: a new design looks and behaves like the bundled example without copying
 - **The design owns the plan** (human, 2026-10-06). It isn't one-to-one with Jira; an effort only lists the Jira items related to it.
 - **Which models do which step is orchestration, not skill content** (2026-10-05). At work, cost matters: Sonnet medium writing with Sol high reviewing matched Opus on accuracy in the comparison rounds. Put that split in agent definitions or session setup.
 - **Static single-file output** for GitHub Pages or opening from disk; private links never reach the published file.
+- **Scripts are Node only** (human, 2026-10-19). `doc.mjs`, `records.mjs` and the migrations were ported from Python and checked against it: every check, build, `--pages` build and migration produced the same output on the example, the template, two real designs, four older formats and six deliberately broken copies. The differences left are the parser's wording for invalid JSON and the embedded model's number format (`36` for `36.0`). The renderer is imported directly instead of run as a child process.
+- **Works without Cairn, and cites the knowledge base only as provenance** (human, 2026-10-19). The skill moved out of Cairn's package so the team can use it alone. A design copies each claim it rests on, with when the article said it was observed, because articles keep changing and the published doc reaches readers without the knowledge base; the article's path is a `Knowledge base:` source that `check` resolves against a `knowledge/` folder beside the designs.
 
 ## Sources
 

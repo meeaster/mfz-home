@@ -17,16 +17,17 @@ designs/<slug>/
 ```
 
 - Name the design for its subject ("log-ingestion"), not for the work ("opw-deployment"). Put the slug in `<html data-doc="<slug>">`.
-- With Cairn, designs live beside efforts and sessions at the Cairn root: `<root>/designs/<slug>/` (the root is `CAIRN_ROOT`, by default `~/workspace/artifacts/cairn/`). Files written with the harness's file tools are captured and credited to your session as you write them; files a script writes, such as the built doc, are recorded when you describe them. Describe `design.json` with `catalog_describe` (category `record`, title "<Name> design") and the published doc as a `deliverable`. Without Cairn, ask the user where designs live.
+- Designs live in a `designs/` folder the user or repository guidance names, usually beside the knowledge base (`knowledge/`) so citations between them are relative paths. When nothing names one, ask.
+- With Cairn, its session context names the designs folder. Files written with the harness's file tools are captured and credited to your session as you write them; files a script writes, such as the built doc, are recorded when you describe them. Describe `design.json` with `catalog_describe` (category `record`, title "<Name> design") and the published doc as a `deliverable`.
 - Start a new design by copying `assets/template/`. A design can be `design.json` and `changes.md` alone until someone needs to see it; add `doc.html` and pages then.
 - The page structure, components, styles and script come from the skill at build time, so docs pick up the skill's improvements when rebuilt. To pin a doc's look, copy `doc.css` and `doc.js` into its folder; the build prefers local copies, and a component in `components/` replaces the skill's of the same name.
-- When `check` says a folder is written in an older format, run `doc.py migrate <folder>` and review what it changed (see [pages](pages.md#format-and-migrations)).
+- When `check` says a folder is written in an older format, run `doc.mjs migrate <folder>` and review what it changed (see [pages](pages.md#format-and-migrations)).
 - Source files don't render on their own; preview the built file.
 
 ## Designs and efforts
 
-- **Link an effort to each design it changes** by making `design.json` a member of it: `catalog_describe` with the path and `efforts: {include: [<effort slug>]}`. The session that creates a design links it to its own effort automatically. A session that only reads a design for background doesn't link it.
-- **Split the knowledge by what it describes.** What is being built and why (the problem, goals, how it works, requirements, the plan, decisions, parts, evidence, questions, and the Confluence pages and Jira items around it) goes in the design. What already exists around it, such as the AWS environment it runs in or a vendor's product, goes in a knowledge article under `<root>/knowledge/`, kept by the effort-context skill; the design's evidence cites it. Where the work stands (which deliverables it works on, decisions about the work itself, the user's views, its own open questions, tickets and PRs) goes in the effort's `effort.md`. Neither holds next steps, to-dos, or agendas; an agent proposes those from the records when asked.
+- **With Cairn, link an effort to each design it changes** by making `design.json` a member of it: `catalog_describe` with the path and `efforts: {include: [<effort slug>]}`. The session that creates a design links it to its own effort automatically. A session that only reads a design for background doesn't link it.
+- **Split the knowledge by what it describes.** What is being built and why (the problem, goals, how it works, requirements, the plan, decisions, parts, evidence, questions, and the Confluence pages and Jira items around it) goes in the design. What already exists around it, such as the AWS environment it runs in or a vendor's product, goes in an article in the knowledge base, kept with the `knowledge-base` skill; the design's evidence copies what it needs and cites it. Where the work stands (which deliverables it works on, decisions about the work itself, the user's views, its own open questions, tickets and PRs) goes in the effort's `effort.md`. Neither holds next steps, to-dos, or agendas; an agent proposes those from the records when asked.
 - **Record it where it lands, refer to it everywhere else.** A settled question or decision about the design goes in design.json with a changes.md entry citing the session or meeting; the effort cites it by ID and changes only when where the work stands changed. A deliverable's status lives only in the design, and a Jira item's only in Jira. When an effort picks the design up, the changes.md entries since its last session show what changed, and anything in the effort citing a changed ID gets checked.
 - **Small work keeps its design in the effort.** A feature built in a session or two, or the detail below a stable design (a module's layout under "OPW runs on EC2"), goes in a local `design.json` in the effort's folder: one connected document for agents and the user, described in the effort-context skill's storage reference, not this format.
 - **Promote a local design by writing it up** when others need to see it, another effort needs it, or it outlives the effort: start a design here from it, turning its prose into the problem, goals and how it works and its decisions into records with their evidence, and link the local file to the new design with `supersedes`. The readers change from agents and the user to reviewers and approvers, so this is a write-up, not a move.
@@ -35,7 +36,7 @@ designs/<slug>/
 
 When a session starts work on a design, or on an effort linked to one:
 
-1. Find it: the effort view (`catalog_effort show`) lists linked designs among its files; otherwise the user names it.
+1. Find it: with Cairn, the effort view (`catalog_effort show`) lists linked designs among its files; otherwise the user names it.
 2. Read `design.json` in full, `evidence.json` and `meetings.json` as SKILL.md's What to read says for the task, and the `changes.md` entries since the effort's last session, counted the way the effort-context skill's resume procedure defines, and check what in the effort cites the IDs they changed.
 3. Run `check` on the folder. Besides problems, it says when the published doc is behind `changes.md`.
 4. Read a transcript, session, or other source only when a record's reasoning needs checking; its `Recorded from` says where to look.
@@ -43,7 +44,7 @@ When a session starts work on a design, or on an effort linked to one:
 ## Working on it
 
 - **Findings go in as you establish them:** evidence, open questions, and options found in research, each with `Recorded from`.
-- **Evidence from a knowledge article:** copy the claim the design rests on into an evidence item, since design.json must stand alone, and cite the article's section in `Recorded from` (`knowledge aws-environment · Transit gateways`) rather than the evidence files it was written from.
+- **Evidence from a knowledge article:** copy the claim into an evidence item, since the design must stand alone, and add a `Gathered from` item `Knowledge base: ` followed by the article's path and section in backticks and the date the article's reference says it was observed (``Knowledge base: `articles/aws-environment.md#transit-gateways` · known true 2026-10-12``). The path is relative to the knowledge base, a `knowledge/` folder beside the designs, and `check` confirms the article and heading exist. It's provenance only: the design reads the same without it. Cite the article rather than the sources and evidence it was written from.
 - **Say how each open question can be answered.** Give every open question an `Answer from` when you write it, and fill in any that lack one when you pick a design up: `Research · where to look` when an agent could settle it from documentation, a repository or a read-only account, `Person` when someone has to tell us, `Approval` when someone has to sign it off. Judge by what the answer needs, not by who happens to be named in `Ask`: a question someone named a person for can still be researched first. It records the route, not a change to the design, so set it without asking and report the ones you marked as research so the user can correct them.
 - **Research answers questions directly; proposals wait.** Evidence and the answers it settles go in as you find them ([the research playbook](../playbooks/research.md)). A requirement or deliverable you propose goes in marked as proposed (records.md says how) and becomes accepted only on the user's word, logged in changes.md.
 - **Keep the links and Jira items current.** A Confluence page, pull request or other page that comes up goes in `links` with its role and why it's there, and a Jira item that tracks a deliverable goes in the deliverable's `Jira`. When asked to refresh, read every Jira item through the Atlassian MCP server, the epics' stories with them, and rewrite `jira` with what you read and when; Jira is the authority on their status. Linking an epic to a deliverable is a change to the plan, so log it; refreshing what Jira says isn't.
@@ -56,7 +57,7 @@ When a session starts work on a design, or on an effort linked to one:
 
 ## After a meeting
 
-The transcript and the full meeting summary are sources. With Cairn they live together in the meeting's folder, `<root>/sources/meetings/<date>-<subject>/`, as the effort-context skill describes. The summary separates what was decided, suggested, left open, and assigned, and lists candidates for each design and effort the meeting touched.
+The transcript and the full meeting summary are sources. In a knowledge base they live together in the meeting's folder, `sources/meetings/<date>-<subject>/`, as the `knowledge-base` skill describes. The summary separates what was decided, suggested, left open, and assigned, and lists candidates for each design and effort the meeting touched.
 
 1. **Go through the candidates with the user.** Each is accepted, deferred, or rejected. A colleague's "sounds good" is not a decision until the user says it is. When a rejected idea is already in the design (an option, a risk's response, a note), take it out if the user's words cover it ("I don't want X in the design") and ask if they don't; log the removal under `request`.
 2. **Apply what was accepted,** bringing along the parts of the doc it touches (a migrated page's hand-drawn diagram that shows a decision becomes a bound component; other hand-drawn tables can wait) and clearing every `check` warning, wherever it is (a hand-drawn `pending` class is one attribute to bind): decision statuses (Decided only when the meeting actually decided, with `Decided in` naming the meeting when the decision was worked out in a brief) with the Why the meeting gave and any reasoning or alternatives it discussed, the winning option Chosen and the others Not chosen with why, answered questions (the answer becomes evidence; the question gets Answer and Answered by, and comes off the Waiting on of what it blocked), new evidence and questions, options set aside with the date and reason, new pages the meeting opened up. Action items stay in the meeting's summary with their owners, as said.
@@ -68,7 +69,7 @@ Mark a meeting Awaiting review when its summary is in but the candidates haven't
 
 ## After an email
 
-An email thread that answers a question, settles a decision, or brings a finding is a source like a transcript. With Cairn it's kept at `<root>/sources/email/<thread>.md` as the effort-context skill describes: one file per thread, messages oldest first, later replies added at the end, and `Reviewed through` naming the last message already taken through intake.
+An email thread that answers a question, settles a decision, or brings a finding is a source like a transcript. In a knowledge base it's kept at `sources/email/<thread>.md` as the `knowledge-base` skill describes: one file per thread, messages oldest first, later replies added at the end, and `Reviewed through` naming the last message already taken through intake.
 
 1. **Go through what the new messages offer** (those after `Reviewed through`) with the user, as candidates: accepted, deferred, or rejected. An email agreeing to something is not a decision until the user says it is.
 2. **Apply what was accepted** as after a meeting, citing the message in `Recorded from` and, for evidence, `Gathered from: Email: <team or role>, <date>`. The evidence an answer becomes says who answered and when.
@@ -79,13 +80,13 @@ An email thread that answers a question, settles a decision, or brings a finding
 ## Checking and building
 
 ```bash
-python3 <skill>/scripts/doc.py check <folder>
-python3 <skill>/scripts/doc.py build <folder>          # writes <folder>/published/<slug>.html
-python3 <skill>/scripts/doc.py build <folder> --pages workers -o <folder>/published/workers-brief.html
-python3 <skill>/scripts/doc.py migrate <folder>        # a folder written for an older version of the skill
+node <skill>/scripts/doc.mjs check <folder>
+node <skill>/scripts/doc.mjs build <folder>          # writes <folder>/published/<slug>.html
+node <skill>/scripts/doc.mjs build <folder> --pages workers -o <folder>/published/workers-brief.html
+node <skill>/scripts/doc.mjs migrate <folder>        # a folder written for an older version of the skill
 ```
 
-Pages and components render with Node (`scripts/render.mjs`, no packages to install).
+The scripts run on Node with no packages to install; `scripts/render.mjs` renders the pages and components.
 
 - **`check` errors:**
   - references to missing IDs, in design.json or on any page

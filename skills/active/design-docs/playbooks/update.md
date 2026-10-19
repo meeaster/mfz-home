@@ -84,7 +84,7 @@ Tables, option cards, decision maps, costs and bound diagram parts follow the re
 
 ## 6. Check, build, look
 
-Run `python3 <skill>/scripts/doc.py check <folder>` and fix every error and read every warning (`check` fails when the latest meeting's outcomes don't match the records), then `python3 <skill>/scripts/doc.py build <folder>`.
+Run `node <skill>/scripts/doc.mjs check <folder>` and fix every error and read every warning (`check` fails when the latest meeting's outcomes don't match the records), then `node <skill>/scripts/doc.mjs build <folder>`.
 
 Look only at what you changed by hand: take a screenshot (`node <skill>/scripts/shot.mjs <built>.html out.png --page <page> --selector "#<section>"`) of each page section or component you edited, and fix what's wrong. Record-only changes render from the records and need no screenshot.
 

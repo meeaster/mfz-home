@@ -9,15 +9,15 @@ Everything a research run needs is on this page. A research run takes the open q
 
 ## 2. Look in the knowledge base first
 
-Before researching anything, find what's already known. Dispatch a read-only explore agent (Claude Code's `Explore`, OpenCode's `explore`) with the questions in scope, each with its Explanation and where to look, and ask it for every knowledge article section that bears on each question: the article and section, what it says, and when it was last known true. It searches with `catalog_find` (category `knowledge`) and reads `<root>/knowledge/index.md`. Without a subagent, do the same search yourself. The step is done when every question in scope has its knowledge-base findings listed, or a note that the search found none.
+Before researching anything, find what's already known. When the user or repository guidance names a knowledge base, dispatch a read-only explore agent (Claude Code's `Explore`, OpenCode's `explore`) with the questions in scope, each with its Explanation and where to look, and ask it for every knowledge article section that bears on each question: the article and section, what it says, and when it was last known true. Tell it to follow the knowledge base's `AGENTS.md` to find articles. Without a subagent, do the same search yourself. Without a knowledge base, skip this step. The step is done when every question in scope has its knowledge-base findings listed, or a note that the search found none.
 
-A claim the knowledge base already holds becomes evidence the way any article does: copy the claim into an evidence item and cite the article's section in `Recorded from` (`knowledge aws-environment · Transit gateways`). Research only what's left.
+A claim the knowledge base already holds becomes evidence: copy the claim into an evidence item, since the design must stand alone, and add a `Gathered from` item `Knowledge base: ` followed by the article's path and section in backticks and the date the article's reference says it was observed (``Knowledge base: `articles/aws-environment.md#transit-gateways` · known true 2026-10-12``). The path is relative to the knowledge base, a `knowledge/` folder beside the designs, and `check` confirms the article and heading exist. It's provenance only: the design reads the same without it. Research only what's left.
 
 ## 3. Research the rest
 
 Go where each question says to look, and further when that runs dry. Use read-only access: documentation, repositories, read-only cloud and vendor consoles or APIs; the systems you look at stay exactly as they were.
 
-Keep raw material you'd need again (an export, a long excerpt, a configuration file) as an evidence file at the path `catalog_location` gives, and cite it in the evidence item's `Recorded from`.
+Keep raw material you'd need again (an export, a long excerpt, a configuration file) as a file (with Cairn, at the path `catalog_location` gives; otherwise where the user says), and cite it in the evidence item's `Recorded from`.
 
 ## 4. Record what you found
 
@@ -44,11 +44,11 @@ In `changes.md`, at the bottom, one entry for the run:
 - E14, E15 added
 ```
 
-Then, as after any change: find every place in the folder that states an ID you changed (pages, components, other records' Explanation and Reasoning) and make it agree; run `python3 <skill>/scripts/doc.py check <folder>`, fix every error and read every warning; and run `build`.
+Then, as after any change: find every place in the folder that states an ID you changed (pages, components, other records' Explanation and Reasoning) and make it agree; run `node <skill>/scripts/doc.mjs check <folder>`, fix every error and read every warning; and run `build`.
 
 ## 6. Report
 
 - Each question in scope: answered, partly answered or not found, with the evidence IDs, and for one not found, where you looked.
 - What the findings mean for the design: each decision, requirement, option or risk they bear on, what they point towards, and that it's the user's call.
 - What came from the knowledge base and what was new.
-- **Knowledge-base candidates:** findings about something that exists outside this design (an AWS environment, a vendor's product, another team's service) that a later session would otherwise research again. Name the article each would go in, existing or new. Write them up only when the user says so, following the effort-context skill's knowledge reference: the knowledge base is shared across all the work and has its own rules for sources.
+- **Knowledge-base candidates:** findings about something that exists outside this design (an AWS environment, a vendor's product, another team's service) that a later session would otherwise research again. Name the article each would go in, existing or new. Write them up only when the user says so, with the `knowledge-base` skill: the knowledge base is shared across all the work and has its own rules for sources.

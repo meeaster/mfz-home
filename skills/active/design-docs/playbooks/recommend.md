@@ -52,7 +52,7 @@ In `changes.md`, at the bottom:
 - Recommendations: D1, D2 (refreshed), Q9
 ```
 
-Run `python3 <skill>/scripts/doc.py check <folder>` until every recommendation in scope is clear of warnings, then `build`. The doc renders recommendations from the records, so nothing on the pages needs editing.
+Run `node <skill>/scripts/doc.mjs check <folder>` until every recommendation in scope is clear of warnings, then `build`. The doc renders recommendations from the records, so nothing on the pages needs editing.
 
 ## 5. Report
 

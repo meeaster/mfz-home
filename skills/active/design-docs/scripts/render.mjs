@@ -1,6 +1,7 @@
 #!/usr/bin/env node
-// Render design-doc pages and apply record bindings. doc.py sends one JSON
-// request on stdin and reads one JSON answer from stdout.
+// Render design-doc pages and apply record bindings. doc.mjs calls renderPages
+// and bind; run as a script, it reads one JSON request on stdin and writes one
+// JSON answer to stdout.
 //
 //   {"cmd": "pages", "folder", "model", "pages": [{"file", "text"}],
 //    "components": [{"name", "props", "page"}]}
@@ -21,7 +22,7 @@
 //                             several are all required, !x negates one
 //       data-text="D1.answer" text from a field (answer, title, state, or any field)
 //       data-state-of="D6"    adds class state-<state> for the component's own CSS
-//     Every change stays on its line, so doc.py's line numbers still hold.
+//     Every change stays on its line, so doc.mjs's line numbers still hold.
 
 import { existsSync, readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -41,7 +42,7 @@ const BOUND_TAG = /<([a-zA-Z][\w:-]*)(\s[^<>]*?\bdata-(?:pending|when|text|state
 
 const DECISION_HEADING = /^D\d+$/;
 
-// Record tables doc.py renders; ::: <kind> asks for one, and a design's own component of that name replaces it.
+// Record tables doc.mjs renders; ::: <kind> asks for one, and a design's own component of that name replaces it.
 const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "reasoning", "parts", "risks", "cost", "terms", "evidence", "questions", "meetings", "progress", "plan", "confluence", "jira", "other-links"]);
 
 const STANDARD_SECTIONS = {
@@ -521,7 +522,7 @@ async function renderMarkdownPage(file, text, request, errors) {
 }
 
 // Markdown pages render whole; an HTML page sends each of its component comments.
-async function renderPages(request) {
+export async function renderPages(request) {
   const pages = [];
   const components = [];
 
@@ -620,7 +621,7 @@ function attribute(attrs, name) {
   return new RegExp(`\\s${name}="([^"]*)"`).exec(attrs)?.[1];
 }
 
-function bind(request) {
+export function bind(request) {
   const { model, html } = request;
   const errors = [];
   const out = [];
@@ -706,17 +707,17 @@ function bind(request) {
   return { html: out.join(""), errors };
 }
 
-// Entry
+// Entry, when run as a script
 
-const request = JSON.parse(readFileSync(0, "utf8"));
+if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const request = JSON.parse(readFileSync(0, "utf8"));
+  const commands = { pages: renderPages, bind };
+  const run = commands[request.cmd];
 
-const commands = { pages: renderPages, bind };
+  if (run === undefined) {
+    process.stderr.write(`unknown command '${request.cmd}'\n`);
+    process.exit(2);
+  }
 
-const run = commands[request.cmd];
-
-if (run === undefined) {
-  process.stderr.write(`unknown command '${request.cmd}'\n`);
-  process.exit(2);
+  process.stdout.write(JSON.stringify(await run(request)));
 }
-
-process.stdout.write(JSON.stringify(await run(request)));
