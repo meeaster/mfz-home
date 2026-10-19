@@ -1,8 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 import type { RunClient } from "./run-client.ts";
 import { backgroundReturn, createCairn, type CompletedTool, type SessionFacts } from "./server.ts";
+import { layoutAt } from "../core/root.ts";
 
 const root = "/home/user/workspace/artifacts/cairn";
+
+// Every session is told where designs live; this root has no knowledge base, so nothing names one.
+const contentLine = `Designs live in ${root}/designs/<slug>/.`;
 
 const sessionFolder = `${root}/sessions/opencode/2026-09/ses_lead`;
 
@@ -21,7 +25,7 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<
   let generated: Promise<string> = Promise.resolve('{"title": "AWS account map", "description": "Lists the accounts and their VPCs."}');
 
   const cairn = createCairn({
-    root,
+    layout: layoutAt(root),
     cli: {
       fire: (args) => {
         fired.push([...args]);
@@ -98,7 +102,7 @@ describe("cairn plugin", () => {
   it("registers each session once on first sight and gives it its catalog ID", async () => {
     const app = harness(sessions);
 
-    expect(await app.cairn.context("ses_lead")).toBe("This session's catalog ID is opencode:ses_lead.");
+    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead.\n\n${contentLine}`);
     await app.cairn.context("ses_lead");
     expect(await app.cairn.context("ses_explore")).toMatch(/^This session's catalog ID is opencode:ses_explore\.\n\n/);
     await app.cairn.context("ses_explore");
@@ -129,7 +133,7 @@ describe("cairn plugin", () => {
     const app = harness(sessions);
 
     expect(await app.cairn.context("ses_explore")).toBe(
-      "This session's catalog ID is opencode:ses_explore.\n\n" +
+      `This session's catalog ID is opencode:ses_explore.\n\n${contentLine}\n\n` +
         "You are working for another session. Your final message is returned to it as your complete result and " +
         `saved in ${sessionFolder}, so make it complete on its own. If you learn something reusable about tools, ` +
         `commands, or this codebase, write it to ${sessionFolder}/learnings-ses-explore.md.`
@@ -191,7 +195,7 @@ describe("cairn plugin", () => {
   it("captures a subagent's learnings without asking it to describe them, and asks about its other files", async () => {
     const app = harness(sessions);
     const learnings = `${sessionFolder}/learnings-ses-explore.md`;
-    const article = `${root}/knowledge/aws-environment.md`;
+    const article = `${sessionFolder}/aws-account-map.md`;
 
     await app.cairn.context("ses_explore");
 
@@ -245,7 +249,7 @@ describe("cairn plugin", () => {
 
     app.cairn.compactionEnded("ses_lead");
 
-    const expected = "This session's catalog ID is opencode:ses_lead.\n\nAttached efforts: logs-archived-to-s3.";
+    const expected = `This session's catalog ID is opencode:ses_lead.\n\n${contentLine}\n\nAttached efforts: logs-archived-to-s3.`;
 
     expect(await app.cairn.context("ses_lead")).toBe(expected);
     expect(await app.cairn.context("ses_lead")).toBe(expected);
@@ -408,8 +412,8 @@ describe("cairn plugin", () => {
     app.printNote(Promise.reject(new Error("catalog locked")));
     app.cairn.compactionEnded("ses_lead");
 
-    expect(await app.cairn.context("ses_lead")).toBe("This session's catalog ID is opencode:ses_lead.");
-    expect(await app.cairn.context("ses_gone")).toBe("This session's catalog ID is opencode:ses_gone.");
+    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead.\n\n${contentLine}`);
+    expect(await app.cairn.context("ses_gone")).toBe(`This session's catalog ID is opencode:ses_gone.\n\n${contentLine}`);
     expect(await app.tool("ses_gone", "write", {}, { target: `${sessionFolder}/x.md` }, "ok")).toBeNull();
     expect(app.logged).toEqual(["unable to read the compaction note", "unable to register the session", "unable to register the session"]);
   });

@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { CairnError, openCairn, text, type Cairn } from "./db.ts";
 import { schemaVersion, userVersion } from "./migrations.ts";
-import { rootPaths } from "./root.ts";
+import { layoutAt, rootPaths } from "./root.ts";
 
 const keptBackups = 7;
 
@@ -116,7 +116,7 @@ export function restore(root: string, file: string, now: () => Date): RestoreRes
   let previous: string | null = null;
 
   if (existsSync(paths.database)) {
-    const current = openCairn(root, now);
+    const current = openCairn(layoutAt(root), now);
 
     try {
       // Not pruned here, so the backup being restored can't be deleted first.
@@ -129,7 +129,7 @@ export function restore(root: string, file: string, now: () => Date): RestoreRes
   rmSync(`${paths.database}-wal`, { force: true });
   rmSync(`${paths.database}-shm`, { force: true });
   copyFileSync(source, paths.database);
-  openCairn(root, now).db.close();
+  openCairn(layoutAt(root), now).db.close();
 
   return { restored: source, previous };
 }

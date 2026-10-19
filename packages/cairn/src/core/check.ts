@@ -1,10 +1,9 @@
-import { readdirSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, readdirSync } from "node:fs";
+import { isAbsolute, join, relative } from "node:path";
 import { integer, optionalText, text, timestamp, transaction, type Cairn } from "./db.ts";
 import { fileFacts, recordManagedFile, type FileFacts } from "./artifacts.ts";
 import { member } from "./find.ts";
-import { unplacedSections, type UnplacedSection } from "./origins.ts";
-import { absolutePath, isCairnOwned, safeSegment } from "./root.ts";
+import { absolutePath, isCairnOwned, relativeInsideRoot, safeSegment } from "./root.ts";
 import { markArtifactDirty } from "./views.ts";
 
 export type CheckReport = {
@@ -12,7 +11,6 @@ export type CheckReport = {
   readonly changed: readonly string[];
   readonly moved: readonly { readonly from: string; readonly to: string }[];
   readonly captured: readonly string[];
-  readonly unplaced: readonly UnplacedSection[];
 };
 
 type Recorded = {
@@ -35,6 +33,23 @@ function walk(root: string, folder = ""): string[] {
       }
     } else if (entry.isFile() && !isCairnOwned(inside) && !inside.endsWith(".tmp")) {
       found.push(inside);
+    }
+  }
+
+  return found;
+}
+
+// Every file Cairn manages, by catalog path: the root's own, and those of a content folder kept outside it. A folder in
+// the root that a content folder elsewhere replaces is left alone.
+function managedFiles(cairn: Cairn): string[] {
+  const found = walk(cairn.root).filter((inside) => relativeInsideRoot(cairn, join(cairn.root, inside)) === inside);
+
+  for (const mount of ["knowledge", "designs"] as const) {
+    const folder = cairn[mount];
+    const fromRoot = relative(cairn.root, folder);
+
+    if ((fromRoot.startsWith("..") || isAbsolute(fromRoot)) && existsSync(folder)) {
+      found.push(...walk(folder).map((inside) => `${mount}/${inside}`));
     }
   }
 
@@ -83,14 +98,14 @@ function folderSession(cairn: Cairn, inside: string): number | null {
 export function check(cairn: Cairn): CheckReport {
   return transaction(cairn, () => {
     const now = timestamp(cairn);
-    const onDisk = walk(cairn.root);
+    const onDisk = managedFiles(cairn);
     const recorded = recordedFiles(cairn);
     const recordedPaths = new Set<string>();
     const lost: Recorded[] = [];
     const changed: string[] = [];
 
     for (const file of recorded) {
-      const path = absolutePath(cairn.root, file.location, file.stored);
+      const path = absolutePath(cairn, file.location, file.stored);
       const facts = fileFacts(path);
 
       if (file.location === "managed") {
@@ -119,7 +134,7 @@ export function check(cairn: Cairn): CheckReport {
 
     for (const inside of onDisk) {
       if (!recordedPaths.has(inside)) {
-        const facts = fileFacts(join(cairn.root, inside));
+        const facts = fileFacts(absolutePath(cairn, "managed", inside));
 
         if (facts !== null) {
           unrecorded.set(inside, facts);
@@ -131,7 +146,7 @@ export function check(cairn: Cairn): CheckReport {
     const missing: string[] = [];
 
     for (const file of lost) {
-      const from = absolutePath(cairn.root, file.location, file.stored);
+      const from = absolutePath(cairn, file.location, file.stored);
       const match = [...unrecorded.entries()].find(([, facts]) => facts.sha256 === file.sha256);
 
       if (match === undefined) {
@@ -156,7 +171,7 @@ export function check(cairn: Cairn): CheckReport {
         WHERE id = ${file.id}
       `;
       markArtifactDirty(cairn, file.id);
-      moved.push({ from, to: join(cairn.root, inside) });
+      moved.push({ from, to: absolutePath(cairn, "managed", inside) });
     }
 
     const captured: string[] = [];
@@ -165,9 +180,9 @@ export function check(cairn: Cairn): CheckReport {
       const { id } = recordManagedFile(cairn, inside, facts, folderSession(cairn, inside));
 
       markArtifactDirty(cairn, id);
-      captured.push(join(cairn.root, inside));
+      captured.push(absolutePath(cairn, "managed", inside));
     }
 
-    return { missing, changed, moved, captured, unplaced: unplacedSections(cairn) };
+    return { missing, changed, moved, captured };
   });
 }

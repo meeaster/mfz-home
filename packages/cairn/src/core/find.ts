@@ -191,7 +191,7 @@ function artifactEntry(cairn: Cairn, row: Row, efforts: readonly string[]): Arti
   const producerNativeId = optionalText(row, "producer_native_id");
 
   return {
-    path: location === "url" ? stored : absolutePath(cairn.root, location, stored),
+    path: location === "url" ? stored : absolutePath(cairn, location, stored),
     location,
     category: optionalMember(categories, optionalText(row, "category")),
     pointer_type: optionalMember(pointerTypes, optionalText(row, "pointer_type")),
@@ -278,7 +278,7 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
     root: formatSessionKey({ harness: rootHarness, nativeId: rootNativeId }),
     folder: sessionFolder(cairn.root, rootHarness, text(row, "root_started_at").slice(0, 7), rootNativeId),
     efforts,
-    conversation: conversation === null ? null : absolutePath(cairn.root, "managed", conversation),
+    conversation: conversation === null ? null : absolutePath(cairn, "managed", conversation),
     started_at: text(row, "started_at"),
     last_activity_at: text(row, "last_activity_at")
   };

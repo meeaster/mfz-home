@@ -227,7 +227,7 @@ export function sessionContext(cairn: Cairn, input: SessionContextInput): Sessio
   for (const effortId of workingEfforts(cairn, sessionId)) {
     const view = effortView(cairn, loadEffort(cairn, effortId).slug);
     const recordPaths = view.records.map((record) => record.path);
-    const designs = view.artifacts.filter((artifact) => isStableDesign(cairn.root, artifact.path)).map((artifact) => artifact.path);
+    const designs = view.artifacts.filter((artifact) => isStableDesign(cairn, artifact.path)).map((artifact) => artifact.path);
 
     efforts.push({ slug: view.slug, title: view.title, provisional: view.status === "provisional", records: recordPaths, designs });
 
@@ -311,7 +311,7 @@ export function location(cairn: Cairn, input: LocationInput): WritePath {
 
     for (let suffix = 1; ; suffix += 1) {
       const path = join(folder, suffix === 1 ? `${base}${extension}` : `${base}-${suffix}${extension}`);
-      const stored = storedPath(cairn.root, path).stored;
+      const stored = storedPath(cairn, path).stored;
 
       const taken = cairn.sql.get`
         SELECT 1 AS found FROM artifact WHERE path_or_url = ${stored}

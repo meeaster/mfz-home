@@ -66,7 +66,7 @@ function workspace() {
     let stdout = "";
     let stderr = "";
 
-    const code = main([...args, "--json"], { CAIRN_ROOT: root }, {
+    const code = main([...args, "--json"], { CAIRN_ROOT: root, XDG_CONFIG_HOME: join(root, "config") }, {
       stdout: (text) => {
         stdout += text;
       },

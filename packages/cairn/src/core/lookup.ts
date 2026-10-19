@@ -45,7 +45,7 @@ export function storedReference(cairn: Cairn, reference: string): string {
     return reference;
   }
 
-  return storedPath(cairn.root, resolve(reference)).stored;
+  return storedPath(cairn, resolve(reference)).stored;
 }
 
 export function findArtifactId(cairn: Cairn, reference: string): number | undefined {

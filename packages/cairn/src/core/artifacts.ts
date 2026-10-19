@@ -5,7 +5,7 @@ import { formatSessionKey, type DescribeInput, type FileEventInput, type MoveInp
 import { CairnError, insertedId, integer, optionalInteger, timestamp, transaction, type Cairn } from "./db.ts";
 import { loadArtifact, type ArtifactEntry } from "./find.ts";
 import { findArtifactId, requireArtifactId, requireEffortId } from "./lookup.ts";
-import { isCairnOwned, relativeInsideRoot, storedPath } from "./root.ts";
+import { isCairnOwned, knowledgeCategory, relativeInsideRoot, storedPath } from "./root.ts";
 import { ensureSession } from "./sessions.ts";
 import { markArtifactDirty } from "./views.ts";
 
@@ -26,7 +26,7 @@ export function fileFacts(path: string): FileFacts | null {
 }
 
 function insideRootOrReason(cairn: Cairn, path: string): { inside: string } | { reason: string } {
-  const inside = relativeInsideRoot(cairn.root, path);
+  const inside = relativeInsideRoot(cairn, path);
 
   if (inside === null) {
     return { reason: "The file is outside the Cairn root." };
@@ -59,9 +59,11 @@ export function recordManagedFile(cairn: Cairn, inside: string, facts: FileFacts
   if (existing === undefined) {
     const producer = producerId ?? grantedSession(cairn, inside);
 
+    const category = knowledgeCategory(inside);
+
     const id = insertedId(cairn.sql.run`
-      INSERT INTO artifact (location, path_or_url, sha256, size, status, producer_session_id, captured_at, updated_at)
-      VALUES ('managed', ${inside}, ${facts.sha256}, ${facts.size}, 'undescribed', ${producer}, ${now}, ${now})
+      INSERT INTO artifact (category, location, path_or_url, sha256, size, status, producer_session_id, captured_at, updated_at)
+      VALUES (${category}, 'managed', ${inside}, ${facts.sha256}, ${facts.size}, ${category === null ? "undescribed" : "active"}, ${producer}, ${now}, ${now})
     `);
 
     return { id, created: true };
@@ -190,7 +192,7 @@ function recordReference(cairn: Cairn, input: DescribeInput, producerId: number 
     throw new CairnError("not_found", `No file at ${path}`);
   }
 
-  const stored = storedPath(cairn.root, path);
+  const stored = storedPath(cairn, path);
 
   if (stored.location === "managed") {
     if (isCairnOwned(stored.stored)) {
@@ -325,7 +327,7 @@ export function describe(cairn: Cairn, input: DescribeInput, actor: string): Art
 export function move(cairn: Cairn, input: MoveInput): ArtifactEntry {
   return transaction(cairn, () => {
     const id = requireArtifactId(cairn, input.artifact);
-    const destination = storedPath(cairn.root, input.to);
+    const destination = storedPath(cairn, input.to);
 
     if (destination.location === "managed" && isCairnOwned(destination.stored)) {
       throw new CairnError("invalid", `${input.to} is reserved for Cairn`);

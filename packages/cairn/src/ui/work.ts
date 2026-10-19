@@ -80,7 +80,7 @@ function plans(cairn: Cairn, designs: readonly { readonly slug: string; readonly
     let source: string;
 
     try {
-      source = readFileSync(join(cairn.root, "designs", design.slug, "design.json"), "utf8");
+      source = readFileSync(join(cairn.designs, design.slug, "design.json"), "utf8");
     } catch {
       continue;
     }

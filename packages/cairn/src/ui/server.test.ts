@@ -7,6 +7,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { main } from "../cli.ts";
 import type { ArticlePage, DesignItem, EffortPage, FilePage, LinksPage, OriginsPage, SessionListItem, SessionPage, SidebarData, SourceItem } from "./api.ts";
 import { startUiServer } from "./server.ts";
+import { layoutAt } from "../core/root.ts";
 
 const cleanups: (() => void)[] = [];
 
@@ -101,6 +102,37 @@ One more question about IAM.
 `;
 
 // A catalog built the way agents build one: through the CLI.
+const articleText = `---
+description: Accounts, VPCs, and routing.
+updated: 2026-10-02
+---
+# AWS environment
+
+## Routing
+
+Transit gateways route between the VPCs.
+
+## References
+
+- \`aws:4471-0938-2215\` · us-east-1 transit gateway route tables · observed 2026-10-02 · supports: Routing · via [TGW quotas](../evidence/2026-09-30-tgw-quotas.md)
+- \`docs:docs.aws.amazon.com\` · /vpc/latest/tgw/transit-gateway-quotas.html · observed 2026-09-30
+`;
+
+const origins = `# Origins
+
+## aws:4471-0938-2215
+
+Prod network.
+- Access: AWS CLI --profile prod-network-ro
+
+## docs:docs.aws.amazon.com
+
+AWS documentation.
+
+Access:
+- Web fetch
+`;
+
 function catalog() {
   const root = temporaryFolder("cairn-ui-");
   const now = new Date("2026-10-05T10:00:00Z");
@@ -109,7 +141,7 @@ function catalog() {
     let stdout = "";
     let stderr = "";
 
-    const code = main([...args, "--json"], { CAIRN_ROOT: root }, {
+    const code = main([...args, "--json"], { CAIRN_ROOT: root, XDG_CONFIG_HOME: join(root, "config") }, {
       stdout: (text) => {
         stdout += text;
       },
@@ -142,9 +174,11 @@ function catalog() {
 
   const location: { path: string } = JSON.parse(run("location", "--session", "opencode:ses_child", "--topic", "TGW quotas"));
   const evidence = record(write(location.path, "# TGW quotas\n"), "opencode:ses_child", "--category", "evidence", "--title", "TGW quotas");
-  const article = record(write(join(root, "knowledge", "aws-environment.md"), "# AWS environment\n"), "opencode:ses_root", "--category", "knowledge", "--title", "AWS environment");
+  const article = record(write(join(root, "knowledge", "articles", "aws-environment.md"), articleText), "opencode:ses_root", "--category", "knowledge", "--title", "AWS environment");
 
-  run("describe", evidence, "--informs", article);
+  // The session's evidence, copied into the knowledge base, is what the article's reference was observed through.
+  write(join(root, "knowledge", "evidence", "2026-09-30-tgw-quotas.md"), `---\ndescription: TGW quotas.\nobserved: 2026-09-30\nfrom: session opencode:ses_child · ${evidence}\n---\n# TGW quotas\n`);
+  write(join(root, "knowledge", "origins.md"), origins);
 
   const designFolder = join(root, "designs", "opw-deployment");
 
@@ -171,7 +205,7 @@ async function serve(root: string) {
   write(join(assets, "index.html"), "<p>app</p>");
 
   const server: Server = await startUiServer({
-    root,
+    layout: layoutAt(root),
     assets,
     host: "127.0.0.1",
     port: 0,
@@ -220,7 +254,7 @@ describe("cairn ui server", () => {
     const { json } = await serve(root);
     const sidebar = await json<SidebarData>("/api/sidebar");
 
-    expect(sidebar.counts).toEqual({ efforts: 1, designs: 1, links: 0, sessions: 1, knowledge: 1, sources: 3, origins: 0 });
+    expect(sidebar.counts).toEqual({ efforts: 1, designs: 1, links: 0, sessions: 1, knowledge: 1, sources: 3, origins: 2 });
   });
 
   test("an effort's Jira items deliver the plan deliverable their epic is linked to, and its pages keep their role", async () => {
@@ -270,26 +304,22 @@ describe("cairn ui server", () => {
   });
 
   test("a knowledge article's page carries its content and its references oldest observed first, and origins list what rests on them", async () => {
-    const { root, article, run } = catalog();
-
-    run("origin", "register", "aws:4471-0938-2215", "--title", "Prod network", "--access", '{"method":"AWS CLI","detail":"--profile prod-network-ro"}', "--kind-identifier", "AWS account ID");
-    run("origin", "register", "docs:docs.aws.amazon.com", "--title", "AWS documentation", "--kind-identifier", "Documentation site host");
-    run("reference", "record", article, "aws:4471-0938-2215", "us-east-1 transit gateway route tables", "--title", "TGW route tables", "--section", "Routing", "--observed-at", "2026-10-02");
-    run("reference", "record", article, "docs:docs.aws.amazon.com", "/vpc/latest/tgw/transit-gateway-quotas.html", "--title", "Transit Gateway quotas", "--observed-at", "2026-09-30");
-
+    const { root, article } = catalog();
     const { json } = await serve(root);
     const page = await json<ArticlePage>(`/api/article?path=${encodeURIComponent(article)}`);
     const origins = await json<OriginsPage>("/api/origins");
 
-    expect(page.file.content).toBe("# AWS environment\n");
-    expect(page.references.map((reference) => [reference.title, reference.sections])).toEqual([
-      ["Transit Gateway quotas", []],
-      ["TGW route tables", ["Routing"]]
+    expect(page.file.content).toBe(articleText);
+    expect(page.article).toMatchObject({ title: "AWS environment", description: "Accounts, VPCs, and routing.", updated_at: "2026-10-02", informed_by: 1 });
+    expect(page.references.map((reference) => [reference.locator, reference.sections, reference.observed_at])).toEqual([
+      ["/vpc/latest/tgw/transit-gateway-quotas.html", [], "2026-09-30"],
+      ["us-east-1 transit gateway route tables", ["Routing"], "2026-10-02"]
     ]);
-    expect(page.origins.find((origin) => origin.key === "aws:4471-0938-2215")?.access).toEqual([{ method: "AWS CLI", detail: "--profile prod-network-ro" }]);
-    expect(origins.kinds.map((kind) => [kind.name, kind.identifier, kind.origins])).toEqual([
-      ["aws", "AWS account ID", 1],
-      ["docs", "Documentation site host", 1]
+    expect(page.origins.find((origin) => origin.key === "aws:4471-0938-2215")?.access).toEqual([{ method: "AWS CLI --profile prod-network-ro", detail: "" }]);
+    expect(origins.origins.find((origin) => origin.key === "docs:docs.aws.amazon.com")?.access).toEqual([{ method: "Web fetch", detail: "" }]);
+    expect(origins.kinds.map((kind) => [kind.name, kind.origins])).toEqual([
+      ["aws", 1],
+      ["docs", 1]
     ]);
     expect(origins.origins.map((origin) => [origin.key, origin.articles, origin.references])).toEqual([
       ["aws:4471-0938-2215", 1, 1],
@@ -427,7 +457,7 @@ describe("cairn ui server", () => {
     const { send, json } = await serve(root);
     const shown = await json<FilePage>(`/api/file?path=${encodeURIComponent(article)}`);
 
-    expect(shown).toMatchObject({ display_path: "knowledge/aws-environment.md", content: "# AWS environment\n", omitted: null });
+    expect(shown).toMatchObject({ display_path: "knowledge/articles/aws-environment.md", content: articleText, omitted: null });
     expect(shown.artifact?.category).toBe("knowledge");
     expect((await send(`/api/file?path=${encodeURIComponent(outside)}`)).status).toBe(404);
     expect((await send(`/api/file?path=${encodeURIComponent(join(root, "..", outside))}`)).status).toBe(404);

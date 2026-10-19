@@ -8,6 +8,7 @@ import { openCairn } from "../core/db.ts";
 import { requireSessionId } from "../core/lookup.ts";
 import { loadAliases, pricer, type Catalog } from "./pricing.ts";
 import { sessionCost } from "./rollup.ts";
+import { layoutAt } from "../core/root.ts";
 
 const roots: string[] = [];
 
@@ -58,7 +59,7 @@ function workspace() {
   mkdirSync(projects, { recursive: true });
 
   const run = (...args: string[]) =>
-    main([...args, "--json"], { CAIRN_ROOT: root }, {
+    main([...args, "--json"], { CAIRN_ROOT: root, XDG_CONFIG_HOME: join(root, "config") }, {
       stdout: () => {},
       stderr: () => {},
       stdin: () => "",
@@ -91,7 +92,7 @@ function workspace() {
       return join(folder, `agent-${agentId}.jsonl`);
     },
     cost: (key: string) => {
-      const cairn = openCairn(root);
+      const cairn = openCairn(layoutAt(root));
       const [harness = "", nativeId = ""] = key.split(":");
 
       try {

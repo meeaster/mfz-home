@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { basename, dirname, join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { main } from "./cli.ts";
@@ -57,13 +57,13 @@ function workspace() {
   const root = mkdtempSync(join(tmpdir(), "cairn-test-"));
   let now = new Date("2026-09-25T10:00:00");
 
-  roots.push(root);
+  roots.push(root, `${root}-config`);
 
   const run = (...args: string[]) => {
     let stdout = "";
     let stderr = "";
 
-    const code = main(args, { CAIRN_ROOT: root }, {
+    const code = main(args, { CAIRN_ROOT: root, XDG_CONFIG_HOME: `${root}-config` }, {
       stdout: (text) => {
         stdout += text;
       },
@@ -108,6 +108,10 @@ function workspace() {
       now = new Date(value);
     }
   };
+}
+
+function escape(text: string): string {
+  return text.replaceAll(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function writeEvidence(cairn: ReturnType<typeof workspace>, session: string, topic: string): string {
@@ -345,6 +349,40 @@ describe("files", () => {
     expect(bySession.artifacts.map((entry) => entry.path)).toEqual([shellWritten]);
   });
 
+  test("a knowledge base outside the root, named in the config file, is recorded under knowledge/ and found again after it moves", () => {
+    const cairn = workspace();
+    const config = join(`${cairn.root}-config`, "cairn", "config.json");
+    const repository = join(cairn.root, "..", `${basename(cairn.root)}-repository`);
+
+    roots.push(repository);
+    cairn.write(config, JSON.stringify({ knowledge: join(repository, "knowledge") }));
+
+    const article = cairn.write(join(repository, "knowledge", "articles", "vpn.md"), "---\ndescription: VPNs.\nupdated: 2026-09-25\n---\n# VPN\n");
+    const agents = cairn.write(join(repository, "knowledge", "AGENTS.md"), "---\nknowledge-base-format: 1\n---\n# Knowledge base\n");
+    const shadowed = cairn.write(join(cairn.root, "knowledge", "old.md"), "# Old\n");
+
+    cairn.run("capture", article, "--session", "opencode:root");
+    cairn.run("read", agents, "--session", "opencode:root");
+    cairn.run("capture", shadowed, "--session", "opencode:root");
+
+    const db = new DatabaseSync(join(cairn.root, "catalog.db"));
+
+    // The knowledge base's files describe themselves, so they are filed by folder and need no description.
+    expect(db.prepare("SELECT category, status, location, path_or_url FROM artifact ORDER BY id").all()).toEqual([
+      { category: "knowledge", status: "active", location: "managed", path_or_url: "knowledge/articles/vpn.md" },
+      { category: "knowledge", status: "active", location: "managed", path_or_url: "knowledge/AGENTS.md" }
+    ]);
+    db.close();
+
+    const moved = join(repository, "moved");
+
+    mkdirSync(moved);
+    renameSync(join(repository, "knowledge"), join(moved, "knowledge"));
+    cairn.write(config, JSON.stringify({ knowledge: join(moved, "knowledge") }));
+
+    expect(cairn.json(checkReport, "check")).toEqual({ missing: [], changed: [], moved: [], captured: [] });
+  });
+
   test("a read of an unrecorded file records it without crediting the reader", () => {
     const cairn = workspace();
     const path = cairn.write(join(cairn.root, "sessions", "loose.md"), "x");
@@ -521,31 +559,76 @@ describe("indexes", () => {
     expect(path).toContain("late-finding.md");
   });
 
-  test("a knowledge article is listed in the knowledge index, and evidence written up in it says where", () => {
+  test("evidence an article's References cite, or copy from a session file, says where it was written up", () => {
     const cairn = workspace();
 
     cairn.run("session", "describe", "opencode:root", "--create", "Logs archived to S3");
 
-    const evidence = writeEvidence(cairn, "opencode:root", "aws accounts");
+    const sessionFile = writeEvidence(cairn, "opencode:root", "aws accounts");
     const unused = writeEvidence(cairn, "opencode:root", "bucket pricing");
-    const article = cairn.write(join(cairn.root, "knowledge", "aws-environment.md"), "# AWS environment\n");
+
+    const copied = cairn.write(
+      join(cairn.root, "knowledge", "evidence", "2026-09-25-aws-accounts.md"),
+      `---\ndescription: The AWS accounts.\nobserved: 2026-09-25\nfrom: session opencode:root · ${sessionFile}\n---\n# AWS accounts\n`
+    );
+
+    const article = cairn.write(
+      join(cairn.root, "knowledge", "articles", "aws-environment.md"),
+      "---\ndescription: Accounts, VPCs, and routing.\nupdated: 2026-09-25\n---\n# AWS environment\n\n## References\n\n" +
+        "- `aws:4471` · account list · observed 2026-09-25 · via [AWS accounts](../evidence/2026-09-25-aws-accounts.md)\n"
+    );
+
+    cairn.run("capture", copied, "--session", "opencode:root");
+    cairn.run("capture", article, "--session", "opencode:root");
+    cairn.run("describe", sessionFile, "--category", "evidence", "--title", "AWS accounts");
+    cairn.run("describe", unused, "--category", "evidence", "--title", "Bucket pricing");
+
+    const effortIndex = cairn.index("logs-archived-to-s3");
+    const writtenUp = "written up in [AWS environment](../../knowledge/articles/aws-environment.md)";
+
+    expect(effortIndex).toMatch(new RegExp(`\\[AWS accounts\\]\\([^)]+sessions[^)]+\\).* · ${escape(writtenUp)}`));
+    expect(effortIndex).toMatch(new RegExp(`2026-09-25-aws-accounts\\.md.* · ${escape(writtenUp)}`));
+    expect(effortIndex).not.toMatch(/\[Bucket pricing\][^\n]*written up in/);
+    expect(existsSync(join(cairn.root, "knowledge", "index.md"))).toBe(false);
+  });
+
+  test("knowledge export writes an older catalog's origins and references into the knowledge base and empties them", () => {
+    const cairn = workspace();
+    const article = cairn.write(join(cairn.root, "knowledge", "aws-environment.md"), "# AWS environment\n\n## Routing\n\nTwo tunnels per site.\n");
 
     cairn.run("capture", article, "--session", "opencode:root");
-    cairn.run("describe", evidence, "--category", "evidence", "--title", "AWS accounts");
-    cairn.run("describe", unused, "--category", "evidence", "--title", "Bucket pricing");
     cairn.run("describe", article, "--category", "knowledge", "--title", "AWS environment", "--description", "Accounts, VPCs, and routing.");
-    expect(cairn.run("link", "add", "artifact", evidence, "informs", article).code).toBe(0);
 
-    const knowledgeIndex = readFileSync(join(cairn.root, "knowledge", "index.md"), "utf8");
-    const effortIndex = cairn.index("logs-archived-to-s3");
+    const db = new DatabaseSync(join(cairn.root, "catalog.db"));
+    const articleId = z.object({ id: z.number() }).parse(db.prepare("SELECT id FROM artifact WHERE category = 'knowledge'").get()).id;
 
-    expect(knowledgeIndex).toContain(
-      "- [AWS environment](aws-environment.md) — Accounts, VPCs, and routing. · efforts: [logs-archived-to-s3](../efforts/logs-archived-to-s3/index.md) · informed by 1 file"
+    db.exec(`
+      INSERT INTO origin_kind (id, name, identifier, created_by, created_at) VALUES (1, 'aws', 'AWS account ID', 'mcp', '2026-09-20');
+      INSERT INTO origin (id, kind_id, identifier, title, created_by, created_at, updated_at)
+        VALUES (1, 1, '4471-0938-2215', 'Prod network', 'mcp', '2026-09-20', '2026-09-20');
+      INSERT INTO origin_access (origin_id, method, detail) VALUES (1, 'AWS CLI', '--profile prod-network-ro');
+      INSERT INTO origin_reference (artifact_id, origin_id, locator, title, sections, observed_at, version, recorded_by)
+        VALUES (${articleId}, 1, 'us-east-1 VPN connections', 'VPNs', '["Routing"]', '2026-09-21T08:00:00Z', NULL, 'mcp');
+    `);
+    db.close();
+
+    expect(cairn.run("knowledge", "export").code).toBe(0);
+
+    const moved = join(cairn.root, "knowledge", "articles", "aws-environment.md");
+    const text = readFileSync(moved, "utf8");
+
+    expect(existsSync(article)).toBe(false);
+    expect(text).toMatch(/^---\ndescription: Accounts, VPCs, and routing\.\nupdated: \d{4}-\d{2}-\d{2}\n---\n/);
+    expect(text).toContain("## References\n\n- `aws:4471-0938-2215` · us-east-1 VPN connections · observed 2026-09-21 · supports: Routing\n");
+    expect(readFileSync(join(cairn.root, "knowledge", "origins.md"), "utf8")).toContain(
+      "## aws:4471-0938-2215\n\nProd network\n- Access: AWS CLI --profile prod-network-ro\n"
     );
-    expect(effortIndex).toContain("## Knowledge");
-    expect(effortIndex).toMatch(/\[AWS accounts\]\([^)]+\).* · written up in \[AWS environment\]\(\.\.\/\.\.\/knowledge\/aws-environment\.md\)/);
-    expect(effortIndex).toMatch(/\[Bucket pricing\]\([^)]+\)[^\n]*$/m);
-    expect(effortIndex).not.toMatch(/\[Bucket pricing\][^\n]*written up in/);
+    expect(cairn.json(checkReport, "check").missing).toEqual([]);
+
+    const after = new DatabaseSync(join(cairn.root, "catalog.db"));
+
+    expect(after.prepare("SELECT count(*) AS count FROM origin_reference").get()).toEqual({ count: 0 });
+    after.close();
   });
 });
 

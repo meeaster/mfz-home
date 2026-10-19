@@ -14,9 +14,9 @@ import {
   type EffortSummary
 } from "../core/find.ts";
 import { findArtifactId, findSessionId, requireEffortId, requireSessionId } from "../core/lookup.ts";
-import { articleReferences, findOrigins, originKinds } from "../core/origins.ts";
-import { relativeInsideRoot } from "../core/root.ts";
-import { articlesInformed, effortView, knowledgeArticles, type ArticleReference } from "../core/views.ts";
+import { citingArticles, readKnowledgeBase, type KnowledgeArticle, type KnowledgeBase, type KnowledgeOrigin } from "../core/knowledge.ts";
+import { relativeInsideRoot, type Layout } from "../core/root.ts";
+import { effortView, writtenUpIn, type ArticleReference } from "../core/views.ts";
 import * as schemas from "../schemas.ts";
 import { sessionCost } from "../usage/rollup.ts";
 import type {
@@ -28,7 +28,10 @@ import type {
   FilePage,
   KnowledgeItem,
   LinksPage,
+  OriginItem,
+  OriginKindItem,
   OriginsPage,
+  ReferenceItem,
   SessionListItem,
   SessionPage,
   SidebarData,
@@ -41,7 +44,7 @@ import { countChanges, type DesignStats, designStats, docSlug, jsonDesignStats, 
 const viewerLimit = 2 * 1024 * 1024;
 
 function displayPath(cairn: Cairn, entry: ArtifactEntry): string {
-  return entry.location === "managed" ? (relativeInsideRoot(cairn.root, entry.path) ?? entry.path) : entry.path;
+  return entry.location === "managed" ? (relativeInsideRoot(cairn, entry.path) ?? entry.path) : entry.path;
 }
 
 function artifactItem(cairn: Cairn, entry: ArtifactEntry, writtenUp: readonly ArticleReference[] = []): ArtifactItem {
@@ -61,11 +64,11 @@ function artifactItem(cairn: Cairn, entry: ArtifactEntry, writtenUp: readonly Ar
   };
 }
 
-// Artifacts by id, each with the knowledge articles it informs.
+// Artifacts by id, each with the knowledge articles that cite it.
 function artifactItems(cairn: Cairn, ids: readonly number[]): ArtifactItem[] {
-  const writtenUp = articlesInformed(cairn, ids);
+  const base = readKnowledgeBase(cairn);
 
-  return loadArtifacts(cairn, ids).map((entry) => artifactItem(cairn, entry, writtenUp.get(entry.path) ?? []));
+  return loadArtifacts(cairn, ids).map((entry) => artifactItem(cairn, entry, writtenUpIn(base, entry.path)));
 }
 
 function effortListItem(effort: EffortSummary): EffortListItem {
@@ -142,6 +145,7 @@ function latestBackup(cairn: Cairn): string | null {
 export function sidebar(cairn: Cairn): SidebarData {
   const efforts = effortList(cairn);
   const roots = cairn.sql.get`SELECT count(*) AS count FROM session WHERE parent_session_id IS NULL`;
+  const base = readKnowledgeBase(cairn);
 
   const home = homedir();
 
@@ -153,9 +157,9 @@ export function sidebar(cairn: Cairn): SidebarData {
       designs: designList(cairn).length,
       links: linkCount(cairn),
       sessions: roots === undefined ? 0 : integer(roots, "count"),
-      knowledge: knowledgeArticles(cairn).length,
+      knowledge: base?.articles.length ?? 0,
       sources: sourceList(cairn).length,
-      origins: findOrigins(cairn, undefined, undefined, null).length
+      origins: base?.origins.length ?? 0
     },
     efforts: efforts.map((effort) => ({ slug: effort.slug, title: effort.title }))
   };
@@ -273,27 +277,107 @@ export function sessionPage(cairn: Cairn, key: string): SessionPage {
   };
 }
 
+// An article as the viewer lists it. Its title and description come from the file; who wrote it and the efforts
+// it serves come from the catalog when a session's write was recorded there.
+function knowledgeItem(cairn: Cairn, base: KnowledgeBase, article: KnowledgeArticle): KnowledgeItem {
+  const entry = catalogEntry(cairn, article.path);
+  const modified = modifiedAt([article.path]);
+
+  return {
+    path: article.path,
+    display_path: relativeInsideRoot(cairn, article.path) ?? article.path,
+    location: "managed",
+    category: "knowledge",
+    pointer_type: null,
+    title: article.title,
+    description: article.description,
+    status: "active",
+    producer: entry?.producer ?? null,
+    efforts: entry?.efforts ?? [],
+    captured_at: entry?.captured_at ?? modified,
+    written_up_in: writtenUpIn(base, article.path),
+    informed_by: article.cites.length,
+    updated_at: article.updated ?? modified
+  };
+}
+
 export function knowledgeList(cairn: Cairn): KnowledgeItem[] {
-  return knowledgeArticles(cairn).map((article) => ({
-    ...artifactItem(cairn, article),
-    informed_by: article.informed_by,
-    updated_at: article.updated_at
-  }));
+  const base = readKnowledgeBase(cairn);
+
+  if (base === null) {
+    return [];
+  }
+
+  return base.articles.map((article) => knowledgeItem(cairn, base, article)).sort((left, right) => (left.title ?? "").localeCompare(right.title ?? ""));
+}
+
+function originItem(base: KnowledgeBase, origin: KnowledgeOrigin): OriginItem {
+  const citing = base.articles.filter((article) => article.references.some((reference) => reference.origin === origin.key));
+
+  return {
+    key: origin.key,
+    kind: origin.kind,
+    identifier: origin.identifier,
+    title: origin.description === "" ? origin.key : origin.description,
+    description: origin.description,
+    access: origin.access.map((method) => ({ method, detail: "" })),
+    articles: citing.length,
+    references: citing.reduce((count, article) => count + article.references.filter((reference) => reference.origin === origin.key).length, 0)
+  };
+}
+
+function originItems(base: KnowledgeBase): OriginItem[] {
+  return base.origins.map((origin) => originItem(base, origin));
 }
 
 export function originsPage(cairn: Cairn): OriginsPage {
-  return { kinds: originKinds(cairn), origins: findOrigins(cairn, undefined, undefined, null) };
+  const base = readKnowledgeBase(cairn);
+
+  if (base === null) {
+    return { kinds: [], origins: [] };
+  }
+
+  const origins = originItems(base);
+  const kinds = new Map<string, number>();
+
+  for (const origin of origins) {
+    kinds.set(origin.kind, (kinds.get(origin.kind) ?? 0) + 1);
+  }
+
+  const kindItems: OriginKindItem[] = [...kinds].map(([name, count]) => ({ name, identifier: "", description: "", origins: count }));
+
+  return { kinds: kindItems.sort((left, right) => left.name.localeCompare(right.name)), origins };
 }
 
 export function articlePage(cairn: Cairn, requested: string): ArticlePage {
   const path = resolve(requested);
-  const article = knowledgeList(cairn).find((item) => item.path === path);
+  const base = readKnowledgeBase(cairn);
+  const found = base?.articles.find((article) => article.path === path);
 
-  if (article === undefined) {
+  if (base === null || found === undefined) {
     throw new CairnError("not_found", `No knowledge article at ${requested}`);
   }
 
-  return { article, file: filePage(cairn, path), ...articleReferences(cairn, path) };
+  // Oldest observed first, so a re-check starts with the stalest; a reference without a date comes first of all.
+  const references: ReferenceItem[] = found.references
+    .map((reference) => ({
+      origin: reference.origin,
+      locator: reference.locator,
+      title: reference.locator,
+      sections: reference.sections,
+      observed_at: reference.observed ?? "",
+      version: reference.version
+    }))
+    .sort((left, right) => left.observed_at.localeCompare(right.observed_at));
+
+  const keys = new Set(references.map((reference) => reference.origin));
+
+  return {
+    article: knowledgeItem(cairn, base, found),
+    file: filePage(cairn, path),
+    references,
+    origins: originItems(base).filter((origin) => keys.has(origin.key))
+  };
 }
 
 function readIfPresent(path: string): string | null {
@@ -332,7 +416,7 @@ function catalogEntry(cairn: Cairn, path: string): ArtifactEntry | null {
 
 // The efforts of every recorded file under a folder, for material that spans several files.
 function folderEfforts(cairn: Cairn, folder: string): string[] {
-  const inside = relativeInsideRoot(cairn.root, folder);
+  const inside = relativeInsideRoot(cairn, folder);
 
   if (inside === null) {
     return [];
@@ -355,12 +439,12 @@ function folderEfforts(cairn: Cairn, folder: string): string[] {
 
 // A design's built doc, designs/<name>/published/<slug>.html, or null when it isn't built. The name comes from a URL,
 // so it must be one folder under designs/, and the slug from doc.html must keep the file inside published/.
-export function builtDoc(root: string, name: string): string | null {
+export function builtDoc(designs: string, name: string): string | null {
   if (!/^[\w.-]+$/.test(name) || name.startsWith(".")) {
     return null;
   }
 
-  const folder = join(root, "designs", name);
+  const folder = join(designs, name);
   const published = join(folder, "published");
   const path = resolve(published, `${docSlug(readIfPresent(join(folder, "doc.html")), name)}.html`);
 
@@ -392,7 +476,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
   const { path: designPath, stats } = found;
   const changesPath = join(folder, "changes.md");
   const changes = countChanges(readIfPresent(changesPath) ?? "");
-  const doc = builtDoc(cairn.root, basename(folder));
+  const doc = builtDoc(cairn.designs, basename(folder));
   const built = doc === null ? null : readFileSync(doc, "utf8");
   const included = built === null ? null : (publishedMark(built) ?? 0);
   const entry = catalogEntry(cairn, designPath);
@@ -420,7 +504,7 @@ function designItem(cairn: Cairn, folder: string): DesignItem | null {
 }
 
 export function designList(cairn: Cairn): DesignItem[] {
-  const folder = join(cairn.root, "designs");
+  const folder = cairn.designs;
   const designs: DesignItem[] = [];
 
   for (const name of subfolders(folder)) {
@@ -453,9 +537,9 @@ function meetingItem(cairn: Cairn, folder: string): SourceItem {
   return {
     kind: "meeting",
     title: entry?.title ?? heading ?? humanize(name),
-    description: entry?.description ?? null,
+    description: entry?.description ?? (summary === null ? null : frontMatterDescription(summary)),
     path: shown,
-    display_path: `${relativeInsideRoot(cairn.root, folder) ?? folder}/`,
+    display_path: `${relativeInsideRoot(cairn, folder) ?? folder}/`,
     date: /^\d{4}-\d{2}-\d{2}/.exec(name)?.[0] ?? modifiedAt([folder]).slice(0, 10),
     efforts: folderEfforts(cairn, folder),
     intake: summary === null ? { state: "not_reviewed" } : meetingIntake(summary)
@@ -470,18 +554,30 @@ function threadItem(cairn: Cairn, kind: string, path: string): SourceItem {
   return {
     kind,
     title: entry?.title ?? state.title ?? humanize(basename(path)),
-    description: entry?.description ?? null,
+    description: entry?.description ?? frontMatterDescription(content),
     path,
-    display_path: relativeInsideRoot(cairn.root, path) ?? path,
+    display_path: relativeInsideRoot(cairn, path) ?? path,
     date: state.last_message ?? modifiedAt([path]).slice(0, 10),
     efforts: entry?.efforts ?? [],
     intake: state.intake
   };
 }
 
-// Meetings are folders under sources/meetings/; every other kind is one Markdown file per thread.
+function frontMatterDescription(markdown: string): string | null {
+  return /^---\n[\s\S]*?^description:\s*(.+?)\s*$[\s\S]*?^---$/m.exec(markdown)?.[1] ?? null;
+}
+
+// Sources live in the knowledge base. A sources/ folder in the root is where Cairn kept them before, read until
+// they move. Meetings are folders under sources/meetings/; every other kind is one Markdown file per thread.
 export function sourceList(cairn: Cairn): SourceItem[] {
-  const sources = join(cairn.root, "sources");
+  const folders = [...new Set([join(cairn.knowledge, "sources"), join(cairn.root, "sources")])];
+
+  return folders
+    .flatMap((sources) => sourcesIn(cairn, sources))
+    .sort((left, right) => right.date.localeCompare(left.date) || left.title.localeCompare(right.title));
+}
+
+function sourcesIn(cairn: Cairn, sources: string): SourceItem[] {
   const items: SourceItem[] = [];
 
   for (const kind of subfolders(sources)) {
@@ -502,7 +598,14 @@ export function sourceList(cairn: Cairn): SourceItem[] {
     }
   }
 
-  return items.sort((left, right) => right.date.localeCompare(left.date) || left.title.localeCompare(right.title));
+  return items;
+}
+
+// The root and content folders with symbolic links resolved, to compare against a resolved path.
+function realLayout(cairn: Cairn): Layout {
+  const real = (path: string): string => (existsSync(path) ? realpathSync(path) : path);
+
+  return { root: real(cairn.root), knowledge: real(cairn.knowledge), designs: real(cairn.designs) };
 }
 
 // The folder to open for a path: a folder under the root as it is, or the folder holding a file the viewer may show.
@@ -510,10 +613,10 @@ export function folderToOpen(cairn: Cairn, requested: string): string {
   const path = resolve(requested);
 
   if (existsSync(path) && statSync(path).isDirectory()) {
-    const root = realpathSync(cairn.root);
+    const layout = realLayout(cairn);
     const real = realpathSync(path);
 
-    if (real !== root && relativeInsideRoot(root, real) === null) {
+    if (real !== layout.root && relativeInsideRoot(layout, real) === null) {
       throw new CairnError("not_found", `No folder at ${requested}`);
     }
 
@@ -539,7 +642,7 @@ export function filePage(cairn: Cairn, requested: string): FilePage {
 
   const real = realpathSync(path);
 
-  if (artifact === null && relativeInsideRoot(realpathSync(cairn.root), real) === null) {
+  if (artifact === null && relativeInsideRoot(realLayout(cairn), real) === null) {
     throw new CairnError("not_found", `No file at ${requested}`);
   }
 
@@ -550,7 +653,7 @@ export function filePage(cairn: Cairn, requested: string): FilePage {
   }
 
   const size = stats.size;
-  const shown = { path, display_path: relativeInsideRoot(cairn.root, path) ?? path, artifact, size };
+  const shown = { path, display_path: relativeInsideRoot(cairn, path) ?? path, artifact, size };
 
   if (size > viewerLimit) {
     return { ...shown, content: null, omitted: "too_large" };

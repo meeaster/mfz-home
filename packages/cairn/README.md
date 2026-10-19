@@ -5,13 +5,15 @@ Cairn is a system for doing software work with AI: design partnership, delegated
 This package holds Cairn's parts:
 
 - **The catalog**: a SQLite database of sessions, efforts, and pointers to the files and URLs they produce, with the CLI, MCP server, and harness plugins that keep it. Files hold the content. The catalog holds descriptions and relationships, and never returns file contents. Most of this README covers it.
-- **Workflow skills** in `skills/`: orchestration (`orchestrate` and `design-partner`), `effort-context`, `learnings`, and `design-docs`.
+- **Workflow skills** in `skills/`: orchestration (`orchestrate` and `design-partner`), `effort-context`, and `learnings`.
+
+The knowledge base and designs Cairn tracks are plain files whose formats belong to two skills that work without Cairn, `knowledge-base` and `design-docs`, in the home's `skills/active/`.
 
 The catalog's design is in [docs/cairn/design.md](../../docs/cairn/design.md), orchestration's is in [docs/orchestrate/](../../docs/orchestrate/README.md), and the vocabulary is in [TERMINOLOGY.md](TERMINOLOGY.md).
 
 ## Installing
 
-The package's skills live in `skills/`: the workflow skills `design-partner`, `orchestrate`, `effort-context`, and `learnings`, and `design-docs`, which keeps the designs that efforts link to and builds their docs. The home catalog selects these directories through explicit root-relative paths. Run `mfz apply` after editing a skill to update its rendered copy. The package tarball also includes the skills.
+The package's skills live in `skills/`: the workflow skills `design-partner`, `orchestrate`, `effort-context`, and `learnings`. The home catalog selects these directories through explicit root-relative paths. Run `mfz apply` after editing a skill to update its rendered copy. The package tarball also includes the skills.
 
 Cairn is built into `dist/` and installed from a local tarball; nothing is published. From the repository root:
 
@@ -33,7 +35,11 @@ The build bundles each entry with its dependencies: `dist/cli.js`, `dist/mcp.js`
 
 ## Running
 
-`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `~/workspace/artifacts/cairn/`. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, effort folders in `efforts/`, and folders named for their subjects: designs in `designs/`, knowledge articles in `knowledge/` (with a generated `index.md`), and meetings and message threads in `sources/`. Every command accepts `--json`.
+`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `~/workspace/artifacts/cairn/`. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, and effort folders in `efforts/`. Every command accepts `--json`.
+
+Cairn also tracks two content folders: the knowledge base (articles, sources, evidence and `origins.md`, in the `knowledge-base` skill's format) and the designs. Each is `knowledge/` or `designs/` in the root unless `CAIRN_KNOWLEDGE` or `CAIRN_DESIGNS`, or the `knowledge` or `designs` key of `~/.config/cairn/config.json` (under `XDG_CONFIG_HOME` when it's set), names another folder, such as one in a git repository. The catalog stores a file in either folder as if the folder were mounted at `knowledge/` or `designs/` in the root, so its catalog path survives the folder moving. A file in the knowledge base describes itself in its front matter: capture files it as `knowledge`, `source` or `evidence` by its folder, and the catalog keeps no copy of its description, references or origins. Every session is told where designs live and, once the knowledge base has its `AGENTS.md`, where the knowledge base is.
+
+`cairn knowledge export` moves what an older catalog held about knowledge into the files: each article's description, and its references as References lines, articles from `knowledge/` into `knowledge/articles/`, and origins into `origins.md`. It then empties the origin and reference tables, which Cairn no longer reads. Run it once on a catalog that recorded references.
 
 A typical sequence, as the harness plugins and agents will run it:
 
@@ -92,15 +98,13 @@ Agents use the catalog through a stdio MCP server:
 cairn-mcp
 ```
 
-It reads `CAIRN_ROOT` the same way the CLI does. It has eight tools:
+It reads `CAIRN_ROOT` and the content folders the same way the CLI does. It has six tools:
 - `catalog_session`: describe a session and attach it to efforts.
 - `catalog_describe`: describe a file, or register a URL, with what an agent read about a Jira item or Confluence page.
 - `catalog_find`: find efforts, sessions, or files.
 - `catalog_location`: get a path for a new file.
 - `catalog_effort`: show or change an effort.
 - `catalog_link`: link files or efforts.
-- `catalog_origin`: find or register the systems knowledge comes from, with how to reach them.
-- `catalog_reference`: record what a knowledge article looked at in an origin, and list an article's references oldest observed first.
 
 The tools return pointers and descriptions, never file contents.
 
@@ -112,13 +116,13 @@ The plugin in `src/opencode/` records OpenCode sessions and the files they write
 
 - **Sessions.** Before a session's first model request, the plugin registers it, with its parent, agent, and directory, and for a root session its origin and spawner (see [CLI runs](#cli-runs)). It opens each model request's conversation with `This session's catalog ID is opencode:<id>.`, so the agent can pass its ID to the `catalog_*` tools. A subagent's registration finishes before its first request, and its opening message also says where its result is saved and names a learnings path granted to it through `cairn location`. This goes in a message rather than the system text, which stays the same in every session: subagents started from one session then share its cache entry.
 - **Subagent results.** When a subagent finishes, the plugin writes its final message to a file named for the task in the session tree's folder, captures it for the subagent, and adds `Cairn saved this response to <path>.` to the parent's tool result, naming the learnings file too when the subagent wrote one. A background subagent's result arrives through the parent's inbox and is saved the same way. Its note is added to the result itself in the parent's model requests, after the `<subagent>` element: a separate message would arrive while the parent answers the result and make it answer a second time. The first request to carry the result waits for the save (up to 15 seconds), and later requests repeat its note unchanged, so the cached prefix holds. After a reload, results the parent had already answered keep their text without the note. A follow-up to the same subagent is appended to its file under a `Follow-up` heading, so the original result stays. In the background, a small model titles and describes the result (category `evidence`) and any learnings (category `learning`); if that fails, the file stays undescribed. The `describeModel` plugin option picks the model, as `provider/model#variant`; the default is `openai/gpt-6-luna#high`. The saved file names last only as long as the plugin: after a reload, a follow-up starts a new file.
-- **Files.** When `write`, `edit`, or `patch` changes a file under the Cairn root, the plugin runs `cairn capture`. The first time a root session writes a given file, the plugin adds a note to the tool result that asks for a description through `catalog_describe`. A subagent gets no note for its learnings file, which is described when it returns. When `read` opens a file under the root, the plugin runs `cairn read`. Files outside the root are ignored, and so are writes from the shell. A shell write to a path from `catalog_location` is credited to the session that asked for the path once anything records the file; `cairn check` finds the rest.
+- **Files.** When `write`, `edit`, or `patch` changes a file under the Cairn root or in a content folder, the plugin runs `cairn capture`. The first time a root session writes a given file, the plugin adds a note to the tool result that asks for a description through `catalog_describe`. A subagent gets no note for its learnings file, which is described when it returns. When `read` opens a file under the root, the plugin runs `cairn read`. Files outside the root are ignored, and so are writes from the shell. A shell write to a path from `catalog_location` is credited to the session that asked for the path once anything records the file; `cairn check` finds the rest.
 - **Conversations.** After each turn of a root session, the plugin runs `cairn session index`, which appends the turn's messages to `conversation.md` in the session's folder. Subagent sessions get no export.
 - **Compaction.** After a compaction, every request carries the session's compaction note: its efforts and the records to read.
 
 Each catalog update is a detached `node` process running the CLI from the same package, so the plugin and the CLI are always the same version. A failure never fails the tool call or the model request.
 
-`CAIRN_ROOT` in OpenCode's environment sets the root. It must match the root the MCP server uses. The default for both is `~/workspace/artifacts/cairn/`.
+`CAIRN_ROOT` in OpenCode's environment sets the root, and the content folders resolve as for the CLI. They must match what the MCP server uses. The default root for both is `~/workspace/artifacts/cairn/`.
 
 ## UI
 
@@ -128,7 +132,7 @@ Each catalog update is a detached `node` process running the CLI from the same p
 cairn ui
 ```
 
-The sidebar puts the work first (efforts, designs, and every Jira item and Confluence page the efforts registered) and the agents' material after it (sessions, knowledge articles, sources, origins). The sessions list hides CLI runs until its filter asks for them; a session's page lists the CLI runs its shell started. Session lists show each session's total cost; a session's page breaks it down into the session itself, its subagents, and its CLI runs, and shows each subagent's own cost beside its files. An effort's page opens on an overview: where it stands, the designs it delivers with their plan progress, its Jira items as a canvas with one lane per epic and Jira's blocks links as arrows (each lane names the plan deliverable its epic delivers, from the design), its Confluence pages as created or referenced, its other links, and related efforts. Its Material tab groups its files by category, shows its records, and marks each file that has been written up in a knowledge article. The Jira and Confluence page lists them across efforts, filtered by created or referenced. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. A built doc opens in its own tab from the list: the UI serves `designs/<name>/published/<slug>.html` at `/docs/<name>/`. The sources list shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since `Reviewed through`. A knowledge article opens on its own page: the article rendered, its references grouped by origin or by section with when each was observed and at which version, oldest first, and its efforts. The origins list groups origins by kind, with how to reach each one and how many articles and references rest on it. Clicking a file opens it, rendered or raw.
+The sidebar puts the work first (efforts, designs, and every Jira item and Confluence page the efforts registered) and the agents' material after it (sessions, knowledge articles, sources, origins). The sessions list hides CLI runs until its filter asks for them; a session's page lists the CLI runs its shell started. Session lists show each session's total cost; a session's page breaks it down into the session itself, its subagents, and its CLI runs, and shows each subagent's own cost beside its files. An effort's page opens on an overview: where it stands, the designs it delivers with their plan progress, its Jira items as a canvas with one lane per epic and Jira's blocks links as arrows (each lane names the plan deliverable its epic delivers, from the design), its Confluence pages as created or referenced, its other links, and related efforts. Its Material tab groups its files by category, shows its records, and marks each file that has been written up in a knowledge article. The Jira and Confluence page lists them across efforts, filtered by created or referenced. The designs list reads each design's `design.md` for how many decisions are settled and how many questions are open, and says when the published doc is behind `changes.md`. A built doc opens in its own tab from the list: the UI serves `designs/<name>/published/<slug>.html` at `/docs/<name>/`. The sources list reads the knowledge base's `sources/` (and a `sources/` folder left in the root) and shows how far intake has gone: a meeting's accepted, deferred, and rejected candidates, or a thread's messages since its last `## Intake through` section. A knowledge article opens on its own page, read from its file: the article rendered, its References grouped by origin or by section with when each was observed and at which version, oldest first, and its efforts. The origins list reads `origins.md` and groups origins by kind, with how to reach each one and how many articles and references rest on it. Clicking a file opens it, rendered or raw.
 
 The UI only reads. Its one action, Open folder, opens a folder under the root in the desktop's file manager (Explorer from WSL). The server listens on 127.0.0.1 and answers only requests addressed to `localhost`. The file viewer shows files under the root, and outside it only files the catalog records.
 

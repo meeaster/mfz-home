@@ -339,7 +339,7 @@ export function indexConversation(cairn: Cairn, key: SessionKey, source: Convers
     }
 
     transaction(cairn, () => {
-      const { id } = recordManagedFile(cairn, storedPath(cairn.root, path).stored, facts, sessionId);
+      const { id } = recordManagedFile(cairn, storedPath(cairn, path).stored, facts, sessionId);
 
       // The harness may rename the session as it goes, so every export refreshes its title.
       cairn.sql.run`

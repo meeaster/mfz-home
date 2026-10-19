@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { dailyBackup } from "./backup.ts";
 import { CairnError, openCairn, type Cairn } from "./db.ts";
-import { rootPaths } from "./root.ts";
+import { rootPaths, type Layout } from "./root.ts";
 import { regenerateDirty } from "./views.ts";
 
 // hot: runs on every harness event, so it skips index regeneration.
@@ -11,8 +11,8 @@ import { regenerateDirty } from "./views.ts";
 export type Mode = "hot" | "write" | "read";
 
 // Opens the catalog for one operation, then regenerates dirty indexes and takes the daily backup as the mode allows.
-export function withCairn<T>(root: string, now: () => Date, mode: Mode, work: (cairn: Cairn) => T): T {
-  const cairn = openCairn(root, now);
+export function withCairn<T>(layout: Layout, now: () => Date, mode: Mode, work: (cairn: Cairn) => T): T {
+  const cairn = openCairn(layout, now);
 
   try {
     const result = work(cairn);

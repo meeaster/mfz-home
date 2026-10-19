@@ -285,7 +285,10 @@ export function threadState(markdown: string): ThreadState {
     }
   }
 
-  const reviewed = /^- Reviewed through:\s*(\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?)/m.exec(markdown)?.[1];
+  // Intake appends "## Intake through <date> [time]" to the thread, which never changes what's above it. Threads
+  // saved before then name it in a "- Reviewed through:" header line.
+  const appended = [...markdown.matchAll(/^## Intake through (\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?)\s*$/gm)].at(-1)?.[1];
+  const reviewed = appended ?? /^- Reviewed through:\s*(\d{4}-\d{2}-\d{2}(?: \d{2}:\d{2})?)/m.exec(markdown)?.[1];
 
   return {
     title: firstHeading(markdown),

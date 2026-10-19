@@ -104,9 +104,11 @@ describe("Claude Code hooks", () => {
     writeFileSync(evidence, "Standard costs more than Glacier.\n");
     writeFileSync(outside, "Not catalogued.\n");
 
-    expect(cairn.context({ hook_event_name: "SessionStart", source: "startup" })).toBe("This session's catalog ID is claude-code:ses-main.");
+    const contentLine = `Designs live in ${join(cairn.root, "designs")}/<slug>/.`;
+
+    expect(cairn.context({ hook_event_name: "SessionStart", source: "startup" })).toBe(`This session's catalog ID is claude-code:ses-main. ${contentLine}`);
     expect(cairn.context({ hook_event_name: "SubagentStart", agent_id: "a17", agent_type: "Explore" })).toBe(
-      "This session's catalog ID is claude-code:a17."
+      `This session's catalog ID is claude-code:a17. ${contentLine}`
     );
 
     // Claude Code writes a subagent's metadata just after SubagentStart.
@@ -134,6 +136,18 @@ describe("Claude Code hooks", () => {
     expect(sessions).toContainEqual({ key: "claude-code:a17", title: "Price the buckets", agent: "Explore", parent: "claude-code:ses-main" });
     expect(sessions).toContainEqual({ key: "claude-code:a18", title: "Describe the price note", agent: "general-purpose", parent: "claude-code:a17" });
     expect(artifacts).toEqual([{ path: evidence, producer: { session: "claude-code:a17" } }]);
+  });
+
+  test("once the knowledge base has its AGENTS.md, every session is told where it is", () => {
+    const cairn = workspace();
+
+    mkdirSync(join(cairn.root, "knowledge"), { recursive: true });
+    writeFileSync(join(cairn.root, "knowledge", "AGENTS.md"), "# Knowledge base\n");
+
+    expect(cairn.context({ hook_event_name: "SessionStart", source: "startup" })).toContain(
+      `The knowledge base is at ${join(cairn.root, "knowledge")}; read its AGENTS.md before looking things up there or changing it.`
+    );
+    expect(cairn.context({ hook_event_name: "SubagentStart", agent_id: "a17", agent_type: "Explore" })).toContain("read its AGENTS.md");
   });
 
   test("subagent events without Claude Code's subagent metadata are the main session's, not child sessions", () => {

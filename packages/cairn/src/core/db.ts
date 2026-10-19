@@ -2,12 +2,11 @@ import { mkdirSync } from "node:fs";
 import { DatabaseSync, type SQLOutputValue, type SQLTagStore } from "node:sqlite";
 import { z } from "zod";
 import { migrate } from "./migrations.ts";
-import { rootPaths } from "./root.ts";
+import { rootPaths, type Layout } from "./root.ts";
 
-export type Cairn = {
+export type Cairn = Layout & {
   readonly db: DatabaseSync;
   readonly sql: SQLTagStore;
-  readonly root: string;
   readonly now: () => Date;
 };
 
@@ -25,8 +24,8 @@ export class CairnError extends Error {
   }
 }
 
-export function openCairn(root: string, now: () => Date = () => new Date()): Cairn {
-  const paths = rootPaths(root);
+export function openCairn(layout: Layout, now: () => Date = () => new Date()): Cairn {
+  const paths = rootPaths(layout.root);
 
   mkdirSync(paths.root, { recursive: true });
 
@@ -35,7 +34,7 @@ export function openCairn(root: string, now: () => Date = () => new Date()): Cai
   db.exec("PRAGMA journal_mode = WAL; PRAGMA synchronous = NORMAL;");
   migrate(db);
 
-  return { db, sql: db.createTagStore(), root: paths.root, now };
+  return { db, sql: db.createTagStore(), root: paths.root, knowledge: layout.knowledge, designs: layout.designs, now };
 }
 
 export function transaction<T>(cairn: Cairn, work: () => T): T {

@@ -317,7 +317,7 @@ export function OriginsView() {
                 {shown.length === 0 ? (
                   <EmptyList
                     title="No origins"
-                    description="An agent registers an origin the first time a knowledge article rests on it: an AWS account, a Datadog org, a repository, a documentation site."
+                    description="The knowledge base lists each system its articles rest on in origins.md: an AWS account, a Datadog org, a repository, a documentation site."
                   />
                 ) : (
                   <div className="overflow-hidden rounded-lg border">

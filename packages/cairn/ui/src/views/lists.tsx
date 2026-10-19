@@ -199,7 +199,7 @@ export function KnowledgeView() {
         <Loaded resource={articles}>
           {(list) =>
             list.length === 0 ? (
-              <EmptyList title="No knowledge articles" description="Articles are written up from evidence into knowledge/ at the root, one per subject." />
+              <EmptyList title="No knowledge articles" description="Articles live in the knowledge base's articles/ folder, one per subject, kept with the knowledge-base skill." />
             ) : (
               <div className="overflow-hidden rounded-lg border">
                 <Table>
@@ -263,7 +263,7 @@ export function DesignsView({ route }: { readonly route: Route }) {
         <Loaded resource={designs}>
           {(list) =>
             list.length === 0 ? (
-              <EmptyList title="No designs" description="Designs live in designs/ at the root, kept by the design-docs skill." />
+              <EmptyList title="No designs" description="Designs live in the designs folder, kept with the design-docs skill." />
             ) : (
               <div className="overflow-hidden rounded-lg border">
                 <Table>
@@ -415,7 +415,7 @@ export function SourcesView({ route }: { readonly route: Route }) {
                   />
                 </div>
                 {shown.length === 0 ? (
-                  <EmptyList title="No sources here" description="Meetings, emails, chats, and tickets are saved under sources/ at the root." />
+                  <EmptyList title="No sources here" description="Meetings, emails, chats, and tickets are saved in the knowledge base's sources/ folder." />
                 ) : (
                   <div className="overflow-hidden rounded-lg border">
                     <Table>

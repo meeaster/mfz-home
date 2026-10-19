@@ -7,6 +7,7 @@ import { afterEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { main } from "./cli.ts";
 import { createCairnServer } from "./mcp.ts";
+import { layoutAt } from "./core/root.ts";
 
 const toolResult = z.object({
   content: z.array(z.object({ type: z.literal("text"), text: z.string() })),
@@ -55,7 +56,7 @@ afterEach(async () => {
 async function catalog() {
   const root = mkdtempSync(join(tmpdir(), "cairn-mcp-test-"));
   const now = () => new Date("2026-09-25T10:00:00");
-  const server = createCairnServer({ root, now });
+  const server = createCairnServer({ layout: layoutAt(root), now });
   const client = new Client({ name: "cairn-test", version: "1.0.0" });
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
 
@@ -84,7 +85,7 @@ async function catalog() {
 
   // The harness plugin records sessions and file writes through the CLI.
   const cli = (...args: string[]) => {
-    const code = main(args, { CAIRN_ROOT: root }, { stdout: () => {}, stderr: () => {}, stdin: () => "", now, launchIndex: () => {}, pricing: () => null });
+    const code = main(args, { CAIRN_ROOT: root, XDG_CONFIG_HOME: join(root, "config") }, { stdout: () => {}, stderr: () => {}, stdin: () => "", now, launchIndex: () => {}, pricing: () => null });
 
     expect(code).toBe(0);
   };
@@ -104,7 +105,7 @@ async function catalog() {
   const cliJson = (...args: string[]): z.core.util.JSONType => {
     let printed = "";
 
-    const code = main([...args, "--json"], { CAIRN_ROOT: root }, {
+    const code = main([...args, "--json"], { CAIRN_ROOT: root, XDG_CONFIG_HOME: join(root, "config") }, {
       stdout: (text) => {
         printed += text;
       },
@@ -134,8 +135,6 @@ describe("MCP tools", () => {
       "catalog_find",
       "catalog_link",
       "catalog_location",
-      "catalog_origin",
-      "catalog_reference",
       "catalog_session"
     ]);
     expect(tools.every((tool) => tool.inputSchema.type === "object")).toBe(true);
@@ -354,155 +353,3 @@ const referenceList = z.object({
 });
 
 const checkReport = z.object({ unplaced: z.array(z.object({ article: z.string(), section: z.string() })) });
-
-describe("Origins and references", () => {
-  async function withArticle() {
-    const cairn = await catalog();
-    const article = join(cairn.root, "knowledge", "network-connectivity.md");
-
-    cairn.cli("session", "start", "opencode:writer");
-    mkdirSync(dirname(article), { recursive: true });
-    writeFileSync(article, "# Network connectivity\n\n## VPN tunnels\n\n## Routing\n");
-    cairn.cli("capture", article, "--session", "opencode:writer");
-    await cairn.json(artifactEntry, "catalog_describe", {
-      path: article,
-      category: "knowledge",
-      title: "Network connectivity",
-      description: "How production reaches on-premises sites."
-    });
-
-    await cairn.json(registeredOrigin, "catalog_origin", {
-      action: "register",
-      origin: "aws:4471-0938-2215",
-      title: "Prod network",
-      access: [{ method: "AWS CLI", detail: "--profile prod-network-ro" }],
-      new_kind: { identifier: "AWS account ID" }
-    });
-
-    return { ...cairn, article };
-  }
-
-  test("a later agent reuses a registered origin, adding the access method it used, and a new kind must say what its identifiers are", async () => {
-    const cairn = await withArticle();
-
-    const again = await cairn.json(registeredOrigin, "catalog_origin", {
-      action: "register",
-      origin: "aws:4471-0938-2215",
-      title: "Production networking account",
-      access: [{ method: "AWS MCP" }]
-    });
-
-    expect(again.existing).toBe(true);
-    expect(again.origin.access).toEqual([
-      { method: "AWS CLI", detail: "--profile prod-network-ro" },
-      { method: "AWS MCP", detail: "" }
-    ]);
-
-    const unknownKind = await cairn.call("catalog_origin", { action: "register", origin: "sentry:acme", title: "Acme Sentry" });
-
-    expect(unknownKind).toEqual({ isError: true, text: expect.stringContaining("new_kind") });
-
-    await cairn.json(registeredOrigin, "catalog_origin", {
-      action: "register",
-      origin: "sentry:acme",
-      title: "Acme Sentry",
-      access: [{ method: "Sentry MCP" }],
-      new_kind: { identifier: "Sentry org slug" }
-    });
-
-    const { kinds } = await cairn.json(originKinds, "catalog_origin", { action: "kinds" });
-
-    expect(kinds).toEqual([
-      { name: "aws", identifier: "AWS account ID", description: "", origins: 1 },
-      { name: "sentry", identifier: "Sentry org slug", description: "", origins: 1 }
-    ]);
-  });
-
-  test("an article's references list oldest observed first, and a new look replaces the observation", async () => {
-    const cairn = await withArticle();
-
-    await cairn.json(registeredOrigin, "catalog_origin", {
-      action: "register",
-      origin: "repo:github.com/acme/infra",
-      title: "acme/infra",
-      new_kind: { identifier: "Repository host and path" }
-    });
-
-    const vpn = await cairn.json(recordedReference, "catalog_reference", {
-      action: "record",
-      article: cairn.article,
-      origin: "aws:4471-0938-2215",
-      locator: "us-east-1 site-to-site VPN connections",
-      title: "Site-to-site VPN connections",
-      sections: ["VPN tunnels"],
-      observed_at: "2026-10-02"
-    });
-
-    await cairn.json(recordedReference, "catalog_reference", {
-      action: "record",
-      article: cairn.article,
-      origin: "repo:github.com/acme/infra",
-      locator: "terraform/network/**",
-      title: "Network Terraform modules",
-      sections: ["Routing"],
-      observed_at: "2026-09-28",
-      version: "3f2a91c"
-    });
-
-    expect(vpn.created).toBe(true);
-
-    const listed = await cairn.json(referenceList, "catalog_reference", { action: "list", article: cairn.article });
-
-    expect(listed.references.map((entry) => entry.title)).toEqual(["Network Terraform modules", "Site-to-site VPN connections"]);
-    expect(listed.origins.find((origin) => origin.key === "aws:4471-0938-2215")?.access).toEqual([
-      { method: "AWS CLI", detail: "--profile prod-network-ro" }
-    ]);
-
-    const relooked = await cairn.json(recordedReference, "catalog_reference", {
-      action: "record",
-      article: cairn.article,
-      origin: "repo:github.com/acme/infra",
-      locator: "terraform/network/**",
-      observed_at: "2026-10-05",
-      version: "9be04d2"
-    });
-
-    expect(relooked).toEqual({
-      created: false,
-      reference: expect.objectContaining({ sections: ["Routing"], observed_at: "2026-10-05", version: "9be04d2" })
-    });
-
-    const { origins } = await cairn.json(foundOrigins, "catalog_origin", { action: "find", text: "infra" });
-
-    expect(origins).toEqual([expect.objectContaining({ key: "repo:github.com/acme/infra", articles: 1, references: 1 })]);
-  });
-
-  test("references attach only to knowledge articles, and check reports a section whose heading was renamed", async () => {
-    const cairn = await withArticle();
-    const evidence = await cairn.writeEvidence("opencode:writer", "VPN tunnel status");
-
-    await cairn.json(artifactEntry, "catalog_describe", { path: evidence, category: "evidence" });
-
-    const onEvidence = await cairn.call("catalog_reference", {
-      action: "record",
-      article: evidence,
-      origin: "aws:4471-0938-2215",
-      locator: "us-east-1 VPN connections",
-      title: "VPN connections"
-    });
-
-    expect(onEvidence).toEqual({ isError: true, text: expect.stringContaining("isn't a knowledge article") });
-
-    await cairn.json(recordedReference, "catalog_reference", {
-      action: "record",
-      article: cairn.article,
-      origin: "aws:4471-0938-2215",
-      locator: "us-east-1 transit gateway route tables",
-      title: "Transit gateway route tables",
-      sections: ["Routing"]
-    });
-    writeFileSync(cairn.article, "# Network connectivity\n\n## VPN tunnels\n\n## Routing and peering\n");
-
-    expect(checkReport.parse(cairn.cliJson("check")).unplaced).toEqual([{ article: cairn.article, section: "Routing" }]);
-  });
-});

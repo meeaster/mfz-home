@@ -2,11 +2,11 @@
 
 ## Intent
 
-The bounded operations around Cairn efforts and their material: recommend, capture, synthesize or hand off, resume, write up evidence into knowledge articles and re-check them, save meetings and email threads as sources, register Jira and Confluence links, bring in earlier material, maintain assigned records, and find where output goes. Each operation ends at its completion condition.
+The bounded operations around Cairn efforts and their material: recommend, capture, synthesize or hand off, resume, save meetings and email threads as sources and take them through intake, register Jira and Confluence links, bring in earlier material, maintain assigned records, and find where output goes. Each operation ends at its completion condition.
 
 Not for: starting a workflow or ongoing maintenance just because the skill loaded, `mfz work` operations, Session Briefs, or promoting material into Personal knowledge.
 
-Success: a successor session can pick up the human's work without the human explaining it again, the knowledge base stays organized by subject and checkable, and efforts stay the human's own organization.
+Success: a successor session can pick up the human's work without the human explaining it again, and efforts stay the human's own organization.
 
 ## Scenarios
 
@@ -17,10 +17,8 @@ Success: a successor session can pick up the human's work without the human expl
 - **Work gains a clear subject**: recommends an effort with a reason and keeps working; attaching before the human answers, or asking again on the same subject, fails.
 - **Handoff without an effort yet**: one synthesis with intent, findings, corrections, rejected ideas, open boundaries, and limits; no efforts, extra handoff file, or compaction.
 - **Continue after compaction**: reads the synthesis, recovers accepted choices and open alternatives, doesn't re-pitch a rejected idea.
-- **Eight evidence files on one AWS environment**: one subject-organized article with dated, sourced sections; every file either informs it or is reported as left out; disagreements surfaced, not silently resolved. A later contradicting finding updates the section in place.
-- **Evidence from an origin already registered**: reuses the origin and adds the access method; observation date, not write-up date.
 - **Pasted meeting transcript touching two efforts**: saved with a summary of candidates; nothing written to records; a colleague's agreement isn't a decision.
-- **New replies on a known email thread**: appended to the same file; only messages after `Reviewed through` go to intake.
+- **New replies on a known email thread**: appended to the same file; only messages after the last `## Intake through` section go to intake.
 
 ## Decisions
 
@@ -29,10 +27,9 @@ Success: a successor session can pick up the human's work without the human expl
 - **Cairn's layout is the only layout** (human, 2026-09-27); no pre-Cairn storage paths.
 - **Records hold validated state only.** Proposals stay attributed in producer artifacts, synthesis, or session coordination, so a later reader can't mistake an assistant suggestion for the human's decision.
 - **A handoff is a synthesis, not another record type**, with no fixed length: remove repetition, keep meaning, so a successor doesn't need the human to explain again.
-- **Knowledge lives in subject-organized articles at the Cairn root** (human, 2026-09-29). Evidence is organized by the question each assignment answered, and ten files on one subject can't be reread every time. Per-claim findings in the effort were proposed and rejected because they can't carry a connected model such as an AWS environment's layout. Several efforts rely on one subject and it outlives them, so articles and sources join efforts through membership.
+- **Knowledge lives in subject-organized articles** (human, 2026-09-29). Evidence is organized by the question each assignment answered, and ten files on one subject can't be reread every time. Per-claim findings in the effort were proposed and rejected because they can't carry a connected model such as an AWS environment's layout. Several efforts rely on one subject and it outlives them, so articles and sources join efforts through membership.
 - **One growing file per email thread, one folder per meeting** (human, 2026-09-29). Replaced a file per thread per session chained by `Continues:`; the meeting summary is what intake and designs cite.
-- **Freshness lives on references, not statuses** (human, 2026-10-06 and 2026-10-07). Knowledge needs periodic re-checks; a reference records what was looked at in an origin and when, so a re-check doesn't need the original evidence. Origin kinds are an open list agents extend after checking what exists, so a new system like Sentry needs no code change. Jira and Confluence stay separate, first-class pointers to the work around efforts.
-- **Verification articles keep the human's gap decisions** (human, 2026-10-12). Orchestration folds verification gaps into a per-repository knowledge article. Gaps are proposals only the human settles, and the write-up's "keep it current" step would otherwise let an agent drop a declined gap, which then gets proposed again. The section also says the Cairn root's `knowledge/` may be created: in an eval, a subagent found it missing in a fresh root and declined to write the article.
+- **Writing up and re-checking knowledge moved to the `knowledge-base` skill** (human, 2026-10-19). The knowledge base became plain files anyone can keep without Cairn, so its format and maintenance live in that skill and this one keeps what is about efforts: intake and membership. Sources are never edited, so intake adds to their end. Jira and Confluence stay separate, first-class pointers to the work around efforts.
 
 ## Sources
 

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { formatSessionKey, type SessionKey } from "../schemas.ts";
 import { capture, read } from "../core/artifacts.ts";
 import type { Cairn } from "../core/db.ts";
-import { isEffortRecord, relativeInsideRoot } from "../core/root.ts";
+import { contentNote, isEffortRecord, knowledgeCategory, relativeInsideRoot } from "../core/root.ts";
 import { ensureSession, sessionContext } from "../core/sessions.ts";
 import { claudeCodeProcessOrigin, spawnerFromEnvironment, type Environment } from "./spawner.ts";
 
@@ -142,10 +142,10 @@ function toolUsed(cairn: Cairn, input: Extract<HookInput, { hook_event_name: "Po
   }
 
   const result = capture(cairn, { path, session });
-  const inside = relativeInsideRoot(cairn.root, path);
+  const inside = relativeInsideRoot(cairn, path);
 
-  // The first capture of a file reminds its writer to describe it. Effort records need no description.
-  if (!result.recorded || !result.created || inside === null || isEffortRecord(inside)) {
+  // The first capture of a file reminds its writer to describe it. Effort records and knowledge base files need none.
+  if (!result.recorded || !result.created || inside === null || isEffortRecord(inside) || knowledgeCategory(inside) !== null) {
     return null;
   }
 
@@ -192,17 +192,17 @@ export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLa
 
       // After a compaction, the note restates the session's efforts and records.
       if (input.source === "compact") {
-        return context("SessionStart", sessionContext(cairn, { session: key }).note);
+        return context("SessionStart", `${sessionContext(cairn, { session: key }).note}\n${contentNote(cairn)}`);
       }
 
-      return context("SessionStart", `This session's catalog ID is ${formatSessionKey(key)}.`);
+      return context("SessionStart", `This session's catalog ID is ${formatSessionKey(key)}. ${contentNote(cairn)}`);
     }
 
     // The subagent's ID is its catalog ID even before its metadata file lets it be registered.
     case "SubagentStart":
       actingSession(cairn, input);
 
-      return context("SubagentStart", `This session's catalog ID is ${formatSessionKey(claudeKey(input.agent_id))}.`);
+      return context("SubagentStart", `This session's catalog ID is ${formatSessionKey(claudeKey(input.agent_id))}. ${contentNote(cairn)}`);
     case "SubagentStop":
       actingSession(cairn, input);
 

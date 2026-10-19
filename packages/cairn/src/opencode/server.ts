@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import type { Plugin } from "@opencode/plugin";
 import type { Result } from "@opencode/plugin/promise/tool";
 import { z } from "zod";
-import { isCairnOwned, isEffortRecord, relativeInsideRoot, resolveRoot } from "../core/root.ts";
+import { contentNote, isCairnOwned, isEffortRecord, knowledgeCategory, relativeInsideRoot, resolveLayout, type Layout } from "../core/root.ts";
 import { formatSessionKey } from "../schemas.ts";
 import { findRunClient, type RunClient, type RunSession } from "./run-client.ts";
 
@@ -35,7 +35,7 @@ export type CairnFiles = {
 };
 
 export type CairnPluginOptions = {
-  readonly root: string;
+  readonly layout: Layout;
   readonly cli: CairnCli;
   readonly files: CairnFiles;
   // Asks a small model for text. Used to title and describe what subagents return.
@@ -356,7 +356,7 @@ export function createCairn(options: CairnPluginOptions) {
   // compaction, the compaction note. The note stays in every later request, because this text isn't kept in the
   // session's history.
   async function context(sessionID: string): Promise<string> {
-    const parts = [`This session's catalog ID is ${sessionKey(sessionID)}.`];
+    const parts = [`This session's catalog ID is ${sessionKey(sessionID)}.`, contentNote(options.layout)];
 
     try {
       const facts = await register(sessionID);
@@ -560,7 +560,7 @@ export function createCairn(options: CairnPluginOptions) {
     const learnings = await learningsPath(tool.sessionID);
 
     for (const path of touchedPaths(tool, facts.directory)) {
-      const inside = relativeInsideRoot(options.root, path);
+      const inside = relativeInsideRoot(options.layout, path);
 
       if (inside === null || isCairnOwned(inside)) {
         continue;
@@ -571,7 +571,7 @@ export function createCairn(options: CairnPluginOptions) {
       const seen = `${tool.sessionID}\n${path}`;
 
       // A subagent's learnings are described for it when it returns.
-      if (verb === "capture" && path !== learnings && !isEffortRecord(inside) && !noted.has(seen)) {
+      if (verb === "capture" && path !== learnings && !isEffortRecord(inside) && knowledgeCategory(inside) === null && !noted.has(seen)) {
         noted.add(seen);
         fresh.push(path);
       }
@@ -700,7 +700,7 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
   const describeModel = modelRef(pluginOptions.parse(ctx.options).describeModel);
 
   const cairn = createCairn({
-    root: resolveRoot(process.env.CAIRN_ROOT),
+    layout: resolveLayout(process.env),
     // The build puts the plugin in dist/opencode/ and the CLI beside it in dist/.
     cli: nodeCli(fileURLToPath(new URL("../cli.js", import.meta.url))),
     files: { write: (path, text) => writeFile(path, text, "utf8"), read: readText },

@@ -5,6 +5,7 @@ import { extname, join, normalize, resolve, sep } from "node:path";
 import { z } from "zod";
 import { CairnError, type Cairn } from "../core/db.ts";
 import { failureMessage, withCairn } from "../core/operation.ts";
+import type { Layout } from "../core/root.ts";
 import type {
   ArticlePage,
   DesignItem,
@@ -37,7 +38,7 @@ import {
 } from "./views.ts";
 
 export type UiOptions = {
-  readonly root: string;
+  readonly layout: Layout;
   readonly assets: string;
   readonly host: string;
   readonly port: number;
@@ -171,10 +172,10 @@ async function handle(options: UiOptions, request: IncomingMessage, response: Se
 
   // A design's built doc is one self-contained HTML file, served as it is so it opens in its own tab.
   if (docName !== undefined) {
-    const doc = builtDoc(options.root, safeDecode(docName));
+    const doc = builtDoc(options.layout.designs, safeDecode(docName));
 
     if (doc === null) {
-      send(response, 404, "This design has no built doc. Build it with the design-docs skill's doc.py build.", "text/plain; charset=utf-8");
+      send(response, 404, "This design has no built doc. Build it with the design-docs skill's doc.mjs build.", "text/plain; charset=utf-8");
     } else {
       send(response, 200, readFileSync(doc), "text/html; charset=utf-8");
     }
@@ -199,7 +200,7 @@ async function handle(options: UiOptions, request: IncomingMessage, response: Se
       }
 
       const { path } = openRequest.parse(JSON.parse(await readBody(request)));
-      const folder = withCairn(options.root, options.now, "hot", (cairn) => folderToOpen(cairn, path));
+      const folder = withCairn(options.layout, options.now, "hot", (cairn) => folderToOpen(cairn, path));
 
       options.openFolder(folder);
       sendJson(response, 200, { opened: folder });
@@ -217,7 +218,7 @@ async function handle(options: UiOptions, request: IncomingMessage, response: Se
       const match = pattern.exec(url.pathname);
 
       if (match !== null) {
-        sendJson(response, 200, withCairn(options.root, options.now, "hot", (cairn) => route(cairn, url.searchParams, match)));
+        sendJson(response, 200, withCairn(options.layout, options.now, "hot", (cairn) => route(cairn, url.searchParams, match)));
 
         return;
       }
@@ -227,7 +228,7 @@ async function handle(options: UiOptions, request: IncomingMessage, response: Se
   } catch (error) {
     const failure = error instanceof Error ? error : new Error(String(error));
 
-    sendJson(response, statusFor(failure), { error: failureMessage(options.root, `ui ${url.pathname}`, failure, options.now()) });
+    sendJson(response, statusFor(failure), { error: failureMessage(options.layout.root, `ui ${url.pathname}`, failure, options.now()) });
   }
 }
 

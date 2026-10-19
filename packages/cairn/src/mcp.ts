@@ -8,13 +8,12 @@ import { effortCommand } from "./core/efforts.ts";
 import { find } from "./core/find.ts";
 import { link } from "./core/links.ts";
 import { failureMessage, withCairn, type Mode } from "./core/operation.ts";
-import { originCommand, referenceCommand } from "./core/origins.ts";
-import { resolveRoot } from "./core/root.ts";
+import { resolveLayout, type Layout } from "./core/root.ts";
 import { describeSession, location } from "./core/sessions.ts";
 import * as schemas from "./schemas.ts";
 
 export type CairnServerOptions = {
-  readonly root: string;
+  readonly layout: Layout;
   readonly now: () => Date;
 };
 
@@ -87,33 +86,6 @@ const linkToolInput = z.object({
   dst: z.string()
 });
 
-const originToolInput = z.object({
-  action: z.enum(["kinds", "find", "register", "update"]),
-  origin: z.string().optional().describe("register and update: the origin's key, <kind>:<identifier>, such as aws:4471-0938-2215."),
-  kind: schemas.slug.optional().describe("find: only origins of this kind."),
-  text: z.string().optional().describe("find: words in the identifier, title, or description."),
-  limit: z.number().int().positive().max(500).optional(),
-  title: z.string().optional().describe("register: a short title such as Prod network. update: the new title."),
-  description: z.string().optional().describe("register: one sentence on what the origin holds. update: the new description."),
-  access: z.array(schemas.accessMethod).optional().describe("register: how to reach it, such as {method: AWS CLI, detail: --profile prod-network-ro}."),
-  new_kind: schemas.originKindDraft
-    .optional()
-    .describe("register, for a kind catalog_origin kinds doesn't list: what its identifiers are, such as AWS account ID, and a description."),
-  add_access: z.array(schemas.accessMethod).optional().describe("update: access methods to add."),
-  remove_access: z.array(schemas.accessMethod).optional().describe("update: access methods to remove.")
-});
-
-const referenceToolInput = z.object({
-  action: z.enum(["record", "list", "remove"]),
-  article: z.string().optional().describe("The knowledge article's absolute path."),
-  origin: z.string().optional().describe("The origin's key, <kind>:<identifier>."),
-  locator: z.string().optional().describe("record and remove: where in the origin, precisely enough to look again."),
-  title: z.string().optional().describe("record: what was looked at, in a few words. Required for a new reference."),
-  sections: z.array(z.string()).optional().describe("record: the article's headings this supports; empty means the whole article."),
-  observed_at: z.string().optional().describe("record: when it was looked at (ISO date or time); defaults to now."),
-  version: z.string().optional().describe("record: the version seen, such as a commit or page version, when the origin has one.")
-});
-
 function actorOf(session: schemas.SessionKey | undefined): string {
   return session === undefined ? "mcp" : schemas.formatSessionKey(session);
 }
@@ -123,13 +95,13 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
 
   function run(tool: string, mode: Mode, work: (cairn: Cairn) => schemas.Json): CallToolResult {
     try {
-      const result = withCairn(options.root, options.now, mode, work);
+      const result = withCairn(options.layout, options.now, mode, work);
 
       return { content: [{ type: "text", text: JSON.stringify(result) }] };
     } catch (error) {
       const failure = error instanceof Error ? error : new Error(String(error));
 
-      return { content: [{ type: "text", text: failureMessage(options.root, tool, failure, options.now()) }], isError: true };
+      return { content: [{ type: "text", text: failureMessage(options.layout.root, tool, failure, options.now()) }], isError: true };
     }
   }
 
@@ -221,47 +193,11 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
     (input) => run("catalog_link", "write", (cairn) => link(cairn, schemas.linkInput.parse(input), "mcp"))
   );
 
-  server.registerTool(
-    "catalog_origin",
-    {
-      title: "Find or register an origin",
-      description:
-        "An origin is a system knowledge comes from, such as an AWS account, a Datadog org, a repository, a Confluence space, " +
-        "or a documentation site, described once with how to reach it. Its key is <kind>:<identifier>. " +
-        "kinds lists the kinds in use and what their identifiers are; find searches origins. " +
-        "register returns the existing origin when the key is taken, adding any new access methods; " +
-        "a new kind needs new_kind. update changes the title, description, or access methods. Never store credentials.",
-      inputSchema: originToolInput
-    },
-    (input) =>
-      run("catalog_origin", input.action === "kinds" || input.action === "find" ? "read" : "write", (cairn) =>
-        originCommand(cairn, schemas.originInput.parse(input), "mcp")
-      )
-  );
-
-  server.registerTool(
-    "catalog_reference",
-    {
-      title: "Record what a knowledge article looked at",
-      description:
-        "A reference records what a knowledge article looked at inside an origin: where (locator), the sections it supports, " +
-        "and when and at which version it was observed. record adds one, or records a new look at an existing one " +
-        "(same article, origin, and locator), replacing its observed time and version. " +
-        "list gives an article's references, oldest observed first, with their origins' access methods, " +
-        "or every reference to one origin. remove deletes one.",
-      inputSchema: referenceToolInput
-    },
-    (input) =>
-      run("catalog_reference", input.action === "list" ? "read" : "write", (cairn) =>
-        referenceCommand(cairn, schemas.referenceInput.parse(input), "mcp")
-      )
-  );
-
   return server;
 }
 
 if (import.meta.main) {
-  const options: CairnServerOptions = { root: resolveRoot(process.env.CAIRN_ROOT), now: () => new Date() };
+  const options: CairnServerOptions = { layout: resolveLayout(process.env), now: () => new Date() };
 
   serveStdio(() => createCairnServer(options));
 }

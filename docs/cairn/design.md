@@ -76,7 +76,8 @@ These are the human's own examples. The design is checked against them.
 | Operational learnings get their own artifact category, `learning`, so later assignments can find them. | Human, 2026-09-25 |
 | Cairn is enabled in the `base` profile, beside the skills that use it. | Human, 2026-09-25 |
 | What is known about a subject is kept in a knowledge article: one Markdown document per existing subject (an AWS environment, a vendor product, a codebase), written for a reader who never saw the evidence and edited in place as evidence arrives. Evidence stays organized by the question each assignment answered; the article reorganizes it by subject. See [knowledge articles](#knowledge-articles). | Human, 2026-09-29, replacing the assistant's proposal of per-claim findings in the effort |
-| Knowledge articles live at the root in `knowledge/`, beside `designs/`, and join efforts through membership, because several efforts rely on one subject and it outlives each of them. Cairn generates `knowledge/index.md`. | Human, 2026-09-29 |
+| Knowledge articles live at the root in `knowledge/`, beside `designs/`, and join efforts through membership, because several efforts rely on one subject and it outlives each of them. | Human, 2026-09-29 |
+| The knowledge base is plain files in the `knowledge-base` skill's format, and the catalog keeps no copy of it: no descriptions, origins, references or generated index. The knowledge base and designs can live outside the root, such as in a git repository; Cairn reads them and stores their paths as if mounted at `knowledge/` and `designs/`. The formats belong to skills that work without Cairn, so others can keep the same files. See the `portable-records` design. | Human, 2026-10-19 |
 | External input lives at the root in `sources/`: a folder per meeting holding its transcripts and summary, and one file per email, chat, or ticket thread that grows as replies arrive. | Human, 2026-09-29, replacing the session-folder placement and one file per thread per session |
 | Cairn is the system for managing the human's work, and the UI is organized around what the human reads: efforts, designs, and the Jira items and Confluence pages around them. Sessions, knowledge and sources are agent material, one step away. See [work tracking](#work-tracking-jira-confluence-and-the-plan). | Human, 2026-10-06 |
 | Cairn holds pointers, relationships and descriptions, and nothing that needs curating. Anything curated (the plan, which Jira epic delivers which deliverable) lives in a design, which agents maintain and other people read. | Human, 2026-10-06 |
@@ -183,24 +184,16 @@ Material that isn't a link is handled by where it lives:
 | --- | --- | --- |
 | Email, chat, or ticket thread | One Markdown file per thread at `sources/<kind>/<thread>.md`, through a connector or pasted in, with later replies appended. An optional `origin` field keeps the source message ID or link. | `source` |
 | Meeting | A folder at `sources/meetings/<date>-<subject>/`. The recording as a pointer (external file or URL, never copied). The raw transcript or notes as Markdown. A cleaned transcript, with the raw one kept and linked with `informs`. A summary whose description is a short abstract. See [external input and intake](#external-input-and-intake). | recording and transcripts `source`; summary `synthesis` |
-| What is known about a subject | A knowledge article at `knowledge/<subject>.md`. See [knowledge articles](#knowledge-articles). | `knowledge` |
+| What is known about a subject | A knowledge article at `knowledge/articles/<subject>.md`. See [knowledge articles](#knowledge-articles). | `knowledge` |
 | PR, issue, Jira item, Confluence page | A URL pointer with a derived pointer type | `deliverable`, or `source` when it's input rather than output |
 
 ### Knowledge articles
 
-Evidence is organized by the question each assignment answered: one file per assignment, in the order the questions came up. A session that explored an AWS environment can leave ten such files. A later session, or a design, needs the same understanding organized by subject, and reading every file again to rebuild it doesn't scale. A knowledge article is that subject-organized document.
+Evidence is organized by the question each assignment answered; a knowledge article reorganizes what it established by subject. Since 2026-10-19 the knowledge base is plain files whose format and maintenance belong to the `knowledge-base` skill: articles with a description in their front matter and a References list naming the sources, evidence and origins each section rests on and when each was observed, sources and evidence that are never edited, and `origins.md`. Any agent can keep it without Cairn, and anyone can clone it.
 
-- **What earns one.** An article describes one existing thing as it is: an AWS environment, a vendor product, a codebase, another team's service. The test is whether a later session would otherwise have to reread the evidence, or redo the research, to understand it. Single facts don't earn a file. Lists of separate claims were considered and rejected, because they can't carry a connected model such as how accounts, VPCs, and routing fit together.
-- **Depth.** As deep as the subject needs: tables, diagrams, the layout, the boundaries, the unknowns. Each section says when it was last known true and which evidence supports it. Raw detail, such as full route table dumps, stays in the evidence and is linked.
-- **Current state.** It is edited in place when new evidence arrives. Superseded content comes out, since the evidence keeps the history. Disagreement between sources is stated where it applies rather than resolved silently.
-- **Designs and articles.** A design records what is being built and why, with decisions. An article records what exists, and decides nothing. A design's evidence item copies the claim it rests on, because the design must stand alone, and cites the article's section in `Recorded from`.
-- **Where it lives.** `knowledge/<subject>.md` at the root, or a folder when it needs sub-pages or pictures (`cairn mv` keeps its identity). It joins the efforts of the session that first wrote it, and an agent adds other efforts with `efforts.include` when their work relies on it or adds to it. Reading an article for background adds nothing.
-- **Writing up.** On the human's request, an agent writes up evidence into an article: it looks for an existing article on the subject first, then writes or updates it, and links each evidence file it used with `informs`. A large write-up can be a dispatched assignment whose output file is the article.
-- **Finding them.** `catalog_find` with category `knowledge`, the effort view's Knowledge group, and the generated `knowledge/index.md`, which lists each article with its efforts, how many files inform it, and when it last changed. In the effort view, each file that informs an article says which one, so evidence that hasn't been written up yet stands out.
-- **Origins and references.** Evidence says which investigation found something; it doesn't say where to look to check it again. An **origin** is a system knowledge comes from (an AWS account, a Datadog org, a repository, a Confluence space, a documentation site), described once in the catalog with its kind, identifier, and access methods: how to reach it from here, such as an AWS CLI profile or an MCP server, never a credential. A **reference** records what one article looked at inside an origin: a locator precise enough to look again, the sections it supports, and when and at which version it was observed. Origins are shared, so one look at an account can serve several articles, and an origin's references show which articles to re-check when it changes. Kinds are an open list that grows as agents register origins, each saying what its identifiers are. A system you reach as one place is the origin; a page, ticket, resource, or path inside it is a reference's locator.
-- **Re-checking.** On request, an agent lists an article's references oldest observed first, looks at each again through its origin's access methods, corrects the article where the origin changed, and records the new look. Nothing between re-checks claims an article is current: freshness is the dates and versions on its references, and origins carry none.
-
-Articles are working material in the catalog. Promotion into a personal knowledge base is a separate step with its own authority.
+- **What Cairn does with it.** It reads the files. Capture files a knowledge base file as `knowledge`, `source` or `evidence` by its folder without asking for a description. The effort view says which article cites each file, from the References lists and from evidence whose `from:` names the file it was copied from. The UI lists articles, sources and origins from the files.
+- **What Cairn no longer does.** It keeps no descriptions, origins or references for knowledge and generates no index; a lookup lists the articles' descriptions with one search. `cairn knowledge export` moves what an older catalog held into the files once.
+- **Designs and articles.** A design copies each claim it rests on, with when the article said it was observed, and names the article as a `Knowledge base:` source, which design-docs' `check` resolves.
 
 ### External input and intake
 
@@ -274,7 +267,6 @@ The effort view is the primary way back into work. `catalog_find` and the genera
 - **Effort view:** its `effort.md` summary, its linked efforts with their status (`depends_on`, needed by, `split_from`, `related`), then every artifact from every attached session plus explicit members, **grouped by category** by default, with titles, descriptions, paths, and pointer types. PRs, Jira items, and Confluence pages each get their own group. Grouping by session and filtering to one session are options. Each artifact shows its producing session's title so provenance stays visible.
 - **Sessions of an effort:** the session titles and descriptions, with links to their conversation exports.
 - **Chief loop:** find sessions by `workstream` or `subject`.
-- **Knowledge:** `knowledge/index.md` lists every article with its efforts, how many files inform it, and when it last changed.
 
 The generated `efforts/<slug>/index.md` renders the default effort view as Markdown with relative links. It is a view only. Agents don't edit it, and the database remains the source of truth.
 
@@ -302,11 +294,7 @@ link        src_kind(artifact|effort|session), src_id, rel, dst_kind, dst_id,
 tag         effort_id, namespace, value                           -- unique triple
 jira_item   artifact_id, issue_key, issue_type?, status?, status_category?, parent_key?, blocks, read_at
 confluence_page artifact_id, space?, version?, page_updated?, read_at   -- what an agent last read
-origin_kind id, name, identifier, description, created_by, created_at      -- identifier says what the kind's identifiers are
-origin      id, kind_id, identifier, title, description, created_by, created_at, updated_at   -- unique (kind, identifier)
-origin_access    origin_id, method, detail                                  -- how to reach it from here
-origin_reference id, artifact_id (a knowledge article), origin_id, locator, title, sections,
-                 observed_at, version?, recorded_by                         -- unique (article, origin, locator)
+origin_kind, origin, origin_access, origin_reference                       -- unused since 2026-10-19; emptied by cairn knowledge export
 ```
 
 An artifact's efforts are the attached efforts of the nearest attached session in its producer's ancestry, plus the effort whose folder holds it, plus `include` memberships, minus `exclude` memberships. The `artifact_effort` view computes this.
@@ -418,8 +406,6 @@ The database is the only place descriptions, attachments, links, and tags exist.
 | `catalog_location` | A collision-free write path. Inputs: `session`, `topic`, optional `effort`. | Absolute path |
 | `catalog_effort` | `create` or `show` an effort, or `update` its title, description, status, or tags. Also `rename`, `split` (a new effort with a `split_from` link and chosen sessions and files included, removing nothing from the original), and `merge`. One flat input object, because MCP tool inputs must be objects. | The effort, or for `show` the effort view |
 | `catalog_link` | Add or remove links between artifacts (`informs`, `supersedes`, `related`) or between efforts (`depends_on`, `split_from`, `related`). Accept or reject suggestions. | Links |
-| `catalog_origin` | `kinds` lists kinds and what their identifiers are; `find` searches origins by kind or text; `register` adds an origin (`<kind>:<identifier>`, title, description, `access[]`, and `new_kind` for a kind not yet listed), or returns the existing one and adds any new access methods; `update` changes its title, description, or access methods. One flat input object. | Kinds, or origins with access methods and how many articles and references use them |
-| `catalog_reference` | `record` a reference from a knowledge article to an origin (`locator`, `title`, `sections[]`, `observed_at`, `version`), or a new look at an existing one, which replaces its observed time and version; `list` an article's references oldest observed first, or every reference to an origin; `remove` one. One flat input object. | References, and for `list` their origins with access methods |
 
 **Why MCP for agents:** read-only producers such as `explore` often have no shell permission. MCP tools can be allowed for them without granting Bash.
 
@@ -852,6 +838,13 @@ Built 2026-10-06.
 - **Tools.** `catalog_origin` and `catalog_reference`, with flat inputs parsed into discriminated ones like `catalog_effort`. The CLI has the same operations under `cairn origin` and `cairn reference`, with access methods as JSON.
 - **Sections.** `cairn check` reads each referenced article's Markdown headings and reports sections it no longer has.
 - **UI.** An Origins page groups origins by kind with their access methods and use. A knowledge article opens on its own page (`#/knowledge/<path>`) with Article, References, and Efforts tabs; references group by origin or by section in the article's heading order, oldest observed first. The UI shows only what was observed and when, and offers no re-check action, because re-checking is an agent's work.
+
+### Knowledge out of the catalog
+
+Built 2026-10-19, from the `portable-records` design.
+- **Layout.** `resolveLayout` takes the root from `CAIRN_ROOT` and each content folder from `CAIRN_KNOWLEDGE` or `CAIRN_DESIGNS`, then `~/.config/cairn/config.json`, then the root. A folder outside the root is mounted: its files' catalog paths start `knowledge/` or `designs/`, and the root's own folder of that name is ignored. `cairn check` walks mounted folders too.
+- **Removed.** `catalog_origin`, `catalog_reference`, `cairn origin`, `cairn reference`, the knowledge index, and `informs`-based written-up links. The origin tables stay in the schema, unread, so a catalog that upgrades before `cairn knowledge export` loses nothing.
+- **Session context.** Every session is told where designs live, and where the knowledge base is once it has an `AGENTS.md`.
 
 ### Records revision
 
