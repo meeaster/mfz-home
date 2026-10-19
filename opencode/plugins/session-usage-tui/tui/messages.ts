@@ -27,7 +27,7 @@ export type SessionMessage = {
   };
 };
 
-export type SessionMessageGroup = { sessionID: string; messages: SessionMessage[] };
+export type SessionMessageGroup = { sessionID: string; messages: readonly SessionMessage[] };
 
 type ListInput = Parameters<Context["client"]["message"]["list"]>[0];
 

@@ -2,13 +2,21 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 import { createEffect, createMemo, createSignal, For, Match, onCleanup, Show, Switch } from "solid-js";
 
-import { cacheLine, costLine, fit, lastStepLine, share, subagentLine, tokens, totalLine, WIDTH } from "./format.js";
-import { createCostLifecycle, type UsageEstimate } from "./lifecycle.js";
+import { lifetimeLabel, type ModelLifetime } from "./cache-lifetime.js";
+import { cacheLine, costLine, fit, share, subagentLine, tokens, totalLine, WIDTH } from "./format.js";
+import { createCostLifecycle, type MessageObserver, type UsageEstimate } from "./lifecycle.js";
 import type { ModelAliases } from "./models.js";
 import { catalogRenderState } from "./render-state.js";
 import type { ContextUsage } from "./usage.js";
 
-export function View(props: { context: Context; sessionID: () => string; modelAliases: ModelAliases; warnAt: number }) {
+export function View(props: {
+  context: Context;
+  sessionID: () => string;
+  modelAliases: ModelAliases;
+  warnAt: number;
+  lifetimes: () => Record<string, ModelLifetime>;
+  observe: MessageObserver;
+}) {
   const [estimate, setEstimate] = createSignal<UsageEstimate>();
   const [error, setError] = createSignal<string>();
   const data = props.context.data;
@@ -18,6 +26,7 @@ export function View(props: { context: Context; sessionID: () => string; modelAl
     context: props.context,
     sessionID: props.sessionID,
     modelAliases: props.modelAliases,
+    observe: props.observe,
     setEstimate,
     setError
   });
@@ -64,10 +73,10 @@ export function View(props: { context: Context; sessionID: () => string; modelAl
                   )}
                 </Show>
                 <Show when={selected()?.input}>{(input) => line(() => cacheLine(input()))}</Show>
-                <Show when={selected()?.lastStep}>
-                  {(step) => <Show when={lastStepLine(step())}>{(text) => line(text)}</Show>}
-                </Show>
-                <For each={value().costs}>{(cost) => line(() => costLine(cost))}</For>
+                <text> </text>
+                <For each={value().costs}>
+                  {(cost) => line(() => costLine(cost, lifetimeLabel(props.lifetimes()[cost.key]?.lifetime ?? { type: "unknown" })))}
+                </For>
                 {line(() => totalLine(value().costs), theme.text.base)}
               </>
             )}

@@ -10,7 +10,6 @@ export type SessionUsage = {
   context?: ContextUsage;
   /** Every completed step's input, when there is a step. */
   input?: CacheTotals;
-  lastStep?: CacheTotals;
 };
 
 /** A session's usage from its messages, leaving out those from `boundary` on, which a revert removed. */
@@ -18,10 +17,9 @@ export function sessionUsage(messages: readonly SessionMessage[], boundary?: str
   const boundaryIndex = boundary === undefined ? -1 : messages.findIndex((message) => message.id === boundary);
   const current = boundaryIndex === -1 ? messages : messages.slice(0, boundaryIndex);
   const steps = current.flatMap((message) => pricingUsage(message) ?? []);
-  const last = steps.at(-1);
   const usage: SessionUsage = {};
 
-  if (last) {
+  if (steps.length > 0) {
     const input = { uncached: 0, cached: 0 };
 
     for (const step of steps) {
@@ -32,7 +30,6 @@ export function sessionUsage(messages: readonly SessionMessage[], boundary?: str
     }
 
     usage.input = input;
-    usage.lastStep = cacheTotals(last.tokens);
   }
 
   const context = contextUsage(current);

@@ -1,16 +1,39 @@
-import { describe, expect, it } from "vitest";
+import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { createMessageCache } from "./message-cache.js";
 import type { SessionMessage } from "./messages.js";
+import { createSessionStore } from "./session-store.js";
 
 type ListInput = { sessionID: string; limit: number; order?: "asc" | "desc"; cursor?: string };
 
-/** An in-memory message store that pages the way OpenCode's message list endpoint does. */
+/**
+ * An in-memory server that pages messages the way OpenCode's message list endpoint does, and bumps a session's update
+ * time whenever its messages change.
+ */
 function fakeServer(initial: Record<string, SessionMessage[]>) {
   const store = new Map(Object.entries(initial));
+  const updated = new Map<string, number>();
   const calls: ListInput[] = [];
 
+  const update = (sessionID: string, messages: SessionMessage[]) => {
+    store.set(sessionID, messages);
+    updated.set(sessionID, (updated.get(sessionID) ?? 0) + 1);
+  };
+
   const client = {
+    session: {
+      async get(input: { sessionID: string }) {
+        return {
+          time: { updated: updated.get(input.sessionID) ?? 0 },
+          tokens: { input: 0, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+          cost: 0
+        };
+      }
+    },
     message: {
       async list(input: ListInput) {
         calls.push(input);
@@ -29,7 +52,7 @@ function fakeServer(initial: Record<string, SessionMessage[]>) {
   };
 
   // SAFETY: The fake implements the subset of the generated client the cache uses.
-  return { store, calls, fake: client, client: client as never };
+  return { update, calls, fake: client, client: client as never };
 }
 
 const done = (id: string, input = 1): SessionMessage => ({
@@ -44,9 +67,17 @@ const user = (id: string): SessionMessage => ({ id, type: "user", time: { create
 
 const running = (id: string): SessionMessage => ({ id, type: "assistant", model: { providerID: "openai", id: "priced" }, time: { created: 1 } });
 
-const ids = (groups: Array<{ messages: SessionMessage[] }>) => groups.map(({ messages }) => messages.map((message) => message.id));
+const temporaryStore = async () => {
+  const directory = await mkdtemp(join(tmpdir(), "session-usage-test-"));
+
+  return { directory, store: createSessionStore(directory) };
+};
+
+const ids = (groups: Array<{ messages: readonly SessionMessage[] }>) => groups.map(({ messages }) => messages.map((message) => message.id));
 
 describe("message cache", () => {
+  afterEach(() => vi.useRealTimers());
+
   it("does not read a settled session again until it changes", async () => {
     const server = fakeServer({ root: [user("u1"), done("a1")], child: [user("c1"), done("c2")] });
     const cache = createMessageCache(server.client);
@@ -66,7 +97,7 @@ describe("message cache", () => {
     await cache.load(["root"]);
     const retried = [...history.slice(0, -1), done("m49", 7), user("m50"), done("m51")];
 
-    server.store.set("root", retried);
+    server.update("root", retried);
     server.calls.length = 0;
     cache.invalidate("root");
 
@@ -81,7 +112,7 @@ describe("message cache", () => {
     const cache = createMessageCache(server.client);
 
     await cache.load(["root"]);
-    server.store.set("root", [user("u1"), done("a3")]);
+    server.update("root", [user("u1"), done("a3")]);
     cache.invalidate("root");
 
     expect(ids(await cache.load(["root"]))).toEqual([["u1", "a3"]]);
@@ -93,7 +124,7 @@ describe("message cache", () => {
     const cache = createMessageCache(server.client);
 
     await cache.load(["root"]);
-    server.store.set("root", [...history, user("u3"), done("a2")]);
+    server.update("root", [...history, user("u3"), done("a2")]);
     server.calls.length = 0;
     cache.invalidate("root");
 
@@ -111,7 +142,7 @@ describe("message cache", () => {
     const list = server.fake.message.list;
 
     await cache.load(["root"]);
-    server.store.set("root", [user("u1"), done("a1"), user("u2"), done("a2")]);
+    server.update("root", [user("u1"), done("a1"), user("u2"), done("a2")]);
     cache.invalidate("root");
     server.fake.message.list = () => Promise.reject(new Error("offline"));
 
@@ -120,5 +151,68 @@ describe("message cache", () => {
     server.fake.message.list = list;
 
     expect(ids(await cache.load(["root"]))).toEqual([["u1", "a1", "u2", "a2"]]);
+  });
+
+  it("starts from a saved copy whose session has not changed, without reading its messages", async () => {
+    const server = fakeServer({ root: [user("u1"), done("a1")], child: [user("c1"), done("c2")] });
+    const { store } = await temporaryStore();
+    const first = createMessageCache(server.client, store);
+
+    await first.load(["root", "child"]);
+    await first.close();
+    server.calls.length = 0;
+
+    const reopened = createMessageCache(server.client, store);
+
+    expect(ids(await reopened.load(["root", "child"]))).toEqual([["u1", "a1"], ["c1", "c2"]]);
+    expect(server.calls).toEqual([]);
+  });
+
+  it("brings a saved copy up to date with a tail read when its session changed", async () => {
+    const server = fakeServer({ root: [user("u1"), done("a1")] });
+    const { store } = await temporaryStore();
+    const first = createMessageCache(server.client, store);
+
+    await first.load(["root"]);
+    await first.close();
+    server.update("root", [user("u1"), done("a1"), user("u2"), done("a2")]);
+    server.calls.length = 0;
+
+    const reopened = createMessageCache(server.client, store);
+
+    expect(ids(await reopened.load(["root"]))).toEqual([["u1", "a1", "u2", "a2"]]);
+    expect(server.calls).toEqual([{ sessionID: "root", limit: 20, order: "desc" }]);
+  });
+
+  it("reads a session in full when its saved copy has another cache version", async () => {
+    const server = fakeServer({ root: [user("u1"), done("a1")] });
+    const { directory, store } = await temporaryStore();
+
+    await writeFile(join(directory, "root.json"), JSON.stringify({ cacheVersion: 0, sessionID: "root", fingerprint: "0:0:0:0:0:0:0", messages: [] }));
+
+    expect(ids(await createMessageCache(server.client, store).load(["root"]))).toEqual([["u1", "a1"]]);
+    expect(server.calls[0]).toEqual({ sessionID: "root", limit: 200, order: "asc" });
+  });
+
+  it("saves a changed session a minute later, not on every step", async () => {
+    vi.useFakeTimers();
+    const server = fakeServer({ root: [user("u1"), done("a1")] });
+    const { directory, store } = await temporaryStore();
+    const cache = createMessageCache(server.client, store);
+    const saved = () => readFile(join(directory, "root.json"), "utf8").then(() => true, () => false);
+
+    await cache.load(["root"]);
+    server.update("root", [user("u1"), done("a1"), user("u2"), done("a2")]);
+    cache.invalidate("root");
+    await cache.load(["root"]);
+
+    expect(await saved()).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(60_000);
+    vi.useRealTimers();
+    // A load with nothing changed reads nothing, and runs after the timed save.
+    await cache.load(["root"]);
+
+    expect(await saved()).toBe(true);
   });
 });

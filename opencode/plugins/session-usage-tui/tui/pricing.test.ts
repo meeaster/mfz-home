@@ -52,8 +52,8 @@ describe("session cost pricing", () => {
       openai: { models: { base: { name: "Base", cost: { input: 1 }, experimental: { modes: { high: { cost: { input: 9 } } } } } } }
     };
 
-    expect(aggregateCost([usage("base", 1_000_000, "high")], catalog).costs).toEqual([{ model: "Base", amount: 1 }]);
-    expect(aggregateCost([usage("base-high", 1_000_000)], catalog).costs).toEqual([{ model: "Base High", amount: 9 }]);
+    expect(aggregateCost([usage("base", 1_000_000, "high")], catalog).costs).toEqual([{ key: "openai/base", model: "Base", amount: 1 }]);
+    expect(aggregateCost([usage("base-high", 1_000_000)], catalog).costs).toEqual([{ key: "openai/base-high", model: "Base High", amount: 9 }]);
   });
 
   it("aggregates priced messages by model and reports missing pricing", () => {
@@ -62,7 +62,7 @@ describe("session cost pricing", () => {
     };
 
     expect(aggregateCost([usage("priced", 1_000_000), usage("priced", 1_000_000), usage("missing", 1)], catalog)).toEqual({
-      costs: [{ model: "Priced", amount: 24 }],
+      costs: [{ key: "openai/priced", model: "Priced", amount: 24 }],
       unpriced: 1
     });
   });
@@ -82,7 +82,7 @@ describe("session cost pricing", () => {
     };
 
     expect(aggregateCost([gatewayUsage], catalog, undefined, aliases)).toEqual({
-      costs: [{ model: "tyler/sol", amount: 2 }],
+      costs: [{ key: "tyler/sol", model: "tyler/sol", amount: 2 }],
       unpriced: 0
     });
   });

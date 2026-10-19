@@ -24,7 +24,8 @@ export type Model = {
 
 export type Catalog = Record<string, { models?: Record<string, Model> }>;
 
-export type Cost = { model: string; amount: number; sinceCompaction?: number };
+/** A model's estimate, by its recorded `providerID/modelID` key and the label it is shown with. */
+export type Cost = { key: string; model: string; amount: number; sinceCompaction?: number };
 
 export type CostEstimate = { costs: Cost[]; unpriced: number };
 
@@ -76,7 +77,7 @@ export function aggregateCost(
     }
 
     const key = `${usage.providerID}/${usage.modelID}`;
-    const item = costs.get(key) ?? { model: alias ? key : model.name ?? usage.modelID, amount: 0 };
+    const item = costs.get(key) ?? { key, model: alias ? key : model.name ?? usage.modelID, amount: 0 };
     const amount = price(usage, rates);
 
     if (sinceCompaction && item.sinceCompaction === undefined) item.sinceCompaction = 0;

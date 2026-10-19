@@ -56,7 +56,7 @@ function harness(estimate: (context: Context, sessionID: string) => Promise<Usag
   };
 }
 
-const result = (amount: number): UsageEstimate => ({ costs: [{ model: "test", amount }], unpriced: 0, sessions: {} });
+const result = (amount: number): UsageEstimate => ({ costs: [{ key: "openai/test", model: "test", amount }], unpriced: 0, sessions: {} });
 
 const deferred = <Value>() => {
   let resolve!: (value: Value) => void;

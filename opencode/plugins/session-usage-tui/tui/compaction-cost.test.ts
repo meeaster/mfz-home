@@ -34,8 +34,8 @@ describe("session cost compaction scope", () => {
 
     expect(usages.sinceCompaction).toBeUndefined();
     expect(aggregateCost(usages.all, catalog, usages.sinceCompaction).costs).toEqual([
-      { model: "Priced", amount: 2.25 },
-      { model: "Old", amount: 0.5 }
+      { key: "openai/priced", model: "Priced", amount: 2.25 },
+      { key: "openai/old", model: "Old", amount: 0.5 }
     ]);
   });
 
@@ -50,7 +50,7 @@ describe("session cost compaction scope", () => {
     expect(usages.sinceCompaction).toHaveLength(1);
     expect(usages.sinceCompaction?.[0]?.tokens.input).toBe(250_000);
     expect(aggregateCost(usages.all, catalog, usages.sinceCompaction)).toEqual({
-      costs: [{ model: "Priced", amount: 2.25, sinceCompaction: 0.25 }],
+      costs: [{ key: "openai/priced", model: "Priced", amount: 2.25, sinceCompaction: 0.25 }],
       unpriced: 0
     });
   });

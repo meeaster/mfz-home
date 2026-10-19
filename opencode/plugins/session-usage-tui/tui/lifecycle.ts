@@ -1,13 +1,17 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
 import { createMessageCache, type MessageCache } from "./message-cache.js";
-import { familyPricingUsages, pricingUsage } from "./messages.js";
+import { familyPricingUsages, pricingUsage, type SessionMessage } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
+import { createSessionStore, type SessionStore } from "./session-store.js";
 import type { ModelAliases } from "./models.js";
 import { sessionUsage, type SessionUsage } from "./usage.js";
 
 /** The family's cost by model, with each family session's own usage and estimated cost. */
 export type UsageEstimate = CostEstimate & { sessions: Record<string, SessionUsage & { cost: number }> };
+
+/** Receives each family session's messages as read, oldest first, and the first message a revert removed. */
+export type MessageObserver = (sessionID: string, messages: readonly SessionMessage[], boundary?: string) => void;
 
 type CostLifecycleOptions = {
   context: Context;
@@ -17,6 +21,8 @@ type CostLifecycleOptions = {
   estimate?: (context: Context, sessionID: string, modelAliases: ModelAliases) => Promise<UsageEstimate>;
   modelAliases?: ModelAliases;
   delay?: number;
+  store?: SessionStore;
+  observe?: MessageObserver;
 };
 
 export function createCostLifecycle(options: CostLifecycleOptions) {
@@ -26,10 +32,10 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
   let currentSessionID: string | undefined;
   let failed = false;
   let familyIDs = new Set(options.context.data.session.family(options.sessionID()));
-  const cache = createMessageCache(options.context.client);
+  const cache = createMessageCache(options.context.client, options.store ?? createSessionStore());
 
   const estimate = options.estimate ?? (
-    (context: Context, sessionID: string, modelAliases: ModelAliases) => estimateCost(context, sessionID, modelAliases, cache)
+    (context: Context, sessionID: string, modelAliases: ModelAliases) => estimateCost(context, sessionID, modelAliases, cache, options.observe)
   );
 
   const refresh = (sessionID = options.sessionID()) => {
@@ -94,6 +100,8 @@ export function createCostLifecycle(options: CostLifecycleOptions) {
       if (timer) clearTimeout(timer);
 
       for (const cleanup of cleanups) cleanup();
+
+      void cache.close();
     }
   };
 }
@@ -102,7 +110,8 @@ async function estimateCost(
   context: Context,
   sessionID: string,
   modelAliases: ModelAliases,
-  cache: MessageCache
+  cache: MessageCache,
+  observe?: MessageObserver
 ): Promise<UsageEstimate> {
   const [priceCatalog, sessionIDs] = await Promise.all([
     loadCatalog(),
@@ -110,6 +119,8 @@ async function estimateCost(
   ]);
 
   const familyMessages = await cache.load(sessionIDs);
+
+  for (const { sessionID: id, messages } of familyMessages) observe?.(id, messages, context.data.session.get(id)?.revert?.messageID);
   const usages = familyPricingUsages(familyMessages, sessionID, descendantsOf(context, sessionID, sessionIDs));
 
   const sessions = Object.fromEntries(familyMessages.map(({ sessionID: id, messages }) => {

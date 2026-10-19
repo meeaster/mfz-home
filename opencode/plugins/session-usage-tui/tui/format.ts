@@ -31,12 +31,6 @@ export function cacheLine(totals: CacheTotals) {
   return `Uncached ${tokens(totals.uncached)} · Cached ${tokens(totals.cached)}${percent === undefined ? "" : ` (${percent}%)`}`;
 }
 
-export function lastStepLine(totals: CacheTotals) {
-  const percent = cachedPercent(totals);
-
-  return percent === undefined ? undefined : `Last step ${percent}% cached`;
-}
-
 /** How much of the model's context window a count fills, as " (28%)", or nothing when the window is unknown. */
 export function share(count: number, limit: number | undefined) {
   return limit ? ` (${Math.round((count / limit) * 100)}%)` : "";
@@ -47,13 +41,16 @@ export function fit(text: string, width: number) {
   return text.length <= width ? text : `${text.slice(0, Math.max(0, width - 1))}…`;
 }
 
-/** A model's estimate since the latest compaction, then its full-session total when the session was compacted. */
-export function costLine(cost: Cost) {
+/**
+ * A model's prompt-cache lifetime label, then its estimate since the latest compaction and its full-session total
+ * when the session was compacted.
+ */
+export function costLine(cost: Cost, lifetime: string) {
   const amounts = cost.sinceCompaction === undefined ? money(cost.amount) : `${money(cost.sinceCompaction)} (${money(cost.amount)})`;
   // Aliased models are labeled with their recorded providerID/modelID key; the provider only takes room.
   const model = cost.model.slice(cost.model.indexOf("/") + 1);
 
-  return `${fit(model, WIDTH - amounts.length - 1)} ${amounts}`;
+  return `${fit(model, WIDTH - lifetime.length - amounts.length - 2)} ${lifetime} ${amounts}`;
 }
 
 /** The family's total, as the cost lines show it: since the latest compaction, then the full total when compacted. */

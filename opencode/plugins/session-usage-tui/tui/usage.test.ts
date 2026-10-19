@@ -14,10 +14,9 @@ const step = (id: string, input: number, read: number, write = 0): SessionMessag
 const compaction: SessionMessage = { id: "compaction", type: "compaction", status: "completed" };
 
 describe("session usage", () => {
-  it("totals the session's input and reports its latest step and context", () => {
+  it("totals the session's input and reports its context", () => {
     expect(sessionUsage([step("a", 10_000, 0, 2_000), step("b", 1_000, 11_000)])).toEqual({
       input: { uncached: 13_000, cached: 11_000 },
-      lastStep: { uncached: 1_000, cached: 11_000 },
       context: { tokens: 12_100, providerID: "openai", modelID: "gpt-6-luna", variant: "high" }
     });
   });

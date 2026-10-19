@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { cacheLine, costLine, lastStepLine, subagentLine, tokens, totalLine, WIDTH } from "./format.js";
+import { cacheLine, costLine, subagentLine, tokens, totalLine, WIDTH } from "./format.js";
 
 describe("sidebar formatting", () => {
   it("shortens token counts without rounding up into the next unit's width", () => {
@@ -9,22 +9,24 @@ describe("sidebar formatting", () => {
 
   it("shows the cache hit rate, counting cache writes as uncached", () => {
     expect(cacheLine({ uncached: 84_200, cached: 887_000 })).toBe("Uncached 84.2k · Cached 887k (91%)");
-    expect(lastStepLine({ uncached: 12_000, cached: 0 })).toBe("Last step 0% cached");
-    expect(lastStepLine({ uncached: 0, cached: 0 })).toBeUndefined();
   });
 
+  const luna = { key: "openai/gpt-6-luna", model: "GPT-6 Luna" };
+  const sol = { key: "openai/gpt-6.1-sol", model: "GPT-6.1 Sol" };
+
   it("shows one amount per model until a compaction, then the amount since it and the full total", () => {
-    expect(costLine({ model: "GPT-6 Luna", amount: 1.234 })).toBe("GPT-6 Luna $1.23");
-    expect(costLine({ model: "GPT-6 Luna", amount: 1.234, sinceCompaction: 0.456 })).toBe("GPT-6 Luna $0.46 ($1.23)");
-    expect(totalLine([{ model: "GPT-6 Luna", amount: 1.234 }, { model: "GPT-6.1 Sol", amount: 0.5 }])).toBe("Total $1.73");
-    expect(totalLine([{ model: "GPT-6 Luna", amount: 1.234, sinceCompaction: 0.456 }, { model: "GPT-6.1 Sol", amount: 0.5, sinceCompaction: 0 }]))
+    expect(costLine({ ...luna, amount: 1.234 }, "≥50M")).toBe("GPT-6 Luna ≥50M $1.23");
+    expect(costLine({ ...luna, amount: 1.234, sinceCompaction: 0.456 }, "?")).toBe("GPT-6 Luna ? $0.46 ($1.23)");
+    expect(totalLine([{ ...luna, amount: 1.234 }, { ...sol, amount: 0.5 }])).toBe("Total $1.73");
+    expect(totalLine([{ ...luna, amount: 1.234, sinceCompaction: 0.456 }, { ...sol, amount: 0.5, sinceCompaction: 0 }]))
       .toBe("Total $0.46 ($1.73)");
   });
 
-  it("fits long model names in the sidebar by cutting the name, never the numbers", () => {
-    const cost = costLine({ model: "openai/gpt-6.1-sol-extended-preview", amount: 12.345, sinceCompaction: 1.234 });
+  it("fits long model names in the sidebar by cutting the name, never the lifetime or the numbers", () => {
+    const model = "openai/gpt-6.1-sol-extended-preview";
+    const cost = costLine({ key: model, model, amount: 12.345, sinceCompaction: 1.234 }, "≥3.5H");
 
-    expect(cost).toBe("gpt-6.1-sol-extended-… $1.23 ($12.35)");
+    expect(cost).toBe("gpt-6.1-sol-ext… ≥3.5H $1.23 ($12.35)");
 
     const line = subagentLine({ tokens: 212_000, providerID: "openai", modelID: "gpt-6.1-sol-extended", variant: "medium" }, 400_000, 0.31);
     const text = `${line.model}${line.size}${line.rest}`;
