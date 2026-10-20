@@ -143,6 +143,8 @@ export function reviewData(folder, changes) {
     state: changeState(folder, change),
     added: addedIds(change),
     was: plainText(change.was),
+    // What the passage starts with on the page: a field in parts shows its first part's text under its label.
+    match: plainText(Array.isArray(change.was) ? String(change.was[0]).replace(/^[^:]{1,40}:\s*/, "") : change.was),
     proposed: plainText(change.proposed),
     proposedParts: partsOf(change.proposed),
     recordId: change.target.record ?? null,
