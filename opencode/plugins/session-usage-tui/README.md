@@ -23,6 +23,7 @@ The prompt footer's status area ends with the idle timer while the session waits
 
 ```
 idle 6m
+idle 42m ($1.23)
 idle 6m · new model
 ```
 
@@ -41,7 +42,10 @@ idle 6m · new model
   until 80% of it, then the theme's warning color, and past it the error color, as a sign that the prompt cache has
   likely expired. For a lower bound it turns the warning color past the bound, beyond what has been seen, and the error
   color only past `idleExpiredAfter` when that is later. While the model's lifetime is unknown, `idleWarnAfter` and
-  `idleExpiredAfter` set the colors. When the prompt's selected model differs from the one that step used, the next
+  `idleExpiredAfter` set the colors. Once it turns the error color, the catalog estimate of resuming follows in
+  parentheses: the last step's whole prompt and output read back uncached, at the model's cache-write price when the
+  catalog lists one, since such a provider writes it all back to the cache, and otherwise at its input price. It
+  leaves out the new message and the reply. When the prompt's selected model differs from the one that step used, the next
   request can't reuse the cache however short the wait, so the timer reads `idle 6m · new model` in the warning color.
 - **Running** lists the family's other sessions that are running now, by title, each with its model, context, cost,
   and cache totals. Finished subagents drop off.
@@ -125,7 +129,7 @@ another `cacheVersion` is ignored and rewritten, so increment `CACHE_VERSION` in
 format or those rules change. Several OpenCode instances can share the folder: files are renamed into place whole,
 and a stale one only costs a tail read.
 
-The idle timer reads the latest completed assistant message from `ctx.data.session.message.list`, the host's own
+The idle timer's resume cost uses the same models.dev catalog and `modelAliases` as the cost lines. It reads the latest completed assistant message from `ctx.data.session.message.list`, the host's own
 synced copy of the open session's latest messages, so it fetches nothing itself and works while the sidebar is hidden.
 It ticks every second and skips messages a revert removed. The prompt's selected model comes from
 `ctx.ui.model.current()`.

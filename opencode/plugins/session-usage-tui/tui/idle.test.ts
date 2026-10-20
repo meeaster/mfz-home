@@ -106,4 +106,10 @@ describe("idle status", () => {
     expect(idleStatus(1_300, thresholds, luna, high)).toEqual({ text: "idle 21m", level: "warning" });
     expect(idleStatus(1_900, thresholds, luna, undefined)).toEqual({ text: "idle 31m", level: "expired" });
   });
+
+  it("adds the resume cost once the cache has likely expired, and not before", () => {
+    expect(idleStatus(1_900, thresholds, luna, luna, 1.234)).toEqual({ text: "idle 31m ($1.23)", level: "expired" });
+    expect(idleStatus(1_300, thresholds, luna, luna, 1.234)).toEqual({ text: "idle 21m", level: "warning" });
+    expect(idleStatus(1_900, thresholds, luna, { providerID: "openai", modelID: "gpt-6.1-sol" }, 1.234).text).toBe("idle 31m · new model");
+  });
 });

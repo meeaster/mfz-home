@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { PricingUsage } from "./messages.js";
-import { aggregateCost, materializeModels, ratesFor, type Catalog, type Model } from "./pricing.js";
+import { aggregateCost, materializeModels, ratesFor, resumeCost, type Catalog, type Model } from "./pricing.js";
 import type { ModelAliases } from "./models.js";
 
 const usage = (modelID: string, input: number, variant?: string): PricingUsage => {
@@ -89,5 +89,38 @@ describe("session cost pricing", () => {
 
   it("returns no costs when catalog pricing is unavailable", () => {
     expect(aggregateCost([usage("missing", 1)], {})).toEqual({ costs: [], unpriced: 1 });
+  });
+});
+
+describe("resume cost", () => {
+  const step = (providerID: string, modelID: string): PricingUsage => ({
+    providerID,
+    modelID,
+    tokens: { input: 10_000, output: 5_000, reasoning: 5_000, cacheRead: 180_000, cacheWrite: 0 }
+  });
+
+  const catalog: Catalog = {
+    openai: { models: { luna: { cost: { input: 2, cache_read: 0.2 } } } },
+    anthropic: { models: { opus: { cost: { input: 5, cache_read: 0.5, cache_write: 6.25 } } } }
+  };
+
+  it("prices the whole context and output at the input rate when the model doesn't price cache writes", () => {
+    expect(resumeCost(step("openai", "luna"), catalog)).toBeCloseTo(0.4);
+  });
+
+  it("prices the whole context at the cache-write rate when the model writes it back to the cache", () => {
+    expect(resumeCost(step("anthropic", "opus"), catalog)).toBeCloseTo(1.25);
+  });
+
+  it("follows model aliases and is unknown for an unpriced model", () => {
+    expect(resumeCost(step("proxy", "sol"), catalog, { "proxy/sol": { providerID: "openai", modelID: "luna" } })).toBeCloseTo(0.4);
+    expect(resumeCost(step("proxy", "sol"), catalog)).toBeUndefined();
+  });
+
+  it("uses the context tier the resumed prompt falls in", () => {
+    const tiered: Catalog = { openai: { models: { luna: { cost: { input: 2, context_over_200k: { input: 4 } } } } } };
+    const large = { ...step("openai", "luna"), tokens: { input: 0, output: 0, reasoning: 0, cacheRead: 250_000, cacheWrite: 0 } };
+
+    expect(resumeCost(large, tiered)).toBeCloseTo(1);
   });
 });

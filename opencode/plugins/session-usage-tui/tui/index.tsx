@@ -37,7 +37,7 @@ const plugin = {
     const removeFooter = context.ui.slot({
       append: "prompt.footer.status",
       render: (input) => (
-        <IdleTimer context={context} sessionID={() => input.sessionID} thresholds={thresholds} lifetimes={lifetimes} />
+        <IdleTimer context={context} sessionID={() => input.sessionID} thresholds={thresholds} lifetimes={lifetimes} modelAliases={options.modelAliases ?? {}} />
       )
     });
 

@@ -92,6 +92,25 @@ export function aggregateCost(
   return { costs: [...costs.values()].sort((left, right) => right.amount - left.amount), unpriced };
 }
 
+/**
+ * What the next request would cost to read the step's context back uncached once the prompt cache has expired: its
+ * whole prompt and its output, which the next prompt carries. A model that prices cache writes writes it all back to the
+ * cache, and otherwise pays the input rate. Unknown when the model has no catalog price.
+ */
+export function resumeCost(usage: PricingUsage, priceCatalog: Catalog, modelAliases: ModelAliases = {}): number | undefined {
+  const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
+  const model = providerModels(priceCatalog, alias?.providerID ?? usage.providerID)[alias?.modelID ?? usage.modelID];
+  const { input, output, reasoning, cacheRead, cacheWrite } = usage.tokens;
+  const context = input + output + reasoning + cacheRead + cacheWrite;
+  const rates = model && ratesFor(model, { ...usage, tokens: { input: context, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0 } });
+
+  if (!rates) return undefined;
+
+  const rate = finite(rates.cache_write) > 0 ? finite(rates.cache_write) : finite(rates.input);
+
+  return (context * rate) / 1_000_000;
+}
+
 // Each catalog is materialized once per provider, not once per priced step.
 const materialized = new WeakMap<Catalog, Map<string, Record<string, Model>>>();
 

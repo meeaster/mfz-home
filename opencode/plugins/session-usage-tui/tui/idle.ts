@@ -1,5 +1,6 @@
 import type { Lifetime } from "./cache-lifetime.js";
-import type { SessionMessage } from "./messages.js";
+import { money } from "./format.js";
+import { pricingUsage, type PricingUsage, type SessionMessage } from "./messages.js";
 
 /** Idle seconds past which the timer warns, and past which the prompt cache has likely expired. */
 export type IdleThresholds = { warnAfter: number; expiredAfter: number };
@@ -11,13 +12,13 @@ export type IdleStatus = { text: string; level: IdleLevel };
 
 export type ModelKey = { providerID: string; modelID: string };
 
-/** The session's latest completed step: when it completed and the model it used. */
-export type LastStep = { completed: number; model?: ModelKey };
+/** The session's latest completed step: when it completed, the model it used, and its tokens when recorded. */
+export type LastStep = { completed: number; model?: ModelKey; usage?: PricingUsage };
 
 /**
  * The session's latest completed assistant message, leaving out messages from `boundary` on, which a revert removed.
  */
-export function lastStep(messages: readonly Pick<SessionMessage, "id" | "type" | "time" | "model">[], boundary?: string): LastStep | undefined {
+export function lastStep(messages: readonly SessionMessage[], boundary?: string): LastStep | undefined {
   const boundaryIndex = boundary === undefined ? -1 : messages.findIndex((message) => message.id === boundary);
   const end = boundaryIndex === -1 ? messages.length : boundaryIndex;
 
@@ -30,7 +31,11 @@ export function lastStep(messages: readonly Pick<SessionMessage, "id" | "type" |
     const providerID = message.model?.providerID;
     const modelID = message.model?.id;
 
-    return providerID && modelID ? { completed, model: { providerID, modelID } } : { completed };
+    if (!providerID || !modelID) return { completed };
+
+    const usage = pricingUsage(message);
+
+    return usage ? { completed, model: { providerID, modelID }, usage } : { completed, model: { providerID, modelID } };
   }
 
   return undefined;
@@ -77,13 +82,15 @@ export function idleThresholds(lifetime: Lifetime | undefined, fallback: IdleThr
 
 /**
  * The footer's idle text and level. When the prompt's selected model isn't the one the session last used, the next
- * request can't reuse the cache however long the session waited, so it says so in the warning color.
+ * request can't reuse the cache however long the session waited, so it says so in the warning color. Once the cache
+ * has likely expired, `resumeCost` follows in parentheses: what reading the session's context back uncached would cost.
  */
 export function idleStatus(
   seconds: number,
   thresholds: IdleThresholds,
   last: ModelKey | undefined,
-  selected: ModelKey | undefined
+  selected: ModelKey | undefined,
+  resumeCost?: number
 ): IdleStatus {
   const label = idleLabel(seconds);
 
@@ -91,5 +98,9 @@ export function idleStatus(
     return { text: `${label} · new model`, level: "warning" };
   }
 
-  return { text: label, level: idleLevel(seconds, thresholds) };
+  const level = idleLevel(seconds, thresholds);
+
+  if (level === "expired" && resumeCost !== undefined) return { text: `${label} (${money(resumeCost)})`, level };
+
+  return { text: label, level };
 }
