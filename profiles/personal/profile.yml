@@ -73,7 +73,7 @@ mcp:
   homeassistant:
     agents: [opencode]
   unifi-network:
-    agents: [opencode]
+    agents: [opencode, claude-code]
   robinhood:
     agents: [opencode, claude-code, codex]
   sentry:
