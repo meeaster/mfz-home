@@ -44,7 +44,7 @@ Problem, Working direction, Goals and How it works are prose, the connected unde
 - **Problem:** the problem today, who it affects and what it costs, and the value of solving it. Cite evidence by ID.
 - **Working direction** (`direction`, only in a directed design): the approach the design works within, in a sentence or two, then what it leaves open. The overview's `## Working direction` shows it. See [writing](writing.md#working-direction).
 - **Goals:** each goal as an outcome, one bullet each, then a line `Not in scope: …` for what a reader might assume is included. The overview's `::: goals` and `::: scope-note` show them.
-- **How it works:** the shape of the solution in a few paragraphs: how the parts connect and why that shape, naming the decisions that shape it (D1). Add a diagram in text in a fenced block for agents; the pages draw their own pictures, and `::: design-section section=how-it-works` shows the paragraphs without it.
+- **How it works:** the shape of the solution in a few paragraphs: how the parts connect and why that shape, naming the decisions that shape it. Add a diagram in text in a fenced block for agents; the pages draw their own pictures, and `::: design-section section=how-it-works` shows the paragraphs without it.
 
 ## Items
 
@@ -89,7 +89,7 @@ Text in record fields and terms takes `code`, links to sections (`[text](#id)`),
 | Status | Open, Leaning B (name the option), Decided, Later, or Given. A Later decision whose Follows are settled can open: propose it, and change it on the user's word. |
 | Explanation | What the decision asks and how it fits into the design, for a reader who doesn't follow the question: what's being decided in plain words, any term it relies on, which part of the design it's about, and how it connects to the goals and the decisions and questions around it. A few sentences that make sense without the options or the evidence. `check` warns when an Open, Leaning or Later decision has none; keep it once decided. It opens the decision's modal; tables and cards leave it out. |
 | Answer, Leaning, For now, Assuming, or So far | One of these: the answer, the team's leaning, or what the design assumes meanwhile. The field name becomes the label. |
-| Why | What tipped it, in one sentence, citing the evidence or requirement by ID. Required once a decision is Leaning or Decided. It shows on the decision's card. |
+| Why | What tipped it, in one sentence, citing evidence after its claim and naming a requirement in words, linked. Required once a decision is Leaning or Decided. It shows on the decision's card. |
 | Reasoning | A list: what else weighed in, the tradeoffs accepted, what it depends on. Adds to the Why rather than repeating it. Skip it when the Why says it all. |
 | Revisit if | What would reopen it |
 | Also considered | A list of `Name: why not` for alternatives that were plainly worse and never got a full option |
@@ -211,7 +211,7 @@ A deliverable never names an effort: the doc is published, and efforts are local
 | Blocks | The decisions, requirements and flows it blocks. It decides where the question lives: with them, or on the overview when they're on different pages or it blocks only flows. |
 | So far | A partial answer and the evidence it rests on, while it's still open; the question reads "Partly answered" |
 | Deferred | Why it can wait, on the user's word or a meeting's outcome. Nothing waits on a deferred question. |
-| Could reopen | For a deferred question, what its answer could still change: `customer data separation (D6), if the count passes about 50` |
+| Could reopen | For a deferred question, what its answer could still change: `[customer data separation](#D6), if the count passes about 50` |
 | Answer | Once answered: the answer in a few words |
 | Answered by | Once answered: the evidence it became |
 | Recommendation | The AI's suggested answer while the question is open, in a few words, with the same parts as a decision's: `Because:`, `Would change if:`, `Confidence:`, `Model:`, `Made:`, `Seen:`. It shows in the question's modal and row, labelled as AI, and goes once the question is answered or deferred. |
@@ -231,11 +231,11 @@ Every record can carry `- Recorded from:` naming its sources: `session claude-co
 
 ## Writing values
 
-- Mention another item by its ID in any text: "blocked by Q2". It renders as a link that opens the item's card. Write `\Q4` for text that only looks like an ID, such as a quarter.
+- In prose and prose fields, name a decision, question or requirement in words and link the words: `[the firewall log path](#D2)`. Cite evidence after the claim it backs, `(E4)`. An ID is never the subject of a sentence; see [writing](writing.md#less-on-the-page).
+- Fields that list records (Blocks, Waiting on, Evidence, Linked) take bare IDs: `Q2, D2`. Write `\Q4` for text that only looks like an ID, such as a quarter.
 - Brackets are for what a verdict rests on: `Today`, `Design`, `Still to show`, `Meets R#` and a flow's `Assessment` end with `[E4, Q2, D2]`, drawn as markers after the verdict. In any other field, write the ID bare; brackets there stay as text.
-- In prose fields, name the thing and cite the ID after it ("the firewall log path (D2)"); an ID isn't the subject of a sentence. See [writing](writing.md#identifiers).
 - Link to a page or section with `[their brief](#workers)`.
-- Keep IDs stable. An answered question keeps its record, with Answer and Answered by. A dropped decision keeps its record too.
+- Keep IDs stable within a version. An answered question keeps its record, with Answer and Answered by. A dropped decision keeps its record too.
 
 ## changes.md
 

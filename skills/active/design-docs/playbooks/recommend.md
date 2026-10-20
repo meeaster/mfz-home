@@ -28,8 +28,8 @@ On the decision or question in `design.json`:
 
 ```json
 "Recommendation": {"value": "B", "items": [
-  "Because: Customer traffic ending in Shared Tooling hangs on a security ruling nobody has yet (Q2), and its free addresses leave little room as customers join (E3).",
-  "Would change if: Security allows customer traffic to end in Shared Tooling (Q2).",
+  "Because: Customer traffic ending in Shared Tooling hangs on [a security ruling nobody has yet](#Q2), and its free addresses leave little room as customers join (E3).",
+  "Would change if: [Security allows customer traffic to end in Shared Tooling](#Q2).",
   "Confidence: High",
   "Model: <your model's name and version>",
   "Made: 2026-10-06",
@@ -37,8 +37,8 @@ On the decision or question in `design.json`:
 ```
 
 - The value: the option's ID for a decision with options; otherwise the answer in a few words.
-- `Because`: one or two sentences, citing the IDs it rests on.
-- `Would change if`: the finding or answer that would flip it, by ID when there is one.
+- `Because`: one or two sentences, naming the questions, decisions and requirements it rests on in words, linked, and citing evidence after its claim.
+- `Would change if`: the finding or answer that would flip it, linked when there is one.
 - `Confidence`: `High` when the evidence settles it and nothing open could flip it; `Medium` when an open question could; `Low` when it rests on judgement, or on what someone else has yet to say.
 - `Model`: the model writing it, by the short name people use for it (`Opus 5.5`, `Sonnet`, `GPT Sol 6.1`), taken from what your harness or session reports rather than from memory. Readers weigh a recommendation by the model behind it, and the name sits in a small tag beside table rows, so leave out the provider, the platform ("on Amazon Bedrock") and any model ID; a version only when you know it. `check` warns when the name runs past about 24 characters.
 - `Made`: today. `Seen`: the highest evidence ID in `evidence.json` now.

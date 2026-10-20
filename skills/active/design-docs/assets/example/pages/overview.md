@@ -14,7 +14,7 @@ Firewall logs from our 14 sites reach Datadog today, and we pay for all of them,
 
 We're putting a pipeline in between: servers running Observability Pipelines Workers (OPW) that drop the noise, send the rest to Datadog, and keep a full copy in S3. From November it also takes logs from customers over a private connection.
 
-The design has four areas: how firewall logs get in, how customer logs get in, the workers, and the S3 archive. Where the workers run (D1) shapes three of them and has a brief of its own.
+The design has four areas: how firewall logs get in, how customer logs get in, the workers, and the S3 archive. [Where the workers run](#D1) shapes three of them and has a brief of its own.
 
 ## Working direction
 

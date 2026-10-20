@@ -51,6 +51,8 @@ The user settles proposals by number: accept, reject, defer, or accept with a ch
 
 ### Applying each change
 
+**Working direction** (`direction`): what the approach is, then what it leaves open. When it's new, add `## Working direction`, empty, to the overview after In short. Then bring along what argued against it: In short, and any decision, option or question written as weighing another approach.
+
 **Decision** (`decisions[]`): `Status` is `Open`, `Leaning <option letter>`, `Decided`, `Later` or `Given`. Leaning or Decided needs `Why` (what tipped it, citing IDs, one sentence) and `Answer` or `Leaning` (the answer in a few words). `Decided in`: the meeting (`meeting-2026-09-22`). Options (`options[]`): the leaning one `Current leaning`; once decided the winner `Chosen` and every other `Not chosen Sep 22` or `Set aside Sep 22`, each with `Why not`. Keep every option. `Explanation` stays.
 
 **Question** (`questions[]`): no status field. Partly answered: `So far` (the partial answer, citing evidence) and no `Answer`. Answered: `Answer` (a few words) and `Answered by` (the evidence it became); take it off the `Waiting on` of what it blocked. Deferred: `Deferred` (why it can wait). `Needed by`: `Choosing the design`, `Before building`, `Later phase`, or a phase's title when the source names the phase. `Ask` only when the source named who.
@@ -65,7 +67,7 @@ The user settles proposals by number: accept, reject, defer, or accept with a ch
 
 **Risk** (`risks[]`): `Likelihood` (High, Medium, Low, Unknown), `If it happens`, `What we'd do`.
 
-Every record that came from this source gets `Recorded from: meeting 2026-09-22` (the one private field; never put paths or private links anywhere else). Keep IDs stable; never renumber. Mention records by ID in text (`the firewall path (D2)`).
+Every record that came from this source gets `Recorded from: meeting 2026-09-22` (the one private field; never put paths or private links anywhere else). Keep IDs stable; never renumber within a version. In text, name records in words and link the words, `[the firewall path](#D2)`, and cite evidence after its claim, `(E4)`.
 
 ## 4. Log it
 

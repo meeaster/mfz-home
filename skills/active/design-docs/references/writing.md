@@ -14,6 +14,7 @@ Readers lose the thread in long paragraphs, repeated facts and a wall of IDs. Wr
 | Where a decision stands | Its Status, with Why once Leaning or Decided | Nothing: the status chip shows it |
 | What the AI recommends | Recommendation | Nothing: it shows beside the decision |
 | How it got here: who said what, which meeting | The meeting's Summary and Outcomes; `changes.md` | Not in a decision's or question's fields |
+| Who to ask | The question's Ask | Not in its Explanation |
 | Each option's strengths and costs | The option's own fields | The Explanation names the options without weighing them |
 | A figure used twice | A fact, `{fact:key}` | Unchanged |
 
@@ -26,7 +27,7 @@ Readers lose the thread in long paragraphs, repeated facts and a wall of IDs. Wr
 - a code snippet, for a command, a config value or a policy line, with its language named so it's coloured (```` ```bash ````, ```` ```hcl ````), or ```` ```console ```` to show a command and what it printed;
 - a small diagram, when the point is a shape: what connects to what, what comes first.
 
-A paragraph that runs past a handful of sentences is the sign to break it. Fields work the same way: an Explanation in its parts, So far as where it stands now, a Note as one sentence. In short stays at the level of the whole page.
+A paragraph that runs past a handful of sentences is the sign to break it. Fields work the same way: an Explanation in its parts, So far as where it stands now in a sentence or two (it shows in the questions table; the detail stays in the evidence it cites), a Note as one sentence. In short stays at the level of the whole page.
 
 **References.** Readers follow names, not IDs, so the text names things and the doc does the rest.
 
@@ -136,7 +137,7 @@ There's no "outcome" or "decision record" section. Decisions show up as status c
 - **Comparison:** requirements against options, with a verdict (meets, partly, doesn't) and a few words per cell: a `Meets R1` field on each option, rendered by `::: comparison D1`.
 - **Extra parts as needed:** add what the decision actually hinges on, especially anything the requester asked about by name. Cost, failover and recovery, migration effort, timeline, and operational load are common. For cost, show where the money goes with `::: cost-options D1`: a bar per option splitting the shared part from the difference, then the line items grouped into "differs between options" and "same in both", each citing its pricing evidence. The lines are Costs records; those that differ give each option's figure and `Varies with: D1`. When the options share no common base, draw each bar in one colour and add today's cost as a first, grey bar for reference. For failover, a table of what fails, what happens, how long it takes, and what's lost, per option.
 - **What would settle it:** when a decision is waiting on questions, say which answers lead to which choice, in a `::: callout`.
-- **Status:** Open, Leaning (name the option), Decided, or Later, set in design.json, with a Why once it's Leaning or Decided. Leaning records the team's direction; research alone doesn't make an option Leaning, though the page can say what the evidence favours. Mark a leaning with "Current leaning" on that option rather than a recommendation section. A premise the requester states as fixed ("we do rolling deploys") is a context decision with status Given.
+- **Status:** Open, Leaning (name the option), Decided, or Later, set in design.json, with a Why once it's Leaning or Decided. Leaning records which way the team leans; research alone doesn't make an option Leaning, though the page can say what the evidence favours. Mark a leaning with "Current leaning" on that option rather than a recommendation section. A premise the requester states as fixed ("we do rolling deploys") is a context decision with status Given. The approach the whole design works within is its [working direction](#working-direction) instead; Given decisions are single premises inside it.
 - **Options found in research:** when research turns up a viable option nobody proposed, add it with `Status: Found in research`; its card and the decision modal show it. The team decides whether it stays. Set aside is only for options the team has ruled out.
 - **Options nobody has designed yet:** keep the option with `Status: Not designed yet`, and draw its new parts as sketches (`node sketch`) so they don't look settled.
 
@@ -179,8 +180,8 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
 ```markdown
 ### Q1 · Can the site VPNs carry a route to a new VPC's address range without re-creating the tunnels?
 - Explanation:
-  - Means here: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If the workers get a VPC of their own (D1, option B), the tunnels need to carry its range too.
-  - Matters because: Re-created tunnels need a change window at every site, and the design must add no new VPN tunnels before January (R5).
+  - Means here: Firewall logs reach AWS over VPN tunnels from each site, and today those tunnels carry only one address range (E1). If [the workers get a VPC of their own](#D1), the tunnels need to carry its range too.
+  - Matters because: Re-created tunnels need a change window at every site, and the design must add [no new VPN tunnels before January](#R5).
   - Answer changes: Yes, and the own-VPC option stays open. No, and the workers stay in Shared Tooling, or firewall logs keep going through the relay.
   - Settled by: The network team confirms the tunnels accept an added route, or tries one on a single site.
 - Short: Can site VPNs reach a new VPC?
@@ -195,7 +196,7 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
 - Phrase each as a question someone could answer with a fact or a ruling. If it's really a choice between options with tradeoffs, it's a decision; a question is something we find out, a decision something we choose. A ruling someone else makes (what security allows) is a question for us; what we do within it is our decision.
 - **Ask** names who to ask, and only when a person said so or a meeting settled it ("ask the network team"). Naming who wants something ("Security wants rotation") or who set a requirement isn't naming who to ask. Otherwise leave it out: don't guess an owner from job titles, and don't name the reader ("me") or a generic team. There's no separate owner, answerer or approver. A person's name is fine when that's who was named; it publishes with the doc.
 - **Needed by** says when the answer matters: `Choosing the design` (a decision can't be made without it), `Before building` (the design can be chosen, but not built), `Later phase` (or a phase's title). It's when the answer is needed, not an agenda: who chases it and when to ask are left for whoever plans the work. You can set it from what the question blocks (an open decision the design needs makes it Choosing the design), log it under your session, and let the user change it; "after launch" is Later phase.
-- **Deferred** holds the reason a question can wait, set only on the user's word or a meeting's outcome; a question is never deferred because nobody has answered it. Add `Could reopen` for what its answer could still change ("customer data separation (D6), if the count passes about 50"). A deferred question stays on its page, marked Deferred, and nothing waits on it: take it off each decision's `Waiting on`.
+- **Deferred** holds the reason a question can wait, set only on the user's word or a meeting's outcome; a question is never deferred because nobody has answered it. Add `Could reopen` for what its answer could still change ("[customer data separation](#D6), if the count passes about 50"). A deferred question stays on its page, marked Deferred, and nothing waits on it: take it off each decision's `Waiting on`.
 - Say which decisions, requirements or flows it blocks. A security unknown blocks the flow whose Assessment can't be settled without it (`Blocks: S-F5`), and that Assessment cites it. A question that blocks nothing is about the work, not the design: it goes in the effort's open questions. The decisions it blocks list it in `Waiting on`.
 - A partial answer goes in `So far`, with the evidence it rests on; the question then reads "Partly answered". The doc doesn't track when or how a question was put to anyone, and leaves out what to ask next.
 - **When it's answered,** the answer becomes evidence (a new E#, with its source). Give the question `Answer` (a few words) and `Answered by` (the evidence); it moves to its page's collapsed Answered list. Then update what it blocked: take it off each decision's `Waiting on`, move the decision if the answer settles it or rules an option out (citing the evidence), update any requirement's Today, Design or Still to show, and bring the pages along. An answer that is really a rule someone set is a candidate requirement or Given decision, with them as its source: propose it, and add it on the user's word like any other requirement. An answer that raises new questions gets new Q numbers.

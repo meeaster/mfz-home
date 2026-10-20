@@ -64,7 +64,7 @@ When the working direction changes so far that most of the design would be rewri
 2. Rewrite the folder as the current state, as if there had been no earlier version. Keep what still holds, drop what doesn't, and number the records afresh in reading order. Nothing in it says what carried over or what changed; a reader of the latest version never needs an earlier one. `check` names the records that still point at the old meetings.
 3. Check and build. The published doc is the latest version; a menu in its top bar opens the earlier ones, published beside it as `<slug>.v<N>.html`.
 
-Earlier versions stay readable for agents: before proposing an approach the working direction rules out, look in `versions/` for whether an earlier version took it, and why it was left.
+Leave `versions/` unread while working on the design: the current version stands on its own. Open an earlier one only when the user asks about it.
 
 ## After a meeting
 
@@ -161,7 +161,7 @@ Fix what you find and rebuild. Report the review in your reply: what you read, w
 
 ## Publishing
 
-- Publish only the built file. The folder, design.json and changes.md stay private.
-- The destination is the user's call: a GitHub Pages repository, a docs site, an attachment. Copy the built file there under a stable name, commit and push only when the user asks, and share the resulting URL.
+- Publish only the built files: the doc, and with earlier versions their `<slug>.v<N>.html` beside it, which its version menu links to. The folder, design.json and changes.md stay private.
+- The destination is the user's call: a GitHub Pages repository, a docs site, an attachment. Copy the built files there under their names, commit and push only when the user asks, and share the resulting URL.
 - The doc needs no server or build step at the destination. It loads Inter and Geist Mono from Google Fonts and falls back to system fonts offline.
 - Link straight to a page with `?page=<id>`, for example to send the security team `?page=overview&view=security`.

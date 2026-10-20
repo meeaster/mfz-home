@@ -6,7 +6,7 @@ meta: D1 D2
 updated: 2026-09-28
 ---
 
-Leaning towards a VPC of their own, which keeps customer traffic out of the network that runs internal tools; what security's SEC-12 allows (Q2) settles it.
+Leaning towards a VPC of their own, which keeps customer traffic out of the network that runs internal tools; [what security's SEC-12 allows](#Q2) settles it.
 
 ## In short
 
@@ -47,13 +47,13 @@ Monthly. Lines that are the same for both options are grouped.
 
 ## D2
 
-Today every site sends firewall logs to the syslog server. We can keep it as a relay, or point the firewalls straight at the workers. It matters most if the workers get their own network (D1), because sending direct would need a VPN route into it.
+Today every site sends firewall logs to the syslog server. We can keep it as a relay, or point the firewalls straight at the workers. It matters most if [the workers get their own network](#D1), because sending direct would need a VPN route into it.
 
 ::: options D2 layout=row 1=d2-relay 2=d2-direct
 :::
 
 ::: callout title="What would settle it" icon=git-branch
-If the site VPNs can route to a new VPC (Q1) and OPW takes UDP syslog behind a load balancer (Q4), sending direct removes the weakest link, and we'd schedule the firewall changes for January. If either is no, keep the relay and move the syslog server to three zones instead.
+If [the site VPNs can route to a new VPC](#Q1) and [OPW takes UDP syslog behind a load balancer](#Q4), sending direct removes the weakest link, and we'd schedule the firewall changes for January. If either is no, keep the relay and move the syslog server to three zones instead.
 :::
 
 ## Open questions
