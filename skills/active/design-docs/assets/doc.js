@@ -151,6 +151,7 @@
 
     document.title = `${pageTitle(page)} · ${baseTitle}`;
     showCurrentPage(page);
+    showPageTerms(page);
     collectNav();
     markCurrent();
   };
@@ -186,6 +187,26 @@
   };
 
   recordModal.addEventListener("close", () => document.body.append(card));
+
+  // Terms: the top bar's button opens the page's terms in the modal. A reader needs them once, so they stay out of
+  // the page itself; the button shows only on pages that have terms.
+  const termsButton = document.createElement("button");
+
+  termsButton.type = "button";
+  termsButton.className = "terms-button";
+  termsButton.textContent = "Terms";
+  termsButton.hidden = true;
+  document.querySelector(".topbar .tools")?.prepend(termsButton);
+  termsButton.addEventListener("click", () => openDetail(termsButton));
+
+  const showPageTerms = (page) => {
+    const terms = (page ?? document).querySelector(".page-terms");
+
+    termsButton.hidden = terms === null || terms.querySelector("dt") === null;
+    termsButton.dataset.detail = terms?.id ?? "";
+  };
+
+  showPageTerms(null);
 
   recordModal.addEventListener("click", (event) => {
     if (!(event.target instanceof Element)) return;

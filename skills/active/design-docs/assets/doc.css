@@ -396,8 +396,15 @@ html:not(.js) .snippet .copy { display: none; }
 .short-row { display: flex; flex-direction: column; gap: 28px; }
 .short-row .prose { max-width: 760px; }
 
-.terms { display: flex; flex-direction: column; padding-top: 16px; border-top: 1px solid var(--border); }
-.terms h3 { font-size: 12.5px; color: var(--muted-foreground); margin-bottom: 2px; }
+/* A page's terms open in the modal from the top bar; without the script they show under In short. */
+.page-terms[hidden] { display: none; }
+html:not(.js) .page-terms[hidden] { display: block; padding-top: 16px; border-top: 1px solid var(--border); }
+html:not(.js) .page-terms .dm-head { padding: 0 0 4px; border: 0; }
+.record-modal .terms { padding: 6px 24px 18px; }
+.terms { display: flex; flex-direction: column; }
+.topbar .terms-button { padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--muted-foreground); font: 500 12.5px var(--font-ui); cursor: pointer; }
+.topbar .terms-button:hover { background: var(--muted); color: var(--foreground); }
+.topbar .terms-button[hidden] { display: none; }
 .terms dl { margin: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 40px; }
 .terms div { padding: 10px 0; border-bottom: 1px solid var(--border); }
 .terms div:last-child, .terms div:nth-last-child(2):nth-child(odd) { border-bottom: 0; }

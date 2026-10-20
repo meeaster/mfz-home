@@ -40,7 +40,8 @@ A paragraph that runs past a handful of sentences is the sign to break it. Field
 
 A design is open or directed. An open design works out what to do, so its decisions are about the approach. A directed one has a working direction: an approach that has been set, by an architect, a security review or the user, which the design makes work. Its decisions are about how.
 
-- **Write it** in design.json's `direction`: what the direction is in a sentence or two, then what it leaves open. Not who set it or when. The overview shows it under `## Working direction`, after In short, and In short names it in a clause rather than restating it.
+- **Write it** in design.json's `direction`: what the direction is in a sentence or two, then what it leaves open. Not who set it or when. The overview shows it under `## Working direction`, after In short. It's the one place that lists what's open: In short names the direction in a clause, and How it works links to what it leaves open rather than listing it again.
+- **It needs no evidence** record and no question confirming it: it's set, and changes.md says where it came from.
 - **Work within it.** Decisions weigh options inside it, research finds what it needs, and recommendations pick within it.
 - **A problem with it** is a question or a risk that names it ("TLS ended at the pod may not meet the FIPS basis that applies"), never an alternative written into the design.
 - **Weighing alternatives to it** is a brief of its own, "Should we change the working direction?", comparing each alternative with the direction against the requirements. Write one when the user asks. When the evidence shows the direction can't meet a Must requirement, say so in your report and offer the brief.
@@ -58,7 +59,7 @@ Most sections need only their heading. Add an intro under a heading only when it
 
 | Section | Purpose |
 | --- | --- |
-| In short | Three short paragraphs in plain language: the problem today, what's being built and how it changes that, and how the design is divided and what shapes all of it. Under it, the terms a newcomer would trip over, each defined in a sentence. |
+| In short | Three short paragraphs in plain language: the problem today, what's being built and how it changes that, and how the design is divided and what shapes all of it. The terms a newcomer would trip over, each defined in a sentence, open from the top bar's Terms button. |
 | Working direction | Only in a directed design: the approach the design works within, and what it leaves open. See above. |
 | What we're after | The goals, with a picture of today and with the design, naming the products and platforms involved. See below. |
 | Requirements | Every requirement, with a reason and a source, grouped by where it lives. Priority is Must or Should. |
@@ -84,7 +85,7 @@ Leave out a section with nothing real in it: cost for a process change, the secu
 - **Draw the current best picture,** at the level where decisions that span areas are argued. Where a decision is still open, draw what's leaned towards or assumed, bind the parts that depend on it (`data-pending="D1"`, which dashes them until it's decided), and put that decision's marker on them. Don't draw the alternatives; they belong in the decision's brief.
 - **Choose the picture the design needs:** components and networks for infrastructure, the deliverables side by side for a migration, the steps and hand-offs for a process. The security view applies whenever data crosses a boundary.
 - **When a decision is made,** the bound parts turn solid on the next build. Redraw only when what was chosen differs from what was drawn; a part drawn for one option can carry `data-when="D1=B"` so it shows only while that option is chosen or leaned towards.
-- **The parts table** has one row per box: what it does, the decisions that shaped it (including settled ones, so each part links back to why it's that way), and its evidence. It sits under this diagram until the design has areas; then each part lives on its area's page, under that area's diagram.
+- **The parts table** has one row per box: what it does, the decisions that shaped it (including settled ones, so each part links back to why it's that way), and its evidence. It sits under this diagram until the design has areas; then each part with an area lives on that area's page, under its diagram, and the ones with none (where logs come from, where they end up) stay here.
 
 ## How it measures up
 
@@ -108,7 +109,7 @@ Leave cost out when it doesn't bear on the design (a process change, a choice ev
 
 ## Area page sections
 
-In short with terms, Requirements (its own, then the ones that apply to it), Design (a diagram at this area's level of detail and its parts table), How it measures up, Risks, Decisions, and Open questions. Add Cost only when it's specific to the area. Show neighbouring areas as plain boxes that link to their pages. Leave out Risks when none reach the area.
+In short, Requirements (its own, then the ones that apply to it), Design (a diagram at this area's level of detail and its parts table), How it measures up, Risks, Decisions, and Open questions. Add Cost only when it's specific to the area. Show neighbouring areas as plain boxes that link to their pages. Leave out Risks when none reach the area.
 
 ## Brief sections
 
@@ -116,7 +117,7 @@ A brief answers one question. Keep one question per brief, and put its own decis
 
 | Section | Purpose |
 | --- | --- |
-| In short | Three short paragraphs: what's being done, why this question comes up, why it has to be settled now. Terms under it. |
+| In short | Three short paragraphs: what's being done, why this question comes up, why it has to be settled now. |
 | Requirements | Only when the doc has no overview. Inside a design, the brief is measured against the overview's requirements. |
 | Decision map | The decisions and how they depend on each other, with the open questions that block them: `::: decision-map`, drawn from each decision's Follows and Waiting on. See [diagrams](diagrams.md). |
 | Decisions | Only when the doc has no overview: every decision the map shows, including context ones already made or that must wait. |

@@ -19,7 +19,7 @@ designs/<slug>/
 
 - Name the design for its subject ("log-ingestion"), not for the work ("opw-deployment"). Put the slug in `<html data-doc="<slug>">`.
 - Designs live in a `designs/` folder the user or repository guidance names, usually beside the knowledge base (`knowledge/`) so citations between them are relative paths. When nothing names one, ask.
-- With Cairn, its session context names the designs folder. Files written with the harness's file tools are captured and credited to your session as you write them; files a script writes, such as the built doc, are recorded when you describe them. Describe `design.json` with `catalog_describe` (category `record`, title "<Name> design") and the published doc as a `deliverable`.
+- With Cairn, its session context names the designs folder. Files written with the harness's file tools are captured and credited to your session as you write them, and Cairn files a design's records (`design.json`, `evidence.json`, `meetings.json`, `changes.md`) as `record` and its published doc as a `deliverable` by their place, so nothing needs describing. Files a script writes, such as the built doc, are recorded by Cairn's next `check`.
 - Start a new design by copying `assets/template/`. A design can be `design.json` and `changes.md` alone until someone needs to see it; add `doc.html` and pages then.
 - The page structure, components, styles and script come from the skill at build time, so docs pick up the skill's improvements when rebuilt. To pin a doc's look, copy `doc.css` and `doc.js` into its folder; the build prefers local copies, and a component in `components/` replaces the skill's of the same name.
 - When `check` says a folder is written in an older format, run `doc.mjs migrate <folder>` and review what it changed (see [pages](pages.md#format-and-migrations)).
@@ -61,7 +61,7 @@ When a session starts work on a design, or on an effort linked to one:
 When the working direction changes so far that most of the design would be rewritten (another platform, another architecture), start a new version rather than editing the old one into it:
 
 1. Build the doc, then run `doc.mjs new-version <folder>`. It freezes the current version, with its published doc, in `versions/v<N>/` and makes the folder the next version, with its change log and meetings empty.
-2. Rewrite the folder as the current state, as if there had been no earlier version. Keep what still holds, drop what doesn't, and number the records afresh in reading order. Nothing in it says what carried over or what changed; a reader of the latest version never needs an earlier one. `check` names the records that still point at the old meetings.
+2. Rewrite the folder as the current state, as if there had been no earlier version. Keep what still holds, drop what doesn't, and number each kind of record afresh from 1. Drop the AI recommendations, whose evidence numbers belonged to the earlier version; refresh them with [the recommend playbook](../playbooks/recommend.md) once the version stands. Nothing in it says what carried over or what changed; a reader of the latest version never needs an earlier one. `check` names the records that still point at the old meetings.
 3. Check and build. The published doc is the latest version; a menu in its top bar opens the earlier ones, published beside it as `<slug>.v<N>.html`.
 
 Leave `versions/` unread while working on the design: the current version stands on its own. Open an earlier one only when the user asks about it.

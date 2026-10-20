@@ -10,7 +10,7 @@ The records are JSON, in three files. `design.json` holds the design; `evidence.
 
 ```json
 {
-  "format": 3,
+  "format": 4,
   "title": "Log ingestion in our cloud",
   "summary": "One sentence on what the system does.",
   "problem": "Prose. Cite evidence by ID (E2).",
@@ -50,7 +50,7 @@ Problem, Working direction, Goals and How it works are prose, the connected unde
 
 Text in record fields and terms takes `code`, links to sections (`[text](#id)`), and ID mentions. Page prose takes **bold** and *emphasis* too. A requirement or deliverable an agent proposes from research stays proposed until the user accepts it: a requirement's Source says `Proposed from research`, and a deliverable's Status is Proposed.
 
-**Terms** are one line each, with the pages they appear on:
+**Terms** are one line each, with the pages they appear on. List a term on a page only when that page's prose uses it and a newcomer would trip over it; the page's Terms button in the top bar opens them.
 
 ```markdown
 - **OPW** [overview, workers]: Observability Pipelines Workers. Datadog's log pipeline software, run on our own servers.

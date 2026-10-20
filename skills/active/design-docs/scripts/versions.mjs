@@ -15,11 +15,13 @@ export class VersionError extends Error {}
 
 const readJson = (path) => JSON.parse(readFileSync(path, "utf8"));
 
-// The version a design folder holds: design.json's `version`, or 1 for a design that has never started another.
+// The version a design folder holds: the one after its newest frozen version, or design.json's `version` when that's
+// higher. The folder decides, so a rewritten design.json that drops the field still reads as the right version.
 export function versionOf(folder) {
   const { version } = readJson(join(folder, "design.json"));
+  const after = (earlierVersions(folder).at(-1)?.number ?? 0) + 1;
 
-  return Number.isInteger(version) && version > 0 ? version : 1;
+  return Number.isInteger(version) && version > after ? version : after;
 }
 
 // The date of a version's last logged change, as people read it ("Oct 20, 2026").

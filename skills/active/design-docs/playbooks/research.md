@@ -18,7 +18,7 @@ A claim the knowledge base already holds becomes evidence: copy the claim into a
 
 Go where each question says to look, and further when that runs dry. Use read-only access: documentation, repositories, read-only cloud and vendor consoles or APIs; the systems you look at stay exactly as they were.
 
-Keep raw material you'd need again (an export, a long excerpt, a configuration file) as a file (with Cairn, at the path `catalog_location` gives; otherwise where the user says), and cite it in the evidence item's `Recorded from`.
+Keep raw material you'd need again (an export, a long excerpt, a configuration file) as a file (with Cairn, in your session's folder; otherwise where the user says), and cite it in the evidence item's `Recorded from`.
 
 ## 4. Record what you found
 

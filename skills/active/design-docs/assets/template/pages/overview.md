@@ -54,7 +54,7 @@ HOW THE DESIGN IS DIVIDED, AND WHAT SHAPES ALL OF IT.
 <!-- Everything in one picture, at the level where decisions that span areas are argued. Draw it as
      components/system.html, bind parts that wait on a decision with data-pending="D1", and add diagram=system.
      security=system-security adds the security view (see references/security.md). Once there are areas, each part
-     moves to its area and parts=false leaves the table out here. -->
+     moves to its area; parts=false leaves the table out here only once every part has one. -->
 ::: design-card title="DIAGRAM TITLE"
 ONE-LINE SUMMARY OF THE CURRENT DESIGN.
 :::

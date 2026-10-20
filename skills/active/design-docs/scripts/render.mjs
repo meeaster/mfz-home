@@ -452,7 +452,10 @@ async function renderSection(section, number, context) {
   if (standard?.layout === "short") {
     const flow = await renderFlow(section.lines, context);
     const paragraphs = flow.replace(/^<div class="prose">\n/, "").replace(/\n<\/div>$/, "");
-    const body = `  <div class="short-row">\n    <div class="prose">\n${paragraphs}\n    </div>\n    <div class="terms">\n      <h3>Terms used on this page</h3>\n      <!-- records terms -->\n    </div>\n  </div>`;
+    // The page's terms stay out of the reading: the top bar's Terms button opens them, like a record, in the modal.
+    const close = '<button type="button" class="dm-close" aria-label="Close"><svg viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></svg></button>';
+    const terms = `    <div class="page-terms" id="${esc(id)}-terms" aria-label="Terms used on this page" hidden>\n      <div class="dm-head"><div class="dm-top"><div class="dm-title"><h2>Terms used on this page</h2></div>${close}</div></div>\n      <div class="terms"><!-- records terms --></div>\n    </div>`;
+    const body = `  <div class="short-row">\n    <div class="prose">\n${paragraphs}\n    </div>\n${terms}\n  </div>`;
 
     return `<section class="section" id="${esc(id)}">\n${sectionHead(num, title)}\n${body}\n</section>`;
   }
