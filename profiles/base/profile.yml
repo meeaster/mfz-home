@@ -281,12 +281,9 @@ opencode:
           - action: edit
             resource: "*"
             effect: deny
-          # The learnings file Cairn grants a subagent lives under the Cairn root.
+          # Each subagent writes its result notes and learnings in its own folder under the Cairn root.
           - action: edit
-            resource: artifacts/cairn/*
-            effect: allow
-          - action: edit
-            resource: ~/workspace/artifacts/cairn/*
+            resource: ~/.local/state/cairn/*
             effect: allow
   websearch:
     provider: exa

@@ -4,11 +4,16 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
-// The folder Cairn manages: CAIRN_ROOT, or ~/workspace/artifacts/cairn.
+// The folder Cairn manages: CAIRN_ROOT, or cairn/ in the XDG state folder.
 export function cairnRoot() {
   const configured = process.env.CAIRN_ROOT;
+  const state = process.env.XDG_STATE_HOME;
 
-  return configured !== undefined && configured !== "" ? resolve(configured) : join(homedir(), "workspace", "artifacts", "cairn");
+  if (configured !== undefined && configured !== "") {
+    return resolve(configured);
+  }
+
+  return join(state !== undefined && state !== "" ? state : join(homedir(), ".local", "state"), "cairn");
 }
 
 export function openCatalog(readOnly) {

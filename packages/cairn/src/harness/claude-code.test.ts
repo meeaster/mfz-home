@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, test } from "vitest";
 import { z } from "zod";
 import { main } from "../cli.ts";
+import { conventions } from "../core/conventions.ts";
 
 const sessionList = z.object({
   sessions: z.array(z.object({ key: z.string(), title: z.string().nullable(), agent: z.string().nullable(), parent: z.string().nullable() }))
@@ -15,6 +16,10 @@ const sessionOrigins = z.object({
 
 const artifactList = z.object({
   artifacts: z.array(z.object({ path: z.string(), producer: z.object({ session: z.string() }).nullable() }))
+});
+
+const describedList = z.object({
+  artifacts: z.array(z.object({ path: z.string(), title: z.string().nullable(), category: z.string().nullable(), status: z.string() }))
 });
 
 const hookOutput = z.object({ hookSpecificOutput: z.object({ hookEventName: z.string(), additionalContext: z.string() }) });
@@ -47,7 +52,7 @@ function workspace() {
   const run = (stdin: string, ...args: string[]) => {
     let stdout = "";
 
-    const code = main(args, { ...env, CAIRN_ROOT: root }, {
+    const code = main(args, { ...env, CAIRN_ROOT: root, XDG_CONFIG_HOME: join(base, "config") }, {
       stdout: (text) => {
         stdout += text;
       },
@@ -97,6 +102,7 @@ describe("Claude Code hooks", () => {
     const cairn = workspace();
     const subagents = join(cairn.base, "projects", "-work", "ses-main", "subagents");
     const evidence = join(cairn.root, "notes", "bucket-prices.md");
+    const folder = join(cairn.root, "sessions", "claude-code", "2026-09", "ses-main");
     const outside = join(cairn.base, "elsewhere.md");
 
     mkdirSync(subagents, { recursive: true });
@@ -106,9 +112,11 @@ describe("Claude Code hooks", () => {
 
     const contentLine = `Designs live in ${join(cairn.root, "designs")}/<slug>/.`;
 
-    expect(cairn.context({ hook_event_name: "SessionStart", source: "startup" })).toBe(`This session's catalog ID is claude-code:ses-main. ${contentLine}`);
+    expect(cairn.context({ hook_event_name: "SessionStart", source: "startup" })).toBe(
+      `This session's catalog ID is claude-code:ses-main. Its folder is ${folder}.\n\n${conventions}\n\n${contentLine}`
+    );
     expect(cairn.context({ hook_event_name: "SubagentStart", agent_id: "a17", agent_type: "Explore" })).toBe(
-      `This session's catalog ID is claude-code:a17. ${contentLine}`
+      `This session's catalog ID is claude-code:a17. Its folder is ${folder}/subagents/a17.\n\n${conventions}\n\n${contentLine}`
     );
 
     // Claude Code writes a subagent's metadata just after SubagentStart.
@@ -124,7 +132,7 @@ describe("Claude Code hooks", () => {
 
     const first = hookOutput.parse(JSON.parse(write("Write", evidence, { agent_id: "a17", agent_type: "Explore" }).stdout));
 
-    expect(first.hookSpecificOutput.additionalContext).toContain(`recorded this file: ${evidence}\nfor session claude-code:a17.`);
+    expect(first.hookSpecificOutput.additionalContext).toContain(`recorded this file: ${evidence}\nfor session claude-code:a17. It has no front matter`);
     expect(write("Edit", evidence, { agent_id: "a17", agent_type: "Explore" }).stdout).toBe("");
     expect(write("Read", evidence, {}).stdout).toBe("");
     expect(write("Write", outside, {}).stdout).toBe("");
@@ -136,6 +144,37 @@ describe("Claude Code hooks", () => {
     expect(sessions).toContainEqual({ key: "claude-code:a17", title: "Price the buckets", agent: "Explore", parent: "claude-code:ses-main" });
     expect(sessions).toContainEqual({ key: "claude-code:a18", title: "Describe the price note", agent: "general-purpose", parent: "claude-code:a17" });
     expect(artifacts).toEqual([{ path: evidence, producer: { session: "claude-code:a17" } }]);
+  });
+
+  test("a subagent's final message is saved in its folder, titled from its task unless it describes itself", () => {
+    const cairn = workspace();
+    const subagents = join(cairn.base, "projects", "-work", "ses-main", "subagents");
+    const folder = join(cairn.root, "sessions", "claude-code", "2026-09", "ses-main", "subagents");
+    const described = "---\ntitle: Bucket prices\ndescription: Standard costs more than Glacier.\n---\n\nStandard costs more.";
+
+    mkdirSync(subagents, { recursive: true });
+    cairn.hook({ hook_event_name: "SessionStart", source: "startup" });
+    writeFileSync(join(subagents, "agent-a17.meta.json"), JSON.stringify({ agentType: "Explore", description: "Price the buckets" }));
+    writeFileSync(join(subagents, "agent-a18.meta.json"), JSON.stringify({ agentType: "Explore", description: "Price the egress" }));
+
+    const stop = (agent: string, message: string) =>
+      cairn.hook({ hook_event_name: "SubagentStop", agent_id: agent, agent_type: "Explore", last_assistant_message: message });
+
+    stop("a17", "Standard costs more than Glacier.");
+    stop("a17", "Glacier retrieval takes hours.");
+    stop("a18", described);
+
+    expect(readFileSync(join(folder, "a17", "result.md"), "utf8")).toBe(
+      "---\ntitle: Price the buckets\ncategory: evidence\n---\n\nStandard costs more than Glacier.\n\n---\n\n## Follow-up\n\nGlacier retrieval takes hours.\n"
+    );
+    expect(readFileSync(join(folder, "a18", "result.md"), "utf8")).toBe(`${described}\n`);
+
+    const { artifacts } = cairn.cli(describedList, "find", "artifacts");
+
+    expect(artifacts.toSorted((a, b) => a.path.localeCompare(b.path))).toEqual([
+      { path: join(folder, "a17", "result.md"), title: "Price the buckets", category: "evidence", status: "active" },
+      { path: join(folder, "a18", "result.md"), title: "Bucket prices", category: "evidence", status: "active" }
+    ]);
   });
 
   test("once the knowledge base has its AGENTS.md, every session is told where it is", () => {

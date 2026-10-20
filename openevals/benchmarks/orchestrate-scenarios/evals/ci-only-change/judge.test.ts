@@ -15,7 +15,7 @@ function ciRun(): EditableFacts {
       call("ses_build", "skill", { id: "verification" }),
       call("ses_build", "edit", { filePath: "/workspace/scripts/publish.sh" }),
       call("ses_build", "edit", { filePath: "/workspace/.github/workflows/publish.yml" }),
-      call("ses_root", "write", { filePath: "/home/dev/workspace/artifacts/cairn/knowledge/agent-config-verification.md" }),
+      call("ses_root", "write", { filePath: "/home/dev/.local/state/cairn/knowledge/agent-config-verification.md" }),
     ],
     sessions: [base.sessions[0]!, child("ses_build", "openai/gpt-6.1-sol#medium")],
     initial: [{ path: "scripts/publish.sh", bytes: 1, sha256: "a" }, { path: ".github/workflows/publish.yml", bytes: 1, sha256: "b" }],
@@ -40,7 +40,7 @@ test("each missing behavior fails publish_behaves; an incomplete check is unreso
 test("an article outside knowledge/, or none, fails gap_recorded", () => {
   const elsewhere = ciRun();
 
-  elsewhere.tools[6] = call("ses_root", "write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-10/ses_root/verification-notes.md" });
+  elsewhere.tools[6] = call("ses_root", "write", { filePath: "/home/dev/.local/state/cairn/sessions/opencode/2026-10/ses_root/verification-notes.md" });
 
   expect(gradeCiOnlyChange(elsewhere, works).scores.gap_recorded).toBe(false);
 

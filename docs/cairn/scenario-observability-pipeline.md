@@ -21,7 +21,7 @@ People appear by role. Session labels (S1, S2, …) stand in for harness session
 You ask: "We need our logs in S3. What's our AWS account structure, and where would this go?"
 
 - **S1** starts. The plugin records the session, with no effort.
-- An explore subagent maps the accounts, VPCs, and existing log paths. It writes `sessions/…/S1/aws-account-structure.md` and describes it as `evidence`.
+- An explore subagent maps the accounts, VPCs, and existing log paths. It writes `sessions/…/S1/subagents/<id>/aws-account-structure.md`, with front matter describing it as `evidence`.
 - **Cairn state:** one unattached session with one evidence file. If you stopped here, nothing would need an effort.
 
 ### 2. The scope becomes clear

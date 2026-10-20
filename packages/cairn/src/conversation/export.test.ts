@@ -1,4 +1,4 @@
-import { appendFileSync, existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { DatabaseSync } from "node:sqlite";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,6 +13,10 @@ const indexResult = z.union([
 
 const artifactList = z.object({
   artifacts: z.array(z.object({ path: z.string(), category: z.string().nullable(), title: z.string().nullable(), efforts: z.array(z.string()) }))
+});
+
+const producedList = z.object({
+  artifacts: z.array(z.object({ path: z.string(), title: z.string().nullable(), status: z.string(), producer: z.object({ session: z.string() }).nullable() }))
 });
 
 type AssistantPart = { readonly type: "text" | "reasoning" | "tool"; readonly text: string; readonly phase?: string };
@@ -111,6 +115,31 @@ function workspace() {
 }
 
 describe("conversation export", () => {
+  test("each turn also records the files the session tree wrote to its folders from the shell", () => {
+    const cairn = workspace();
+
+    cairn.session("ses_root", "Log pipeline research");
+    cairn.user("ses_root", "Where should the logs go?");
+    cairn.cli(z.unknown(), "session", "start", "opencode:ses_explore", "--parent", "opencode:ses_root");
+
+    const folder = join(cairn.root, "sessions", "opencode", "2026-09", "ses_root");
+    const notes = join(folder, "subagents", "ses_explore", "retention.md");
+
+    mkdirSync(join(folder, "subagents", "ses_explore"), { recursive: true });
+    writeFileSync(notes, "---\ntitle: S3 retention\ndescription: Object lock needs versioning.\n---\n\nNotes.\n");
+    cairn.index("opencode:ses_root");
+    writeFileSync(join(folder, "draft.md"), "A draft without front matter.\n");
+    cairn.user("ses_root", "And the costs?");
+    cairn.index("opencode:ses_root");
+
+    const { artifacts } = cairn.cli(producedList, "find", "artifacts");
+
+    expect(artifacts.filter((entry) => !entry.path.endsWith("conversation.md")).toSorted((a, b) => a.path.localeCompare(b.path))).toEqual([
+      { path: join(folder, "draft.md"), title: null, status: "undescribed", producer: { session: "opencode:ses_root" } },
+      { path: notes, title: "S3 retention", status: "active", producer: { session: "opencode:ses_explore" } }
+    ]);
+  });
+
   test("two turns produce an appended export of only the human's messages and the assistant's text", () => {
     const cairn = workspace();
 

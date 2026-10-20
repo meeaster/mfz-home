@@ -15,7 +15,7 @@ import {
 } from "../schemas.ts";
 import { integer, optionalText, text, type Cairn, type Row } from "./db.ts";
 import { findSessionId, requireEffortId } from "./lookup.ts";
-import { absolutePath, sessionFolder } from "./root.ts";
+import { absolutePath, sessionFolder, subagentFolder } from "./root.ts";
 import { significantWords } from "./words.ts";
 
 export type ArtifactLocation = "managed" | "external" | "url";
@@ -257,6 +257,7 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
   const rootHarness = text(row, "root_harness");
   const rootNativeId = text(row, "root_native_id");
   const conversation = optionalText(row, "conversation_path");
+  const treeFolder = sessionFolder(cairn.root, rootHarness, text(row, "root_started_at").slice(0, 7), rootNativeId);
 
   return {
     key: formatSessionKey({ harness: text(row, "harness"), nativeId: text(row, "native_id") }),
@@ -276,7 +277,7 @@ export function loadSession(cairn: Cairn, id: number): SessionSummary {
         ? null
         : formatSessionKey({ harness: spawnerHarness, nativeId: spawnerNativeId }),
     root: formatSessionKey({ harness: rootHarness, nativeId: rootNativeId }),
-    folder: sessionFolder(cairn.root, rootHarness, text(row, "root_started_at").slice(0, 7), rootNativeId),
+    folder: integer(row, "root_session_id") === id ? treeFolder : subagentFolder(treeFolder, text(row, "native_id")),
     efforts,
     conversation: conversation === null ? null : absolutePath(cairn, "managed", conversation),
     started_at: text(row, "started_at"),

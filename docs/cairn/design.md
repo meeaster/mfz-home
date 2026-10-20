@@ -15,7 +15,7 @@ Today that record is `effort-context`'s filesystem layout: effort folders, a han
 The catalog is a pointer layer over files. Files hold the content. A SQLite database holds sessions, efforts, artifacts, descriptions, tags, and relationships. Three things use it:
 
 - **Harness plugins and hooks** record facts with no model involved: sessions and their tree, file writes and reads, and conversation exports. They use a small CLI.
-- **Agents** add meaning. They describe sessions and artifacts, attach sessions to efforts, and query for pointers. They use a stdio MCP server.
+- **Agents** add meaning by following conventions rather than calling tools: each session writes in its own folder, and each Markdown file describes itself with front matter that the plugins read. Agents use a stdio MCP server only for lookups and for recording the human's decisions: attaching sessions to efforts, registering URLs, and linking.
 - **People** browse through the CLI and generated index files, and later through a UI over the same database.
 
 **The catalog never returns file contents.** Queries return pointers with titles and descriptions. Agents read what they need with their own tools.
@@ -42,8 +42,10 @@ These are the human's own examples. The design is checked against them.
 
 | Decision | Source |
 | --- | --- |
-| Files hold content. The database owns metadata and relationships. No frontmatter or sidecars written by agents. | Modular workflows, correction 5 |
-| A producer describes its own work. The orchestrator is not the catalog clerk. | Correction 6 |
+| Files hold content and describe themselves with front matter, which Cairn reads on capture. The database indexes them and owns relationships. | Human, 2026-10-20, replacing correction 5 (no front matter written by agents) |
+| Conventions over tool calls: agents keep Cairn informed by writing files in the right place and format, and the harness integration records them. Tools stay for lookups and the human's decisions. The conventions go in what the integration adds to every session, so a compaction keeps them. See [conventions over tools](#conventions-over-tools). | Human, 2026-10-20 |
+| Every session has its own folder; a subagent's sits inside its root session's folder. A file is credited to the session whose folder holds it, however it was written. | Human, 2026-10-20 |
+| A producer describes its own work, in the front matter of what it writes. The orchestrator is not the catalog clerk. | Correction 6 |
 | A conversation is a Markdown export with a database pointer. | Correction 7 |
 | MCP runs over stdio, and a small CLI serves plugins, hooks, and people. A network API is optional and comes later. | Correction 8 |
 | The service owns the root folder. The model never has to perform a session-start operation. | Correction 9 |
@@ -67,7 +69,7 @@ These are the human's own examples. The design is checked against them.
 | Design and effort stay in step by recording each fact once, where it lands, and referring to it by ID everywhere else. `changes.md` is the log a resuming session reads for what changed since the effort's last session. | Human, 2026-09-29 |
 | Nothing in `~/workspace/scratch/orchestrator-workspaces/` is moved or imported automatically. Once Cairn works, a trial may bring one effort over to see how it looks. | Human, 2026-09-25 |
 | Evidence from before a session attached is found through the catalog (`cairn ls`, the effort index), not moved. | Human |
-| The root is `~/workspace/artifacts/cairn/`. Revisit after use. | Human |
+| The root is the agents' working state and lives in the XDG state folder, `~/.local/state/cairn/`. Designs and the knowledge base are the human's content and stay in the workspace, configured in `~/.config/cairn/config.json`. | Human, 2026-10-20, replacing `~/workspace/artifacts/cairn/` |
 | The name is Cairn. MCP tools keep the `catalog_` prefix, because models choose tools by name. | Human, on the assistant's recommendation |
 | Durability comes from a daily copy of the database. A text snapshot may come later. | Human, 2026-09-25 (replacing the earlier text-snapshot decision) |
 | Vocabulary is fixed in `TERMINOLOGY.md`. | Human |
@@ -237,12 +239,12 @@ Chief sets the key and subject in the brief, and the orchestrator records them w
 
 ```text
 session starts ── plugin ──▶ session row (+ parent)
-file written   ── plugin ──▶ capture: artifact (undescribed), produced_in
-                             tool result note: "describe this with catalog_describe"
-producer       ── catalog_describe ──▶ category, title, description
+file written   ── plugin ──▶ capture: artifact, produced_in, front matter → category, title, description
+                             tool result note only for Markdown without front matter
+subagent ends  ── plugin ──▶ result.md in the subagent's folder, front matter from the message or the task
 human approves ── catalog_session ──▶ session description, attach effort(s),
                                       workstream key/subject (orchestrators)
-turn complete  ── plugin ──▶ conversation export updated
+turn complete  ── plugin ──▶ conversation export updated; new files in the tree's folders recorded
 any change     ── service ──▶ effort index.md regenerated
 compaction     ── plugin ──▶ note: attached efforts + record paths
 meeting/email  ── session ──▶ source + cleaned source + summary (candidates, action items)
@@ -251,11 +253,11 @@ daily          ── service ──▶ database copied to backups/
 ```
 
 1. **Session start (plugin).** The plugin runs `cairn session start` with the session ID and, for child sessions, the parent ID. The command is an idempotent upsert, and plugins also call it the first time they see a session in any other event, because a start event can be missed. It injects the session ID into context. The attached efforts come later, with the compaction note, or from `catalog_find` when a session resumes an effort.
-2. **File written (plugin).** For a write under the root, the plugin runs `cairn capture`, which upserts the artifact by path with its hash and producing session. The plugin appends a note to the tool result telling the agent to describe the file. Files outside the root are ignored. Capture never blocks or fails the tool.
-3. **Describe (producer).** The agent that wrote the file calls `catalog_describe` with a category, title, and one-sentence description. The parent adds `informs` or `supersedes` links as it uses results, and describes a file only if the producer didn't.
+2. **File written (plugin).** For a write under the root, the plugin runs `cairn capture`, which upserts the artifact by path with its hash and producing session and reads its front matter. Only a Markdown file without front matter gets a note in the tool result. Files outside the root are ignored. Capture never blocks or fails the tool. Shell writes in a session's folder are recorded at the end of the turn (step 6).
+3. **Describe (producer).** The agent that writes a file gives it front matter with a category, title, and one-sentence description, as the conventions every session receives say. The parent adds `informs` or `supersedes` links with `catalog_link` as it uses results.
 4. **Attach (the session's lead agent, with the human's approval).** Once the work has scope, the root session's agent looks up efforts with `catalog_find` and recommends one (see [provisional efforts and approval](#provisional-efforts-and-approval)). On approval it calls `catalog_session`, which describes the session and attaches one or more efforts, existing or new. Orchestration creates a provisional effort instead of waiting. Before creating an effort, the service checks for similar active, paused, or provisional efforts and returns them instead, unless the agent confirms a new one. Attaching later is fine: membership is derived through the session, so earlier files join automatically.
 5. **Read (plugin).** For a read under the root, the plugin records `read_in`. This shows which sessions actually used which material. Suggested `informs` links built from these reads are a later experiment.
-6. **Turn complete (plugin).** Root sessions only. See [conversation indexing](#conversation-indexing).
+6. **Turn complete (plugin).** Root sessions only. See [conversation indexing](#conversation-indexing). The same command records every file in the session tree's folders that is new or changed, crediting each to the session whose folder holds it.
 7. **Derived views (service).** There is no long-running process, so a change marks each affected effort as dirty in the database. The hot-path commands (`session start`, `capture`, `read`) only mark. Every other command, and the turn-complete `session index`, regenerates the dirty efforts' `index.md` before it exits.
 8. **Compaction (plugin).** After compaction, the plugin adds a factual note listing each attached effort with the paths of its `effort.md` and local `design.md`, and the stable designs it works on. The agent rereads what it needs. This replaces relying on the orchestrator to remember where its records are.
 
@@ -302,14 +304,14 @@ An artifact's efforts are the attached efforts of the nearest attached session i
 ## Folder layout
 
 ```text
-~/workspace/artifacts/cairn/
+~/.local/state/cairn/
   catalog.db                 SQLite (WAL)
   backups/                   daily database copies (catalog-<date>.db), about 7 kept
   logs/
   sessions/<harness>/<yyyy-mm>/<root-native-id>/
     conversation.md          root-session export
-    <workstream-key>/        a delegated orchestrator's files, apart from parallel workstreams
-    …                        anything else written by the session tree; names are up to the skills
+    subagents/<native-id>/   a subagent's own folder: result.md, learnings.md, and what else it writes
+    …                        anything else the root session writes; names are up to the skills
   efforts/<slug>/
     index.md                 generated effort view
     effort.md                where the work stands: summary, its design and phase, views, decisions, open questions
@@ -327,9 +329,9 @@ An artifact's efforts are the attached efforts of the nearest attached session i
     email/<thread>.md        one thread, replies appended (chat/ and tickets/ alike)
 ```
 
-`designs/`, `knowledge/`, and `sources/` are named for their subjects rather than the work, because each outlives the sessions and efforts that touch it, and their paths are composed from the subject. `catalog_location` returns a path in the root session's folder by default. With `effort` set, it returns a path in that effort's folder, for material meant to outlive the session. Chief's delegated orchestrators get a subfolder named by workstream key inside the root session folder, so parallel workstreams don't collide. Files never move automatically, and `cairn mv` moves a file while keeping its identity.
+`designs/`, `knowledge/`, and `sources/` are named for their subjects rather than the work, because each outlives the sessions and efforts that touch it, and their paths are composed from the subject. On this machine `designs/` and `knowledge/` are mounted from the workspace (`~/workspace/artifacts/cairn/`), since they are the human's content. A session writes in its own folder, named for it at session start; a subagent's folder inside its root's keeps parallel subagents apart, as workstream subfolders once did. Material meant to outlive the session goes in an effort's folder. Files never move automatically, and `cairn mv` moves a file while keeping its identity.
 
-`catalog_location` records which session each path was handed to, and never hands the same path out twice. A file written there that no capture records, for example by a shell command, is credited to that session when it is first recorded, by a read or by `catalog_describe` without `session`. Provenance then still doesn't depend on the model knowing its own session ID.
+Provenance comes from the folder: a file in a session's folder is credited to that session when it is first recorded, whether by a capture, a read, the turn's folder scan, or `cairn check`, so it doesn't depend on the model knowing its own session ID or using a file tool. The CLI's `cairn location` still hands out collision-free paths, recording which session each was handed to, for scripts.
 
 ### Records and multi-effort sessions
 
@@ -401,9 +403,8 @@ The database is the only place descriptions, attachments, links, and tags exist.
 | Tool | Purpose | Returns |
 | --- | --- | --- |
 | `catalog_session` | Describe a session and set its attachments. Inputs: `session`, optional `title`, `description`, `attach[]` (effort IDs, or `{ create: { title, description, tags[] }, confirm_new? }`), `detach[]`, `workstream`, `subject`. | Session, attached efforts, close-match efforts when creating |
-| `catalog_describe` | Describe an artifact, or register a URL or external file. Inputs: `path` or `url`, `category`, `title`, `description`, optional `origin`, `efforts` (`include[]`, `exclude[]`), `informs[]`, `supersedes[]`, and for a Jira item's or Confluence page's URL what an agent read about it: `jira` (key, type, status, category, parent, blocks, read_at) or `confluence` (space, version, updated). Idempotent on path or URL; each read replaces the last. | Artifact with its efforts |
+| `catalog_describe` | Register a URL or external file, or place a file in efforts and link it; files under the root describe themselves with front matter. Inputs: `path` or `url`, `category`, `title`, `description`, optional `origin`, `efforts` (`include[]`, `exclude[]`), `informs[]`, `supersedes[]`, and for a Jira item's or Confluence page's URL what an agent read about it: `jira` (key, type, status, category, parent, blocks, read_at) or `confluence` (space, version, updated). Idempotent on path or URL; each read replaces the last. | Artifact with its efforts |
 | `catalog_find` | Pointers. Target `efforts`, `sessions`, or `artifacts`. Filters: `effort`, `session`, `tag`, `category`, `pointer_type`, `workstream`, `subject`, `status`, `text`, `group_by` (`category` or `session`), `limit`. | Pointer entries, never contents. Undescribed artifacts are flagged. |
-| `catalog_location` | A collision-free write path. Inputs: `session`, `topic`, optional `effort`. | Absolute path |
 | `catalog_effort` | `create` or `show` an effort, or `update` its title, description, status, or tags. Also `rename`, `split` (a new effort with a `split_from` link and chosen sessions and files included, removing nothing from the original), and `merge`. One flat input object, because MCP tool inputs must be objects. | The effort, or for `show` the effort view |
 | `catalog_link` | Add or remove links between artifacts (`informs`, `supersedes`, `related`) or between efforts (`depends_on`, `split_from`, `related`). Accept or reject suggestions. | Links |
 
@@ -440,10 +441,10 @@ cairn backup | restore <file>
 | Event | OpenCode plugin | Claude Code hook | CLI call |
 | --- | --- | --- | --- |
 | Session created | First sight in the `context` hook, which runs before a session's first model request: `session.get` supplies `parentID`, `agent`, `title`, and `location` | `SessionStart` for the main session; `SubagentStart` (`agent_id`, `agent_type`) for subagents, with the title and nested parent from the subagent's `.meta.json` on every later subagent event, including `SubagentStop` | `session start` |
-| Session ID into context | `context` hook opens the request's messages with `This session's catalog ID is opencode:<id>.` (a message, so the system text stays the same in every session), and for a child session, where its result is saved and the learnings path it was granted | `additionalContext` from `SessionStart`, and from `SubagentStart` for the subagent's ID | none |
-| File written | `tool` `execute.after` for `write`, `edit`, and `patch`; the hook appends the capture note to `result.content`, except for a subagent's learnings file | `PostToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit`, with the note as `additionalContext`; `agent_id` selects the subagent's session | `capture` |
+| Session ID into context | `context` hook opens the request's messages with the session's catalog ID and folder (a message, so the system text stays the same in every session), and adds the conventions to `system` | `additionalContext` from `SessionStart`, and from `SubagentStart` for the subagent's ID and folder, each with the conventions | `session start --json` |
+| File written | `tool` `execute.after` for `write`, `edit`, and `patch`; the hook appends a note to `result.content` only for Markdown without front matter | `PostToolUse` on `Write\|Edit\|MultiEdit\|NotebookEdit`, with the same note as `additionalContext`; `agent_id` selects the subagent's session | `capture` |
 | File read | `execute.after` for `read`, for in-root paths | `PostToolUse` on `Read` | `read` |
-| Subagent returned | `execute.after` for `subagent` in the foreground; a `synthetic` item in `session.inbox.enqueued` with `metadata.source: "subagent"` in the background. The plugin writes the result to a granted path, credits the child, describes the result and any learnings with a small model through `generate.text`, and for a background result adds its saved-path note to the result itself in the parent's `context` hook, after the `<subagent>` element | none | `location`, `capture`, `describe` |
+| Subagent returned | `execute.after` for `subagent` in the foreground; a `synthetic` item in `session.inbox.enqueued` with `metadata.source: "subagent"` in the background. The plugin writes the result to `result.md` in the child's folder, with front matter from the message or the task, credits the child, and for a background result adds its saved-path note to the result itself in the parent's `context` hook, after the `<subagent>` element | `SubagentStop` with `last_assistant_message`, saved the same way; the parent isn't told the path | `capture` |
 | Main turn completed | `session.execution.succeeded`, when `session.get` shows no `parentID` | `Stop`, with `last_assistant_message` | `session index` |
 | Compaction completed | The `session.compaction.ended` event marks the session; the next `context` hook reads the note and pushes it into `system` on that and every later request | `SessionStart` with `source: compact`, with the note as `additionalContext` | `session context` |
 
@@ -512,8 +513,9 @@ Skills stay short, because the plugins handle the mechanics and the capture note
 | Pointers only, never file contents | It keeps the MCP surface small, and harness file permissions stay authoritative. Large content doesn't pass through tool results twice. The human explicitly didn't want agents reading through the MCP server. |
 | Plugins capture facts, agents describe | Facts (path, hash, writing session, parent chain) can be recorded with no model and never forgotten. Only a model can say what a file means. The plugin receives the native session ID from the harness, so provenance never depends on the model knowing its own session ID. That removes the hardest identity problem from capture. |
 | The producer describes, not the parent | The producer has read every source, while the parent sees only the return digest. Describing costs the parent's context nothing. The earlier decision was that the orchestrator isn't the catalog clerk. The human noted that the parent reads the files anyway and questioned the cost argument, but accepted that the producer describes and the parent adds relationships. |
-| The capture note in the tool result | It reminds the producer at the moment of writing, so the reminder doesn't depend on skill guidance being remembered. |
-| The plugin saves subagent results, and a small model describes them | The parent read every response file in full, so a result in the tool output costs it nothing more, and the saved copy is only the record. Subagents need no output skill or reply format, and the built-in Explore agent, whose prompt forbids writing reports, is covered too. Describing a finished response is an easy task for a cheap model, and runs in the background. Relationships such as `supersedes` and `informs` still come from agents that know them. |
+| The capture note only when front matter is missing | The conventions already tell every session how files describe themselves, so a note on every write would be noise. A Markdown file without front matter is the convention missed, and the note catches it at the moment of writing. |
+| The plugin saves subagent results, which describe themselves | The parent reads every result in full, so a result in the tool output costs it nothing more, and the saved copy is the record. A result that starts with front matter describes itself; otherwise the task's description titles it. No model call describes it, and no tool call is needed. A large result, or one the parent only passes on, goes in a file with the final message pointing to it, which keeps the parent's context small. |
+| Conventions over tool calls | Every tool call costs a model step and a re-read of the context. Measured over two weeks (2026-10-06 to 2026-10-20), catalog calls were rare and cheap (32 in 2,212 OpenCode sessions, about 49K cached tokens each), but every one of them told Cairn something it could learn by looking, and each subagent result cost a background describe call. A file in the right place with front matter costs nothing extra, survives shell writes, and works the same in both harnesses. |
 | Session first, efforts optional and many-to-many | Sessions span several efforts, and quick work has no effort. Resuming work means looking at an effort's sessions and files together. Sessions are the unit the harness gives for free. Efforts are the durable subject you come back to after sessions end. |
 | Files live with their session | Attaching, detaching, and regrouping efforts never moves a file. A file relevant to two efforts needs no copy. Membership is derived through the session, so attaching late needs no back-fill. |
 | Flat efforts with namespaced tags | Grouping will keep changing, and one effort can relate to several groups. The UI need for an initiative level is met by treating `initiative:` tags as a grouping level. Converting to real parents later is mechanical. |
@@ -522,10 +524,10 @@ Skills stay short, because the plugins handle the mechanics and the capture note
 | Chief sets workstream keys explicitly | Chief must check the subject before dispatching ("does PR 123 already have one?"), so it's already making that call. Auto-creating on orchestrator session start would duplicate a workstream when Chief replaces a stale orchestrator. Detecting from new folders would create the container before anything said what it was. |
 | Duplicate-effort check on create | Many sessions work on the same thing. Without a check, each would create its own effort. |
 | No prescribed file names | The catalog stays loose, so structure can grow later. Anything under the root is captured and described. Record names such as `effort.md` belong to the skills. |
-| Daily database copy for durability | Relationships exist only in the database, and metadata in files was rejected because agents can't be relied on to write it. A text snapshot is readable and diffable, but nothing tracks the root yet, so a `VACUUM INTO` copy covers the real risk with less code. |
+| Daily database copy for durability | Relationships exist only in the database. Files' descriptions now live in their front matter and can be read again, but attachments, links, and tags can't. A text snapshot is readable and diffable, but nothing tracks the root yet, so a `VACUUM INTO` copy covers the real risk with less code. |
 | Records split into the work's state and the run's state | The old per-effort folder mixed state that lives as long as the effort with state that lives only for one run. Once a session can serve several efforts, only this split answers "which design file do I use?". |
 | Effort is the outcome | When implementation starts, the design's evidence, decisions, and open questions are already in the same effort. Splitting by phase would force every implementing session to find and attach the design effort as well. |
-| Root in `artifacts/`, not scratch | The workspace puts mutable outputs that don't belong to a project in `artifacts/`. Scratch implies disposable, which conflicts with the database holding durable organization. |
+| Root in the XDG state folder | The root is the agents' plumbing: the catalog, session folders, results, and lessons. The workspace's `artifacts/` is for the human's outputs, so only designs and the knowledge base stay there. State is durable, unlike scratch or a cache. |
 | MCP for agents, CLI for plugins | Read-only producers such as `explore` often lack shell access, and MCP tools can be allowed for them without Bash. Plugins and hooks need a fast process call, with no MCP client. |
 | Its own package in `mfz-home` | It can be iterated on separately from the Mindframe-Z runtime. Moving it into Mindframe-Z later means relocating `src/core`. |
 | Built-in `node:sqlite` and MCP 2.0 packages | There is no native dependency. `mcp/discord` already uses the 2.0 split packages, so this matches the home. |
@@ -589,7 +591,14 @@ These proposals were made and then replaced. Don't re-propose them without new e
 39. **Subagents writing and describing their own response file through `task-output`.** Each dispatch cost a write, a describe call, a reply naming the file, and a read by the parent, which read the whole file anyway. Replaced by the plugin saving the result and a small model describing it; Claude Code subagent results go unsaved until its hooks do the same (human, 2026-10-08).
 40. **Orchestration creating a provisional effort on entry, and Chief.** Replaced by the [orchestrate redesign](../orchestrate/design.md): efforts are opt-in through `effort-context` when the human asks to capture, attach, or resume, and Chief is archived. The `workstream` and `subject` fields stay for a future multi-session mode (human, 2026-10-08).
 
+41. **Agents describing every file with `catalog_describe` after a capture note, and asking `catalog_location` for every path.** Each was a model step whose only job was telling Cairn what it could learn by looking. Replaced by session folders and front matter, read by the harness integration (human, 2026-10-20). This reverses correction 5's rejection of agent-written front matter: the conventions now reach every session, survive compaction, and a missing block is caught at the write.
+42. **A small model describing each subagent result in the background (`describeModel`).** Replaced by the result describing itself, or titled from its task (human, 2026-10-20).
+43. **The root in `~/workspace/artifacts/cairn/`.** Moved to the XDG state folder, with designs and the knowledge base kept in the workspace (human, 2026-10-20).
+44. **One folder for a whole session tree, with workstream subfolders.** Replaced by a folder per session, a subagent's inside its root's, so provenance comes from the path (human, 2026-10-20).
+
 ## Deferred ideas
+
+- Session and effort descriptions, attachments, and links as files read by the integration, like file descriptions, so the remaining MCP tools shrink to lookups.
 
 - Suggested `informs` links built from reads. `read_in` facts are recorded from phase 3, and suggestions follow only after a sample shows most would be correct.
 - A plugin drafting session descriptions with a cheap model, through OpenCode plugin text generation.
@@ -845,6 +854,16 @@ Built 2026-10-19, from the `portable-records` design.
 - **Layout.** `resolveLayout` takes the root from `CAIRN_ROOT` and each content folder from `CAIRN_KNOWLEDGE` or `CAIRN_DESIGNS`, then `~/.config/cairn/config.json`, then the root. A folder outside the root is mounted: its files' catalog paths start `knowledge/` or `designs/`, and the root's own folder of that name is ignored. `cairn check` walks mounted folders too.
 - **Removed.** `catalog_origin`, `catalog_reference`, `cairn origin`, `cairn reference`, the knowledge index, and `informs`-based written-up links. The origin tables stay in the schema, unread, so a catalog that upgrades before `cairn knowledge export` loses nothing.
 - **Session context.** Every session is told where designs live, and where the knowledge base is once it has an `AGENTS.md`.
+
+### Conventions over tools
+
+Built 2026-10-20.
+- **Root.** `resolveRoot` defaults to `$XDG_STATE_HOME/cairn`, or `~/.local/state/cairn`. The personal profile renders `~/.config/cairn/config.json`, which keeps `designs/` and `knowledge/` in `~/workspace/artifacts/cairn/`. The existing root moved there with its database, and catalog paths didn't change, since they are relative to the root and the mounts.
+- **Folders.** A session's `folder` is its own: the root's tree folder, or `subagents/<native-id>/` inside it. `session start --json` returns it. `check` and the turn's folder scan credit a file to the session whose folder holds it.
+- **Front matter.** `core/front-matter.ts` reads `title`, `description`, and `category`. Every recording of a Markdown file applies it, and it replaces what was recorded. A category left out defaults to the file's folder kind, then `evidence`; the file name never decides it, so `learnings.md` carries `category: learning` by convention. Effort records and a stable design's records and published doc are filed by folder.
+- **Conventions.** `core/conventions.ts` holds the text both integrations add: OpenCode in the system text, Claude Code in `SessionStart` and `SubagentStart` context, after compaction too.
+- **Results.** OpenCode's plugin writes `result.md` in the subagent's folder and no longer calls a model; Claude Code's `SubagentStop` does the same from `last_assistant_message`.
+- **Removed.** `catalog_location` from the MCP server, and the `describeModel` plugin option. `cairn location` stays in the CLI.
 
 ### Records revision
 

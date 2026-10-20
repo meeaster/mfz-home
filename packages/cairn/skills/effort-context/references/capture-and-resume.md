@@ -4,8 +4,8 @@
 
 1. Identify the effort. Attach the one the request names. Otherwise create a provisional effort and recommend what should become of it, following [efforts](efforts.md).
 2. Preserve recoverable goals, constraints, the human's views and corrections, accepted decisions and rationale, remaining proposals, work performed, verification actually observed, and open questions.
-3. Describe this session's undescribed files that you can identify (`catalog_find` artifacts with this `session` and status `undescribed`), with their source identity and limits. They join the effort through the session; don't move or copy producer files. Do not restart discovery to manufacture a more formal past. Label missing or partial history; recheck only a material continuation gap within authority.
-4. Put the work's state in the effort's `effort.md`: where it stands, the human's decisions, accepted items and views, and open questions, as [storage](storage.md#layout) describes. What a system is and why goes in its design: the linked stable design (`design-docs`), or for small work or detail below a stable design, a local `design.md` in the effort folder. Proposals not yet accepted and fuller reasoning stay in a synthesis in the session folder that `effort.md` points to. Leave next steps out; a resuming agent proposes them from the state. Avoid duplicating findings across these files. Get new record paths from `catalog_location` with the effort.
+3. Give this session's undescribed Markdown files front matter where you can identify them (`catalog_find` artifacts with this `session` and status `undescribed`), with their source identity and limits in the description. They join the effort through the session; don't move or copy producer files. Do not restart discovery to manufacture a more formal past. Label missing or partial history; recheck only a material continuation gap within authority.
+4. Put the work's state in the effort's `effort.md`: where it stands, the human's decisions, accepted items and views, and open questions, as [storage](storage.md#layout) describes. What a system is and why goes in its design: the linked stable design (`design-docs`), or for small work or detail below a stable design, a local `design.md` in the effort folder. Proposals not yet accepted and fuller reasoning stay in a synthesis in the session folder that `effort.md` points to. Leave next steps out; a resuming agent proposes them from the state. Avoid duplicating findings across these files. New records go in the effort's folder, `efforts/<slug>/` under the root.
 5. Return the effort, record paths, and material gaps. When evidence on one subject has piled up, recommend writing it up into a knowledge article with the `knowledge-base` skill. Capture is complete; ongoing maintenance or orchestration requires a separate assignment or explicit selection.
 
 A combined request to capture and enter orchestration authorizes both bounded capture and the named entry workflow. Neither operation implies the other.
@@ -28,7 +28,7 @@ A combined request to capture and enter orchestration authorizes both bounded ca
 
 ## Synthesis and handoff
 
-Create synthesis only when requested, including a request to preserve the discussion in depth or prepare a handoff for continuation. Ordinary capture still follows the record operation above. Handoff names the purpose; the document is a synthesis artifact, not a separate required file type. Use a path from `catalog_location` and describe it with category `synthesis`.
+Create synthesis only when requested, including a request to preserve the discussion in depth or prepare a handoff for continuation. Ordinary capture still follows the record operation above. Handoff names the purpose; the document is a synthesis artifact, not a separate required file type. Write it in the session's folder with front matter, category `synthesis`.
 
 ### Preserve understanding
 

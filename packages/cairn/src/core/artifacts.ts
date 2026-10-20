@@ -5,7 +5,8 @@ import { formatSessionKey, type DescribeInput, type FileEventInput, type MoveInp
 import { CairnError, insertedId, integer, optionalInteger, timestamp, transaction, type Cairn } from "./db.ts";
 import { loadArtifact, type ArtifactEntry } from "./find.ts";
 import { findArtifactId, requireArtifactId, requireEffortId } from "./lookup.ts";
-import { isCairnOwned, knowledgeCategory, relativeInsideRoot, storedPath } from "./root.ts";
+import { readFrontMatter } from "./front-matter.ts";
+import { absolutePath, folderCategory, isCairnOwned, relativeInsideRoot, storedPath } from "./root.ts";
 import { ensureSession } from "./sessions.ts";
 import { markArtifactDirty } from "./views.ts";
 
@@ -51,15 +52,47 @@ function grantedSession(cairn: Cairn, inside: string): number | null {
   return grant === undefined ? null : integer(grant, "session_id");
 }
 
+// A Markdown file's front matter is its description, so it is read on every capture and replaces what was recorded.
+function applyFrontMatter(cairn: Cairn, id: number, path: string, inside: string): void {
+  if (!inside.endsWith(".md")) {
+    return;
+  }
+
+  const found = readFrontMatter(readFileSync(path, "utf8"));
+
+  if (found === null || (found.title === null && found.description === null && found.category === null)) {
+    return;
+  }
+
+  // Front matter that names no category is the evidence a session gathered, unless the folder says otherwise.
+  const category = found.category ?? folderCategory(inside) ?? "evidence";
+
+  cairn.sql.run`
+    UPDATE artifact SET category = ${category}, title = COALESCE(${found.title}, title),
+      description = COALESCE(${found.description}, description),
+      status = CASE WHEN status IN ('undescribed', 'active') AND (COALESCE(${found.title}, title) IS NOT NULL
+          OR COALESCE(${found.description}, description) IS NOT NULL) THEN 'active' ELSE status END
+    WHERE id = ${id}
+  `;
+}
+
 // Without a known producer, a file at a path from location is credited to the session it was handed to.
 export function recordManagedFile(cairn: Cairn, inside: string, facts: FileFacts, producerId: number | null): RecordedFile {
+  const recorded = recordFile(cairn, inside, facts, producerId);
+
+  applyFrontMatter(cairn, recorded.id, absolutePath(cairn, "managed", inside), inside);
+
+  return recorded;
+}
+
+function recordFile(cairn: Cairn, inside: string, facts: FileFacts, producerId: number | null): RecordedFile {
   const now = timestamp(cairn);
   const existing = cairn.sql.get`SELECT id, producer_session_id FROM artifact WHERE path_or_url = ${inside}`;
 
   if (existing === undefined) {
     const producer = producerId ?? grantedSession(cairn, inside);
 
-    const category = knowledgeCategory(inside);
+    const category = folderCategory(inside);
 
     const id = insertedId(cairn.sql.run`
       INSERT INTO artifact (category, location, path_or_url, sha256, size, status, producer_session_id, captured_at, updated_at)

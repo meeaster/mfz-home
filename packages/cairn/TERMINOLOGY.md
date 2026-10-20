@@ -2,7 +2,7 @@
 
 This is the vocabulary for Cairn's design, interfaces, code, skills, and tool descriptions. When a term here conflicts with its everyday or orchestration-skill meaning, this meaning applies inside the catalog.
 
-> Every conversation is a session. A session's files are captured as it writes them, and agents describe them. When work is worth coming back to, sessions are attached to one or more efforts. An effort's index lists everything its sessions produced, so a later session can pick the work up again.
+> Every conversation is a session, with its own folder. A session's files are captured as it writes them, and each describes itself with front matter. When work is worth coming back to, sessions are attached to one or more efforts. An effort's index lists everything its sessions produced, so a later session can pick the work up again.
 
 ## Definitions
 
@@ -10,12 +10,16 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | --- | --- | --- |
 | Cairn | The whole system for doing software work with AI: the catalog, orchestration, and the other workflow skills. The package, CLI, MCP server, plugin, and root carry its name. MCP tools keep the `catalog_` prefix. | `cairn find --effort asa-ingestion` |
 | Catalog | Cairn's database of sessions, efforts, artifacts, and their relationships, plus the files it points to. It returns pointers, never file contents. | `catalog_find(effort: "asa-ingestion")` |
-| Cairn root | The folder holding Cairn's state, set by `CAIRN_ROOT`. Each profile has its own root. The knowledge base and designs are `knowledge/` and `designs/` in it unless configured elsewhere. | `~/workspace/artifacts/cairn/` |
+| Cairn root | The folder holding Cairn's working state, the agents' plumbing: the catalog, session and effort folders. Set by `CAIRN_ROOT`, otherwise `cairn/` in the XDG state folder. Each profile has its own root. The knowledge base and designs are `knowledge/` and `designs/` in it unless configured elsewhere, as they usually are, since they are the human's content. | `~/.local/state/cairn/` |
 | Harness | The agent application a session runs in. | OpenCode, Claude Code |
 | Session | One conversation in a harness, identified as `<harness>:<native-id>`. Recorded automatically when it starts. | `opencode:ses_f2b8…` |
 | Root session | A session started by the human rather than by another agent. Only root sessions get a conversation export. | The session you type into |
 | Child session | A session started by an agent in another session: a subagent, a delegated orchestrator, or a producer. A Claude Code subagent shares its parent's harness session, so the catalog records it by its `agent_id`. | An `explore` subagent; `claude-code:aea9cfe061299bad3` |
-| Session tree | A root session and all of its descendant child sessions. Files written anywhere in the tree belong to the root session's folder. | Chief, its orchestrators, and their producers |
+| Session tree | A root session and all of its descendant child sessions. The tree's folder is the root session's folder, and each child's folder sits inside it. | Chief, its orchestrators, and their producers |
+| Session folder | A session's own folder for its working files. A root session's is `sessions/<harness>/<yyyy-mm>/<native-id>/`; a child's is `subagents/<native-id>/` inside its root's. A file in it is credited to that session however it was written. | `…/ses_lead/subagents/ses_explore/` |
+| Conventions | What every session is told about keeping Cairn informed without tool calls: files go in the session folder, Markdown files carry front matter, results and lessons have fixed names. The harness integration adds them to every session. | `src/core/conventions.ts` |
+| Front matter | The `title`, `description`, and `category` block at the top of a Markdown file, through which the file describes itself. Cairn reads it on every capture, and it wins over what the catalog held. | `---\ntitle: AWS accounts\n---` |
+| Result | A subagent's final message, saved as `result.md` in its folder. | `…/subagents/ses_explore/result.md` |
 | Effort | A named outcome you want to be able to come back to, spanning any number of sessions. Sessions attach to efforts, not the other way round. Efforts are flat and grouped with tags. | "Cisco ASA log ingestion", "AWS deployment" |
 | Provisional effort | An effort with status `provisional`, created for a task the human hasn't placed in an effort yet: on entering orchestration, or on a capture that names no effort. It works like any effort until the human promotes it (status `active`) or approves merging it into another. | The effort an orchestrator creates for "review the logging PRs" |
 | Tag | A `namespace:value` label on an effort, used for filtering. Relationships between efforts are links, not tags. | `initiative:observability-pipeline`, `repo:infra-terraform` |
@@ -30,10 +34,10 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | Pointer | An artifact that is a URL or a file outside the root. The catalog records it but never copies it. | A Jira issue URL |
 | Pointer type | The kind of URL pointer, derived by the service from the URL. | `pull_request`, `jira_issue`, `confluence_page` |
 | Category | The one-word kind of an artifact, chosen when it is described: `evidence`, `source`, `synthesis`, `knowledge`, `deliverable`, `record`, `conversation`, `learning`, or `other`. | `evidence` |
-| Capture | The plugin's automatic step: recording a file write, its writing session, and its hash. It involves no model. | A write tool call succeeds, so the plugin runs `cairn capture` |
-| Describe | An agent's step: giving an artifact a title, a description, and a category. | `catalog_describe(path, …)` |
-| Undescribed | A captured artifact that no agent has described yet. | A file written through shell redirection |
-| Producer | The agent, in its own session, that wrote an artifact. It is normally the one that describes it. | The `explore` subagent that wrote the evidence |
+| Capture | The plugin's automatic step: recording a file write, its writing session, its hash, and its front matter. It involves no model. | A write tool call succeeds, so the plugin runs `cairn capture` |
+| Describe | Giving an artifact a title, a description, and a category: for a file, by writing its front matter; for a URL, with `catalog_describe`. | `category: evidence` in a file's front matter |
+| Undescribed | A captured artifact with no description: a Markdown file without front matter, or another file nothing describes. | Notes written without front matter |
+| Producer | The agent, in its own session, that wrote an artifact, and gives it its front matter. | The `explore` subagent that wrote the evidence |
 | Membership | An artifact's relationship to an effort. It is normally derived: the nearest attached session in the artifact's session tree, starting with its producer, is attached to the effort, or the file sits in the effort's folder. It can also be set explicitly for one artifact. | A file relevant to only one of a session's two efforts |
 | Link | A named relationship between two artifacts (`informs`, `supersedes`, `related`) or two efforts (`depends_on`, `split_from`, `related`). Links are read in both directions. | `asa-ingestion depends_on opw-deployment` |
 | Split | Creating a new effort from a piece of an existing one, with a `split_from` link. The original loses nothing. Splitting is explicit. | OPW deployment split from Logs archived to S3 |
@@ -68,13 +72,13 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 | `deliverable` | Something made to share with people: a Confluence page, a Jira item, a quick shared note |
 | `record` | State: an effort's `effort.md`, a local design's `design.md`, or a stable design's `design.json` and `changes.md` |
 | `conversation` | A conversation export. Set only by the service. |
-| `learning` | A producer's operational lesson, such as how to run a command, kept apart from its response |
+| `learning` | A producer's operational lesson, such as how to run a command, kept apart from its response in `learnings.md` |
 | `other` | Anything else. Use it rarely. |
 
 ## Relationships between the terms
 
 - A session belongs to exactly one session tree. It is attached to zero or more efforts.
-- An artifact is produced in exactly one session. Its home folder is its root session's folder, unless it was deliberately written to an effort's folder or to one of the root's subject folders: `designs/`, `knowledge/`, or `sources/`.
+- An artifact is produced in exactly one session. Its home folder is that session's folder, unless it was deliberately written to an effort's folder or to one of the root's subject folders: `designs/`, `knowledge/`, or `sources/`.
 - An artifact belongs to an effort through its session's attachment (or its nearest attached ancestor's), through its effort folder, or through explicit membership.
 - An effort's view covers the artifacts of every session attached to it, plus explicit members, minus explicit exclusions.
 - Efforts relate to each other through links. Tags only filter.
@@ -85,7 +89,7 @@ This is the vocabulary for Cairn's design, interfaces, code, skills, and tool de
 - Say **Cairn** for the whole system and name its parts for what they do: the **catalog** for the record of sessions, efforts, and pointers, and **orchestration** for `orchestrate` and `design-partner`. When describing the database itself (its contents, queries, and pointers), say catalog. MCP tools keep the `catalog_` prefix.
 - Say **session** for a conversation and **effort** for the body of work. Don't use "workspace", "work unit", "ledger", or "thread" for either one. Those names belong to other systems.
 - Say **attach** for session-to-effort association and **membership** for artifact-to-effort association. Don't say a session "is in" or "belongs to" an effort, because a session can serve several.
-- Say **capture** for the automatic step and **describe** for the agent step. Registration is not a separate operation.
+- Say **capture** for the automatic step and **describe** for what front matter or `catalog_describe` does. Registration is not a separate operation.
 - **Artifact** is the general term. **Evidence** is only the category for investigation findings. Don't call every file evidence.
 - Say **knowledge article** for what is known about a subject, and **evidence** for the investigation output it is written from. A design records what is being built and why; a knowledge article records what exists. Cairn's knowledge articles are working material in the catalog, separate from any personal knowledge base.
 - **Workstream** is a Chief concept represented by sessions. It is not a separate kind of container. Don't create an effort just to represent a workstream.

@@ -16,6 +16,9 @@ const toolResult = z.object({
 
 const artifactEntry = z.object({
   path: z.string(),
+  category: z.string().nullable(),
+  title: z.string().nullable(),
+  producer: z.object({ session: z.string() }).nullable(),
   status: z.string(),
   pointer_type: z.string().nullable(),
   efforts: z.array(z.string())
@@ -30,7 +33,7 @@ const describedSession = z.object({
 
 const sessionList = z.object({ sessions: z.array(z.object({ key: z.string(), workstream: z.string().nullable() })) });
 
-const writePath = z.object({ path: z.string() });
+const sessionFolder = z.object({ folder: z.string() });
 
 const effortView = z.object({
   action: z.literal("show"),
@@ -90,11 +93,14 @@ async function catalog() {
     expect(code).toBe(0);
   };
 
-  const writeEvidence = async (session: string, topic: string) => {
-    const { path } = await json(writePath, "catalog_location", { session, topic });
+  // A session writes in its own folder, and a file describes itself with front matter when given one.
+  const folderOf = (session: string) => sessionFolder.parse(cliJson("session", "start", session)).folder;
+
+  const writeEvidence = async (session: string, topic: string, frontMatter = "") => {
+    const path = join(folderOf(session), `${topic.toLowerCase().replaceAll(" ", "-")}.md`);
 
     mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, `# ${topic}\n`);
+    writeFileSync(path, `${frontMatter}# ${topic}\n`);
     cli("capture", path, "--session", session);
 
     return path;
@@ -121,7 +127,7 @@ async function catalog() {
     return z.json().parse(JSON.parse(printed));
   };
 
-  return { root, client, call, json, cli, cliJson, writeEvidence, index };
+  return { root, client, call, json, cli, cliJson, folderOf, writeEvidence, index };
 }
 
 describe("MCP tools", () => {
@@ -134,27 +140,24 @@ describe("MCP tools", () => {
       "catalog_effort",
       "catalog_find",
       "catalog_link",
-      "catalog_location",
       "catalog_session"
     ]);
     expect(tools.every((tool) => tool.inputSchema.type === "object")).toBe(true);
   });
 
-  test("an explore subagent's described evidence and a registered PR reach every effort the lead attaches", async () => {
+  test("an explore subagent's self-described evidence and a registered PR reach every effort the lead attaches", async () => {
     const cairn = await catalog();
 
     cairn.cli("session", "start", "opencode:lead");
     cairn.cli("session", "start", "opencode:explore", "--parent", "opencode:lead", "--agent", "explore");
 
-    const accounts = await cairn.writeEvidence("opencode:explore", "AWS account structure");
-    const retention = await cairn.writeEvidence("opencode:explore", "S3 retention costs");
+    const accounts = await cairn.writeEvidence(
+      "opencode:explore",
+      "AWS account structure",
+      "---\ntitle: AWS account structure\ndescription: Accounts, VPCs, and who owns them.\n---\n\n"
+    );
 
-    await cairn.json(artifactEntry, "catalog_describe", {
-      path: accounts,
-      category: "evidence",
-      title: "AWS account structure",
-      description: "Accounts, VPCs, and who owns them."
-    });
+    const retention = await cairn.writeEvidence("opencode:explore", "S3 retention costs");
 
     const attached = await cairn.json(describedSession, "catalog_session", {
       session: "opencode:lead",
@@ -185,32 +188,29 @@ describe("MCP tools", () => {
     const opw = await cairn.json(artifactList, "catalog_find", { target: "artifacts", effort: "opw-deployment-on-aws" });
 
     expect(opw.artifacts.map((entry) => entry.path).sort()).toEqual([accounts, "https://github.com/acme/pipeline/pull/42"].sort());
+    expect(opw.artifacts.find((entry) => entry.path === accounts)).toMatchObject({ category: "evidence", title: "AWS account structure", status: "active" });
     expect(cairn.index("logs-archived-to-s3")).toContain("## Pull requests\n\n- [Archive logs to S3](https://github.com/acme/pipeline/pull/42)");
     expect(cairn.index("logs-archived-to-s3")).toContain("S3 retention costs");
   });
 
-  test("a file written by a shell command at a path from catalog_location is credited to the session it was handed to, and no path is handed out twice", async () => {
+  test("a file a shell command writes in a subagent's folder is credited to the subagent and describes itself", async () => {
     const cairn = await catalog();
 
     cairn.cli("session", "start", "opencode:lead");
     cairn.cli("session", "start", "opencode:explore", "--parent", "opencode:lead", "--agent", "explore");
 
-    const { path } = await cairn.json(writePath, "catalog_location", { session: "opencode:explore", topic: "AWS account structure" });
+    const path = join(cairn.folderOf("opencode:explore"), "aws-accounts.md");
 
     // No capture: the plugin only sees the write, edit, and patch tools.
-    writeFileSync(path, "# AWS account structure\n");
-    cairn.cli("read", path, "--session", "opencode:lead");
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, "---\ntitle: AWS account structure\ncategory: synthesis\n---\n\n# AWS accounts\n");
+    cairn.cli("check");
 
     await cairn.json(describedSession, "catalog_session", { session: "opencode:lead", attach: [{ create: { title: "Logs archived to S3" } }] });
 
-    const described = await cairn.json(artifactEntry, "catalog_describe", { path, category: "evidence", title: "AWS account structure" });
+    const found = await cairn.json(artifactList, "catalog_find", { target: "artifacts", effort: "logs-archived-to-s3" });
 
-    expect(described.efforts).toEqual(["logs-archived-to-s3"]);
-
-    const unwritten = await cairn.json(writePath, "catalog_location", { session: "opencode:lead", topic: "S3 retention costs" });
-    const again = await cairn.json(writePath, "catalog_location", { session: "opencode:lead", topic: "S3 retention costs" });
-
-    expect(again.path).toBe(unwritten.path.replace("s3-retention-costs.md", "s3-retention-costs-2.md"));
+    expect(found.artifacts).toMatchObject([{ path, category: "synthesis", title: "AWS account structure", producer: { session: "opencode:explore" } }]);
   });
 
   test("a fresh session finds an effort phrased differently and resumes from its view", async () => {

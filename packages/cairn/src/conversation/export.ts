@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { z } from "zod";
 import { formatSessionKey, type SessionKey, type SessionOrigin } from "../schemas.ts";
 import { fileFacts, recordManagedFile } from "../core/artifacts.ts";
+import { syncFolder } from "../core/check.ts";
 import { optionalText, timestamp, transaction, type Cairn } from "../core/db.ts";
 import { loadSession } from "../core/find.ts";
 import { rootPaths, safeSegment, storedPath } from "../core/root.ts";
@@ -356,6 +357,9 @@ export function indexConversation(cairn: Cairn, key: SessionKey, source: Convers
       `;
       markArtifactDirty(cairn, id);
     });
+
+    // Each turn also records what the session tree wrote to its folders, including from the shell.
+    syncFolder(cairn, session.folder);
 
     return {
       indexed: true,

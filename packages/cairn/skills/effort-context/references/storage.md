@@ -1,14 +1,14 @@
 # Storage
 
-Cairn keeps working files under its root (by default `~/workspace/artifacts/cairn/`) and a catalog of what each one is. Files hold the content; the catalog holds descriptions, efforts and links. The knowledge base and designs are content folders Cairn tracks but doesn't own: its session context names where each is, and their formats belong to the `knowledge-base` and `design-docs` skills. Expand `~` for tools needing absolute paths.
+Cairn keeps working files under its root (by default `~/.local/state/cairn/`) and a catalog of what each one is. Files hold the content and describe themselves with front matter, as the conventions in every session's system context set out; the catalog indexes them and holds efforts and links. The knowledge base and designs are content folders Cairn tracks but doesn't own: its session context names where each is, and their formats belong to the `knowledge-base` and `design-docs` skills. Expand `~` for tools needing absolute paths.
 
 ## Choose a location
 
 1. Honor an explicitly assigned permitted path and writer ownership.
 2. For a design, knowledge article, source or evidence the knowledge base keeps, use the designs folder or the knowledge base, named for the subject as their skills describe (`articles/aws-environment.md`, `sources/meetings/2026-10-02-network-working-session/`). These outlive every session and effort, so their paths come from the subject. Look for an existing file on the same subject first and add to it.
-3. Otherwise call `catalog_location` with your session's catalog ID (injected at session start) and a short topic named for the content, such as `aws-account-structure` or `pr-123-review`. It returns a new path in the root session's folder and never hands out the same path twice.
-4. Add `effort` for an effort's records and other material meant to outlive the session. The path is then in that effort's folder.
-5. In OpenCode, Cairn saves a subagent's final message in the session tree's folder and names the subagent's learnings path in its context. A parent assigns paths only for other files an assignment must produce, requesting one path per file. Cairn credits each file to the session that writes it, so the path can come from the parent's session.
+3. An effort's records and other material meant to outlive the session go in that effort's folder, `efforts/<slug>/` under the root; the compaction note and the effort view name it.
+4. Everything else goes in your session's own folder, named at session start with your catalog ID, under a file name for the content, such as `aws-account-structure.md` or `pr-123-review.md`. A subagent's folder sits inside its root session's folder, so parallel subagents never collide. Cairn credits each file to the session whose folder holds it, including files written from the shell.
+5. Cairn saves a subagent's final message as `result.md` in the subagent's folder. A parent names paths only for other files an assignment must produce, and those go in the subagent's own folder unless the parent needs them elsewhere.
 
 Create only needed files. Keep writers' session working directories and project worktrees outside the root; report a conflict rather than changing the session directory implicitly.
 
@@ -21,9 +21,9 @@ Create only needed files. Keep writers' session working directories and project 
 | `efforts/<slug>/index.md` | none | The generated effort view. Read it or `catalog_effort` `show`; Cairn rewrites it |
 | `designs/<slug>/` | `record`, `deliverable` | A stable design: the agreed record of a body of work (what is being built or changed, why it's worth doing, its phases and decisions), shared by the efforts on it and shown to the people who approve it, in `design.json`, `evidence.json`, `meetings.json` and `changes.md`, and the doc built from them. Owned by `design-docs` |
 | The knowledge base | `knowledge`, `source`, `evidence` | Articles, sources, evidence and origins, in the `knowledge-base` skill's format. Cairn files each by its folder; describe none of them |
-| `sessions/…/<workstream-key>/` | | A delegated orchestrator's files, kept apart from parallel workstreams |
+| `sessions/…/subagents/<id>/` | | A subagent's own folder, inside its root session's folder: its `result.md`, its `learnings.md`, and anything else it writes |
 | `sessions/…/conversation.md` | `conversation` | The root session's conversation, exported by Cairn after each turn |
-| Other paths from `catalog_location` | `evidence`, `learning`, `source`, `synthesis`, `deliverable`, `other` | Subagent results Cairn saves, operational lessons, raw captures from our own work such as exports and screenshots (see [raw captures](#raw-captures)), requested fuller synthesis, and finished outputs |
+| Other files in a session's folder | `evidence`, `learning`, `source`, `synthesis`, `deliverable`, `other`, from front matter | Subagent results Cairn saves, operational lessons, raw captures from our own work such as exports and screenshots (see [raw captures](#raw-captures)), requested fuller synthesis, and finished outputs |
 
 Records describe state: what is settled, the human's views, what was said and by whom, and what is still open. Next steps, to-dos, waiting-on lists, planned meetings, and agendas stay out of them; when the human wants a plan, an agent reads the records and proposes one in the conversation, kept as a dated synthesis only when asked. An effort whose records still carry the earlier names `context.md` and `approach.md` is read the same way; rename them with `cairn mv` the next time you write them.
 
@@ -57,6 +57,6 @@ Saving a meeting or thread writes only to its own files.
 An export, scrape, or screenshot from our own work stays with the evidence it supports.
 
 - Preserve the requested content and format where practical, with interpretation outside the capture.
-- Describe each capture as category `source`, with its source message ID or link as `origin`. Record extraction time, transformations, and omissions in its description or beside the evidence that uses it. Label partial coverage and keep earlier versions when they're still needed. Leave out secrets and unrelated sensitive content.
+- A Markdown capture gets front matter with category `source`. Record its source message ID or link, extraction time, transformations, and omissions in its description, or beside the evidence that uses it for a capture that can't carry front matter. Label partial coverage and keep earlier versions when they're still needed. Leave out secrets and unrelated sensitive content.
 
 The root is private working material. Writable storage grants neither project mutation nor publication or promotion authority.

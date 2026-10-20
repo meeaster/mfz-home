@@ -15,7 +15,7 @@ The catalog's schema moves to version 7, from whichever version the machine has.
 
 - The machine's copy of the home repository (the one with `packages/cairn`) has the changes. In these steps `<home>` is that checkout.
 - Node 26 or later, which Cairn already requires, and `opencode` on PATH if the machine uses OpenCode.
-- If the catalog isn't at `~/workspace/artifacts/cairn`, export `CAIRN_ROOT` in the shell you run these steps from. If Claude Code's config isn't at `~/.claude`, export `CLAUDE_CONFIG_DIR` too. The scripts look in the same places the Cairn CLI does.
+- If the catalog isn't at `~/.local/state/cairn`, export `CAIRN_ROOT` in the shell you run these steps from. If Claude Code's config isn't at `~/.claude`, export `CLAUDE_CONFIG_DIR` too. The scripts look in the same places the Cairn CLI does.
 
 ## Steps
 
@@ -31,7 +31,7 @@ cd <home> && mise run cairn:install
 ```sh
 cairn backup
 cairn check
-sqlite3 -readonly "${CAIRN_ROOT:-$HOME/workspace/artifacts/cairn}/catalog.db" "PRAGMA user_version"
+sqlite3 -readonly "${CAIRN_ROOT:-${XDG_STATE_HOME:-$HOME/.local/state}/cairn}/catalog.db" "PRAGMA user_version"
 ```
 
 The first Cairn command after the install migrates the catalog; the last line should print `7`. `cairn check` may list missing or unrecorded files from before the upgrade; those aren't caused by it.
@@ -114,7 +114,7 @@ New CLI runs record the session that started them. For runs from before the upgr
 ### 8. Check the result
 
 ```sh
-CATALOG="${CAIRN_ROOT:-$HOME/workspace/artifacts/cairn}/catalog.db"
+CATALOG="${CAIRN_ROOT:-${XDG_STATE_HOME:-$HOME/.local/state}/cairn}/catalog.db"
 
 # Root sessions by harness and origin.
 sqlite3 -readonly "$CATALOG" "SELECT harness, coalesce(origin, 'unknown'), count(*) FROM session WHERE parent_session_id IS NULL GROUP BY 1, 2"

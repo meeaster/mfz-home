@@ -1,28 +1,25 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import type { RunClient } from "./run-client.ts";
 import { backgroundReturn, createCairn, type CompletedTool, type SessionFacts } from "./server.ts";
 import { layoutAt } from "../core/root.ts";
 
-const root = "/home/user/workspace/artifacts/cairn";
+const root = "/home/user/.local/state/cairn";
 
 // Every session is told where designs live; this root has no knowledge base, so nothing names one.
 const contentLine = `Designs live in ${root}/designs/<slug>/.`;
 
 const sessionFolder = `${root}/sessions/opencode/2026-09/ses_lead`;
 
-// runs maps a root session to the opencode run process that created it.
-function topicPath(topic: string): string {
-  return `${sessionFolder}/${topic.toLowerCase().replaceAll(/[^a-z0-9]+/g, "-")}.md`;
-}
+const exploreFolder = `${sessionFolder}/subagents/ses_explore`;
 
+// runs maps a root session to the opencode run process that created it. The fake CLI places a subagent's folder in its
+// parent's, as the catalog does.
 function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<string, RunClient> = new Map()) {
   const fired: string[][] = [];
   const ran: string[][] = [];
   const logged: string[] = [];
   const written = new Map<string, string>();
-  const prompts: string[] = [];
   let printed: Promise<string> = Promise.resolve(JSON.stringify({ note: "Attached efforts: logs-archived-to-s3." }));
-  let generated: Promise<string> = Promise.resolve('{"title": "AWS account map", "description": "Lists the accounts and their VPCs."}');
 
   const cairn = createCairn({
     layout: layoutAt(root),
@@ -33,8 +30,11 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<
       output: async (args) => {
         ran.push([...args]);
 
-        if (args[0] === "location") {
-          return JSON.stringify({ path: topicPath(args[4] ?? "") });
+        if (args[1] === "start") {
+          const id = (args[2] ?? "").replace("opencode:", "");
+          const folder = args.includes("--parent") ? `${sessionFolder}/subagents/${id}` : `${root}/sessions/opencode/2026-09/${id}`;
+
+          return JSON.stringify({ key: args[2], folder });
         }
 
         return args[1] === "context" ? printed : "";
@@ -45,11 +45,6 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<
         written.set(path, text);
       },
       read: async (path) => written.get(path) ?? null
-    },
-    generate: async (prompt) => {
-      prompts.push(prompt);
-
-      return generated;
     },
     directory: "/home/user/repo",
     session: async (sessionID) => {
@@ -76,13 +71,9 @@ function harness(sessions: ReadonlyMap<string, SessionFacts>, runs: ReadonlyMap<
     ran,
     logged,
     written,
-    prompts,
     tool,
     printNote: (value: Promise<string>) => {
       printed = value;
-    },
-    generateWith: (value: Promise<string>) => {
-      generated = value;
     }
   };
 }
@@ -98,46 +89,36 @@ const sessions = new Map([
   ["ses_explore", explore]
 ]);
 
+const described = "---\ntitle: AWS accounts\ndescription: Lists the accounts.\n---\n\n# AWS accounts\n";
+
 describe("cairn plugin", () => {
-  it("registers each session once on first sight and gives it its catalog ID", async () => {
+  it("registers each session once on first sight and tells it its catalog ID and folder", async () => {
     const app = harness(sessions);
 
-    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead.\n\n${contentLine}`);
+    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead. Its folder is ${sessionFolder}.\n\n${contentLine}`);
     await app.cairn.context("ses_lead");
-    expect(await app.cairn.context("ses_explore")).toMatch(/^This session's catalog ID is opencode:ses_explore\.\n\n/);
+    expect(await app.cairn.context("ses_explore")).toBe(
+      `This session's catalog ID is opencode:ses_explore. Its folder is ${exploreFolder}.\n\n${contentLine}`
+    );
     await app.cairn.context("ses_explore");
 
-    expect(app.fired).toEqual([
-      ["session", "start", "opencode:ses_lead", "--cwd", "/home/user/repo", "--agent", "build", "--origin", "interactive"]
-    ]);
-    // A subagent's registration finishes before it asks for a path, so its parent decides the folder.
     expect(app.ran).toEqual([
+      ["session", "start", "opencode:ses_lead", "--cwd", "/home/user/repo", "--json", "--agent", "build", "--origin", "interactive"],
       [
         "session",
         "start",
         "opencode:ses_explore",
         "--cwd",
         "/home/user/repo",
+        "--json",
         "--parent",
         "opencode:ses_lead",
         "--agent",
         "explore",
         "--title",
         "Map the AWS accounts"
-      ],
-      ["location", "--session", "opencode:ses_explore", "--topic", "learnings ses_explore", "--json"]
+      ]
     ]);
-  });
-
-  it("tells a subagent where its result is saved and where to write its learnings", async () => {
-    const app = harness(sessions);
-
-    expect(await app.cairn.context("ses_explore")).toBe(
-      `This session's catalog ID is opencode:ses_explore.\n\n${contentLine}\n\n` +
-        "You are working for another session. Your final message is returned to it as your complete result and " +
-        `saved in ${sessionFolder}, so make it complete on its own. If you learn something reusable about tools, ` +
-        `commands, or this codebase, write it to ${sessionFolder}/learnings-ses-explore.md.`
-    );
   });
 
   it("registers a root session that an opencode run created as a CLI run, linked to the session that ran it", async () => {
@@ -155,13 +136,14 @@ describe("cairn plugin", () => {
     await app.cairn.context("ses_run");
     await app.cairn.context("ses_script");
 
-    expect(app.fired).toEqual([
+    expect(app.ran).toEqual([
       [
         "session",
         "start",
         "opencode:ses_run",
         "--cwd",
         "/home/user/repo",
+        "--json",
         "--agent",
         "build",
         "--origin",
@@ -169,53 +151,47 @@ describe("cairn plugin", () => {
         "--spawned-by",
         "claude-code:lead-session"
       ],
-      ["session", "start", "opencode:ses_script", "--cwd", "/home/user/repo", "--agent", "build", "--origin", "cli"]
+      ["session", "start", "opencode:ses_script", "--cwd", "/home/user/repo", "--json", "--agent", "build", "--origin", "cli"]
     ]);
   });
 
-  it("captures written files under the root and appends the capture note once per file", async () => {
+  it("captures written files under the root and notes a Markdown file without front matter once", async () => {
     const app = harness(sessions);
+    const notes = `${sessionFolder}/aws-notes.md`;
     const evidence = `${sessionFolder}/aws-accounts.md`;
+    const export_ = `${sessionFolder}/accounts.json`;
 
-    const written = await app.tool("ses_lead", "write", { path: evidence }, { target: evidence, existed: false }, "Created file successfully");
-    const edited = await app.tool("ses_lead", "edit", { path: evidence }, { files: [{ file: evidence }] });
+    app.written.set(notes, "# AWS notes\n");
+    app.written.set(evidence, described);
+    app.written.set(export_, "[]");
 
-    expect(written).toEqual([
+    const bare = await app.tool("ses_lead", "write", { path: notes }, { target: notes, existed: false }, "Created file successfully");
+    const again = await app.tool("ses_lead", "edit", { path: notes }, { files: [{ file: notes }] });
+
+    expect(bare).toEqual([
       { type: "text", text: "Created file successfully" },
-      { type: "text", text: expect.stringContaining(`recorded this file: ${evidence}\nfor session opencode:ses_lead`) }
+      { type: "text", text: expect.stringContaining(`recorded this file: ${notes}\nfor session opencode:ses_lead. It has no front matter`) }
     ]);
-    expect(written?.[1]).toEqual({ type: "text", text: expect.stringContaining("catalog_describe") });
-    expect(edited).toBeNull();
-    expect(app.fired.slice(1)).toEqual([
-      ["capture", evidence, "--session", "opencode:ses_lead"],
-      ["capture", evidence, "--session", "opencode:ses_lead"]
-    ]);
-  });
-
-  it("captures a subagent's learnings without asking it to describe them, and asks about its other files", async () => {
-    const app = harness(sessions);
-    const learnings = `${sessionFolder}/learnings-ses-explore.md`;
-    const article = `${sessionFolder}/aws-account-map.md`;
-
-    await app.cairn.context("ses_explore");
-
-    expect(await app.tool("ses_explore", "write", { path: learnings }, { target: learnings }, "ok")).toBeNull();
-    expect(await app.tool("ses_explore", "write", { path: article }, { target: article }, "ok")).toEqual([
-      { type: "text", text: "ok" },
-      { type: "text", text: expect.stringContaining(`recorded this file: ${article}`) }
-    ]);
+    expect(again).toBeNull();
+    expect(await app.tool("ses_lead", "write", { path: evidence }, { target: evidence }, "ok")).toBeNull();
+    expect(await app.tool("ses_lead", "write", { path: export_ }, { target: export_ }, "ok")).toBeNull();
     expect(app.fired).toEqual([
-      ["capture", learnings, "--session", "opencode:ses_explore"],
-      ["capture", article, "--session", "opencode:ses_explore"]
+      ["capture", notes, "--session", "opencode:ses_lead"],
+      ["capture", notes, "--session", "opencode:ses_lead"],
+      ["capture", evidence, "--session", "opencode:ses_lead"],
+      ["capture", export_, "--session", "opencode:ses_lead"]
     ]);
   });
 
   it("resolves relative paths against the session's directory", async () => {
     const app = harness(new Map([["ses_lead", { ...lead, directory: sessionFolder }]]));
 
+    app.written.set(`${sessionFolder}/a.md`, "a");
+    app.written.set(`${sessionFolder}/notes/b.md`, "b");
+
     const patched = await app.tool("ses_lead", "patch", {}, { files: [{ file: "a.md" }, { file: "notes/b.md" }] }, []);
 
-    expect(app.fired.slice(1)).toEqual([
+    expect(app.fired).toEqual([
       ["capture", `${sessionFolder}/a.md`, "--session", "opencode:ses_lead"],
       ["capture", `${sessionFolder}/notes/b.md`, "--session", "opencode:ses_lead"]
     ]);
@@ -227,11 +203,13 @@ describe("cairn plugin", () => {
     const app = harness(sessions);
     const record = `${root}/efforts/logs-archived-to-s3/effort.md`;
 
+    app.written.set(record, "# Logs archived to S3\n");
+
     for (const path of ["/home/user/repo/src/app.ts", `${root}/efforts/logs-archived-to-s3/index.md`, `${root}/catalog.db`, record]) {
       expect(await app.tool("ses_lead", "write", { path }, { target: path }, "ok")).toBeNull();
     }
 
-    expect(app.fired.slice(1)).toEqual([["capture", record, "--session", "opencode:ses_lead"]]);
+    expect(app.fired).toEqual([["capture", record, "--session", "opencode:ses_lead"]]);
   });
 
   it("records reads under the root without changing the result", async () => {
@@ -244,12 +222,12 @@ describe("cairn plugin", () => {
     expect(app.fired).toEqual([["read", evidence, "--session", "opencode:ses_explore"]]);
   });
 
-  it("adds the compaction note to every request after a compaction", async () => {
+  it("gives the compaction note, which restates the catalog ID, in every request after a compaction", async () => {
     const app = harness(sessions);
 
     app.cairn.compactionEnded("ses_lead");
 
-    const expected = `This session's catalog ID is opencode:ses_lead.\n\n${contentLine}\n\nAttached efforts: logs-archived-to-s3.`;
+    const expected = `Attached efforts: logs-archived-to-s3.\n\n${contentLine}`;
 
     expect(await app.cairn.context("ses_lead")).toBe(expected);
     expect(await app.cairn.context("ses_lead")).toBe(expected);
@@ -269,9 +247,9 @@ describe("cairn plugin", () => {
     ]);
   });
 
-  it("saves a foreground subagent's response, credits the subagent, and describes it in the background", async () => {
+  it("saves a foreground subagent's response in its folder, titled from the task, and credits the subagent", async () => {
     const app = harness(sessions);
-    const saved = `${sessionFolder}/map-the-aws-accounts.md`;
+    const saved = `${exploreFolder}/result.md`;
     const output = { sessionID: "ses_explore", status: "completed", output: "Three accounts, one VPC each." };
 
     const content = await app.tool("ses_lead", "subagent", { agent: "explore", description: "Map the AWS accounts", prompt: "..." }, output, "<subagent>");
@@ -280,31 +258,23 @@ describe("cairn plugin", () => {
       { type: "text", text: "<subagent>" },
       { type: "text", text: `Cairn saved this response to ${saved}.` }
     ]);
-    expect(app.written.get(saved)).toBe("Three accounts, one VPC each.\n");
-    expect(app.prompts[0]).toContain("<document>\nThree accounts, one VPC each.\n</document>");
-    await vi.waitFor(() =>
-      expect(app.fired).toContainEqual([
-        "describe",
-        saved,
-        "--category",
-        "evidence",
-        "--title",
-        "AWS account map",
-        "--description",
-        "Lists the accounts and their VPCs.",
-        "--session",
-        "opencode:ses_explore"
-      ])
-    );
-    expect(app.fired).toContainEqual(["capture", saved, "--session", "opencode:ses_explore"]);
+    expect(app.written.get(saved)).toBe("---\ntitle: Map the AWS accounts\ncategory: evidence\n---\n\nThree accounts, one VPC each.\n");
+    expect(app.fired).toEqual([["capture", saved, "--session", "opencode:ses_explore"]]);
   });
 
-  it("appends a follow-up to a subagent's saved response, and describes its learnings", async () => {
+  it("keeps the front matter a subagent gave its own response", async () => {
     const app = harness(sessions);
-    const learnings = `${sessionFolder}/learnings-ses-explore.md`;
 
-    await app.cairn.context("ses_explore");
-    app.written.set(learnings, "aws sts needs --region in this account.");
+    const saved = await app.cairn.subagentReturned({ childID: "ses_explore", description: "Map the AWS accounts", text: described });
+
+    expect(app.written.get(saved?.response ?? "")).toBe(`${described}\n`);
+  });
+
+  it("appends a follow-up to a subagent's saved response and captures its learnings", async () => {
+    const app = harness(sessions);
+    const learnings = `${exploreFolder}/learnings.md`;
+
+    app.written.set(learnings, "---\ncategory: learning\n---\n\naws sts needs --region in this account.\n");
 
     const first = await app.cairn.subagentReturned({ childID: "ses_explore", description: "Map the AWS accounts", text: "Draft." });
     const second = await app.cairn.subagentReturned({ childID: "ses_explore", description: "Check the VPCs too", text: "Final." });
@@ -312,26 +282,25 @@ describe("cairn plugin", () => {
     expect(second).toEqual({ response: first?.response, learnings });
     // The same completion arriving again by another route changes nothing.
     await app.cairn.subagentReturned({ childID: "ses_explore", description: "Check the VPCs too", text: "Final." });
-    expect(app.fired.filter((args) => args[0] === "capture")).toHaveLength(2);
-    expect(app.written.get(first?.response ?? "")).toBe("Draft.\n\n---\n\n## Follow-up\n\nFinal.\n");
-    await vi.waitFor(() =>
-      expect(app.fired.filter((args) => args[0] === "describe" && args[1] === learnings && args[3] === "learning")).toHaveLength(2)
+    expect(app.fired.filter((args) => args[1] === first?.response)).toHaveLength(2);
+    expect(app.fired.filter((args) => args[1] === learnings)).toHaveLength(2);
+    expect(app.written.get(first?.response ?? "")).toBe(
+      "---\ntitle: Map the AWS accounts\ncategory: evidence\n---\n\nDraft.\n\n---\n\n## Follow-up\n\nFinal.\n"
     );
   });
 
   it("tells the parent where a subagent's learnings are", async () => {
     const app = harness(sessions);
-    const learnings = `${sessionFolder}/learnings-ses-explore.md`;
+    const learnings = `${exploreFolder}/learnings.md`;
     const output = { sessionID: "ses_explore", status: "completed", output: "Done." };
 
-    await app.cairn.context("ses_explore");
     app.written.set(learnings, "aws sts needs --region in this account.");
 
     const content = await app.tool("ses_lead", "subagent", { agent: "explore", description: "Map the AWS accounts", prompt: "..." }, output, "<subagent>");
 
     expect(content?.[1]).toEqual({
       type: "text",
-      text: `Cairn saved this response to ${sessionFolder}/map-the-aws-accounts.md. The subagent also wrote learnings to ${learnings}.`
+      text: `Cairn saved this response to ${exploreFolder}/result.md. The subagent also wrote learnings to ${learnings}.`
     });
   });
 
@@ -351,15 +320,6 @@ describe("cairn plugin", () => {
     expect(app.written.size).toBe(0);
   });
 
-  it("sends the model only the start of a very long response", async () => {
-    const app = harness(sessions);
-
-    await app.cairn.subagentReturned({ childID: "ses_explore", description: "Map the AWS accounts", text: "a".repeat(50_000) });
-
-    expect(app.prompts[0]).toContain("[truncated]");
-    expect(app.prompts[0]?.length).toBeLessThan(41_000);
-  });
-
   it("reads a background subagent's response out of its completion message", () => {
     const data = {
       description: "Map the AWS accounts",
@@ -374,7 +334,7 @@ describe("cairn plugin", () => {
 
   it("adds where a background result was saved to the result itself, the same way in every request", async () => {
     const app = harness(sessions);
-    const saved = `${sessionFolder}/map-the-aws-accounts.md`;
+    const saved = `${exploreFolder}/result.md`;
     const result = '<subagent sessionID="ses_explore" state="completed" description="Map the AWS accounts">\nThree accounts.\n</subagent>';
 
     const pending = [
@@ -386,24 +346,12 @@ describe("cairn plugin", () => {
     const first = await app.cairn.noteResults("ses_lead", pending);
 
     expect(first).toEqual(new Map([[2, `${result}\n\nCairn saved the result of "Map the AWS accounts" to ${saved}.`]]));
-    expect(app.written.get(saved)).toBe("Three accounts.\n");
+    expect(app.written.get(saved)).toContain("Three accounts.\n");
 
     const answered = [...pending, { role: "assistant", content: [{ type: "text", text: "Three accounts." }] }];
 
     expect(await app.cairn.noteResults("ses_lead", answered)).toEqual(first);
     expect(await harness(sessions).cairn.noteResults("ses_lead", answered)).toEqual(new Map());
-  });
-
-  it("keeps a saved response when the model can't describe it", async () => {
-    const app = harness(sessions);
-
-    app.generateWith(Promise.resolve("I can't help with that."));
-
-    const saved = await app.cairn.subagentReturned({ childID: "ses_explore", description: "Map the AWS accounts", text: "Done." });
-
-    expect(app.written.get(saved?.response ?? "")).toBe("Done.\n");
-    await vi.waitFor(() => expect(app.logged).toEqual(["unable to describe a subagent's file"]));
-    expect(app.fired.some((args) => args[0] === "describe")).toBe(false);
   });
 
   it("keeps the harness working when the session or the CLI fails", async () => {
@@ -412,7 +360,7 @@ describe("cairn plugin", () => {
     app.printNote(Promise.reject(new Error("catalog locked")));
     app.cairn.compactionEnded("ses_lead");
 
-    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead.\n\n${contentLine}`);
+    expect(await app.cairn.context("ses_lead")).toBe(`This session's catalog ID is opencode:ses_lead. Its folder is ${sessionFolder}.\n\n${contentLine}`);
     expect(await app.cairn.context("ses_gone")).toBe(`This session's catalog ID is opencode:ses_gone.\n\n${contentLine}`);
     expect(await app.tool("ses_gone", "write", {}, { target: `${sessionFolder}/x.md` }, "ok")).toBeNull();
     expect(app.logged).toEqual(["unable to read the compaction note", "unable to register the session", "unable to register the session"]);

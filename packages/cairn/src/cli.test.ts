@@ -153,7 +153,7 @@ describe("sessions and derived membership", () => {
 
     const output = writeEvidence(cairn, "opencode:orchestrator", "review");
 
-    expect(output).toBe(join(cairn.root, "sessions", "opencode", "2026-09", "chief", "review-pr-123", "review.md"));
+    expect(output).toBe(join(cairn.root, "sessions", "opencode", "2026-09", "chief", "subagents", "orchestrator", "review.md"));
 
     const found = cairn.json(artifactList, "find", "artifacts", "--text", "review");
 
@@ -177,7 +177,7 @@ describe("sessions and derived membership", () => {
     expect(inAsa.artifacts.map((entry) => entry.title)).toEqual(["ASA syslog format"]);
   });
 
-  test("a parent learned after the child moves the child's new output into the root's folder", () => {
+  test("a parent learned after the child moves the child's folder into the root's folder", () => {
     const cairn = workspace();
 
     cairn.run("session", "start", "claude-code:agent-1");
@@ -185,7 +185,7 @@ describe("sessions and derived membership", () => {
 
     const { path } = cairn.json(writePath, "location", "--session", "claude-code:agent-1", "--topic", "notes");
 
-    expect(path).toBe(join(cairn.root, "sessions", "claude-code", "2026-09", "main", "notes.md"));
+    expect(path).toBe(join(cairn.root, "sessions", "claude-code", "2026-09", "main", "subagents", "agent-1", "notes.md"));
   });
 
   test("a session can't become its own ancestor", () => {

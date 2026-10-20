@@ -4,7 +4,7 @@ Cairn is a system for doing software work with AI: design partnership, delegated
 
 This package holds Cairn's parts:
 
-- **The catalog**: a SQLite database of sessions, efforts, and pointers to the files and URLs they produce, with the CLI, MCP server, and harness plugins that keep it. Files hold the content. The catalog holds descriptions and relationships, and never returns file contents. Most of this README covers it.
+- **The catalog**: a SQLite database of sessions, efforts, and pointers to the files and URLs they produce, with the CLI, MCP server, and harness plugins that keep it. Files hold the content and describe themselves with front matter. The catalog indexes them, holds relationships, and never returns file contents. Most of this README covers it.
 - **Workflow skills** in `skills/`: orchestration (`orchestrate` and `design-partner`), `effort-context`, and `learnings`.
 
 The knowledge base and designs Cairn tracks are plain files whose formats belong to two skills that work without Cairn, `knowledge-base` and `design-docs`, in the home's `skills/active/`.
@@ -35,27 +35,42 @@ The build bundles each entry with its dependencies: `dist/cli.js`, `dist/mcp.js`
 
 ## Running
 
-`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `~/workspace/artifacts/cairn/`. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, and effort folders in `efforts/`. Every command accepts `--json`.
+`CAIRN_ROOT` sets the folder Cairn manages. Without it, the root is `cairn/` in the XDG state folder: `$XDG_STATE_HOME/cairn/`, or `~/.local/state/cairn/`. The root is the agents' working state; the content people read, the designs and the knowledge base, can live elsewhere, as below. The root holds `catalog.db`, daily copies in `backups/`, session folders in `sessions/`, and effort folders in `efforts/`. Every command accepts `--json`.
 
 Cairn also tracks two content folders: the knowledge base (articles, sources, evidence and `origins.md`, in the `knowledge-base` skill's format) and the designs. Each is `knowledge/` or `designs/` in the root unless `CAIRN_KNOWLEDGE` or `CAIRN_DESIGNS`, or the `knowledge` or `designs` key of `~/.config/cairn/config.json` (under `XDG_CONFIG_HOME` when it's set), names another folder, such as one in a git repository. The catalog stores a file in either folder as if the folder were mounted at `knowledge/` or `designs/` in the root, so its catalog path survives the folder moving. A file in the knowledge base describes itself in its front matter: capture files it as `knowledge`, `source` or `evidence` by its folder, and the catalog keeps no copy of its description, references or origins. Every session is told where designs live and, once the knowledge base has its `AGENTS.md`, where the knowledge base is.
 
 `cairn knowledge export` moves what an older catalog held about knowledge into the files: each article's description, and its references as References lines, articles from `knowledge/` into `knowledge/articles/`, and origins into `origins.md`. It then empties the origin and reference tables, which Cairn no longer reads. Run it once on a catalog that recorded references.
 
-A typical sequence, as the harness plugins and agents will run it:
+## Session folders and front matter
+
+Every session has its own folder. A root session's is `sessions/<harness>/<yyyy-mm>/<native-id>/`, and each subagent's is `subagents/<native-id>/` inside its root session's folder, so parallel subagents never collide and a file is credited to the session whose folder holds it, however it was written. `cairn session start --json` prints the folder, and both harness integrations tell each session its catalog ID and folder.
+
+A Markdown file describes itself with front matter at its top:
+
+```markdown
+---
+title: AWS account structure
+description: Accounts, VPCs, and who owns them.
+category: evidence
+---
+```
+
+Cairn reads it on every capture and on every `check`, and it replaces what the catalog held. Without a `category`, a file is `evidence`; the conventions give `learnings.md` the category `learning`. Files whose kind follows from where they are need none: an effort's records, a stable design's `design.json`, `evidence.json`, `meetings.json` and `changes.md` (`record`), its published doc (`deliverable`), and the knowledge base's files. Other files without front matter are listed as undescribed.
+
+These conventions are what agents follow instead of calling tools: the harness integrations add them to every session (`src/core/conventions.ts`), so recording and describing a file needs no tool call. A typical sequence, as the harness plugins run it:
 
 ```sh
-cairn session start opencode:ses_a1
-cairn session start opencode:ses_b2 --parent opencode:ses_a1
-cairn location --session opencode:ses_b2 --topic "AWS account structure"
-cairn capture <path> --session opencode:ses_b2
-cairn describe <path> --category evidence --title "AWS account structure" --description "Accounts and VPCs."
+cairn session start opencode:ses_a1 --json
+cairn session start opencode:ses_b2 --parent opencode:ses_a1 --json
+cairn capture <session folder>/subagents/ses_b2/aws-accounts.md --session opencode:ses_b2
+cairn session index opencode:ses_a1
 cairn session describe opencode:ses_a1 --title "S3 archive research" --create "Logs archived to S3"
 cairn ls logs-archived-to-s3
 ```
 
 The last command prints the effort view. The same view is written to `efforts/logs-archived-to-s3/index.md`.
 
-After each turn of a root OpenCode session, the plugin runs `cairn session index opencode:<id>`. It exports the human's messages and the assistant's text to `conversation.md` in the session's folder, appending when nothing earlier changed and rewriting after a revert. `--source` names OpenCode's database; without it, Cairn asks `opencode debug paths db`.
+After each turn of a root OpenCode session, the plugin runs `cairn session index opencode:<id>`. It exports the human's messages and the assistant's text to `conversation.md` in the session's folder, appending when nothing earlier changed and rewriting after a revert. It then records every file in the session tree's folders that is new or changed, so files written from the shell are picked up within the turn. `--source` names OpenCode's database; without it, Cairn asks `opencode debug paths db`.
 
 For a Claude Code session, `cairn session index claude-code:<id>` reads the session's transcript. `--source` names the transcript file; without it, Cairn looks for `projects/*/<id>.jsonl` under `CLAUDE_CONFIG_DIR` or `~/.claude`. `--last-message <file|->` supplies the turn's final message when the transcript may not hold it yet.
 
@@ -83,9 +98,10 @@ The catalog is cached at `pricing/models-dev.json` under the root and fetched ag
 cairn hook claude-code
 ```
 
-- `SessionStart` registers the session, with its origin and spawner (see [CLI runs](#cli-runs)), exports its ID to its shells, and adds its catalog ID to the context. After a compaction it adds the session's efforts and records instead. On a resume it re-exports the conversation.
-- `SubagentStart` adds the subagent's `agent_id` to its context as its catalog ID. A subagent becomes a child session, keyed by that ID, once Claude Code has written its `agent-<id>.meta.json`, which happens just after `SubagentStart`; any later event registers it. Claude Code also sends subagent events for internal work that has no metadata file; those events belong to the main session.
-- `PostToolUse` records files written with `Write`, `Edit`, `MultiEdit`, or `NotebookEdit`, and files read with `Read`, when they are under the root. The first write of a file adds a note asking the writer to describe it.
+- `SessionStart` registers the session, with its origin and spawner (see [CLI runs](#cli-runs)), exports its ID to its shells, and adds its catalog ID, its folder, and Cairn's conventions to the context. After a compaction it adds the session's efforts and records with the conventions instead. On a resume it re-exports the conversation.
+- `SubagentStart` adds the subagent's `agent_id` as its catalog ID, its folder, and the conventions to its context. A subagent becomes a child session, keyed by that ID, once Claude Code has written its `agent-<id>.meta.json`, which happens just after `SubagentStart`; any later event registers it. Claude Code also sends subagent events for internal work that has no metadata file; those events belong to the main session.
+- `PostToolUse` records files written with `Write`, `Edit`, `MultiEdit`, or `NotebookEdit`, and files read with `Read`, when they are under the root. The first write of a Markdown file without front matter adds a note saying so.
+- `SubagentStop` saves the subagent's final message as `result.md` in its folder, with front matter titled from the Agent tool's description unless the message starts with its own, and appends a later message under a `Follow-up` heading.
 - `Stop` exports the conversation in a separate process that outlives the hook.
 
 The hook never fails the harness action. Failures go to `logs/cairn.log` under the root, and the hook exits 0.
@@ -98,11 +114,10 @@ Agents use the catalog through a stdio MCP server:
 cairn-mcp
 ```
 
-It reads `CAIRN_ROOT` and the content folders the same way the CLI does. It has six tools:
+It reads `CAIRN_ROOT` and the content folders the same way the CLI does. It has five tools, for lookups across sessions and for recording decisions the human makes; recording and describing files needs none:
 - `catalog_session`: describe a session and attach it to efforts.
-- `catalog_describe`: describe a file, or register a URL, with what an agent read about a Jira item or Confluence page.
+- `catalog_describe`: register a URL, with what an agent read about a Jira item or Confluence page, or place a file in efforts and link it.
 - `catalog_find`: find efforts, sessions, or files.
-- `catalog_location`: get a path for a new file.
 - `catalog_effort`: show or change an effort.
 - `catalog_link`: link files or efforts.
 
@@ -114,15 +129,15 @@ The OpenCode plugin and the Claude Code hooks record sessions and files as they 
 
 The plugin in `src/opencode/` records OpenCode sessions and the files they write or read.
 
-- **Sessions.** Before a session's first model request, the plugin registers it, with its parent, agent, and directory, and for a root session its origin and spawner (see [CLI runs](#cli-runs)). It opens each model request's conversation with `This session's catalog ID is opencode:<id>.`, so the agent can pass its ID to the `catalog_*` tools. A subagent's registration finishes before its first request, and its opening message also says where its result is saved and names a learnings path granted to it through `cairn location`. This goes in a message rather than the system text, which stays the same in every session: subagents started from one session then share its cache entry.
-- **Subagent results.** When a subagent finishes, the plugin writes its final message to a file named for the task in the session tree's folder, captures it for the subagent, and adds `Cairn saved this response to <path>.` to the parent's tool result, naming the learnings file too when the subagent wrote one. A background subagent's result arrives through the parent's inbox and is saved the same way. Its note is added to the result itself in the parent's model requests, after the `<subagent>` element: a separate message would arrive while the parent answers the result and make it answer a second time. The first request to carry the result waits for the save (up to 15 seconds), and later requests repeat its note unchanged, so the cached prefix holds. After a reload, results the parent had already answered keep their text without the note. A follow-up to the same subagent is appended to its file under a `Follow-up` heading, so the original result stays. In the background, a small model titles and describes the result (category `evidence`) and any learnings (category `learning`); if that fails, the file stays undescribed. The `describeModel` plugin option picks the model, as `provider/model#variant`; the default is `openai/gpt-6-luna#high`. The saved file names last only as long as the plugin: after a reload, a follow-up starts a new file.
-- **Files.** When `write`, `edit`, or `patch` changes a file under the Cairn root or in a content folder, the plugin runs `cairn capture`. The first time a root session writes a given file, the plugin adds a note to the tool result that asks for a description through `catalog_describe`. A subagent gets no note for its learnings file, which is described when it returns. When `read` opens a file under the root, the plugin runs `cairn read`. Files outside the root are ignored, and so are writes from the shell. A shell write to a path from `catalog_location` is credited to the session that asked for the path once anything records the file; `cairn check` finds the rest.
-- **Conversations.** After each turn of a root session, the plugin runs `cairn session index`, which appends the turn's messages to `conversation.md` in the session's folder. Subagent sessions get no export.
+- **Sessions.** Before a session's first model request, the plugin registers it, with its parent, agent, and directory, and for a root session its origin and spawner (see [CLI runs](#cli-runs)), and learns its folder. It opens each model request's conversation with the session's catalog ID and folder, and adds Cairn's conventions to the system text. The ID and folder go in a message because they differ in every session; the conventions are the same everywhere, so the system text stays the same and subagents started from one session share its cache entry, and a compaction keeps them.
+- **Subagent results.** When a subagent finishes, the plugin writes its final message to `result.md` in the subagent's folder, with front matter titled from the task unless the message starts with its own, captures it for the subagent, and adds `Cairn saved this response to <path>.` to the parent's tool result, naming the subagent's `learnings.md` too when it wrote one. A background subagent's result arrives through the parent's inbox and is saved the same way. Its note is added to the result itself in the parent's model requests, after the `<subagent>` element: a separate message would arrive while the parent answers the result and make it answer a second time. The first request to carry the result waits for the save (up to 15 seconds), and later requests repeat its note unchanged, so the cached prefix holds. After a reload, results the parent had already answered keep their text without the note. A follow-up to the same subagent is appended to its file under a `Follow-up` heading, so the original result stays.
+- **Files.** When `write`, `edit`, or `patch` changes a file under the Cairn root or in a content folder, the plugin runs `cairn capture`, which reads the file's front matter. The first time a session writes a Markdown file without front matter, the plugin adds a note to the tool result saying so. When `read` opens a file under the root, the plugin runs `cairn read`. Files outside the root are ignored. Shell writes in a session's folder are recorded by the next turn's `session index`, and anywhere else by `cairn check`.
+- **Conversations.** After each turn of a root session, the plugin runs `cairn session index`, which appends the turn's messages to `conversation.md` in the session's folder and records new files in the session tree's folders. Subagent sessions get no export.
 - **Compaction.** After a compaction, every request carries the session's compaction note: its efforts and the records to read.
 
 Each catalog update is a detached `node` process running the CLI from the same package, so the plugin and the CLI are always the same version. A failure never fails the tool call or the model request.
 
-`CAIRN_ROOT` in OpenCode's environment sets the root, and the content folders resolve as for the CLI. They must match what the MCP server uses. The default root for both is `~/workspace/artifacts/cairn/`.
+`CAIRN_ROOT` in OpenCode's environment sets the root, and the content folders resolve as for the CLI. They must match what the MCP server uses. The default root for both is `~/.local/state/cairn/`.
 
 ## UI
 

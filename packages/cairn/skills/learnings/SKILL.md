@@ -9,9 +9,8 @@ A lesson preserves an incidental working method for later agents. It is not anot
 
 ## Where
 
-- A subagent writes to the learnings path its system context names. Cairn credits the file to it, describes it, and tells the parent it exists.
-- Without a named path, get one from `catalog_location` with the topic `learnings`, and describe the file with `catalog_describe`, category `learning`.
-- Keep one file for the assignment, with a short section per lesson.
+- Write lessons to `learnings.md` in your session's folder, named with your catalog ID at session start. Cairn tells the parent it exists.
+- Keep one file for the assignment, with front matter giving `category: learning` and a title for its subject, and a short section per lesson.
 
 ## What
 

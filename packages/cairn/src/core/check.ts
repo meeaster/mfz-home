@@ -74,23 +74,67 @@ function recordedFiles(cairn: Cairn): Recorded[] {
   return recorded;
 }
 
-// The root session whose folder holds a file, from its sessions/<harness>/<month>/<native-id>/ prefix.
+// The session whose folder holds a file: a subagent's from its subagents/<native-id>/ folder inside the tree's
+// folder, otherwise the root session's from its sessions/<harness>/<month>/<native-id>/ prefix.
 function folderSession(cairn: Cairn, inside: string): number | null {
-  const match = /^sessions\/([^/]+)\/\d{4}-\d{2}\/([^/]+)\//.exec(inside);
+  const match = /^sessions\/([^/]+)\/\d{4}-\d{2}\/([^/]+)\/(?:subagents\/([^/]+)\/)?/.exec(inside);
 
   if (match === null) {
     return null;
   }
 
-  for (const row of cairn.sql.all`
-    SELECT id, native_id FROM session WHERE harness = ${match[1] ?? ""} AND parent_session_id IS NULL
-  `) {
-    if (safeSegment(text(row, "native_id")) === match[2]) {
+  const [, harness = "", rootSegment, childSegment] = match;
+  let rootId: number | null = null;
+
+  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE harness = ${harness} AND parent_session_id IS NULL`) {
+    if (safeSegment(text(row, "native_id")) === rootSegment) {
+      rootId = integer(row, "id");
+      break;
+    }
+  }
+
+  if (rootId === null || childSegment === undefined) {
+    return rootId;
+  }
+
+  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE root_session_id = ${rootId} AND id != ${rootId}`) {
+    if (safeSegment(text(row, "native_id")) === childSegment) {
       return integer(row, "id");
     }
   }
 
-  return null;
+  return rootId;
+}
+
+// Records the files in one session tree's folder that are new or have changed since they were recorded, crediting
+// each to the session whose folder holds it. This picks up files written from the shell, which no tool hook sees.
+export function syncFolder(cairn: Cairn, folder: string): string[] {
+  const inside = relativeInsideRoot(cairn, folder);
+
+  if (inside === null || !existsSync(folder)) {
+    return [];
+  }
+
+  return transaction(cairn, () => {
+    const recorded: string[] = [];
+
+    for (const file of walk(cairn.root, inside)) {
+      const path = absolutePath(cairn, "managed", file);
+      const facts = fileFacts(path);
+      const known = cairn.sql.get`SELECT sha256 FROM artifact WHERE path_or_url = ${file}`;
+
+      if (facts === null || (known !== undefined && optionalText(known, "sha256") === facts.sha256)) {
+        continue;
+      }
+
+      const { id } = recordManagedFile(cairn, file, facts, folderSession(cairn, file));
+
+      markArtifactDirty(cairn, id);
+      recorded.push(path);
+    }
+
+    return recorded;
+  });
 }
 
 // Marks missing and changed files, follows moved files by hash, records files written outside the harness hooks, and
@@ -118,13 +162,18 @@ export function check(cairn: Cairn): CheckReport {
       }
 
       if (facts.sha256 !== file.sha256 || file.status === "missing") {
-        cairn.sql.run`
-          UPDATE artifact SET sha256 = ${facts.sha256}, size = ${facts.size}, updated_at = ${now},
-            status = CASE WHEN status = 'missing'
-              THEN CASE WHEN category IS NULL THEN 'undescribed' ELSE 'active' END
-              ELSE status END
-          WHERE id = ${file.id}
-        `;
+        if (file.location === "managed") {
+          recordManagedFile(cairn, file.stored, facts, null);
+        } else {
+          cairn.sql.run`
+            UPDATE artifact SET sha256 = ${facts.sha256}, size = ${facts.size}, updated_at = ${now},
+              status = CASE WHEN status = 'missing'
+                THEN CASE WHEN category IS NULL THEN 'undescribed' ELSE 'active' END
+                ELSE status END
+            WHERE id = ${file.id}
+          `;
+        }
+
         markArtifactDirty(cairn, file.id);
         changed.push(path);
       }

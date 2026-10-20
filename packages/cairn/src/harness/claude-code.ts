@@ -1,10 +1,13 @@
-import { appendFileSync, existsSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { z } from "zod";
 import { formatSessionKey, type SessionKey } from "../schemas.ts";
 import { capture, read } from "../core/artifacts.ts";
+import { conventions, sessionIntro } from "../core/conventions.ts";
 import type { Cairn } from "../core/db.ts";
-import { contentNote, isEffortRecord, knowledgeCategory, relativeInsideRoot } from "../core/root.ts";
+import { loadSession } from "../core/find.ts";
+import { frontMatterBlock, hasFrontMatter } from "../core/front-matter.ts";
+import { contentNote, folderCategory, relativeInsideRoot, subagentFolder } from "../core/root.ts";
 import { ensureSession, sessionContext } from "../core/sessions.ts";
 import { claudeCodeProcessOrigin, spawnerFromEnvironment, type Environment } from "./spawner.ts";
 
@@ -26,7 +29,12 @@ const common = z.object({
 const hookInput = z.discriminatedUnion("hook_event_name", [
   common.extend({ hook_event_name: z.literal("SessionStart"), source: z.string(), session_title: z.string().optional() }),
   common.extend({ hook_event_name: z.literal("SubagentStart"), agent_id: z.string(), agent_type: z.string() }),
-  common.extend({ hook_event_name: z.literal("SubagentStop"), agent_id: z.string(), agent_type: z.string() }),
+  common.extend({
+    hook_event_name: z.literal("SubagentStop"),
+    agent_id: z.string(),
+    agent_type: z.string(),
+    last_assistant_message: z.string().nullable().optional()
+  }),
   common.extend({
     hook_event_name: z.literal("PostToolUse"),
     tool_name: z.string(),
@@ -119,10 +127,14 @@ function actingSession(cairn: Cairn, input: HookInput): SessionKey {
 
 function captureNote(key: string, path: string): string {
   return (
-    `The catalog (Cairn) recorded this file: ${path}\nfor session ${key}. ` +
-    "A file without a category and a title or description is listed as undescribed. " +
-    "catalog_describe records what it is: category, title, and a one-sentence description."
+    `Cairn recorded this file: ${path}\nfor session ${key}. It has no front matter, so Cairn lists it as undescribed; ` +
+    "front matter at its top with a title and a one-sentence description describes it."
   );
+}
+
+// A Markdown file that doesn't describe itself. Other files have no front matter to add.
+function undescribedMarkdown(path: string): boolean {
+  return path.endsWith(".md") && existsSync(path) && !hasFrontMatter(readFileSync(path, "utf8"));
 }
 
 function toolUsed(cairn: Cairn, input: Extract<HookInput, { hook_event_name: "PostToolUse" }>): HookOutput | null {
@@ -144,12 +156,38 @@ function toolUsed(cairn: Cairn, input: Extract<HookInput, { hook_event_name: "Po
   const result = capture(cairn, { path, session });
   const inside = relativeInsideRoot(cairn, path);
 
-  // The first capture of a file reminds its writer to describe it. Effort records and knowledge base files need none.
-  if (!result.recorded || !result.created || inside === null || isEffortRecord(inside) || knowledgeCategory(inside) !== null) {
+  // The first capture of a Markdown file without front matter reminds its writer. Files filed by their folder need none.
+  if (!result.recorded || !result.created || inside === null || folderCategory(inside) !== null || !undescribedMarkdown(path)) {
     return null;
   }
 
   return context("PostToolUse", captureNote(formatSessionKey(session), path));
+}
+
+// Saves a subagent's final message as result.md in its folder, where the parent and later sessions find it. A message
+// that doesn't describe itself gets front matter titled from the Agent tool's description. A later message from the
+// same subagent, after the parent sent it more work, is appended, because it usually answers only what was asked next.
+function saveResult(cairn: Cairn, session: SessionKey, message: string, title: string): void {
+  const folder = loadSession(cairn, ensureSession(cairn, session, {})).folder;
+  const path = join(folder, "result.md");
+
+  mkdirSync(folder, { recursive: true });
+
+  const text = existsSync(path)
+    ? `${readFileSync(path, "utf8").trimEnd()}\n\n---\n\n## Follow-up\n\n${message}\n`
+    : `${hasFrontMatter(message) ? "" : frontMatterBlock({ title, category: "evidence" })}${message}\n`;
+
+  writeFileSync(path, text, "utf8");
+  capture(cairn, { path, session });
+}
+
+// What a subagent is told when it starts: its catalog ID and folder, how Cairn expects files, and where content lives.
+// It may not be registered yet, so its folder is worked out from the main session's.
+function subagentContext(cairn: Cairn, input: HookInput, agentId: string): string {
+  const main = loadSession(cairn, ensureSession(cairn, claudeKey(input.session_id), { cwd: input.cwd }));
+  const intro = sessionIntro({ key: formatSessionKey(claudeKey(agentId)), folder: subagentFolder(main.folder, agentId) });
+
+  return `${intro}\n\n${conventions}\n\n${contentNote(cairn)}`;
 }
 
 // Exports the session's catalog ID to every shell command the session runs, so a claude -p or opencode run it
@@ -190,23 +228,29 @@ export function claudeCodeHook(cairn: Cairn, stdin: string, launchIndex: IndexLa
         launchIndex(formatSessionKey(key), input.transcript_path, null);
       }
 
-      // After a compaction, the note restates the session's efforts and records.
-      if (input.source === "compact") {
-        return context("SessionStart", `${sessionContext(cairn, { session: key }).note}\n${contentNote(cairn)}`);
-      }
+      // After a compaction, the note restates the session's efforts and records along with the conventions.
+      const opening =
+        input.source === "compact" ? sessionContext(cairn, { session: key }).note : sessionIntro(loadSession(cairn, ensureSession(cairn, key, {})));
 
-      return context("SessionStart", `This session's catalog ID is ${formatSessionKey(key)}. ${contentNote(cairn)}`);
+      return context("SessionStart", `${opening}\n\n${conventions}\n\n${contentNote(cairn)}`);
     }
 
     // The subagent's ID is its catalog ID even before its metadata file lets it be registered.
     case "SubagentStart":
       actingSession(cairn, input);
 
-      return context("SubagentStart", `This session's catalog ID is ${formatSessionKey(claudeKey(input.agent_id))}. ${contentNote(cairn)}`);
-    case "SubagentStop":
-      actingSession(cairn, input);
+      return context("SubagentStart", subagentContext(cairn, input, input.agent_id));
+    case "SubagentStop": {
+      const session = actingSession(cairn, input);
+      const message = input.last_assistant_message ?? "";
+
+      // Internal agents without metadata act as the main session, and their messages aren't results.
+      if (session.nativeId === input.agent_id && message.trim() !== "") {
+        saveResult(cairn, session, message, subagentFacts(input, input.agent_id)?.title ?? (input.agent_type === "" ? "Subagent result" : input.agent_type));
+      }
 
       return null;
+    }
 
     case "PostToolUse":
       return toolUsed(cairn, input);

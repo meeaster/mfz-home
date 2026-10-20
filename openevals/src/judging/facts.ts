@@ -30,8 +30,8 @@ export type CatalogTool = z.infer<typeof catalogTool>;
 /** A Cairn catalog call made inside the `execute` call `callID`. */
 export type CatalogCall = { callID: string; sessionID: string; tool: CatalogTool; input: ToolCall["input"] };
 
-/** Cairn's root, where output files land; the live default under the candidate's home is `~/workspace/artifacts/cairn/`. */
-export const outputRoot = "/artifacts/cairn/";
+/** Cairn's root, where output files land; the live default under the candidate's home is `~/.local/state/cairn/`. */
+export const outputRoot = "/.local/state/cairn/";
 
 /** Tools that change files or run arbitrary commands. */
 export const mutatingTools: ReadonlySet<string> = new Set(["bash", "edit", "multiedit", "patch", "shell", "write"]);
@@ -200,7 +200,7 @@ export function subagentTargets(tools: readonly ToolCall[]): string[] {
   return targets;
 }
 
-/** Completed calls to one Cairn catalog tool, such as `catalog_location`. */
+/** Completed calls to one Cairn catalog tool, such as `catalog_find`. */
 export function catalogCalls(facts: Pick<RunFacts, "catalog">, name: CatalogTool): CatalogCall[] {
   return (facts.catalog ?? []).filter((call) => call.tool === name);
 }

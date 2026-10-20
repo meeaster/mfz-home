@@ -9,7 +9,7 @@ import { find } from "./core/find.ts";
 import { link } from "./core/links.ts";
 import { failureMessage, withCairn, type Mode } from "./core/operation.ts";
 import { resolveLayout, type Layout } from "./core/root.ts";
-import { describeSession, location } from "./core/sessions.ts";
+import { describeSession } from "./core/sessions.ts";
 import * as schemas from "./schemas.ts";
 
 export type CairnServerOptions = {
@@ -124,11 +124,12 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
   server.registerTool(
     "catalog_describe",
     {
-      title: "Describe a file or URL",
+      title: "Register a URL, or place a file in efforts",
       description:
-        "Record what a file or URL is: its category, a short title, and a one-sentence description. " +
-        "Describe each file you write after its capture note. Register pull requests, issues, and published pages by url, " +
-        "with session set to yours so they join your efforts. Paths are absolute. " +
+        "Register pull requests, issues, Jira items, and published pages by url, with a category, a short title, and a " +
+        "one-sentence description, and session set to yours so they join your efforts. Files under Cairn's folders need no " +
+        "call: they describe themselves with front matter, which Cairn reads when they are written. Use path for a file " +
+        "outside them, or to change which efforts a file belongs to or link it to others. Paths are absolute. " +
         "efforts.include adds the item to an effort; efforts.exclude keeps it out of one. " +
         "category deliverable marks a page or ticket the work created, source one someone else's that it relies on. " +
         "For a Jira item you read through Atlassian, pass jira with its key, type, status, category (todo, progress or done), " +
@@ -152,18 +153,6 @@ export function createCairnServer(options: CairnServerOptions): McpServer {
       annotations: { readOnlyHint: true }
     },
     (input) => run("catalog_find", "read", (cairn) => find(cairn, input))
-  );
-
-  server.registerTool(
-    "catalog_location",
-    {
-      title: "Get a path for a new file",
-      description:
-        "Get an unused absolute path for a new file about a topic, and create its folder. " +
-        "The file goes in the session's folder (or its workstream's folder) by default, or in an effort's folder when effort is given.",
-      inputSchema: schemas.locationInput
-    },
-    (input) => run("catalog_location", "write", (cairn) => location(cairn, input))
   );
 
   server.registerTool(

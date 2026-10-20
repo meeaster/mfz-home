@@ -113,14 +113,14 @@ test("dispatchesWithoutFile requires a file from each directly dispatched sessio
   });
 
   const written = [
-    patch("ses_worker", "*** Update File: /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md"),
-    { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/x.md" }, "failed"), sessionID: "ses_explore" },
+    patch("ses_worker", "*** Update File: /home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/fix.md"),
+    { ...tool("write", { filePath: "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/x.md" }, "failed"), sessionID: "ses_explore" },
     { ...tool("edit", { filePath: "/workspace/src/a.ts" }), sessionID: "ses_explore" },
   ];
 
   expect(dispatchesWithoutFile({ tools: written, sessions })).toEqual(["ses_explore"]);
 
-  const both = [...written, patch("ses_explore", "*** Add File: /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/q.md")];
+  const both = [...written, patch("ses_explore", "*** Add File: /home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/q.md")];
 
   expect(dispatchesWithoutFile({ tools: both, sessions })).toEqual([]);
 });
@@ -128,7 +128,7 @@ test("dispatchesWithoutFile requires a file from each directly dispatched sessio
 test("Scribe keeps records rather than returning a file, so neither check counts it", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_scribe", parentID: "ses_root", agent: "scribe" }];
 
-  const records = { ...tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/efforts/release/effort.md" }), sessionID: "ses_scribe" };
+  const records = { ...tool("write", { filePath: "/home/dev/.local/state/cairn/efforts/release/effort.md" }), sessionID: "ses_scribe" };
 
   expect(dispatchesWithoutFile({ tools: [], sessions })).toEqual([]);
   expect(returnedFilesUnread({ tools: [records], sessions })).toEqual([]);
@@ -142,11 +142,11 @@ test("returnedFilesUnread requires the root to read each returned file whole aft
     { id: "ses_helper", parentID: "ses_worker" },
   ];
 
-  const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md";
+  const result = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/fix.md";
 
-  const learnings = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix-learnings.md";
+  const learnings = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/fix-learnings.md";
 
-  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
+  const evidence = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -154,7 +154,7 @@ test("returnedFilesUnread requires the root to read each returned file whole aft
     at("ses_worker", tool("write", { filePath: result })),
     at("ses_worker", tool("write", { filePath: learnings })),
     at("ses_explore", tool("write", { filePath: evidence })),
-    at("ses_helper", tool("write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/helper.md" })),
+    at("ses_helper", tool("write", { filePath: "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/helper.md" })),
     at("ses_worker", tool("write", { filePath: "/workspace/src/accept-release.ts" })),
     at("ses_root", tool("read", { path: result })),
     at("ses_root", tool("bash", { command: `cat ${learnings}` })),
@@ -167,7 +167,7 @@ test("returnedFilesUnread requires the root to read each returned file whole aft
 test("returnedFilesUnread accepts a windowed read of a follow-up after an earlier whole read", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
 
-  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
+  const evidence = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -186,7 +186,7 @@ test("returnedFilesUnread accepts a windowed read of a follow-up after an earlie
 test("returnedFilesUnread counts only reads by the root after the file's last write", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_explore", parentID: "ses_root" }];
 
-  const evidence = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
+  const evidence = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/mechanism.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
@@ -203,11 +203,11 @@ test("returnedFilesUnread counts only reads by the root after the file's last wr
 test("shell redirects count as writes, and a redirect into a file is not a read of it", () => {
   const sessions = [{ id: "ses_root" }, { id: "ses_worker", parentID: "ses_root" }];
 
-  const result = "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root/fix.md";
+  const result = "/home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root/fix.md";
 
   const at = (sessionID: string, call: ToolCall): ToolCall => ({ ...call, sessionID });
 
-  const heredoc = at("ses_worker", tool("bash", { command: `mkdir -p /home/dev/workspace/artifacts/cairn/sessions/opencode/2026-09/ses_root && cat > ${result} <<'MD'\n# Fix\nMD` }));
+  const heredoc = at("ses_worker", tool("bash", { command: `mkdir -p /home/dev/.local/state/cairn/sessions/opencode/2026-09/ses_root && cat > ${result} <<'MD'\n# Fix\nMD` }));
 
   expect(dispatchesWithoutFile({ tools: [heredoc], sessions })).toEqual([]);
 

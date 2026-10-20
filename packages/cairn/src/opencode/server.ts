@@ -1,12 +1,14 @@
 import { execFile, spawn } from "node:child_process";
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { Plugin } from "@opencode/plugin";
 import type { Result } from "@opencode/plugin/promise/tool";
 import { z } from "zod";
-import { contentNote, isCairnOwned, isEffortRecord, knowledgeCategory, relativeInsideRoot, resolveLayout, type Layout } from "../core/root.ts";
+import { conventions, sessionIntro } from "../core/conventions.ts";
+import { frontMatterBlock, hasFrontMatter } from "../core/front-matter.ts";
+import { contentNote, folderCategory, isCairnOwned, relativeInsideRoot, resolveLayout, type Layout } from "../core/root.ts";
 import { formatSessionKey } from "../schemas.ts";
 import { findRunClient, type RunClient, type RunSession } from "./run-client.ts";
 
@@ -38,8 +40,6 @@ export type CairnPluginOptions = {
   readonly layout: Layout;
   readonly cli: CairnCli;
   readonly files: CairnFiles;
-  // Asks a small model for text. Used to title and describe what subagents return.
-  readonly generate: (prompt: string) => Promise<string>;
   readonly session: (sessionID: string) => Promise<SessionFacts>;
   // The directory of the OpenCode location this instance serves.
   readonly directory: string;
@@ -64,7 +64,10 @@ const filesOutput = z.object({ files: z.array(z.object({ file: z.string() })) })
 
 const compactionNote = z.object({ note: z.string() });
 
-const grantedPath = z.object({ path: z.string() });
+const registeredSession = z.object({ key: z.string(), folder: z.string() });
+
+// A session as Cairn registered it: what OpenCode says about it, and the folder its files go in.
+type Registered = SessionFacts & { readonly key: string; readonly folder: string };
 
 const subagentOutput = z.object({ sessionID: z.string(), status: z.literal("completed"), output: z.string() });
 
@@ -105,8 +108,6 @@ const completedResult = /^<subagent sessionID="([^"]+)" state="completed" descri
 
 // How long a request waits for a background result to be saved before going without its note.
 const noteWait = 15_000;
-
-const generatedDescription = z.object({ title: z.string().min(1), description: z.string().min(1) });
 
 // OpenCode's result for a subagent that ended without text.
 const noText = "Subagent completed without a text response.";
@@ -190,49 +191,16 @@ function captureNote(key: string, paths: readonly string[]): string {
   const files = paths.length === 1 ? `this file: ${paths[0]}` : `these files:\n${paths.map((path) => `- ${path}`).join("\n")}`;
 
   return (
-    `The catalog (Cairn) recorded ${files}\nfor session ${key}. ` +
-    "A file without a category and a title or description is listed as undescribed. " +
-    "catalog_describe records what it is: category, title, and a one-sentence description."
+    `Cairn recorded ${files}\nfor session ${key}. ${paths.length === 1 ? "It has" : "They have"} no front matter, so Cairn ` +
+    "lists them as undescribed; front matter at the top with a title and a one-sentence description describes a file."
   );
-}
-
-function childGuidance(folder: string, learnings: string): string {
-  return (
-    "You are working for another session. Your final message is returned to it as your complete result and " +
-    `saved in ${folder}, so make it complete on its own. If you learn something reusable about tools, commands, ` +
-    `or this codebase, write it to ${learnings}.`
-  );
-}
-
-// Enough of a document to title it; the rest only costs tokens.
-const describedLength = 40_000;
-
-function describePrompt(kind: "response" | "learnings", text: string): string {
-  const subject =
-    kind === "response" ? "a subagent's final response to the session that dispatched it" : "a subagent's notes on lessons it learned while working";
-
-  return (
-    `Below is ${subject}. Write a catalog entry that lets a later reader decide whether to open it.\n` +
-    'Reply with only JSON: {"title": "<at most 8 words>", "description": "<one sentence on what it establishes>"}.\n\n' +
-    `<document>\n${text.length > describedLength ? `${text.slice(0, describedLength)}\n[truncated]` : text}\n</document>`
-  );
-}
-
-// Models sometimes wrap JSON in a code fence.
-function parseGenerated(text: string): z.infer<typeof generatedDescription> {
-  const start = text.indexOf("{");
-  const end = text.lastIndexOf("}");
-
-  return generatedDescription.parse(JSON.parse(text.slice(start, end + 1)));
 }
 
 export function createCairn(options: CairnPluginOptions) {
-  const registered = new Map<string, Promise<SessionFacts>>();
+  const registered = new Map<string, Promise<Registered>>();
   const noted = new Set<string>();
   const compacted = new Set<string>();
   const notes = new Map<string, string>();
-  // A subagent's folder guidance, and where its responses and learnings go.
-  const workspaces = new Map<string, Promise<{ guidance: string; learnings: string }>>();
   const responses = new Map<string, string>();
   const lastReturned = new Map<string, string>();
   const owned = new Map<string, Promise<boolean>>();
@@ -264,8 +232,9 @@ export function createCairn(options: CairnPluginOptions) {
     return found;
   }
 
-  // Registers a session on first sight. Registration is an upsert, so a repeat after a plugin reload is harmless.
-  function register(sessionID: string): Promise<SessionFacts> {
+  // Registers a session on first sight and learns its folder. Registration is an upsert, so a repeat after a plugin
+  // reload is harmless.
+  function register(sessionID: string): Promise<Registered> {
     const known = registered.get(sessionID);
 
     if (known !== undefined) {
@@ -273,7 +242,7 @@ export function createCairn(options: CairnPluginOptions) {
     }
 
     const facts = options.session(sessionID).then((info) => {
-      const args = ["session", "start", sessionKey(sessionID), "--cwd", info.directory];
+      const args = ["session", "start", sessionKey(sessionID), "--cwd", info.directory, "--json"];
 
       if (info.parentID !== undefined) {
         args.push("--parent", sessionKey(info.parentID));
@@ -299,14 +268,8 @@ export function createCairn(options: CairnPluginOptions) {
         args.push("--title", info.title);
       }
 
-      // A subagent asks for a path right after, which needs its parent recorded first.
-      if (info.parentID === undefined) {
-        options.cli.fire(args);
-
-        return info;
-      }
-
-      return options.cli.output(args).then(() => info);
+      // The folder depends on the session's place in its tree, so the request waits for the catalog to say.
+      return options.cli.output(args).then((printed) => ({ ...info, ...registeredSession.parse(JSON.parse(printed)) }));
     });
 
     registered.set(sessionID, facts);
@@ -327,47 +290,10 @@ export function createCairn(options: CairnPluginOptions) {
     }
   }
 
-  // Gives a path in the session tree's folder, granted to the session.
-  async function grant(sessionID: string, topic: string): Promise<string> {
-    const printed = await options.cli.output(["location", "--session", sessionKey(sessionID), "--topic", topic, "--json"]);
-
-    return grantedPath.parse(JSON.parse(printed)).path;
-  }
-
-  function workspace(sessionID: string): Promise<{ guidance: string; learnings: string }> {
-    const known = workspaces.get(sessionID);
-
-    if (known !== undefined) {
-      return known;
-    }
-
-    const found = grant(sessionID, `learnings ${sessionID}`).then((learnings) => ({
-      guidance: childGuidance(dirname(learnings), learnings),
-      learnings
-    }));
-
-    workspaces.set(sessionID, found);
-    found.catch(() => workspaces.delete(sessionID));
-
-    return found;
-  }
-
-  // What a model request is told about its session: the catalog ID, a subagent's folder guidance, and after a
-  // compaction, the compaction note. The note stays in every later request, because this text isn't kept in the
-  // session's history.
+  // What a model request is told about its session: its catalog ID and folder, where content lives, and after a
+  // compaction, the compaction note, which restates the ID and folder with the session's efforts. The note stays in
+  // every later request, because this text isn't kept in the session's history.
   async function context(sessionID: string): Promise<string> {
-    const parts = [`This session's catalog ID is ${sessionKey(sessionID)}.`, contentNote(options.layout)];
-
-    try {
-      const facts = await register(sessionID);
-
-      if (facts.parentID !== undefined) {
-        parts.push((await workspace(sessionID)).guidance);
-      }
-    } catch (error) {
-      options.log("unable to register the session", error instanceof Error ? error : new Error(String(error)));
-    }
-
     if (compacted.has(sessionID)) {
       await refreshNote(sessionID);
     }
@@ -375,36 +301,21 @@ export function createCairn(options: CairnPluginOptions) {
     const note = notes.get(sessionID);
 
     if (note !== undefined) {
-      parts.push(note);
+      return `${note}\n\n${contentNote(options.layout)}`;
     }
 
-    return parts.join("\n\n");
-  }
-
-  async function describeInBackground(path: string, childID: string, category: "evidence" | "learning", text: string): Promise<void> {
     try {
-      const entry = parseGenerated(await options.generate(describePrompt(category === "evidence" ? "response" : "learnings", text)));
-
-      options.cli.fire([
-        "describe",
-        path,
-        "--category",
-        category,
-        "--title",
-        entry.title,
-        "--description",
-        entry.description,
-        "--session",
-        sessionKey(childID)
-      ]);
+      return `${sessionIntro(await register(sessionID))}\n\n${contentNote(options.layout)}`;
     } catch (error) {
-      options.log("unable to describe a subagent's file", error instanceof Error ? error : new Error(String(error)));
+      options.log("unable to register the session", error instanceof Error ? error : new Error(String(error)));
+
+      return `This session's catalog ID is ${sessionKey(sessionID)}.\n\n${contentNote(options.layout)}`;
     }
   }
 
-  // Saves what a subagent returned in its session tree's folder, credited to the subagent, and describes it and
-  // any learnings in the background. A follow-up to the same subagent is appended, because its reply often covers
-  // only what was asked next. Returns null when there was nothing to save or saving failed.
+  // Saves what a subagent returned as result.md in its own folder. A result that doesn't describe itself gets front
+  // matter titled from the task. A follow-up to the same subagent is appended, because its reply often covers only
+  // what was asked next. Returns null when there was nothing to save or saving failed.
   async function subagentReturned(result: SubagentReturn): Promise<SavedReturn | null> {
     if (result.text.trim() === "" || result.text === noText) {
       return null;
@@ -418,18 +329,24 @@ export function createCairn(options: CairnPluginOptions) {
     }
 
     let path: string;
-    let file: string;
+    let learnings: string | null;
 
     try {
-      await register(result.childID);
-      path = saved ?? (await grant(result.childID, result.description));
+      const { folder } = await register(result.childID);
+
+      path = join(folder, "result.md");
       responses.set(result.childID, path);
 
-      const earlier = saved === undefined ? null : await options.files.read(path);
+      const earlier = await options.files.read(path);
 
-      file = earlier === null ? result.text : `${earlier}\n---\n\n## Follow-up\n\n${result.text}`;
+      const file =
+        earlier === null
+          ? `${hasFrontMatter(result.text) ? "" : frontMatterBlock({ title: result.description, category: "evidence" })}${result.text}`
+          : `${earlier.trimEnd()}\n\n---\n\n## Follow-up\n\n${result.text}`;
+
       await options.files.write(path, `${file}\n`);
       lastReturned.set(result.childID, result.text);
+      learnings = (await options.files.read(join(folder, "learnings.md"))) === null ? null : join(folder, "learnings.md");
     } catch (error) {
       options.log("unable to save a subagent's response", error instanceof Error ? error : new Error(String(error)));
 
@@ -438,15 +355,11 @@ export function createCairn(options: CairnPluginOptions) {
 
     options.cli.fire(["capture", path, "--session", sessionKey(result.childID)]);
 
-    void describeInBackground(path, result.childID, "evidence", file);
-
-    const learnings = await readLearnings(result.childID);
-
     if (learnings !== null) {
-      void describeInBackground(learnings.path, result.childID, "learning", learnings.text);
+      options.cli.fire(["capture", learnings, "--session", sessionKey(result.childID)]);
     }
 
-    return { response: path, learnings: learnings?.path ?? null };
+    return { response: path, learnings };
   }
 
   // Saves a background result once, however many routes it arrives by, and gives the note on where it went.
@@ -504,34 +417,6 @@ export function createCairn(options: CairnPluginOptions) {
     return notes;
   }
 
-  // The learnings path granted to a subagent, or null when none was.
-  async function learningsPath(sessionID: string): Promise<string | null> {
-    try {
-      return (await workspaces.get(sessionID))?.learnings ?? null;
-    } catch {
-      return null;
-    }
-  }
-
-  async function readLearnings(childID: string): Promise<{ path: string; text: string } | null> {
-    const known = workspaces.get(childID);
-
-    if (known === undefined) {
-      return null;
-    }
-
-    try {
-      const { learnings } = await known;
-      const text = await options.files.read(learnings);
-
-      return text === null ? null : { path: learnings, text };
-    } catch (error) {
-      options.log("unable to read a subagent's learnings", error instanceof Error ? error : new Error(String(error)));
-
-      return null;
-    }
-  }
-
   // Records files the session wrote or read under the root. Returns new content for the tool result when a
   // written file should carry the capture note, or null to leave the result alone.
   async function afterTool(tool: CompletedTool): Promise<Content[] | null> {
@@ -545,7 +430,7 @@ export function createCairn(options: CairnPluginOptions) {
       return null;
     }
 
-    let facts: SessionFacts;
+    let facts: Registered;
 
     try {
       facts = await register(tool.sessionID);
@@ -557,7 +442,6 @@ export function createCairn(options: CairnPluginOptions) {
 
     const key = sessionKey(tool.sessionID);
     const fresh: string[] = [];
-    const learnings = await learningsPath(tool.sessionID);
 
     for (const path of touchedPaths(tool, facts.directory)) {
       const inside = relativeInsideRoot(options.layout, path);
@@ -570,10 +454,15 @@ export function createCairn(options: CairnPluginOptions) {
 
       const seen = `${tool.sessionID}\n${path}`;
 
-      // A subagent's learnings are described for it when it returns.
-      if (verb === "capture" && path !== learnings && !isEffortRecord(inside) && knowledgeCategory(inside) === null && !noted.has(seen)) {
+      // A Markdown file that doesn't describe itself is noted once. Files filed by their folder need no front matter.
+      if (verb === "capture" && path.endsWith(".md") && folderCategory(inside) === null && !noted.has(seen)) {
         noted.add(seen);
-        fresh.push(path);
+
+        const text = await options.files.read(path);
+
+        if (text !== null && !hasFrontMatter(text)) {
+          fresh.push(path);
+        }
       }
     }
 
@@ -648,22 +537,6 @@ function nodeCli(cliPath: string): CairnCli {
   };
 }
 
-// A small model is enough to title and describe a finished response. The describeModel option overrides it.
-const pluginOptions = z.object({
-  describeModel: z
-    .string()
-    .regex(/^[^/#]+\/[^#]+(#.+)?$/, "Use provider/model or provider/model#variant")
-    .default("openai/gpt-6-luna#high")
-});
-
-function modelRef(text: string): { providerID: string; id: string; variant?: string } {
-  const [model = "", variant] = text.split("#");
-  const slash = model.indexOf("/");
-  const ref = { providerID: model.slice(0, slash), id: model.slice(slash + 1) };
-
-  return variant === undefined ? ref : { ...ref, variant };
-}
-
 async function readText(path: string): Promise<string | null> {
   try {
     return await readFile(path, "utf8");
@@ -697,14 +570,18 @@ function sessionOf(event: OpenCodeEvent): string | null {
 }
 
 export async function setupCairnPlugin(ctx: Plugin.Context) {
-  const describeModel = modelRef(pluginOptions.parse(ctx.options).describeModel);
-
   const cairn = createCairn({
     layout: resolveLayout(process.env),
     // The build puts the plugin in dist/opencode/ and the CLI beside it in dist/.
     cli: nodeCli(fileURLToPath(new URL("../cli.js", import.meta.url))),
-    files: { write: (path, text) => writeFile(path, text, "utf8"), read: readText },
-    generate: async (prompt) => (await ctx.generate.text({ prompt, model: describeModel })).text,
+    files: {
+      // A subagent's folder exists only once something is written there.
+      write: async (path, text) => {
+        await mkdir(dirname(path), { recursive: true });
+        await writeFile(path, text, "utf8");
+      },
+      read: readText
+    },
     directory: ctx.location.directory,
     session: async (sessionID) => {
       const session = await ctx.session.get({ sessionID });
@@ -790,9 +667,11 @@ export async function setupCairnPlugin(ctx: Plugin.Context) {
       }
     }
 
-    // The session's context opens the conversation rather than joining the system text. Its catalog ID differs in
-    // every session, and in the system text it made each session's prompt differ from its first request on, so
-    // subagents started together couldn't share a cache entry.
+    // The conventions are the same in every session, so they join the system text, which a compaction keeps. The
+    // session's own context opens the conversation instead: its catalog ID and folder differ in every session, and in
+    // the system text they made each session's prompt differ from its first request on, so subagents started together
+    // couldn't share a cache entry.
+    event.system.push({ type: "text", text: conventions });
     event.messages.unshift({ role: "user", content: [{ type: "text", text: await cairn.context(event.sessionID) }] });
   });
 

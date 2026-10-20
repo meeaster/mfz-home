@@ -12,7 +12,7 @@ Success: a successor session can pick up the human's work without the human expl
 
 - **Capture after a small change grew**: goal, corrections, work done, actual checks, evidence pointers; no mode entry.
 - **Capture after history loss**: names the gap instead of inventing decisions or redoing research.
-- **"Where should this evidence go?"**: a path from `catalog_location`, no effort created.
+- **"Where should this evidence go?"**: the session's own folder, with front matter, and no effort created.
 - **Resume by name**: reads the effort's records and synthesis and attaches without asking again.
 - **Work gains a clear subject**: recommends an effort with a reason and keeps working; attaching before the human answers, or asking again on the same subject, fails.
 - **Handoff without an effort yet**: one synthesis with intent, findings, corrections, rejected ideas, open boundaries, and limits; no efforts, extra handoff file, or compaction.
@@ -33,4 +33,4 @@ Success: a successor session can pick up the human's work without the human expl
 
 ## Sources
 
-None external. Paths and file purposes come from Cairn (`catalog_location`); `references/storage.md` owns the layout.
+None external. Paths come from Cairn's conventions (each session's folder, named at session start); `references/storage.md` owns the layout.

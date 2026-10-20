@@ -48,7 +48,7 @@ export function goodRun(): EditableFacts {
       call("ses_review", "skill", { id: "thermo-nuclear-code-quality-review" }),
       dispatch("ses_repair", "implementer: fix review findings"),
       call("ses_repair", "edit", { filePath: "/workspace/src/feature.ts" }),
-      call("ses_root", "write", { filePath: "/home/dev/workspace/artifacts/cairn/sessions/opencode/2026-10/ses_root/notes.md" }),
+      call("ses_root", "write", { filePath: "/home/dev/.local/state/cairn/sessions/opencode/2026-10/ses_root/notes.md" }),
     ],
     sessions: [
       { id: "ses_root", agent: "build", model: { providerID: "openai", id: "gpt-6.1-sol", variant: "medium" } },

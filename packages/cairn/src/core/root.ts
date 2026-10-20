@@ -41,12 +41,18 @@ export type StoredPath = {
   readonly stored: string;
 };
 
-export function resolveRoot(configured: string | undefined): string {
+// Cairn's working state is the agents' plumbing, so it lives in the XDG state folder rather than with the human's
+// content. CAIRN_ROOT overrides it.
+export function resolveRoot(
+  configured: string | undefined,
+  stateHome: string | undefined = process.env.XDG_STATE_HOME,
+  home: string = homedir()
+): string {
   if (configured !== undefined && configured !== "") {
     return resolve(configured);
   }
 
-  return join(homedir(), "workspace", "artifacts", "cairn");
+  return join(stateHome === undefined || stateHome === "" ? join(home, ".local", "state") : stateHome, "cairn");
 }
 
 function expandHome(path: string, home: string): string {
@@ -74,7 +80,7 @@ function readConfig(path: string): ConfigFile {
 
 // Each folder comes from its environment variable, then the config file, then a folder of that name in the root.
 export function resolveLayout(env: Readonly<Record<string, string | undefined>>, home: string = homedir()): Layout {
-  const root = resolveRoot(env.CAIRN_ROOT);
+  const root = resolveRoot(env.CAIRN_ROOT, env.XDG_STATE_HOME, home);
   const configHome = configured(env.XDG_CONFIG_HOME) ?? join(home, ".config");
   const config = readConfig(join(configHome, "cairn", "config.json"));
 
@@ -136,8 +142,14 @@ export function isStableDesign(layout: Layout, path: string): boolean {
   return /^[^/]+\/design\.(json|md)$/.test(relative(layout.designs, path));
 }
 
+// A session tree's folder, named for its root session. Each subagent works in its own folder inside it, so files are
+// credited by where they are, however they were written.
 export function sessionFolder(root: string, harness: string, month: string, rootNativeId: string): string {
   return join(root, "sessions", safeSegment(harness), month, safeSegment(rootNativeId));
+}
+
+export function subagentFolder(treeFolder: string, nativeId: string): string {
+  return join(treeFolder, "subagents", safeSegment(nativeId));
 }
 
 export function safeSegment(value: string): string {
@@ -208,9 +220,23 @@ export function absolutePath(layout: Layout, location: "managed" | "external", s
   return join(layout.root, stored);
 }
 
+// Files whose kind follows from where they are: an effort's records, a stable design's records and its published doc,
+// and the knowledge base. Capture files them by folder.
+export function folderCategory(inside: string): "knowledge" | "source" | "evidence" | "record" | "deliverable" | null {
+  if (isEffortRecord(inside) || /^designs\/[^/]+\/(design\.(json|md)|evidence\.json|meetings\.json|changes\.md)$/.test(inside)) {
+    return "record";
+  }
+
+  if (/^designs\/[^/]+\/published\//.test(inside)) {
+    return "deliverable";
+  }
+
+  return knowledgeCategory(inside);
+}
+
 // A knowledge base file describes itself in its front matter, so capture files it by the folder it's in rather
 // than asking its writer for a description.
-export function knowledgeCategory(inside: string): "knowledge" | "source" | "evidence" | null {
+function knowledgeCategory(inside: string): "knowledge" | "source" | "evidence" | null {
   // The knowledge base's own files at its top, AGENTS.md and origins.md, are part of it like its articles.
   if (/^knowledge\/[^/]+\.md$/.test(inside)) {
     return "knowledge";

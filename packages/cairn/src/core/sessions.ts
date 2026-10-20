@@ -13,6 +13,7 @@ import { CairnError, insertedId, integer, optionalInteger, optionalText, timesta
 import { attach, createEffort, detach } from "./efforts.ts";
 import { loadEffort, loadSession, type EffortSummary, type SessionSummary } from "./find.ts";
 import { requireEffortId, requireSessionId } from "./lookup.ts";
+import { sessionIntro } from "./conventions.ts";
 import { effortFolder, isStableDesign, storedPath } from "./root.ts";
 import { effortView, markSessionDirty } from "./views.ts";
 
@@ -204,24 +205,11 @@ export function workingEfforts(cairn: Cairn, sessionId: number): number[] {
   return [];
 }
 
-function nearestWorkstream(cairn: Cairn, sessionId: number): string | null {
-  for (const id of ancestors(cairn, sessionId)) {
-    const row = cairn.sql.get`SELECT workstream FROM session WHERE id = ${id}`;
-    const workstream = row === undefined ? null : optionalText(row, "workstream");
-
-    if (workstream !== null) {
-      return workstream;
-    }
-  }
-
-  return null;
-}
-
 export function sessionContext(cairn: Cairn, input: SessionContextInput): SessionContext {
   const sessionId = requireSessionId(cairn, input.session);
   const session = loadSession(cairn, sessionId);
   const efforts: { slug: string; title: string; provisional: boolean; records: string[]; designs: string[] }[] = [];
-  const lines = [`This session's catalog ID is ${session.key}.`];
+  const lines = [sessionIntro(session)];
   const linked = new Map<string, string>();
 
   for (const effortId of workingEfforts(cairn, sessionId)) {
@@ -288,7 +276,7 @@ function topicFileName(topic: string): TopicFile {
   return { base: base === "" ? "output" : base, extension };
 }
 
-// A path nobody has written, recorded, or been handed yet, in the effort's folder or the session tree's folder.
+// A path nobody has written, recorded, or been handed yet, in the effort's folder or the session's own folder.
 // The grant credits the session with a file written there that no capture records.
 export function location(cairn: Cairn, input: LocationInput): WritePath {
   return transaction(cairn, () => {
@@ -297,9 +285,7 @@ export function location(cairn: Cairn, input: LocationInput): WritePath {
     let folder: string;
 
     if (input.effort === undefined) {
-      const workstream = nearestWorkstream(cairn, sessionId);
-
-      folder = workstream === null ? session.folder : join(session.folder, workstream);
+      folder = session.folder;
     } else {
       requireEffortId(cairn, input.effort);
       folder = effortFolder(cairn.root, input.effort);
