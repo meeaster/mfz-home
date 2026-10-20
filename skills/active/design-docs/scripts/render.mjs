@@ -29,12 +29,16 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { esc, ids, longDate, makeKit } from "./kit.mjs";
+import { snippetHtml } from "./snippets.mjs";
 
 const SKILL_COMPONENTS = resolve(dirname(fileURLToPath(import.meta.url)), "../assets/components");
 
 const MENTION = /(?<![\w#/\\-])([EQDRP]\d+)\b/g;
 
 const ESCAPED_ID = /\\([EQDRP]\d+)\b/g;
+
+// A link whose target is a record: [the phrase it names](#D9). It renders as that phrase, linked to the record.
+const RECORD_ID = /^[EQDRP]\d+$/;
 
 const COMPONENT_COMMENT = /<!--\s*component\s+([\w-]+)((?:\s+[\w-]+(?:="[^"]*"|=\S+)?)*)\s*-->/g;
 
@@ -73,6 +77,14 @@ const SHARED_LISTS = new Set(["evidence", "meetings"]);
 
 // Text
 
+function link(label, href, model) {
+  const target = href.slice(1);
+
+  if (RECORD_ID.test(target) && target in model.records) return `<a class="mention phrase" href="${esc(href)}">${esc(label)}</a>`;
+
+  return `<a href="${esc(href)}">${esc(label)}</a>`;
+}
+
 function inline(text, model) {
   const kept = [];
 
@@ -86,7 +98,7 @@ function inline(text, model) {
   let out = String(text)
     .replace(/`([^`]+)`/g, (_, code) => keep(`<code>${esc(code)}</code>`))
     .replace(/<\/?[a-zA-Z][^<>]*>/g, keep)
-    .replace(/\[([^\]]+)\]\((#[\w.-]+)\)/g, (_, label, href) => keep(`<a href="${esc(href)}">${esc(label)}</a>`));
+    .replace(/\[([^\]]+)\]\((#[\w.-]+)\)/g, (_, label, href) => keep(link(label, href, model)));
 
   out = esc(out)
     .replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
@@ -300,6 +312,23 @@ async function renderFlow(lines, context) {
       continue;
     }
 
+    // A fenced snippet: a command, a config value, a policy line. It breaks up prose, so it stays in it.
+    if (trimmed.startsWith("```")) {
+      const info = trimmed.slice(3);
+      const code = [];
+
+      index += 1;
+
+      while (index < lines.length && !lines[index].trim().startsWith("```")) {
+        code.push(lines[index]);
+        index += 1;
+      }
+
+      index += 1;
+      prose.push(snippetHtml(info, code.join("\n")));
+      continue;
+    }
+
     const block = [];
 
     while (index < lines.length && lines[index].trim() !== "" && !/^:::/.test(lines[index].trim())) {
@@ -318,6 +347,10 @@ async function renderFlow(lines, context) {
       out.push(pipeTable(block, context));
     } else if (trimmed.startsWith("- ")) {
       prose.push(`<ul>${block.map((item) => `<li>${context.inline(item.replace(/^- /, ""))}</li>`).join("")}</ul>`);
+    } else if (/^\d+\. /.test(trimmed)) {
+      prose.push(`<ol>${block.map((item) => `<li>${context.inline(item.replace(/^\d+\. /, ""))}</li>`).join("")}</ol>`);
+    } else if (trimmed.startsWith("> ")) {
+      prose.push(`<blockquote><p>${context.inline(block.map((line) => line.replace(/^>\s?/, "")).join(" "))}</p></blockquote>`);
     } else {
       prose.push(`<p>${context.inline(block.join(" "))}</p>`);
     }
@@ -374,7 +407,7 @@ function leadingProse(lines) {
   while (index < lines.length) {
     const trimmed = lines[index].trim();
 
-    if (trimmed !== "" && /^(?:<|:::|###|- |\|)/.test(trimmed)) break;
+    if (trimmed !== "" && /^(?:<|:::|###|- |\||```|> |\d+\. )/.test(trimmed)) break;
 
     kept.push(lines[index]);
     index += 1;
@@ -404,7 +437,7 @@ async function renderSection(section, number, context) {
     context.railLinks.at(-1).title = `${decision} · ${context.field(record, "Rail") ?? record.title}`;
 
     const { prose, rest } = leadingProse(section.lines);
-    const intro = prose.length === 0 ? "" : `<p class="intro">${context.inline(prose.join(" "))}</p>`;
+    const intro = prose.map((paragraph) => `<p class="intro">${context.inline(paragraph)}</p>`).join("\n    ");
     const extra = [intro, relations(decision, context)].filter(Boolean).join("\n    ");
     // The reasoning block holds the team's Why and, while it's still to decide, the AI's recommendation.
     const reasoning = context.field(record, "Why") === undefined && context.field(record, "Recommendation") === undefined ? "" : `\n  <!-- records reasoning ids=${decision} -->\n`;
@@ -416,7 +449,8 @@ async function renderSection(section, number, context) {
   const title = `<h2>${context.inline(section.title)}</h2>`;
 
   if (standard?.layout === "short") {
-    const paragraphs = blocksOf(section.lines).map((block) => `<p>${context.inline(block.join(" "))}</p>`).join("\n");
+    const flow = await renderFlow(section.lines, context);
+    const paragraphs = flow.replace(/^<div class="prose">\n/, "").replace(/\n<\/div>$/, "");
     const body = `  <div class="short-row">\n    <div class="prose">\n${paragraphs}\n    </div>\n    <div class="terms">\n      <h3>Terms used on this page</h3>\n      <!-- records terms -->\n    </div>\n  </div>`;
 
     return `<section class="section" id="${esc(id)}">\n${sectionHead(num, title)}\n${body}\n</section>`;
@@ -426,7 +460,7 @@ async function renderSection(section, number, context) {
   // the body places it), a diagram, a table. A section of prose alone stays prose.
   const { prose, rest } = leadingProse(section.lines);
   const framed = standard?.records !== undefined || rest.some((line) => line.trim() !== "");
-  const intro = prose.length === 0 || !framed ? "" : `<p class="intro">${context.inline(prose.join(" "))}</p>`;
+  const intro = framed ? prose.map((paragraph) => `<p class="intro">${context.inline(paragraph)}</p>`).join("\n    ") : "";
   let body = await renderFlow(framed ? rest : section.lines, context);
 
   // A record section with nothing but prose gets its table; one that places its own content keeps just that.

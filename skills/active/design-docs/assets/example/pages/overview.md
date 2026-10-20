@@ -34,7 +34,7 @@ The design has four areas: how firewall logs get in, how customer logs get in, t
 
 ## The whole system
 
-::: diagram-key design title="Reading the diagrams" items="today | new | pending | decision | evidence | question"
+::: diagram-key design title="Reading the diagrams" items="today | new | pending"
 :::
 
 ::: design-section section=how-it-works

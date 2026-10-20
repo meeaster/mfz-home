@@ -74,6 +74,9 @@ const ESCAPED = new RegExp(`\\\\([EQDRP]\\d+)${NOT_WORD}`, "gu");
 
 const LINK = /\[([^\]]+)\]\((#[\p{L}\p{N}_.-]+)\)/gu;
 
+// A link to a record, [the phrase it names](#D9): it cites the record as a mention does.
+const RECORD_LINK = /\[[^\]]+\]\(#([EQDRP]\d+)\)/gu;
+
 const PLACEHOLDER = /<!--\s*records\s+([\p{L}\p{N}_-]+)((?:\s+[\p{L}\p{N}_-]+=[^\s>]+)*)\s*-->/gu;
 
 const MONEY = /^\$([\d,]+(?:\.\d+)?)(?:\s*(?:→|->)\s*\$([\d,]+(?:\.\d+)?))?$/;
@@ -211,6 +214,9 @@ const first = (status) => words(status)[0] ?? "";
 
 // Every match of a pattern's first group.
 const all = (pattern, text) => [...text.matchAll(pattern)].map((match) => match[1]);
+
+// The records a text cites, as bare IDs or as linked phrases.
+const cites = (text) => [...all(MENTION, text), ...all(RECORD_LINK, text)];
 
 const byNumber = (left, right) => Number(left.slice(1)) - Number(right.slice(1));
 
@@ -706,6 +712,8 @@ export function checkDesign(design, pages, anchors) {
       explanationParts(record, design);
     }
 
+    proseWarnings(record, design);
+
     for (const [text, line] of recordTexts(record)) {
       for (const [pattern, label] of LOCAL_PATH_PATTERNS) {
         const found = pattern.exec(text);
@@ -715,7 +723,7 @@ export function checkDesign(design, pages, anchors) {
         }
       }
 
-      for (const ident of all(MENTION, text)) {
+      for (const ident of cites(text)) {
         if (!known.has(ident)) {
           design.errors.push(`${design.where(line)}: '${ident}' is mentioned, but no record has that id`);
         }
@@ -1822,7 +1830,7 @@ function checkRecommendation(record, design) {
   const known = design.byId();
   const related = [record, ...splitList(record.get("Waiting on")).filter((id) => known.has(id)).map((id) => known.get(id))];
   const texts = related.flatMap((r) => recordTexts(r).filter(([text]) => !(r === record && found.items.includes(text))).map(([text]) => text));
-  const newer = unique(texts.flatMap((text) => all(MENTION, text)).filter((id) => id.startsWith("E") && Number(id.slice(1)) > Number(seen[1]))).sort(byNumber);
+  const newer = unique(texts.flatMap((text) => cites(text)).filter((id) => id.startsWith("E") && Number(id.slice(1)) > Number(seen[1]))).sort(byNumber);
 
   if (newer.length > 0) {
     design.warnings.push(`${where}: '${record.id}' rests on ${newer.join(", ")}, which came after its recommendation (made from evidence through ${part("seen")}); refresh it`);
@@ -1938,7 +1946,7 @@ function checkRequirement(record, design) {
     if (base === "still to show") {
       const parsed = parseVerdict(value.value, STILL);
 
-      if (parsed && parsed[0] === "demonstrated" && ![...parsed[2], ...all(MENTION, parsed[1])].some((id) => id.startsWith("E"))) {
+      if (parsed && parsed[0] === "demonstrated" && ![...parsed[2], ...cites(parsed[1])].some((id) => id.startsWith("E"))) {
         design.warnings.push(`${design.where(value.line)}: '${record.id}' is Demonstrated without the evidence that shows it; cite it [E1], or call it Intended`);
       }
     }
@@ -1982,6 +1990,24 @@ function explanationParts(record, design = null) {
   return parts.sort((left, right) => order.indexOf(left[0]) - order.indexOf(right[0]));
 }
 
+// Status the doc already shows (the chip, the AI recommendation) or how it was made, written into prose.
+const NARRATION = [/\bawaits? review\b/i, /\b(?:hasn't|haven't|has not|have not) (?:chosen|decided|leaned)\b/i, /\bleaned towards\b/i, /\bas advice only\b/i, /\bAI recommendation\b/i, /\bnow read in full\b/i];
+
+function proseWarnings(record, design) {
+  for (const [name, found] of record.fields) {
+    if (name.toLowerCase() === PRIVATE || name === "Recommendation") {
+      continue;
+    }
+
+    const text = [found.value, ...found.items].join(" ");
+    const narrated = NARRATION.find((pattern) => pattern.test(text));
+
+    if (narrated !== undefined) {
+      design.warnings.push(`${design.where(found.line)}: '${record.id}' ${name} says '${narrated.exec(text)[0]}'; status and AI advice show on their own, and meetings hold how it got there`);
+    }
+  }
+}
+
 function parseMet(text) {
   const match = /^(Yes|Partly|No)\s*·\s*(.*?)\s*(?:\[([^\]]*)\])?$/i.exec(text);
 
@@ -2020,7 +2046,14 @@ export class Renderer {
     // Code spans first, so an ID or a tag-like <slug> inside one stays text; render.mjs does the same.
     let out = text.replace(/`([^`]+)`/g, (_whole, code) => keep(`<code>${esc(code)}</code>`));
 
-    out = esc(out.replace(LINK, (_whole, label, href) => keep(`<a href="${esc(href)}">${esc(label)}</a>`)));
+    out = esc(
+      out.replace(LINK, (_whole, label, href) => {
+        const target = href.slice(1);
+        const kind = this.known.has(target) && /^[EQDRP]\d+$/u.test(target) ? ' class="mention phrase"' : "";
+
+        return keep(`<a${kind} href="${esc(href)}">${esc(label)}</a>`);
+      }),
+    );
     out = out.replace(MENTION, (_whole, id) => (this.known.has(id) ? `<a class="mention" href="#${id}">${id}</a>` : id));
     out = out.replace(ESCAPED, (_whole, id) => id);
 
@@ -2587,7 +2620,7 @@ export class Renderer {
       side.push(`<div><h4>Answered by</h4>${this.idList(splitList(q.get("Answered by")), true)}</div>`);
     }
 
-    const cited = unique([...all(MENTION, q.get("So far")), ...all(MENTION, q.get("Explanation"))]).filter((id) => id.startsWith("E") && this.known.has(id));
+    const cited = unique([...cites(q.get("So far")), ...cites(q.get("Explanation"))]).filter((id) => id.startsWith("E") && this.known.has(id));
 
     if (cited.length > 0 && !answered) {
       side.push(`<div><h4>Evidence</h4>${this.idList(cited, true)}</div>`);
@@ -2679,10 +2712,10 @@ export class Renderer {
       side.push(`<div><h4>Also shapes</h4><div class="dm-chips">${alsoAreas.map((page) => this.areaChip(page)).join("")}</div></div>`);
     }
 
-    const cited = [...citedIds(r, "Evidence"), ...all(MENTION, r.get("Why")), ...all(MENTION, r.get("Revisit if"))];
+    const cited = [...citedIds(r, "Evidence"), ...cites(r.get("Why")), ...cites(r.get("Revisit if"))];
 
     for (const point of r.items("Reasoning")) {
-      cited.push(...all(MENTION, point));
+      cited.push(...cites(point));
     }
 
     const evidence = unique(cited).filter((id) => id.startsWith("E") && this.known.has(id));
@@ -3138,7 +3171,7 @@ export class Renderer {
 
     const linked = [...splitList(r.get("Evidence")), ...splitList(r.get("Varies with")), ...splitList(r.get("Affected by"))];
 
-    for (const id of all(MENTION, r.get("Monthly"))) {
+    for (const id of cites(r.get("Monthly"))) {
       if (!linked.includes(id)) {
         linked.push(id);
       }

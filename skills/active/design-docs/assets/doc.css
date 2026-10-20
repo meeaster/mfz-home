@@ -390,6 +390,38 @@ html:not(.js) .page + .page { padding-top: 56px; border-top: 2px solid var(--for
 
 .prose { display: flex; flex-direction: column; gap: 14px; font-size: 15.5px; line-height: 1.65; max-width: 640px; }
 
+/* Breaks inside prose, so a long passage comes in pieces: lists, a quote, a snippet. */
+.prose ul, .prose ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.prose ul { list-style: disc; }
+.prose ol { list-style: decimal; }
+.prose li::marker { color: var(--muted-foreground); }
+.prose blockquote { margin: 0; padding: 2px 0 2px 16px; border-left: 3px solid var(--border); color: var(--muted-foreground); }
+.prose blockquote p { margin: 0; }
+
+/* Snippets: coloured at build time; each colour is a variable from the doc's palette, so they follow the theme. */
+:root {
+  --code-text: var(--foreground); --code-comment: var(--muted-foreground); --code-punctuation: var(--muted-foreground);
+  --code-command: var(--new); --code-subcommand: var(--opt-b); --code-flag: var(--warn); --code-variable: var(--opt-c);
+  --code-string: var(--ok); --code-number: var(--opt-d); --code-keyword: var(--opt-b); --code-type: var(--lean);
+  --code-property: var(--new); --code-inserted: var(--ok); --code-deleted: var(--destructive);
+}
+.snippet { margin: 0; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; background: var(--card); }
+.snippet figcaption { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; padding: 0 6px 0 14px; border-bottom: 1px solid var(--border); background: var(--muted); color: var(--muted-foreground); font: 600 11.5px var(--font-ui); }
+.snippet pre { margin: 0; padding: 12px 16px; overflow-x: auto; color: var(--code-text); font: 13px/1.6 var(--font-mono); }
+.snippet .copy { padding: 3px 8px; border: 0; border-radius: 5px; background: transparent; color: inherit; font: 500 11.5px var(--font-ui); cursor: pointer; }
+.snippet .copy:hover { background: var(--card); color: var(--foreground); }
+html:not(.js) .snippet .copy { display: none; }
+/* A terminal session reads as a terminal in either theme. */
+.snippet.session {
+  --code-text: #e6e8eb; --code-comment: #8b929e; --code-punctuation: #8b929e; --code-command: #79c0ff; --code-subcommand: #d2a8ff;
+  --code-flag: #ffa657; --code-variable: #ff7b72; --code-string: #a5d6ff; --code-number: #f2cc60; --code-keyword: #ff7b72;
+  border-color: #23262d; background: #0f1115;
+}
+.snippet.session figcaption { border-color: #23262d; background: #171a20; color: #9aa1ad; }
+.snippet.session .copy:hover { background: #23262d; color: #e6e8eb; }
+.snippet.session .prompt { color: #7ee787; font-weight: 600; user-select: none; }
+.snippet.session .output { color: #8b929e; }
+
 /* "In short": the summary, then the page's terms under it in two columns, so a long list adds rows instead of height beside the text. */
 .short-row { display: flex; flex-direction: column; gap: 28px; }
 .short-row .prose { max-width: 760px; }
@@ -581,6 +613,35 @@ a.tag:hover { box-shadow: 0 0 0 1px var(--border); }
   cursor: pointer;
 }
 .mention:hover { text-decoration-color: var(--foreground); }
+
+/* A linked phrase names its record in words; its underline takes the record's colour. */
+.mention.phrase { --phrase: var(--muted-foreground); --phrase-bg: var(--muted); color: inherit; text-decoration: underline 2px; text-decoration-color: color-mix(in srgb, var(--phrase) 70%, transparent); text-underline-offset: 4px; }
+.mention.phrase[data-kind="q"], .mention.phrase[data-state="open"] { --phrase: var(--warn); --phrase-bg: var(--warn-bg); }
+.mention.phrase[data-state="leaning"] { --phrase: var(--lean); --phrase-bg: var(--lean-bg); }
+.mention.phrase[data-state="decided"] { --phrase: var(--ok); --phrase-bg: var(--ok-bg); }
+.mention.phrase[data-kind="r"] { --phrase: var(--foreground); }
+.mention.phrase:hover, .mention.phrase[aria-expanded="true"] { text-decoration-color: var(--phrase); background: var(--phrase-bg); border-radius: 3px; }
+.show-ids .mention.phrase::after { content: attr(data-ref-id); display: inline-block; margin-left: 4px; padding: 0 4px; border: 1px solid var(--border); border-radius: 4px; font: 600 10px/15px var(--font-mono); color: var(--muted-foreground); vertical-align: 2px; }
+
+/* A marker stands for the references gathered from a paragraph, item or cell, or a group of chips; it lists them. */
+.ref-marker { display: inline-flex; align-items: center; gap: 4px; margin-left: 2px; padding: 1px 7px 1px 5px; border: 1px solid color-mix(in srgb, var(--muted-foreground) 55%, transparent); border-radius: 999px; background: var(--card); color: var(--muted-foreground); font: 500 11.5px/1.35 var(--font-ui); vertical-align: 1px; cursor: pointer; }
+.ref-marker svg { width: 12px; height: 12px; flex: none; }
+.ref-marker:hover { color: var(--foreground); border-color: var(--foreground); background: var(--muted); }
+.ref-marker[data-marker="compact"] { gap: 3px; padding: 0 5px 0 4px; border-radius: 5px; font: 600 10.5px/1.4 var(--font-mono); }
+.ref-marker[data-marker="compact"] svg { width: 11px; height: 11px; }
+.ref-marker[data-marker="group"] { gap: 3px; height: 17px; padding: 0 6px 0 4px; border-radius: 4px; border-color: var(--muted-foreground); color: var(--foreground); font: 600 10.5px/1 var(--font-mono); vertical-align: middle; }
+.ref-marker[data-marker="group"] svg { width: 11px; height: 11px; }
+.ref-marker[data-marker="group"].has-open { border-color: var(--warn); color: var(--warn); background: linear-gradient(var(--warn-bg), var(--warn-bg)), var(--card); }
+.ref-marker[data-marker="group"]:hover { box-shadow: 0 0 0 1px currentColor; }
+.ids-toggle { margin-right: 8px; }
+
+.ref-list { position: fixed; z-index: 60; max-height: 60vh; overflow: auto; padding: 10px 12px 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--popover); color: var(--foreground); box-shadow: var(--shadow); font-size: 13px; line-height: 1.45; }
+.ref-list[hidden] { display: none; }
+.ref-list-head { margin-bottom: 4px; font-size: 12px; font-weight: 600; color: var(--muted-foreground); }
+.ref-list-row + .ref-list-head { margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+.ref-list-row { display: flex; gap: 10px; align-items: flex-start; padding: 6px 0; }
+.ref-list-row + .ref-list-row { border-top: 1px solid var(--border); }
+.ref-list-row .ref { flex: none; margin-top: 1px; }
 
 /* Reference card (built by doc.js) */
 

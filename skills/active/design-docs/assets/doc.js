@@ -577,6 +577,357 @@
     cell.replaceChildren(tags);
   }
 
+  // References, disclosed progressively. A linked phrase ([phrase](#D9)) takes its record's colour. A bracketed ID after a
+  // claim moves into one marker at the end of its paragraph, list item or table cell: in prose only evidence moves (a
+  // decision or question the sentence hasn't named stays until it's written as a phrase); in a cell everything does,
+  // except what the row already lists. Two or more chips side by side, in a cell or on a diagram, become one counted
+  // button. Each marker lists its records. The top bar's IDs switch puts the page back as written. Without the
+  // script, every ID stays where it was written.
+
+  const RECORD_ID = /^[EQDRP]\d+$/;
+  const KIND_ORDER = ["D", "Q", "R", "E", "P"];
+  const KIND_PLURALS = { D: "Decisions", Q: "Questions", R: "Requirements", E: "Evidence", P: "Deliverables" };
+  const IDS_KEY = "design-docs-ids";
+  const disclosed = new Map();
+
+  const idOfLink = (link) => {
+    const id = refIdOf(link);
+
+    return id !== null && RECORD_ID.test(id) ? id : null;
+  };
+
+  const stateOf = (id) => (id.startsWith("D") ? decisionState(definitionFor(id)) : null);
+
+  const isOpen = (id) => (id.startsWith("Q") && !(definitionFor(id)?.hasAttribute("data-answered") ?? false)) || ["open", "leaning"].includes(stateOf(id) ?? "");
+
+  for (const phrase of document.querySelectorAll("a.mention.phrase")) {
+    const id = idOfLink(phrase);
+
+    if (id === null) continue;
+
+    phrase.dataset.refId = id;
+    phrase.dataset.kind = id[0].toLowerCase();
+
+    if (id.startsWith("D")) phrase.dataset.state = stateOf(id);
+  }
+
+  const markerIcon = (kind) =>
+    kind === "group"
+      ? '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="2" y="2.5" width="12" height="4" rx="1"/><rect x="2" y="9.5" width="12" height="4" rx="1"/></svg>'
+      : '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 1.75h5.5L12.5 4.75v9.5h-8.5z"/><path d="M9.25 1.75v3.25h3.25M6 8.5h4.5M6 11h4.5"/></svg>';
+
+  const marker = (ids, style) => {
+    const button = make("button", "ref-marker");
+
+    button.type = "button";
+    button.dataset.marker = style;
+    button.dataset.refs = ids.join(" ");
+    button.title = ids.join(", ");
+
+    if (ids.some(isOpen)) button.classList.add("has-open");
+
+    const label = style === "sources" ? `${ids.length} ${ids.length === 1 ? "source" : "sources"}` : String(ids.length);
+
+    button.innerHTML = `${markerIcon(style === "group" ? "group" : "sources")}<span>${label}</span>`;
+
+    return button;
+  };
+
+  // Remember a container as written, the first time it changes, so the IDs switch can put it back.
+  const remember = (container) => {
+    if (!disclosed.has(container)) disclosed.set(container, { written: container.innerHTML, disclosed: "" });
+  };
+
+  // A bracketed run of mentions, "(E1, D2)", starting at its first link: the links, and the text nodes around them.
+  const bracketAt = (first) => {
+    const opening = first.previousSibling;
+
+    if (opening?.nodeType !== Node.TEXT_NODE || !/\(\s*$/.test(opening.textContent)) return null;
+
+    const links = [first];
+    let cursor = first.nextSibling;
+
+    while (cursor?.nodeType === Node.TEXT_NODE && /^\s*[,;]\s*$/.test(cursor.textContent) && cursor.nextSibling?.matches?.("a.mention")) {
+      links.push(cursor.nextSibling);
+      cursor = cursor.nextSibling.nextSibling;
+    }
+
+    if (cursor?.nodeType !== Node.TEXT_NODE || !cursor.textContent.startsWith(")")) return null;
+
+    return { opening, links, closing: cursor };
+  };
+
+  // Take some of a bracket's links out of the text, keeping the rest in brackets; returns the IDs taken.
+  const takeFromBracket = (bracket, take) => {
+    const taken = bracket.links.filter((link) => take(idOfLink(link)));
+
+    if (taken.length === 0) return [];
+
+    const kept = bracket.links.filter((link) => !taken.includes(link));
+
+    for (let node = bracket.opening.nextSibling; node !== bracket.closing; node = bracket.opening.nextSibling) node.remove();
+
+    if (kept.length === 0) {
+      bracket.opening.textContent = bracket.opening.textContent.replace(/\s*\(\s*$/, "");
+      bracket.closing.textContent = bracket.closing.textContent.slice(1);
+    } else {
+      kept.forEach((link, index) => {
+        if (index > 0) bracket.closing.before(", ");
+
+        bracket.closing.before(link);
+      });
+    }
+
+    return taken.map(idOfLink);
+  };
+
+  const discloseText = (container) => {
+    const inCell = container.matches("td");
+    const row = inCell ? container.closest("tr") : null;
+    const listed = new Set();
+
+    for (const chip of row?.querySelectorAll("a.ref") ?? []) {
+      if (!container.contains(chip)) listed.add(idOfLink(chip));
+    }
+
+    const brackets = [];
+
+    for (const link of container.querySelectorAll("a.mention:not(.phrase)")) {
+      const bracket = idOfLink(link) === null ? null : bracketAt(link);
+
+      if (bracket !== null && !brackets.some((known) => known.links.includes(link))) brackets.push(bracket);
+    }
+
+    const take = inCell ? () => true : (id) => id.startsWith("E");
+    const plan = brackets.filter((bracket) => bracket.links.some((link) => take(idOfLink(link))));
+
+    if (plan.length === 0) return;
+
+    remember(container);
+
+    const gathered = plan.flatMap((bracket) => takeFromBracket(bracket, take)).filter((id) => !listed.has(id));
+    const ids = [...new Set(gathered)];
+
+    if (ids.length > 0) container.append(" ", marker(ids, inCell || container.matches("li") ? "compact" : "sources"));
+  };
+
+  const collapseChips = (holder, chips) => {
+    const ids = [...new Set(chips.map(idOfLink).filter((id) => id !== null))];
+
+    if (ids.length < 2 || ids.length !== chips.length) return;
+
+    remember(holder);
+
+    for (const chip of chips) chip.remove();
+
+    holder.append(marker(ids, "group"));
+  };
+
+  const onlyChips = (holder) =>
+    holder.childElementCount > 1 && [...holder.childNodes].every((node) => (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "") || node.matches?.("a.ref"));
+
+  const trailingChips = (cell) => {
+    const chips = [];
+
+    for (let node = cell.lastChild; node !== null; node = node.previousSibling) {
+      if (node.nodeType === Node.TEXT_NODE && node.textContent.trim() === "") continue;
+
+      if (!node.matches?.("a.ref")) break;
+
+      chips.unshift(node);
+    }
+
+    return chips;
+  };
+
+  const disclose = () => {
+    for (const container of document.querySelectorAll(".doc p, .doc li, .doc td, .doc dd")) {
+      // The innermost container holds the marker: a paragraph inside a cell keeps its own.
+      if (container.matches("td") && container.querySelector("p, li") !== null) continue;
+
+      if (container.closest(".diagram, .ref-list") === null) discloseText(container);
+    }
+
+    for (const pins of document.querySelectorAll(".diagram .pins")) collapseChips(pins, [...pins.querySelectorAll(":scope > a.ref")]);
+
+    for (const cell of document.querySelectorAll(".doc td:not(.id)")) {
+      for (const holder of [cell, ...cell.querySelectorAll(".marks")].filter(onlyChips)) collapseChips(holder, [...holder.querySelectorAll(":scope > a.ref")]);
+
+      const trailing = trailingChips(cell);
+
+      if (trailing.length >= 2) collapseChips(cell, trailing);
+    }
+
+    for (const [container, versions] of disclosed) versions.disclosed = container.innerHTML;
+  };
+
+  const showWritten = (written) => {
+    root.classList.toggle("show-ids", written);
+
+    for (const [container, versions] of disclosed) container.innerHTML = written ? versions.written : versions.disclosed;
+
+    for (const button of document.querySelectorAll("[data-ids-toggle]")) button.setAttribute("aria-pressed", String(written));
+  };
+
+  // The marker's list: grouped by kind, each with its chip (which opens the record's card) and title.
+  const refList = make("div", "ref-list");
+
+  refList.hidden = true;
+  document.body.append(refList);
+
+  const titleOf = (id) => {
+    const definition = definitionFor(id);
+    const text = definition?.querySelector("[data-ref-text]") ?? definition?.querySelector(".dm-title, td:nth-child(2)") ?? null;
+
+    const title = text === null ? "" : flatText(text).replace(new RegExp(`^${id}\\b\\s*·?\\s*`), "");
+
+    // The list is for finding the right one; its card holds the rest.
+    return title.length > 160 ? `${title.slice(0, 157).trimEnd()}…` : title;
+  };
+
+  const closeRefList = () => {
+    refList.hidden = true;
+    refList.dataset.for = "";
+    document.body.append(refList);
+  };
+
+  const openRefList = (button) => {
+    const ids = button.dataset.refs.split(" ");
+
+    refList.replaceChildren();
+
+    for (const kind of KIND_ORDER) {
+      const ofKind = ids.filter((id) => id.startsWith(kind));
+
+      if (ofKind.length === 0) continue;
+
+      refList.append(make("div", "ref-list-head", KIND_PLURALS[kind]));
+
+      for (const id of ofKind) {
+        const row = make("div", "ref-list-row");
+        const chip = make("a", `ref ref-${kind.toLowerCase()}`, id);
+
+        chip.href = `#${id}`;
+
+        if (kind === "D") chip.dataset.state = stateOf(id);
+
+        row.append(chip, make("span", "", titleOf(id)));
+        refList.append(row);
+      }
+    }
+
+    // Inside an open modal everything else is inert, so the list moves in with it.
+    (button.closest("dialog[open]") ?? document.body).append(refList);
+    refList.hidden = false;
+    refList.dataset.for = button.dataset.refs;
+
+    const box = button.getBoundingClientRect();
+    const width = Math.min(440, window.innerWidth - 24);
+    const below = box.bottom + 8 + refList.offsetHeight <= window.innerHeight;
+
+    refList.style.width = `${width}px`;
+    refList.style.left = `${Math.max(12, Math.min(box.left - 16, window.innerWidth - width - 12))}px`;
+    refList.style.top = `${below ? box.bottom + 8 : Math.max(12, box.top - 8 - refList.offsetHeight)}px`;
+  };
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest("button.ref-marker");
+
+    if (button !== null) {
+      event.preventDefault();
+
+      if (!refList.hidden && refList.dataset.for === button.dataset.refs) closeRefList();
+      else openRefList(button);
+
+      return;
+    }
+
+    if (!refList.hidden && !refList.contains(event.target) && !card.contains(event.target)) closeRefList();
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !refList.hidden) closeRefList();
+  });
+
+  window.addEventListener("scroll", () => {
+    if (!refList.hidden) closeRefList();
+  }, { passive: true });
+
+  disclose();
+
+  if (disclosed.size > 0 || document.querySelector("a.mention.phrase") !== null) {
+    const switchBox = make("div", "view-toggle ids-toggle");
+    const idsButton = make("button", "", "IDs");
+
+    idsButton.type = "button";
+    idsButton.dataset.idsToggle = "";
+    idsButton.title = "Show every record's ID where it was written";
+    switchBox.append(idsButton);
+    document.querySelector(".topbar [data-view-all]")?.before(switchBox);
+
+    idsButton.addEventListener("click", () => {
+      const written = !root.classList.contains("show-ids");
+
+      try {
+        localStorage.setItem(IDS_KEY, written ? "shown" : "");
+      } catch {
+        // Storage can be unavailable; the choice then lasts for this visit.
+      }
+
+      closeRefList();
+      showWritten(written);
+    });
+
+    let storedIds = "";
+
+    try {
+      storedIds = localStorage.getItem(IDS_KEY) ?? "";
+    } catch {
+      storedIds = "";
+    }
+
+    if (params.get("ids") === "shown" || storedIds === "shown") showWritten(true);
+    else showWritten(false);
+  }
+
+  // Snippets: a Copy button on each one with a header. A terminal session copies its commands, not the prompt or output.
+  for (const caption of document.querySelectorAll(".snippet figcaption")) {
+    const button = make("button", "copy", "Copy");
+
+    button.type = "button";
+    caption.append(button);
+  }
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const button = event.target.closest(".snippet .copy");
+
+    if (button === null) return;
+
+    const snippet = button.closest(".snippet");
+    const code = snippet.querySelector("code");
+
+    const text = snippet.classList.contains("session")
+      ? [...code.querySelectorAll(".prompt")].map((prompt) => {
+          let line = "";
+
+          for (let node = prompt.nextSibling; node !== null && !(node instanceof Element && node.matches(".output, .prompt")); node = node.nextSibling) line += node.textContent;
+
+          return line.split("\n")[0].trim();
+        }).join("\n")
+      : code.textContent;
+
+    navigator.clipboard?.writeText(text).then(() => {
+      button.textContent = "Copied";
+      setTimeout(() => {
+        button.textContent = "Copy";
+      }, 1200);
+    });
+  });
+
   // Canvases: a map the reader pans by dragging and zooms with the buttons or Ctrl/⌘ and the wheel. It opens fitted to its
   // width; without the script it scrolls instead.
   for (const canvas of document.querySelectorAll("[data-canvas]")) {

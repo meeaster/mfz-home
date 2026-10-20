@@ -28,7 +28,7 @@ Where the workers live decides which network teams have to change routes, what t
 
 Firewall logs already land in Shared Tooling, so that's the obvious home. The alternative is a small network just for the pipeline. Either way the workers run in three availability zones; what changes is which network they sit in.
 
-::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour | evidence: How we know; opens the evidence | question"
+::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour"
 :::
 
 ::: options D1 A=d1-a A-security=d1-a-security B=d1-b B-security=d1-b-security
