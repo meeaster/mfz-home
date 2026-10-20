@@ -26,8 +26,8 @@ HOW THE DESIGN IS DIVIDED, AND WHAT SHAPES ALL OF IT.
 
 ## What we're after
 
-<!-- Today and with the design, drawn with no products or technologies in it: name what each thing does, not what it is.
-     If swapping one product for another would change this picture, it's too specific. Put each goal's number where
+<!-- Today and with the design: name each product or platform and what it does ("Datadog US1 · search and alerts"),
+     without the networks, load balancers or accounts the architecture diagrams show. Put each goal's number where
      it's met. See references/diagrams.md. -->
 <!-- component story -->
 

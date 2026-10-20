@@ -80,7 +80,7 @@ Widen boxes or move labels rather than shrinking type.
 
 ## What we're after
 
-Two rows, today and with the design, drawn at the same positions so the reader compares them: sources on the left, where things end up on the right, and in the second row the design as one `.node.hub` in the middle. Nothing in it names a product, a network or a technology.
+Two rows, today and with the design, drawn at the same positions so the reader compares them: sources on the left, where things end up on the right, and in the second row the design as one `.node.hub` in the middle. Each box names the product or platform and what it does for the reader ("Datadog US1 · search and alerts"); networks, load balancers and accounts stay out, in the architecture diagrams.
 
 - **Volume:** a flow is a thick `path.band`; what's wasted rides on it as `.band.noise`, and what the design keeps clean is `.band.clean`. End a band with a `path.band-head` triangle, not an arrow marker.
 - **Kept apart:** separate streams (each customer, each tenant) are thin `path.lane.a`, `.b`, `.c` lines that stay parallel through the hub.

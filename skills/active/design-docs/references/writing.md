@@ -60,7 +60,7 @@ Most sections need only their heading. Add an intro under a heading only when it
 | --- | --- |
 | In short | Three short paragraphs in plain language: the problem today, what's being built and how it changes that, and how the design is divided and what shapes all of it. Under it, the terms a newcomer would trip over, each defined in a sentence. |
 | Working direction | Only in a directed design: the approach the design works within, and what it leaves open. See above. |
-| What we're after | The goals, with a picture of today and with the design that names no products or technologies. See below. |
+| What we're after | The goals, with a picture of today and with the design, naming the products and platforms involved. See below. |
 | Requirements | Every requirement, with a reason and a source, grouped by where it lives. Priority is Must or Should. |
 | How it fits together | Once there are areas: one box per area, each linking to its page, drawn the way the areas relate. See [diagrams](diagrams.md). |
 | The whole system | The design as it stands, in one picture with architecture and security views. See below. |
@@ -75,7 +75,7 @@ Leave out a section with nothing real in it: cost for a process change, the secu
 ## What we're after
 
 - **The goals** are outcomes someone would recognise without knowing the design ("Every firewall log searchable within a minute"), numbered and one line each. A constraint someone set ("no new VPN tunnels before January") is a requirement, not a goal.
-- **The picture** has two rows. "Today" shows what's wrong now; "With this design" shows what changes, with each goal's number where it's met. It's drawn to be understood by someone who'll never read the architecture: name what each thing does ("Search and alerts", "Archive", "Log pipeline"), never what product it is. If swapping one product for another, or choosing a different network, would change this picture, it's too specific.
+- **The picture** has two rows. "Today" shows what's wrong now; "With this design" shows what changes, with each goal's number where it's met. Name what each thing is and what it does, so a reader knows exactly what's involved: "Datadog US1 · search and alerts", "S3 in GovCloud · raw archive", "OPW · redaction". Stay at the level of products and platforms someone outside the team recognises; networks, load balancers and account layout belong to the architecture diagrams.
 - **Not part of this design:** one line for what's deliberately left out, when a reader might assume it's included.
 
 ## The whole system and its parts
