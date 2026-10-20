@@ -1630,7 +1630,9 @@ function checkDecision(record, design) {
   const where = design.where(record.line);
   const known = design.byId();
 
-  if (UNSETTLED.includes(state) && !record.get("Explanation")) {
+  const explanation = record.field("Explanation");
+
+  if (UNSETTLED.includes(state) && (explanation === null || (!explanation.value && explanation.items.length === 0))) {
     design.warnings.push(`${where}: decision '${record.id}' is ${status} but has no 'Explanation': ${EXPLANATION_HINT}`);
   }
 
@@ -1991,9 +1993,14 @@ function explanationParts(record, design = null) {
 }
 
 // Status the doc already shows (the chip, the AI recommendation) or how it was made, written into prose.
-const NARRATION = [/\bawaits? review\b/i, /\b(?:hasn't|haven't|has not|have not) (?:chosen|decided|leaned)\b/i, /\bleaned towards\b/i, /\bas advice only\b/i, /\bAI recommendation\b/i, /\bnow read in full\b/i];
+const NARRATION = [/\bawaits? review\b/i, /\b(?:hasn't|haven't|has not|have not) (?:chosen|decided|leaned)\b/i, /\bas advice only\b/i, /\bAI recommendation\b/i, /\bnow read in full\b/i];
 
 function proseWarnings(record, design) {
+  // A meeting's own record is where how it got there belongs.
+  if (record.kind === "meeting") {
+    return;
+  }
+
   for (const [name, found] of record.fields) {
     if (name.toLowerCase() === PRIVATE || name === "Recommendation") {
       continue;
