@@ -21,6 +21,9 @@ WHAT WE'RE BUILDING, AND HOW IT CHANGES THAT.
 
 HOW THE DESIGN IS DIVIDED, AND WHAT SHAPES ALL OF IT.
 
+<!-- A directed design, one with a working direction someone has set, adds "## Working direction" here with nothing under
+     it: it shows design.json's direction. Leave it out while the design is open. See references/writing.md. -->
+
 ## What we're after
 
 <!-- Today and with the design, drawn with no products or technologies in it: name what each thing does, not what it is.

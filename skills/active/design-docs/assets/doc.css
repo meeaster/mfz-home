@@ -48,48 +48,8 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --background: #0a0a0a;
-    --foreground: #fafafa;
-    --card: #171717;
-    --popover: #171717;
-    --muted: #262626;
-    --muted-foreground: #a3a3a3;
-    --border: #ffffff1a;
-    --primary: #e5e5e5;
-    --primary-foreground: #171717;
-    --destructive: #ff6669;
-    --sidebar: #18181b;
-    --sidebar-border: #ffffff1a;
-    --sidebar-accent: #2a2a30;
-    --ok: #4ade80;
-    --ok-bg: #22c55e26;
-    --ai: #a5b4fc;
-    --ai-bg: #6366f124;
-    --ai-ink: #1e1b4b;
-    --warn: #fbbf24;
-    --warn-bg: #f59e0b26;
-    --lean: #22d3ee;
-    --lean-bg: #06b6d426;
-    --sec: #f87171;
-    --sec-bg: #ef44441f;
-    --opt-a: #60a5fa;
-    --opt-a-bg: #3b82f61f;
-    --opt-b: #a78bfa;
-    --opt-b-bg: #8b5cf61f;
-    --opt-c: #f472b6;
-    --opt-c-bg: #ec48991f;
-    --opt-d: #fb923c;
-    --opt-d-bg: #f973161f;
-    --new: #60a5fa;
-    --new-bg: #3b82f61f;
-    --shadow: 0 8px 24px #00000080;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme="dark"] {
+/* Dark unless the reader picks light. */
+:root:not([data-theme="light"]) {
   --background: #0a0a0a;
   --foreground: #fafafa;
   --card: #171717;
@@ -243,6 +203,16 @@ code, .mono { font-family: var(--font-mono); }
 .topbar .where:has(.page-name:empty) .sep { display: none; }
 .topbar .tools { display: flex; gap: 14px; align-items: center; }
 .topbar .label { font-size: 12.5px; color: var(--muted-foreground); }
+/* Versions: the latest is the doc; earlier ones open from this menu. */
+.topbar .versions { position: relative; }
+.topbar .versions summary { list-style: none; padding: 4px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12.5px; font-weight: 500; color: var(--muted-foreground); cursor: pointer; }
+.topbar .versions summary::-webkit-details-marker { display: none; }
+.topbar .versions summary:hover, .topbar .versions[open] summary { background: var(--muted); color: var(--foreground); }
+.topbar .versions-menu { position: absolute; top: calc(100% + 6px); right: 0; z-index: 60; display: flex; flex-direction: column; min-width: 220px; padding: 6px; border: 1px solid var(--border); border-radius: 10px; background: var(--popover); box-shadow: var(--shadow); }
+.topbar .versions-menu a { display: flex; justify-content: space-between; gap: 16px; padding: 7px 10px; border-radius: 6px; color: var(--foreground); font-size: 13px; text-decoration: none; }
+.topbar .versions-menu a span { color: var(--muted-foreground); }
+.topbar .versions-menu a:hover { background: var(--muted); }
+.topbar .versions-menu a[aria-current] { font-weight: 600; }
 .topbar .divider { width: 1px; height: 20px; background: var(--border); }
 .theme-switch { display: inline-flex; gap: 2px; padding: 3px; border-radius: 8px; background: var(--muted); }
 .theme-switch button { display: grid; place-items: center; width: 30px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--muted-foreground); cursor: pointer; }
@@ -437,6 +407,14 @@ html:not(.js) .snippet .copy { display: none; }
 }
 .terms dt { font-size: 13.5px; font-weight: 600; }
 .terms dd { margin: 2px 0 0; font-size: 13px; line-height: 1.5; color: var(--muted-foreground); }
+
+/* The working direction: what the design works within, set apart from the prose around it. */
+.direction { display: flex; flex-direction: column; gap: 10px; max-width: 640px; padding: 4px 0 4px 18px; border-left: 3px solid var(--foreground); font-size: 15.5px; line-height: 1.65; }
+.direction p { margin: 0; }
+.direction ul, .direction ol { margin: 0; padding-left: 22px; display: flex; flex-direction: column; gap: 6px; }
+.direction ul { list-style: disc; }
+.direction ol { list-style: decimal; }
+.direction li::marker { color: var(--muted-foreground); }
 
 .callout {
   display: flex;

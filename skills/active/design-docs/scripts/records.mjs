@@ -53,12 +53,12 @@ const SPLIT_FILES = ["design.md", "evidence.md", "meetings.md"];
 const FACT_REF = /\{fact:([a-z0-9][a-z0-9-]*)\}/g;
 
 // A meeting's Outcomes: one line per thing it settled, '<Kind> · <what> → <record IDs, fact:key or a phase title>'.
-const OUTCOME_KINDS = new Set(["decided", "leaning", "later", "answer", "so far", "deferred", "new question", "requirement", "deliverable", "phase", "fact", "evidence", "scope", "risk", "follow-on"]);
+const OUTCOME_KINDS = new Set(["direction", "decided", "leaning", "later", "answer", "so far", "deferred", "new question", "requirement", "deliverable", "phase", "fact", "evidence", "scope", "risk", "follow-on"]);
 
 const OUTCOME = /^(?<kind>[^·]+?)\s+·\s+(?<what>.+?)\s+(?:→|->)\s+(?<to>.+)$/;
 
 // Prose sections an agent reads to understand the design; a page shows them with the design-section component.
-const PROSE_SECTIONS = { problem: "problem", goals: "goals", "how it works": "how-it-works" };
+const PROSE_SECTIONS = { problem: "problem", "working direction": "direction", goals: "goals", "how it works": "how-it-works" };
 
 const PREFIX = { requirement: "R", decision: "D", question: "Q", evidence: "E", deliverable: "P" };
 
@@ -125,7 +125,7 @@ const PROPOSAL_STATUS = { proposed: "open", accepted: "decided", changed: "decid
 const PROPOSAL_LABEL = { proposed: "To review", accepted: "Accepted", changed: "Accepted with changes", rejected: "Rejected", deferred: "Deferred" };
 
 // Proposals that change what the design says come first and in full; record-keeping ones fold into one group.
-const PROPOSAL_ORDER = ["decided", "leaning", "later", "deferred", "answer", "so far", "deliverable", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"];
+const PROPOSAL_ORDER = ["direction", "decided", "leaning", "later", "deferred", "answer", "so far", "deliverable", "phase", "scope", "requirement", "fact", "new question", "risk", "evidence", "follow-on"];
 
 const ROUTINE_KINDS = new Set(["evidence", "risk", "follow-on"]);
 
@@ -996,7 +996,7 @@ function checkOutcomes(design) {
 
       if (match === null || !OUTCOME_KINDS.has(match.groups.kind.trim().toLowerCase())) {
         design.errors.push(
-          `${design.where(found.line)}: outcome '${item.slice(0, 60)}'; write '<Kind> · <what> → <IDs, fact:key or deliverable title>' with Kind one of ${[...OUTCOME_KINDS].sort().join(", ")}`
+          `${design.where(found.line)}: outcome '${item.slice(0, 60)}'; write '<Kind> · <what> → <IDs, fact:key, deliverable title or Working direction>' with Kind one of ${[...OUTCOME_KINDS].sort().join(", ")}`
         );
         continue;
       }
@@ -1015,10 +1015,12 @@ function checkOutcomes(design) {
           resolved.push(known.get(target));
         } else if (target.startsWith("fact:") && design.facts.has(target.slice(5))) {
           resolved.push(null);
+        } else if (target.toLowerCase() === "working direction" && design.prose.has("direction")) {
+          resolved.push(null);
         } else if (phases.has(target.toLowerCase())) {
           resolved.push(phases.get(target.toLowerCase()));
         } else {
-          design.errors.push(`${design.where(found.line)}: outcome '${item.slice(0, 60)}' points at '${target}', which is no record ID, fact:key or deliverable title`);
+          design.errors.push(`${design.where(found.line)}: outcome '${item.slice(0, 60)}' points at '${target}', which is no record ID, fact:key, deliverable title or Working direction`);
         }
       }
 

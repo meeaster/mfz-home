@@ -1,9 +1,6 @@
 /* Review copy: draft changes on the doc. Added by doc.mjs review only. */
 :root { --rv: #b45309; --rv-bg: #fef3e2; --rv-del: #b91c1c; --rv-del-bg: #fee2e2; --rv-ins: #15803d; --rv-ins-bg: #dcfce7; --rv-backdrop: #0000004d; }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) { --rv: #f59e0b; --rv-bg: #2a1d08; --rv-del: #fca5a5; --rv-del-bg: #3b1518; --rv-ins: #86efac; --rv-ins-bg: #12301d; --rv-backdrop: #000000a6; }
-}
-:root[data-theme="dark"] { --rv: #f59e0b; --rv-bg: #2a1d08; --rv-del: #fca5a5; --rv-del-bg: #3b1518; --rv-ins: #86efac; --rv-ins-bg: #12301d; --rv-backdrop: #000000a6; }
+:root:not([data-theme="light"]) { --rv: #f59e0b; --rv-bg: #2a1d08; --rv-del: #fca5a5; --rv-del-bg: #3b1518; --rv-ins: #86efac; --rv-ins-bg: #12301d; --rv-backdrop: #000000a6; }
 
 .rv-target { position: relative; outline: 1px dashed color-mix(in srgb, var(--rv) 55%, transparent); outline-offset: 4px; border-radius: 4px; }
 .rv-target.rv-flash { outline: 2px solid var(--rv); }

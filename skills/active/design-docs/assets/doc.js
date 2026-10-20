@@ -1024,12 +1024,18 @@
     }).observe(viewport);
   }
 
-  // Theme toggle: follows the system until the reader picks one
+  // The version menu closes when the reader clicks elsewhere.
+  document.addEventListener("click", (event) => {
+    for (const menu of document.querySelectorAll("details.versions[open]")) {
+      if (!menu.contains(event.target)) menu.open = false;
+    }
+  });
+
+  // Theme toggle: dark until the reader picks light
 
   // The top bar's sun and moon buttons ([data-theme-choice]); older shells have one [data-theme-toggle] button in the rail.
   const toggle = document.querySelector("[data-theme-toggle]");
   const choices = [...document.querySelectorAll("button[data-theme-choice]")];
-  const systemDark = window.matchMedia("(prefers-color-scheme: dark)");
 
   const readStoredTheme = () => {
     try {
@@ -1039,7 +1045,7 @@
     }
   };
 
-  const effectiveTheme = () => root.dataset.theme ?? (systemDark.matches ? "dark" : "light");
+  const effectiveTheme = () => root.dataset.theme ?? "dark";
 
   const labelToggle = () => {
     const theme = effectiveTheme();
@@ -1069,7 +1075,6 @@
 
   for (const choice of choices) choice.addEventListener("click", () => setTheme(choice.dataset.themeChoice === "dark" ? "dark" : "light"));
 
-  systemDark.addEventListener("change", labelToggle);
   labelToggle();
 
   // Architecture / Security views. Each option or solution card with view panels switches on its own;

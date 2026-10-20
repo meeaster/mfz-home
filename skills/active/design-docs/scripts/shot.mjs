@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 // Screenshot a built design doc in headless Chrome: one page of it, optionally with a reference card open,
-// every option in its security view, or dark mode. Uses the Chrome DevTools Protocol directly.
+// every option in its security view, or light mode (the doc opens dark). Uses the Chrome DevTools Protocol directly.
 //
-// node shot.mjs <built.html> <out.png> [--page overview] [--selector "#overview-system .diagram"] [--card E2] [--view security] [--click "#D1"] [--dark] [--full] [--width 1440] [--height 900]
+// node shot.mjs <built.html> <out.png> [--page overview] [--selector "#overview-system .diagram"] [--card E2] [--view security] [--click "#D1"] [--light] [--full] [--width 1440] [--height 900]
 //
 // --click clicks an element first, such as a decision row to capture its modal.
 
@@ -21,6 +21,8 @@ const { values, positionals } = parseArgs({
     click: { type: "string" },
     selector: { type: "string" },
     view: { type: "string" },
+    light: { type: "boolean", default: false },
+    // Older invocations pass --dark; the doc is dark already.
     dark: { type: "boolean", default: false },
     full: { type: "boolean", default: false },
     width: { type: "string", default: "1440" },
@@ -32,7 +34,7 @@ const { values, positionals } = parseArgs({
 const [pagePath, outPath] = positionals;
 
 if (pagePath === undefined || outPath === undefined) {
-  console.error("usage: node shot.mjs <built.html> <out.png> [--page overview] [--selector css] [--card E2] [--view security] [--click css] [--dark] [--full] [--width 1440] [--height 900]");
+  console.error("usage: node shot.mjs <built.html> <out.png> [--page overview] [--selector css] [--card E2] [--view security] [--click css] [--light] [--full] [--width 1440] [--height 900]");
   process.exit(2);
 }
 
@@ -120,10 +122,6 @@ try {
 
   await send("Emulation.setDeviceMetricsOverride", { width, height, deviceScaleFactor: 1, mobile: false });
 
-  if (values.dark) {
-    await send("Emulation.setEmulatedMedia", { features: [{ name: "prefers-color-scheme", value: "dark" }] });
-  }
-
   await send("Page.enable");
   await send("Page.navigate", { url: pageUrl.href });
   await sleep(2500);
@@ -131,6 +129,12 @@ try {
   const capture = { format: "png" };
 
   const evaluate = async (expression) => (await send("Runtime.evaluate", { expression, returnByValue: true })).result?.result?.value;
+
+  if (values.light) {
+    // Through the light button, as a reader would; older shells without one take the attribute.
+    await evaluate(`(() => { const button = document.querySelector('[data-theme-choice="light"]'); if (button === null) document.documentElement.dataset.theme = "light"; else button.click(); })()`);
+    await sleep(200);
+  }
 
   if (values.click !== undefined) {
     const clicked = await evaluate(`(() => { const node = document.querySelector(${JSON.stringify(values.click)}); if (node === null) return false; node.scrollIntoView({ block: "center" }); node.click(); return true; })()`);

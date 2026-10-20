@@ -51,6 +51,7 @@ const RECORD_KINDS = new Set(["requirements", "measure", "decisions", "reasoning
 
 const STANDARD_SECTIONS = {
   "in short": { suffix: "short", layout: "short" },
+  "working direction": { suffix: "direction", prose: "direction" },
   "what we're after": { suffix: "after" },
   requirements: { suffix: "requirements", records: "requirements" },
   "how it fits together": { suffix: "map" },
@@ -452,6 +453,13 @@ async function renderSection(section, number, context) {
     const flow = await renderFlow(section.lines, context);
     const paragraphs = flow.replace(/^<div class="prose">\n/, "").replace(/\n<\/div>$/, "");
     const body = `  <div class="short-row">\n    <div class="prose">\n${paragraphs}\n    </div>\n    <div class="terms">\n      <h3>Terms used on this page</h3>\n      <!-- records terms -->\n    </div>\n  </div>`;
+
+    return `<section class="section" id="${esc(id)}">\n${sectionHead(num, title)}\n${body}\n</section>`;
+  }
+
+  // A prose section of design.json with nothing written under its heading shows that prose.
+  if (standard?.prose !== undefined && section.lines.every((line) => line.trim() === "")) {
+    const body = await context.component("design-section", { args: [], section: standard.prose });
 
     return `<section class="section" id="${esc(id)}">\n${sectionHead(num, title)}\n${body}\n</section>`;
   }

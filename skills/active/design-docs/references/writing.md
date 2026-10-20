@@ -35,6 +35,16 @@ A paragraph that runs past a handful of sentences is the sign to break it. Field
 - Two or more chips side by side, in a table cell or on a diagram box, show as one counted button that lists them, amber when anything in it is open.
 - Keep icons and IDs out of the middle of sentences. The top bar's IDs switch shows every ID where it was written, for meetings that discuss "D9".
 
+## Working direction
+
+A design is open or directed. An open design works out what to do, so its decisions are about the approach. A directed one has a working direction: an approach that has been set, by an architect, a security review or the user, which the design makes work. Its decisions are about how.
+
+- **Write it** in design.json's `direction`: what the direction is in a sentence or two, then what it leaves open. Not who set it or when. The overview shows it under `## Working direction`, after In short, and In short names it in a clause rather than restating it.
+- **Work within it.** Decisions weigh options inside it, research finds what it needs, and recommendations pick within it.
+- **A problem with it** is a question or a risk that names it ("TLS ended at the pod may not meet the FIPS basis that applies"), never an alternative written into the design.
+- **Weighing alternatives to it** is a brief of its own, "Should we change the working direction?", comparing each alternative with the direction against the requirements. Write one when the user asks. When the evidence shows the direction can't meet a Must requirement, say so in your report and offer the brief.
+- **Setting or changing it** is the user's call, like a decision's status, and is logged in changes.md.
+
 ## Headers
 
 Every page starts with a header: the title (about ten words at most), a one-sentence dek, a context line, and the last-updated date. The dek says what the title can't: the page's answer or where it stands, never a list of what the page covers. The overview's says what the system does, more concretely than its title. A brief's says where the decision stands and what it turns on. An area's says what the part guarantees and what's still open in it. On shared pages, Meetings says what the meetings so far settled, and Evidence says when and where the findings came from. A brief's title is its question ("Where should the log pipeline workers run?"). The overview's names what's being built ("Log ingestion in our cloud"). On pages other than the overview, the context line starts with a link back to it ("Overview / area", "Overview / brief"). Under an overview's or area's header, the progress line shows how much is settled (see [pages](pages.md)). Leave out parts that don't exist rather than inventing names. No owner, audience, or status fields. The rail's short title is two or three words.
@@ -48,6 +58,7 @@ Most sections need only their heading. Add an intro under a heading only when it
 | Section | Purpose |
 | --- | --- |
 | In short | Three short paragraphs in plain language: the problem today, what's being built and how it changes that, and how the design is divided and what shapes all of it. Under it, the terms a newcomer would trip over, each defined in a sentence. |
+| Working direction | Only in a directed design: the approach the design works within, and what it leaves open. See above. |
 | What we're after | The goals, with a picture of today and with the design that names no products or technologies. See below. |
 | Requirements | Every requirement, with a reason and a source, grouped by where it lives. Priority is Must or Should. |
 | How it fits together | Once there are areas: one box per area, each linking to its page, drawn the way the areas relate. See [diagrams](diagrams.md). |
@@ -192,7 +203,7 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
 
 ## Identifiers
 
-- E (evidence), Q (question), D (decision) and R (requirement) numbers are unique across the doc and stable. Never renumber: meeting notes and conversations refer to them.
+- E (evidence), Q (question), D (decision) and R (requirement) numbers are unique across the doc and stable within a version. Never renumber within one: meeting notes and conversations refer to them. A new version numbers its records afresh ([lifecycle](lifecycle.md#a-new-version)).
 - When something is answered, superseded, or dropped, update it in place and say so rather than reusing its number.
 - When a brief joins a design doc, keep its numbers if they're free; otherwise renumber once, at that moment, and note it in the next meeting summary.
 - IDs are for markers and citations; people read names. In prose, link the words that name the thing: "if [the workers get their own network](#D1)", "[logs staying in the GovCloud partition](#R6) fails"; cite evidence after its claim, "(E77)". An ID never stands in for the thing as the subject of a sentence ("if D1 lands on B", "R6 fails", "once Q1 and Q4 come back"). Chips in tables and rails stay the short ID. Older text that writes "(D1)" after the name still renders; convert it in an editing pass.

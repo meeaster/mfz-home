@@ -18,6 +18,8 @@ The records in scope: the ones the user named, or else every decision that's Ope
 
 For a decision, weigh its options against the requirements they must meet, their costs and risks, the evidence, and the questions it waits on. For a question, work out the most likely answer from what the design and evidence already show.
 
+When the design has a working direction, recommend within it. If the evidence says the direction itself can't meet a Must requirement, still recommend within it, say so in `Because`, and name it in your report, where the user can ask for a brief on changing the direction.
+
 Recommend from what's in the folder. When the call turns on something the design doesn't hold (a figure nobody has, a ruling security hasn't made), say so in `Because` and set the confidence to match, rather than filling the gap. When the team already leans one way, agree or disagree plainly; a recommendation that only repeats the leaning without its own reason adds nothing.
 
 ## 3. Write the recommendation

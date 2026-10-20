@@ -28,7 +28,7 @@ Add the meeting to `meetings.json` with status `Awaiting review`, who attended, 
  "Summary": ["One line per thing discussed, in the meeting's words."]}
 ```
 
-Write one proposal for each thing the source settled: a decision, leaning, deferral, answer or partial answer, new question, requirement, deliverable or scope change, or changed figure. One outcome is one proposal, however many records it writes: a decision made on a quote is one proposal whose `also` lists the evidence, facts and option changes it records ("the quote as evidence (E20)", "price facts", "option A set aside"). Don't split one outcome across proposals, and don't repeat it under another kind. Evidence the source brings that no outcome rests on gets its own Evidence proposal.
+Write one proposal for each thing the source settled: a working direction set or changed, a decision, leaning, deferral, answer or partial answer, new question, requirement, deliverable or scope change, or changed figure. One outcome is one proposal, however many records it writes: a decision made on a quote is one proposal whose `also` lists the evidence, facts and option changes it records ("the quote as evidence (E20)", "price facts", "option A set aside"). Don't split one outcome across proposals, and don't repeat it under another kind. Evidence the source brings that no outcome rests on gets its own Evidence proposal.
 
 Propose only what the source itself says, at the strength it said it: a preference stays a preference, "decide later" is a Later decision and not a decision to keep things as they are.
 
@@ -41,13 +41,13 @@ The person reading these wasn't necessarily in the meeting and is deciding quick
 - `from`: the source's own words behind it, quoted or closely paraphrased; enough to judge without the summary.
 - `also`: a list of the other records the proposal writes, a few words each with their IDs; leave it out when there are none.
 - `recommend`: `Accept`, `Accept as leaning`, `Ask`, `Defer` or `Reject`; `why`: one sentence on why, naming what was actually agreed or what's missing.
-- `kind`: Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Deliverable, Fact, Scope, Risk, Evidence or Follow-on. `status`: `Proposed`.
+- `kind`: Direction, Decided, Leaning, Later, Answer, So far, Deferred, New question, Requirement, Deliverable, Fact, Scope, Risk, Evidence or Follow-on. `status`: `Proposed`.
 
 Run `check` and `build` (`check` warns about long or field-worded proposals; fix them), then reply with the proposals as a numbered list: number, the proposal sentence, and your recommendation, the record-keeping ones last. Stop there until the user settles them. "Accept the rest" means every proposal not otherwise settled takes your recommendation.
 
 ## 3. Apply what the user settled
 
-The user settles proposals by number: accept, reject, defer, or accept with a change. For each, set `status` to `Accepted`, `Changed`, `Rejected` or `Deferred`, and for anything but a plain accept put what the user said in `note`. Then apply every accepted and changed proposal (as changed) to the records, as below, and list each in the meeting's `Outcomes`: `<Kind> · <what> → <record IDs, fact:key or deliverable title>`. Set the meeting's status to `Summarised` once nothing is left `Proposed`. `check` fails when an accepted proposal has no outcome, or the latest meeting's outcomes don't match the records.
+The user settles proposals by number: accept, reject, defer, or accept with a change. For each, set `status` to `Accepted`, `Changed`, `Rejected` or `Deferred`, and for anything but a plain accept put what the user said in `note`. Then apply every accepted and changed proposal (as changed) to the records, as below, and list each in the meeting's `Outcomes`: `<Kind> · <what> → <record IDs, fact:key, deliverable title, or Working direction>`. Set the meeting's status to `Summarised` once nothing is left `Proposed`. `check` fails when an accepted proposal has no outcome, or the latest meeting's outcomes don't match the records.
 
 ### Applying each change
 

@@ -44,6 +44,7 @@ import {
 } from "./records.mjs";
 import { ChangesError, applyChanges, readChanges, reviewData, reviewFolder, writeChange } from "./changes.mjs";
 import { bind, renderPages } from "./render.mjs";
+import { VersionError, publishVersions, startVersion } from "./versions.mjs";
 import { SNIPPET_LANGUAGES } from "./snippets.mjs";
 import { esc, escAll, splitLines, unescape } from "./text.mjs";
 
@@ -1147,6 +1148,10 @@ async function check(target) {
     warnings.push(...checkHandPending(filled, where, dirname(shell)));
     warnings.push(...checkPageProse(dirname(shell)));
 
+    if (model.prose?.direction !== undefined && !filled.includes('<div class="direction">')) {
+      warnings.push("design.json sets a working direction, but no page shows it; add '## Working direction' to the overview, after In short");
+    }
+
     const knowledge = checkKnowledgeLinks(design, folder);
 
     errors.push(...knowledge.errors);
@@ -1483,6 +1488,17 @@ function build(shell, source, design, out, keep, extras = null) {
   }
 
   mkdirSync(dirname(out), { recursive: true });
+
+  // The full doc of a design with earlier versions publishes them beside it and lists them in its top bar.
+  if (design !== null && keep === null && extras === null) {
+    const notes = [];
+    const menu = publishVersions(dirname(shell), docSlug(text, shell), dirname(out), notes);
+
+    for (const note of notes) console.log(`note: ${note}`);
+
+    if (menu !== "") text = replaceFirst(text, '<div class="tools">', `<div class="tools">${menu}`);
+  }
+
   writeFileSync(out, text);
   console.log(`built ${out} (${switched.count} page(s); styles inlined: ${cssCount > 0 ? "True" : "False"}, script inlined: ${jsCount > 0 ? "True" : "False"})`);
 
@@ -1567,6 +1583,7 @@ const USAGE = `usage: doc.mjs check <design folder | doc.html>
        doc.mjs migrate <design folder>
        doc.mjs review <design folder>
        doc.mjs apply-changes <design folder> <C1 C2 … | all>
+       doc.mjs new-version <design folder>
 
   check    report broken references, missing parts, and local paths
   build    check, then write one self-contained HTML file (default: <folder>/published/<slug>.html,
@@ -1574,14 +1591,17 @@ const USAGE = `usage: doc.mjs check <design folder | doc.html>
   migrate  bring a design folder written for an older version of this skill up to date
   review   build a local review copy showing the draft changes in <folder>/.review/changes.json
            (written to <folder>/.review/<slug>.review.html; the folder is git-ignored)
-  apply-changes  write the named draft changes into the design and drop them from the draft`;
+  apply-changes  write the named draft changes into the design and drop them from the draft
+  new-version    freeze this version, with its published doc, in <folder>/versions/v<N>/ and start the next one in
+           place: the records and pages stay to be rewritten as the current state; the change log and meetings
+           start empty`;
 
 // The design's own files, without its review copies or published doc; the copy sits inside the folder it copies.
 function copyDesign(from, to) {
   mkdirSync(to, { recursive: true });
 
   for (const entry of readdirSync(from, { withFileTypes: true })) {
-    if (entry.name === ".review" || entry.name === "published") continue;
+    if (entry.name === ".review" || entry.name === "published" || entry.name === "versions") continue;
 
     if (entry.isDirectory()) copyDesign(join(from, entry.name), join(to, entry.name));
     else cpSync(join(from, entry.name), join(to, entry.name));
@@ -1664,7 +1684,7 @@ async function main(argv) {
 
   const applying = command === "apply-changes";
 
-  if (!["check", "build", "migrate", "review", "apply-changes"].includes(command) || doc === undefined || (applying ? parsed.positionals.length < 3 : parsed.positionals.length > 2)) {
+  if (!["check", "build", "migrate", "review", "apply-changes", "new-version"].includes(command) || doc === undefined || (applying ? parsed.positionals.length < 3 : parsed.positionals.length > 2)) {
     console.error(USAGE);
 
     return 2;
@@ -1719,6 +1739,27 @@ async function main(argv) {
     return build(shell, source, keep && keep.length > 0 ? null : design, out, keep && keep.length > 0 ? keep : null);
   }
 
+  if (command === "new-version") {
+    if (errors.length > 0 || source === null) {
+      console.log("no new version: fix the errors first");
+
+      return 1;
+    }
+
+    if (warnings.some((warning) => warning.startsWith("the published doc is"))) {
+      console.log("no new version: build first, so the frozen version keeps a published doc that matches its records");
+
+      return 1;
+    }
+
+    const shell = resolve(doc)[0];
+    const started = startVersion(dirname(shell), docSlug(source.text, shell), new Date().toISOString().slice(0, 10));
+
+    console.log(`froze version ${started.number - 1} in ${started.frozen}; this folder is now version ${started.number}. Rewrite it as the current state, then check and build`);
+
+    return 0;
+  }
+
   if (command === "review") {
     if (errors.length > 0 || source === null) {
       console.log("no review copy: fix the errors first");
@@ -1735,7 +1776,7 @@ async function main(argv) {
 try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (error) {
-  if (error instanceof Stop || error instanceof JsonError || error instanceof ChangesError) {
+  if (error instanceof Stop || error instanceof JsonError || error instanceof ChangesError || error instanceof VersionError) {
     console.error(error.message);
     process.exitCode = 1;
   } else {

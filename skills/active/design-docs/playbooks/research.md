@@ -6,6 +6,7 @@ Everything a research run needs is on this page. A research run takes the open q
 
 - `design.json` in full, `evidence.json` in full (research must not repeat or contradict a finding without saying so), and `changes.md` since the last session.
 - The questions in scope: the ones the user named, or every open question whose `Answer from` starts with `Research`.
+- The working direction, when the design has one: research finds what it needs. A finding that it can't meet a requirement is evidence like any other; record it, and report it rather than researching alternatives to the direction.
 
 ## 2. Look in the knowledge base first
 

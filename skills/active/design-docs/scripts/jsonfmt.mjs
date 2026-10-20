@@ -30,6 +30,7 @@ const SECTION_KEYS = [
 
 const PROSE_KEYS = [
   ["problem", "Problem"],
+  ["direction", "Working direction"],
   ["goals", "Goals"],
   ["howItWorks", "How it works"]
 ];
@@ -276,6 +277,7 @@ export function fromDesign(design) {
 
   for (const [key, prose] of [
     ["problem", "problem"],
+    ["direction", "direction"],
     ["goals", "goals"],
     ["howItWorks", "how-it-works"]
   ]) {

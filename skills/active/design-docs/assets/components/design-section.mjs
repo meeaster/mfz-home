@@ -1,4 +1,4 @@
-// A prose section of design.md (problem, goals, how-it-works), shown where a page asks for it, so the
+// A prose section of design.md (problem, direction, goals, how-it-works), shown where a page asks for it, so the
 // words an agent reads in design.md are the words people read in the doc. A fence in a language the doc colours is a
 // snippet and shows; any other fence (bare, text, ascii) is a text diagram for agents, and the page draws its own.
 
@@ -11,7 +11,7 @@ export default async function designSection({ props, model, markdown, error }) {
   const text = model.prose?.[props.section];
 
   if (text === undefined) {
-    error(`design-section: design.md has no '${props.section}' section (problem, goals or how-it-works)`);
+    error(`design-section: design.md has no '${props.section}' section (problem, direction, goals or how-it-works)`);
 
     return "";
   }
@@ -35,5 +35,8 @@ export default async function designSection({ props, model, markdown, error }) {
     if (fence !== "diagram") lines.push(line);
   }
 
-  return `<div class="prose">\n${await markdown(lines.join("\n").trim())}\n</div>`;
+  const body = await markdown(lines.join("\n").trim());
+
+  // The working direction is set apart: everything else on the page works within it.
+  return props.section === "direction" ? `<div class="direction">\n${body}\n</div>` : `<div class="prose">\n${body}\n</div>`;
 }

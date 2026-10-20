@@ -16,6 +16,8 @@ We're putting a pipeline in between: servers running Observability Pipelines Wor
 
 The design has four areas: how firewall logs get in, how customer logs get in, the workers, and the S3 archive. Where the workers run (D1) shapes three of them and has a brief of its own.
 
+## Working direction
+
 ## What we're after
 
 <!-- component story -->

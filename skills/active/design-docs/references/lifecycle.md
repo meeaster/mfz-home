@@ -14,6 +14,7 @@ designs/<slug>/
   pages/<id>.md             each page: its prose and what it shows
   components/               the doc's own pictures and parts
   published/<slug>.html     the built doc
+  versions/v<N>/            earlier versions, each frozen with its published doc
 ```
 
 - Name the design for its subject ("log-ingestion"), not for the work ("opw-deployment"). Put the slug in `<html data-doc="<slug>">`.
@@ -54,6 +55,16 @@ When a session starts work on a design, or on an effort linked to one:
 - **Bring the pages along** when records change: tables, option cards, decision maps, costs, flows and bound diagram parts follow on their own; prose, and any part of a picture that isn't bound, don't. Redraw a picture when what was chosen differs from what it shows; update "In short", the dek, and the "Updated" date on each page that changed.
 - **State a figure once.** A number, cost, count or date that appears in more than one place is a fact: define it under `## Facts` with its source and write `{fact:key}` wherever else it appears, in records, pages and components. When it changes, change the fact.
 - **Sweep for the same fact everywhere it appears.** A change is finished when every place that states the fact agrees: each page's prose and dek, the design's own components and diagram labels, option cards, other records' Explanations and Reasoning, and the effort's files that cite the ID. Search the whole folder (design.json, evidence.json, meetings.json, pages and components) for each ID you changed and for the words and numbers of the old claim, not only the page you were on. This is required after a reduced read. When you find a place that already disagreed before your change, fix it the same way or, if the right version isn't clear, ask.
+
+## A new version
+
+When the working direction changes so far that most of the design would be rewritten (another platform, another architecture), start a new version rather than editing the old one into it:
+
+1. Build the doc, then run `doc.mjs new-version <folder>`. It freezes the current version, with its published doc, in `versions/v<N>/` and makes the folder the next version, with its change log and meetings empty.
+2. Rewrite the folder as the current state, as if there had been no earlier version. Keep what still holds, drop what doesn't, and number the records afresh in reading order. Nothing in it says what carried over or what changed; a reader of the latest version never needs an earlier one. `check` names the records that still point at the old meetings.
+3. Check and build. The published doc is the latest version; a menu in its top bar opens the earlier ones, published beside it as `<slug>.v<N>.html`.
+
+Earlier versions stay readable for agents: before proposing an approach the working direction rules out, look in `versions/` for whether an earlier version took it, and why it was left.
 
 ## After a meeting
 
@@ -121,7 +132,7 @@ Preview by opening the built file in a browser. When a browser tool is available
 - visit each page you changed at desktop width
 - click a few markers to see their cards, including ones defined on another page, and follow a card's link
 - switch to the security view
-- toggle dark mode
+- toggle light mode (the doc opens dark)
 
 Without a browser tool, `scripts/shot.mjs` captures the built doc in headless Chrome (set `CHROME` if the binary isn't `google-chrome`):
 
@@ -130,7 +141,7 @@ node <skill>/scripts/shot.mjs <built>.html page.png --page overview --full   # w
 node <skill>/scripts/shot.mjs <built>.html diagram.png --page overview --selector "#overview-system .diagram"   # one element at 100%
 node <skill>/scripts/shot.mjs <built>.html card.png --page workers --card D1  # D1's card open at its first marker
 node <skill>/scripts/shot.mjs <built>.html security.png --page overview --view security --full
-node <skill>/scripts/shot.mjs <built>.html dark.png --page s3-archive --dark --full
+node <skill>/scripts/shot.mjs <built>.html light.png --page s3-archive --light --full
 ```
 
 The built doc also accepts `?page=`, `?card=` and `?view=security` in its URL, which is what the helper uses.
