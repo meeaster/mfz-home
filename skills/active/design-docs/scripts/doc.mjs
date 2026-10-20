@@ -23,7 +23,7 @@
 // `--pages` builds a copy with only the listed pages. Shared pages (evidence, meetings) come along, trimmed to the items
 // the listed pages cite, and references to anything left out become plain text.
 
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, dirname, extname, join, resolve as resolvePath } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
@@ -42,7 +42,7 @@ import {
   Renderer,
   writeFormat
 } from "./records.mjs";
-import { ChangesError, applyChanges, readChanges, reviewData, reviewFolder } from "./changes.mjs";
+import { ChangesError, applyChanges, readChanges, reviewData, reviewFolder, writeChange } from "./changes.mjs";
 import { bind, renderPages } from "./render.mjs";
 import { SNIPPET_LANGUAGES } from "./snippets.mjs";
 import { esc, escAll, splitLines, unescape } from "./text.mjs";
@@ -1531,22 +1531,58 @@ const USAGE = `usage: doc.mjs check <design folder | doc.html>
            (written to <folder>/.review/<slug>.review.html; the folder is git-ignored)
   apply-changes  write the named draft changes into the design and drop them from the draft`;
 
-function review(doc, source, design) {
+// The design's own files, without its review copies or published doc; the copy sits inside the folder it copies.
+function copyDesign(from, to) {
+  mkdirSync(to, { recursive: true });
+
+  for (const entry of readdirSync(from, { withFileTypes: true })) {
+    if (entry.name === ".review" || entry.name === "published") continue;
+
+    if (entry.isDirectory()) copyDesign(join(from, entry.name), join(to, entry.name));
+    else cpSync(join(from, entry.name), join(to, entry.name));
+  }
+}
+
+// Two review copies: the doc as it is and the doc with every draft change applied, each built the normal way, so the
+// changed one shows exactly what would publish. The review script switches between them.
+async function review(doc, source, design) {
   const shell = resolve(doc)[0];
   const folder = dirname(shell);
   const { changes } = readChanges(folder);
   const data = reviewData(folder, changes);
-  const out = join(reviewFolder(folder), `${docSlug(source.text, shell)}.review.html`);
+  const reviewDir = reviewFolder(folder);
+  const slug = docSlug(source.text, shell);
+  const names = { current: `${slug}.review.html`, changed: `${slug}.changed.html` };
+  const extras = (variant) => ({ css: asset(folder, "review.css"), js: asset(folder, "review.js"), data: { variant, other: names[variant === "current" ? "changed" : "current"], changes: data } });
 
   for (const change of data) {
-    if (change.state === "stale") console.log(`note: ${change.id} rewrites text that has changed since it was drafted`);
+    if (change.state === "stale") console.log(`note: ${change.id} rewrites text that has changed since it was drafted; it isn't in the changed copy`);
 
     if (change.added.length > 0) console.log(`note: ${change.id} cites ${change.added.join(", ")}, which the current text doesn't`);
   }
 
   console.log(`${data.length} draft change(s)`);
 
-  return build(shell, source, design, out, null, { css: asset(folder, "review.css"), js: asset(folder, "review.js"), data });
+  const copy = join(reviewDir, "changed");
+
+  rmSync(copy, { recursive: true, force: true });
+  copyDesign(folder, copy);
+
+  for (const change of changes) {
+    if (data.find((item) => item.id === change.id)?.state === "ready") writeChange(copy, change);
+  }
+
+  const changed = await check(copy);
+
+  for (const error of changed.errors) console.log(`note: with the changes applied: ${error}`);
+
+  const builtCurrent = build(shell, source, design, join(reviewDir, names.current), null, extras("current"));
+
+  if (changed.source === null) return builtCurrent;
+
+  const builtChanged = build(resolve(copy)[0], changed.source, changed.design, join(reviewDir, names.changed), null, extras("changed"));
+
+  return Math.max(builtCurrent, builtChanged);
 }
 
 function applyDraft(doc, ids) {
@@ -1645,7 +1681,7 @@ async function main(argv) {
       return 1;
     }
 
-    return review(doc, source, design);
+    return await review(doc, source, design);
   }
 
   return errors.length > 0 ? 1 : 0;

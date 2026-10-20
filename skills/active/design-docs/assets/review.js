@@ -1,15 +1,16 @@
-// Review copy: shows a design's draft changes on the doc. Each changed passage gets a flag that opens the current and
-// changed text side by side; the top bar lists every change and switches the whole doc between current and changed.
-// Only `doc.mjs review` adds this script, and only to the local review copy.
+// Review copies: the doc as it is and the doc with the draft changes applied, both built the normal way. Each changed
+// passage gets a flag that opens the current and changed text side by side; the top bar lists every change and switches
+// between the two copies at the same place. Only `doc.mjs review` adds this script, and only to the review copies.
 (() => {
   const data = document.getElementById("review-changes");
 
   if (data === null) return;
 
-  const changes = JSON.parse(data.textContent);
+  const { variant, other, changes } = JSON.parse(data.textContent);
   const byId = new Map(changes.map((change) => [change.id, change]));
-  const originals = [];
-  let showing = "current";
+  const SCROLL_KEY = "design-docs-review-place";
+
+  document.documentElement.classList.add(`rv-${variant}`);
 
   const make = (tag, className, content) => {
     const node = document.createElement(tag);
@@ -29,7 +30,7 @@
   const key = (text) =>
     norm(text.replace(/\s*\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, ""))
       .split(" ")
-      .slice(0, 12)
+      .slice(0, 30)
       .join(" ");
 
   const words = (text) => norm(text).split(" ").filter(Boolean).length;
@@ -95,57 +96,63 @@
       ? esc(change.proposed)
       : `<dl class="rv-parts">${change.proposedParts.map(([label, text]) => `${label ? `<dt>${esc(label)}</dt>` : ""}<dd>${esc(text)}</dd>`).join("")}</dl>`;
 
-  // Find each change's passage: the outermost element whose text is the passage.
+  // The blocks a passage can be: a paragraph, list item, cell, field, or a diagram's label.
+  const BLOCKS = "p, li, td, dd, dt, small, .t, [data-ref-detail]";
+
+  // Find each change's passage: the innermost block whose text is the passage, or the first whole block of a change
+  // that runs on into the next.
   const decorate = () => {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
     const found = [];
 
-    for (let node = walker.nextNode(); node !== null; node = walker.nextNode()) {
-      const parent = node.parentElement;
+    for (const element of document.querySelectorAll(BLOCKS)) {
+      if (element.closest(".rv-ui, script, style") !== null || element.querySelector(".rv-target") !== null) continue;
 
-      if (parent === null || parent.closest(".rv-target, .rv-ui, script, style") !== null) continue;
+      const have = key(element.textContent);
 
-      const text = key(node.textContent);
-
-      if (text === "") continue;
+      if (have === "") continue;
 
       for (const change of changes) {
-        const want = key(change.match);
+        const want = key(variant === "changed" ? change.changedMatch : change.match);
 
-        if (!want.startsWith(text) && !text.startsWith(want)) continue;
-
-        let element = parent;
-
-        while (element.parentElement !== null && !element.matches("p, li, td, dd, dt, small, .t") && key(element.parentElement.textContent).startsWith(want)) element = element.parentElement;
-
-        if (key(element.textContent).startsWith(want)) found.push([element, change]);
+        if (have.startsWith(want) || (want.startsWith(have) && have.split(" ").length >= 6)) found.push([element, change]);
       }
     }
+
+    // A cell holding a matching paragraph matches too; keep the paragraph.
+    const innermost = found.filter(([element, change]) => !found.some(([other, same]) => same === change && other !== element && element.contains(other)));
+
+    found.length = 0;
+    found.push(...innermost);
 
     for (const [element, change] of found) {
       if (element.classList.contains("rv-target")) continue;
 
       element.classList.add("rv-target");
+      element.classList.toggle("rv-inline", element.matches("span, small, a, b, .t"));
       element.dataset.change = change.id;
-      element.dataset.original = String(originals.push(element.innerHTML) - 1);
-      render(element);
     }
-  };
 
-  const render = (element) => {
-    const change = byId.get(element.dataset.change);
-    const inline = element.matches("span, small, a, b, .t");
-    const body = showing === "changed" ? (inline ? `<span class="rv-changed">${esc(change.proposed)}</span>` : `<div class="rv-changed">${changedHtml(change)}</div>`) : originals[Number(element.dataset.original)];
-    const flag = `<button type="button" class="rv-flag rv-ui" data-rv-open="${change.id}" title="Compare">${change.id}</button>`;
+    // A change that spans paragraphs or a list: outline the blocks after the first that are part of it.
+    for (const element of document.querySelectorAll(".rv-target:not(.rv-inline)")) {
+      const change = byId.get(element.dataset.change);
+      const whole = norm((variant === "changed" ? change.proposed : change.was).replace(/\s*\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, ""));
 
-    element.classList.toggle("rv-inline", inline);
-    element.innerHTML = body + flag;
-  };
+      for (let next = element.nextElementSibling; next !== null && !next.classList.contains("rv-target"); next = next.nextElementSibling) {
+        const start = norm(next.textContent.replace(/\d+ sources?$/, "")).split(" ").slice(0, 8).join(" ");
 
-  const renderAll = () => {
-    for (const element of document.querySelectorAll(".rv-target")) render(element);
+        if (start === "" || !whole.includes(start)) break;
 
-    updateBar();
+        next.classList.add("rv-continues");
+        next.dataset.change = change.id;
+      }
+    }
+
+    // The doc's IDs switch rewrites a passage's contents; put its flag back when it does.
+    for (const element of document.querySelectorAll(".rv-target")) {
+      if (element.querySelector(":scope > .rv-flag") === null) {
+        element.insertAdjacentHTML("beforeend", `<button type="button" class="rv-flag rv-ui" data-rv-open="${element.dataset.change}" title="Compare">${element.dataset.change}</button>`);
+      }
+    }
   };
 
   // Top bar: the list of changes, and the whole doc current or changed.
@@ -158,7 +165,7 @@
         ["current", "Current"],
         ["changed", "Changed"],
       ]
-        .map(([value, label]) => `<button type="button" data-rv-show="${value}" aria-pressed="${showing === value}">${label}</button>`)
+        .map(([value, label]) => `<button type="button" data-rv-show="${value}" aria-pressed="${variant === value}">${label}</button>`)
         .join("");
   };
 
@@ -291,13 +298,34 @@
       if (control.dataset.rvOpen) openCompare(control.dataset.rvOpen);
       else if ("rvList" in control.dataset) openList();
       else if (control.dataset.rvShow) {
-        showing = control.dataset.rvShow;
-        renderAll();
+        if (control.dataset.rvShow !== variant) switchCopy();
       } else if ("rvClose" in control.dataset) control.closest("dialog")?.close();
       else if (control.dataset.rvGo) goTo(control.dataset.rvGo);
     },
     true,
   );
+
+  // Current and Changed are two files; switching keeps the page (in the address) and the scroll position.
+  const switchCopy = () => {
+    try {
+      sessionStorage.setItem(SCROLL_KEY, JSON.stringify({ to: variant === "current" ? "changed" : "current", y: window.scrollY }));
+    } catch {
+      // Without storage the other copy opens at the top of the same page.
+    }
+
+    location.href = `${other}${location.search}`;
+  };
+
+  try {
+    const place = JSON.parse(sessionStorage.getItem(SCROLL_KEY) ?? "null");
+
+    if (place?.to === variant) {
+      sessionStorage.removeItem(SCROLL_KEY);
+      requestAnimationFrame(() => window.scrollTo({ top: place.y, behavior: "instant" }));
+    }
+  } catch {
+    // Nothing to restore.
+  }
 
   // The doc adds passages as it opens records in its modal; mark them too.
   let queued = false;
