@@ -1,4 +1,4 @@
-import { afterEach, expect, test } from "vitest"
+import { afterEach, expect, test, vi } from "vitest"
 import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
@@ -185,4 +185,72 @@ test("a chat reopened while a summary is in flight, as on a plugin reload, keeps
   expect(readFileSync(join(directory, "tree.jsonl"), "utf8")).not.toContain("late summary")
   second.memory.close()
   second.store.close()
+})
+
+test("a compaction that returns no line keeps its source clipped to the limit, without asking again", async () => {
+  let calls = 0
+
+  const generate = async (): Promise<string> => {
+    calls++
+
+    return "  "
+  }
+
+  const { store, memory } = open(fresh(), generate)
+
+  memory.append("echo", `first line\n${"é".repeat(2_000)}`, "long")
+  await memory.waitFor(1, 5_000)
+
+  const line = lines(memory.render())[0] ?? ""
+
+  expect(calls).toBe(1)
+  expect(line.startsWith("0+1|echo: first line é")).toBe(true)
+  expect(line).not.toContain("�")
+  expect(bytes(line.slice("0+1|".length))).toBe(511)
+
+  memory.close()
+  store.close()
+})
+
+test("a failed compaction is retried in the background, with no turn waiting and no new message", async () => {
+  vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] })
+
+  try {
+    let calls = 0
+
+    const generate = async (compaction: Compaction): Promise<string> => {
+      calls++
+
+      if (calls <= 2) throw new Error("HTTP 503")
+
+      return fakeGenerate(compaction)
+    }
+
+    const { store, memory } = open(fresh(), generate)
+
+    memory.append("echo", "z".repeat(2_000), "long")
+    await vi.advanceTimersByTimeAsync(0)
+
+    expect(calls).toBe(1)
+    expect(memory.builtLines()).toBe(0)
+
+    await vi.advanceTimersByTimeAsync(15_000)
+
+    expect(calls).toBe(2)
+
+    // The second failure waits twice as long.
+    await vi.advanceTimersByTimeAsync(15_000)
+
+    expect(calls).toBe(2)
+
+    await vi.advanceTimersByTimeAsync(15_000)
+
+    expect(calls).toBe(3)
+    expect(memory.builtLines()).toBe(1)
+
+    memory.close()
+    store.close()
+  } finally {
+    vi.useRealTimers()
+  }
 })

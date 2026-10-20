@@ -40,7 +40,16 @@ const CHUNK = 30_000
 /** How many times a compaction is asked for its line before the shortest is kept. */
 export const ATTEMPTS = 5
 
+/** How soon failed compactions are asked again while a turn waits on them. */
 const RETRY_DELAY = 3_000
+
+/**
+ * How soon they are asked again with no turn waiting, doubling after each failed retry up to `IDLE_RETRY_MAX`: an outage
+ * only delays a summary, and a long one costs a call every few minutes per chat.
+ */
+const IDLE_RETRY_FIRST = 15_000
+
+const IDLE_RETRY_MAX = 300_000
 
 /** Keeps a tool's output to its head and tail, `limit` characters in all. */
 export const clip = (text: string, limit = CHUNK): string => {
@@ -51,7 +60,8 @@ export const clip = (text: string, limit = CHUNK): string => {
   return `${text.slice(0, half)}\n[… ${text.length - limit} characters clipped …]\n${text.slice(-half)}`
 }
 
-const headBytes = (text: string, size: number): string => Buffer.from(text, "utf8").subarray(0, size).toString("utf8")
+// A character cut in half decodes as U+FFFD; it is dropped.
+const headBytes = (text: string, size: number): string => Buffer.from(text, "utf8").subarray(0, size).toString("utf8").replace(/\uFFFD+$/, "")
 
 /** A reply as a view line: trimmed, without an id+n| head, on one line. */
 export const clean = (reply: string): string => reply.trim().replace(/^\d+\+\d+\|/, "").replaceAll("\n", " ")
@@ -69,6 +79,8 @@ export class Memory {
   #inflight = 0
   #nextUnbuilt = 0
   #closed = false
+  #retryTimer: { readonly due: number; readonly handle: ReturnType<typeof setTimeout> } | undefined
+  #idleRetryDelay = IDLE_RETRY_FIRST
   readonly #waiters = new Set<{ readonly count: number; readonly resolve: () => void }>()
 
   constructor(options: MemoryOptions) {
@@ -199,6 +211,7 @@ export class Memory {
 
   close(): void {
     this.#closed = true
+    clearTimeout(this.#retryTimer?.handle)
 
     for (const waiter of this.#waiters) waiter.resolve()
   }
@@ -265,6 +278,26 @@ export class Memory {
     this.#pump()
   }
 
+  /**
+   * Asks the failed compactions again after `delay` ms, unless a retry is already due sooner. Each retry doubles the
+   * idle delay, so the compactions that fail together in one outage back off as one.
+   */
+  #scheduleRetry(delay: number): void {
+    const due = Date.now() + delay
+
+    if (this.#closed || (this.#retryTimer !== undefined && this.#retryTimer.due <= due)) return
+
+    clearTimeout(this.#retryTimer?.handle)
+
+    const handle = setTimeout(() => {
+      this.#retryTimer = undefined
+      this.#idleRetryDelay = Math.min(this.#idleRetryDelay * 2, IDLE_RETRY_MAX)
+      this.#retry()
+    }, delay)
+
+    this.#retryTimer = { due, handle }
+  }
+
   #requeueFailed(): void {
     for (const entry of this.#failed.splice(0)) this.#enqueue(entry)
   }
@@ -327,13 +360,16 @@ export class Memory {
 
     if (request === undefined) return
 
+    const { source, ...compaction } = request
+
     try {
-      const text = await this.#write(request)
+      const text = await this.#write(compaction, source)
 
       // Closed while summarizing, as on a plugin reload: the store's files are closed, and whoever opens the chat next
       // summarizes this entry again.
       if (this.#closed) return
 
+      this.#idleRetryDelay = IDLE_RETRY_FIRST
       this.#built(entry, text)
     } catch (error) {
       if (this.#closed) return
@@ -342,32 +378,40 @@ export class Memory {
       this.#failed.push(entry)
       this.#options.report(`compaction ${label(entry)} failed: ${error instanceof Error ? error.message : String(error)}`)
 
-      // A turn may be waiting on this node with no new message coming to retry it.
-      if (this.#waiters.size > 0) setTimeout(() => this.#retry(), RETRY_DELAY)
+      // No new message may come to retry it; a turn waiting on it gets it sooner.
+      this.#scheduleRetry(this.#waiters.size > 0 ? RETRY_DELAY : this.#idleRetryDelay)
     }
   }
 
-  #request(entry: Entry): Omit<Compaction, "attempts"> | undefined {
+  /** The compaction for an entry, and the text it summarizes: a message with its kind, or its two lines. */
+  #request(entry: Entry): (Omit<Compaction, "attempts"> & { readonly source: string }) | undefined {
     if (entry[0] === 0) {
       const message = this.#store.messages[entry[1]]
 
       if (message === undefined) return undefined
 
-      return { view: this.#context(entry[1] - 1), task: compressTask(entry[1], message.kind, message.text) }
+      return { view: this.#context(entry[1] - 1), task: compressTask(entry[1], message.kind, message.text), source: `${message.kind}: ${message.text}` }
     }
 
     const [left, right] = children(entry)
+    const source = `${this.#store.node(left) ?? ""} ${this.#store.node(right) ?? ""}`
 
-    return { view: this.#context(last(entry)), task: mergeTask(label(left), label(right), first(entry), last(entry), this.#line(left), this.#line(right)) }
+    return { view: this.#context(last(entry)), task: mergeTask(label(left), label(right), first(entry), last(entry), this.#line(left), this.#line(right)), source }
   }
 
-  /** Asks for a line, re-asking in the same conversation with the ruler cut until it is within `ACCEPT`; keeps the shortest. */
-  async #write(request: Omit<Compaction, "attempts">): Promise<string> {
+  /**
+   * Asks for a line, re-asking in the same conversation with the ruler cut until it is within `ACCEPT`; keeps the
+   * shortest. An empty reply, as a refusal gives, ends the asking: asked again, it would refuse alike. With no line at
+   * all, the line is the source's first `LIMIT` bytes, so no node is ever stored empty.
+   */
+  async #write(request: Omit<Compaction, "attempts">, source: string): Promise<string> {
     const attempts: { line: string; note: string }[] = []
     let shortest: string | undefined
 
     for (let attempt = 0; attempt < ATTEMPTS; attempt++) {
       const line = clean(await this.#options.generate({ ...request, attempts: [...attempts] }))
+
+      if (line === "") break
 
       if (shortest === undefined || bytes(line) < bytes(shortest)) shortest = line
 
@@ -376,6 +420,8 @@ export class Memory {
       attempts.push({ line, note: tooLong(line.split(/\s+/).filter(Boolean).length, bytes(line), headBytes(line, LIMIT)) })
     }
 
-    return shortest ?? ""
+    if (shortest === undefined) this.#options.report(`compaction returned no line; kept its source clipped to ${LIMIT} bytes`)
+
+    return shortest ?? headBytes(source.replaceAll("\n", " "), LIMIT)
   }
 }
