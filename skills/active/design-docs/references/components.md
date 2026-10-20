@@ -80,7 +80,7 @@ Framing: what's being chosen and what stays the same.
 | `goals [served]` | The body's lines as the numbered goals; with an empty body, the bullets of design.json's Goals. With `served`, each goal lists the deliverables that serve it. |
 | `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.json's Goals. |
 | `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.json, with its fenced diagrams in text left out. |
-| `callout title="…" icon=<symbol>` | An aside with an icon, such as "What would settle it". |
+| `callout title="…" icon=<symbol>` | An aside with an icon, such as "What would settle it". Its body is Markdown: a paragraph, or a lead-in and a bullet per case. |
 | `requirements`, `measure`, `decisions`, `risks`, `plan`, `cost`, `questions`, `parts`, `terms`, `evidence`, `meetings`, `progress`, `reasoning`, `confluence`, `jira`, `other-links` | The record tables, the same as `<!-- records … -->`. |
 | `plan-map` | The plan as a map: deliverables in columns by what they follow, arrows to the ones that follow, group colours and Jira keys, in a canvas the reader pans and zooms. Each card opens its deliverable's modal. |
 

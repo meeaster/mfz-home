@@ -25,7 +25,7 @@ Write each rewrite to `<design>/.review/changes.json`. The folder ignores itself
 ]}
 ```
 
-- A record field's target is `record` and `field`, with `option` for an option's field; `file` is `evidence.json` for a finding. `was` is the value as it is now, string or list.
+- A record field's target is `record` and `field`, with `option` for an option's field; `file` is `evidence.json` for a finding. A record without an ID (a part, a risk, a term) is named by its title or term, with `list` (`parts`, `terms`) when two share a name. A top-level field such as `howItWorks` needs only `field`. `was` is the value as it is now, string or list.
 - A page's target is its file; `was` is a passage that occurs once in it, usually one paragraph.
 - One change per field or paragraph, so each can be judged alone. `why` says what the rewrite fixes in a line.
 - A rewrite may cut references and turn bracketed IDs into linked phrases; it can't cite anything the current text doesn't, and `apply-changes` refuses one that does.

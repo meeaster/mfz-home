@@ -56,11 +56,12 @@ function recordSlot(folder, target) {
   const data = JSON.parse(readFileSync(path, "utf8"));
   let holder = data;
 
+  // A record is named by its id, or by its title when it has none (parts, risks), or a term by the term. `list`
+  // ("parts", "terms") says where to look when a part and a term share a name.
   if (target.record !== undefined) {
-    holder = Object.values(data)
-      .filter(Array.isArray)
+    holder = (target.list === undefined ? Object.values(data).filter(Array.isArray) : [data[target.list] ?? []])
       .flat()
-      .find((item) => item?.id === target.record);
+      .find((item) => item?.id === target.record || (item?.id === undefined && (item?.title ?? item?.term) === target.record));
 
     if (holder === undefined) throw new ChangesError(`no record '${target.record}' in ${file}`);
 
@@ -137,6 +138,41 @@ const partsOf = (value) =>
 
 const startOf = (value) => plainText(Array.isArray(value) ? String(value[0]).replace(/^[^:]{1,40}:\s*/, "") : value);
 
+// The record whose modal shows a change: its id, or for a risk, which has none, the doc's risk-<n>.
+const detailRecord = (folder, target) => {
+  if (target.record === undefined) return null;
+
+  const risks = JSON.parse(readFileSync(join(folder, target.file ?? "design.json"), "utf8")).risks ?? [];
+  const at = risks.findIndex((risk) => risk.id === undefined && risk.title === target.record);
+
+  return at === -1 ? target.record : `risk-${at + 1}`;
+};
+
+// Where a passage written as text changes: its first paragraph, line or table cell that differs, so the flag lands on
+// what changed rather than on an unchanged row label or list above it.
+const firstChanged = (was, proposed) => {
+  const blocks = (text) =>
+    text
+      .split(/\n|(?<!\\)\|/)
+      .map((block) => block.trim())
+      .filter(Boolean);
+
+  const before = blocks(was);
+  const after = blocks(proposed);
+  const at = before.findIndex((block, index) => block !== after[index]);
+
+  return at === -1 ? [was, proposed] : [before[at], after[at] ?? proposed];
+};
+
+const matchesOf = (change) => {
+  // A field written in parts (a list) shows its first part; text is matched where it first differs.
+  if (Array.isArray(change.was) || Array.isArray(change.proposed)) return [startOf(change.was), startOf(change.proposed)];
+
+  const [was, proposed] = firstChanged(String(change.was), String(change.proposed));
+
+  return [plainText(was), plainText(proposed)];
+};
+
 export function reviewData(folder, changes) {
   return changes.map((change) => ({
     id: change.id,
@@ -147,11 +183,11 @@ export function reviewData(folder, changes) {
     was: plainText(change.was),
     // What the passage starts with on the page, now and once changed: a field in parts shows its first part's text
     // under its label.
-    match: startOf(change.was),
-    changedMatch: startOf(change.proposed),
+    match: matchesOf(change)[0],
+    changedMatch: matchesOf(change)[1],
     proposed: plainText(change.proposed),
     proposedParts: partsOf(change.proposed),
-    recordId: change.target.record ?? null,
+    recordId: detailRecord(folder, change.target),
   }));
 }
 

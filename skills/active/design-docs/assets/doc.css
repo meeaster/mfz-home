@@ -450,6 +450,8 @@ html:not(.js) .snippet .copy { display: none; }
 }
 .callout h4 { font-size: 13.5px; margin-bottom: 4px; }
 .callout p { color: var(--muted-foreground); }
+.callout .prose { gap: 8px; max-width: none; font-size: inherit; line-height: inherit; color: var(--muted-foreground); }
+.callout .prose ul { gap: 4px; }
 
 .set-aside {
   display: flex;

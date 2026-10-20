@@ -33,6 +33,22 @@
       .slice(0, 30)
       .join(" ");
 
+  // A block's own text, without the markers the doc adds to it.
+  const textOf = (element) => {
+    const copy = element.cloneNode(true);
+
+    for (const added of copy.querySelectorAll(".ref-marker, .rv-ui")) added.remove();
+
+    return copy.textContent;
+  };
+
+  // A passage as one line of text, without the bullets its Markdown starts items with.
+  const flat = (text) => norm(text.replace(/\s*\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, "").replace(/(^|\s)(?:[-*]|\d+\.)(?=\s)/g, "$1"));
+
+  // Text without a short lead-in label, which the doc may word differently ("Not in scope:" shows as "Not part of this
+  // design:").
+  const bare = (text) => norm(text).replace(/^[^:.]{1,30}:\s+/, "");
+
   const words = (text) => norm(text).split(" ").filter(Boolean).length;
 
   // Word diff by longest common subsequence.
@@ -107,12 +123,12 @@
     for (const element of document.querySelectorAll(BLOCKS)) {
       if (element.closest(".rv-ui, script, style") !== null || element.querySelector(".rv-target") !== null) continue;
 
-      const have = key(element.textContent);
+      const have = key(bare(textOf(element)));
 
       if (have === "") continue;
 
       for (const change of changes) {
-        const want = key(variant === "changed" ? change.changedMatch : change.match);
+        const want = key(bare(flat(variant === "changed" ? change.changedMatch : change.match)));
 
         if (have.startsWith(want) || (want.startsWith(have) && have.split(" ").length >= 6)) found.push([element, change]);
       }
@@ -135,10 +151,12 @@
     // A change that spans paragraphs or a list: outline the blocks after the first that are part of it.
     for (const element of document.querySelectorAll(".rv-target:not(.rv-inline)")) {
       const change = byId.get(element.dataset.change);
-      const whole = norm((variant === "changed" ? change.proposed : change.was).replace(/\s*\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, ""));
+      const whole = flat(variant === "changed" ? change.proposed : change.was);
 
       for (let next = element.nextElementSibling; next !== null && !next.classList.contains("rv-target"); next = next.nextElementSibling) {
-        const start = norm(next.textContent.replace(/\d+ sources?$/, "")).split(" ").slice(0, 8).join(" ");
+        // A list continues the passage when its first item does.
+        const first = next.matches("ul, ol") && next.firstElementChild !== null ? next.firstElementChild : next;
+        const start = norm(textOf(first)).split(" ").slice(0, 8).join(" ");
 
         if (start === "" || !whole.includes(start)) break;
 
