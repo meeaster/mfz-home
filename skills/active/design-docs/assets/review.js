@@ -27,7 +27,7 @@
 
   // Compare text without bracketed references, which the doc may have moved into markers.
   const key = (text) =>
-    norm(text.replace(/\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, " "))
+    norm(text.replace(/\s*\((?:\s*[EQDRP]\d+\s*[,;]?)+\)/g, ""))
       .split(" ")
       .slice(0, 12)
       .join(" ");
@@ -110,7 +110,7 @@
       if (text === "") continue;
 
       for (const change of changes) {
-        const want = key(change.was);
+        const want = key(change.match);
 
         if (!want.startsWith(text) && !text.startsWith(want)) continue;
 
@@ -207,6 +207,13 @@
       // A record's own field shows in its modal: open the record, then find the passage there.
       const row = change.recordId === null ? null : document.querySelector(`[data-detail="${change.recordId}-detail"]`);
 
+      // A change to page source with no text of its own on the page, such as a component's settings: compare it here.
+      if (row === null) {
+        openCompare(id);
+
+        return;
+      }
+
       if (row !== null) {
         document.querySelector(`a[href="#${pageOf(row)?.id}"]`)?.click();
         setTimeout(() => {
@@ -239,7 +246,7 @@
       const element = document.querySelector(`.rv-target[data-change="${change.id}"]`);
       const page = element === null ? null : pageOf(element);
 
-      return { change, page: page?.id ?? "", title: page?.dataset.pageTitle ?? "Not found on a page" };
+      return { change, page: page?.id ?? "", title: page?.dataset.pageTitle ?? "Page source, nothing to flag on the page" };
     });
 
     placed.sort((left, right) => order.indexOf(left.page) - order.indexOf(right.page));

@@ -1,6 +1,8 @@
 // A prose section of design.md (problem, goals, how-it-works), shown where a page asks for it, so the
-// words an agent reads in design.md are the words people read in the doc. A fence that names its language
-// is a snippet and shows; a bare fence is a text diagram for agents, and the page draws its own picture.
+// words an agent reads in design.md are the words people read in the doc. A fence in a language the doc colours is a
+// snippet and shows; any other fence (bare, text, ascii) is a text diagram for agents, and the page draws its own.
+
+import { SNIPPET_LANGUAGES } from "../../scripts/snippets.mjs";
 //
 //   ::: design-section section=how-it-works
 //   :::
@@ -21,7 +23,7 @@ export default async function designSection({ props, model, markdown, error }) {
     const opening = fence === null && line.trim().startsWith("```");
 
     if (opening) {
-      fence = line.trim().slice(3).trim() === "" ? "diagram" : "snippet";
+      fence = SNIPPET_LANGUAGES.includes(line.trim().slice(3).trim().toLowerCase()) ? "snippet" : "diagram";
     } else if (fence !== null && line.trim().startsWith("```")) {
       if (fence === "snippet") lines.push(line);
 
