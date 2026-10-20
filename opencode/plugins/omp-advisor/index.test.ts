@@ -42,7 +42,6 @@ describe("OMP Advisor", () => {
     const update = compactionUpdate("primary", {
       eventID: "event-1",
       reason: "auto",
-      recent: "message-9",
       text: "The implementation is complete through task 4.",
     });
 
@@ -51,7 +50,6 @@ describe("OMP Advisor", () => {
     expect(JSON.parse(update.split("\n\n")[1])).toEqual({
       sessionID: "primary",
       reason: "auto",
-      recentMessageID: "message-9",
       summary: "The implementation is complete through task 4.",
     });
   });

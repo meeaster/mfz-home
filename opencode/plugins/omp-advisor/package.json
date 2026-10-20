@@ -4,7 +4,7 @@
   "type": "module",
   "exports": ".",
   "devDependencies": {
-    "@opencode/plugin": "2.0.0",
+    "@opencode/plugin": "2.1.1",
     "zod": "4.4.3"
   }
 }

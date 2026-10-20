@@ -21,4 +21,3 @@ minimumReleaseAge: 4320
 minimumReleaseAgeExclude:
   - '@opencode/*'
   - '@opentui/*'
-  - opencode-drive@2.1.3

@@ -1,6 +1,7 @@
 import { Plugin } from "@opencode/plugin";
 import { OpenCode } from "@opencode/client";
 import { Service } from "@opencode/client/service";
+import { z } from "zod";
 
 const DEFAULT_BYTE_BUDGET = 40_000;
 
@@ -9,6 +10,9 @@ const TOOL_RESULT_LIMIT = 400;
 const SHELL_OUTPUT_LIMIT = 200;
 
 const TRUNCATED_SUFFIX = "… (truncated)";
+
+// Compactions stored before OpenCode 2.1 carry their retained conversation as text; newer ones keep those messages in place.
+const LegacyRecent = z.string().min(1);
 
 const sessionContextInput = {
   type: "object",
@@ -195,8 +199,10 @@ function renderMessage(message: ContextMessage) {
       return renderShell(message);
     case "compaction":
       if (message.status === "completed") {
-        return message.recent
-          ? `[COMPACTION SUMMARY] ${message.summary}\n[RETAINED RECENT CONVERSATION — pre-serialized by OpenCode; may include reasoning, skill text, and longer tool output]\n${message.recent}`
+        const recent = LegacyRecent.safeParse(message.metadata?.recent);
+
+        return recent.success
+          ? `[COMPACTION SUMMARY] ${message.summary}\n[RETAINED RECENT CONVERSATION — pre-serialized by OpenCode; may include reasoning, skill text, and longer tool output]\n${recent.data}`
           : `[COMPACTION SUMMARY] ${message.summary}`;
       }
 

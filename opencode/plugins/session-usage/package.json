@@ -10,11 +10,11 @@
     "test:drive": "opencode-drive run ./drive/regression.ts"
   },
   "dependencies": {
-    "@opencode/plugin": "2.0.9",
+    "@opencode/plugin": "2.1.1",
     "zod": "4.1.8"
   },
   "devDependencies": {
-    "effect": "4.0.0-rc.112",
-    "opencode-drive": "2.1.3"
+    "effect": "4.0.1",
+    "opencode-drive": "2.3.0"
   }
 }

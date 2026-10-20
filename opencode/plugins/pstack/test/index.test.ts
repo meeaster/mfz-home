@@ -19,7 +19,7 @@ describe("pstack plugin", () => {
     expect(registered.filter((skill) => skill.id.startsWith("pstack-")).length).toBeGreaterThan(20);
     expect(registered.find((skill) => skill.id === "poteto-mode")).toMatchObject({ autoinvoke: false });
     expect(registered.every((skill) => !Object.hasOwn(skill, "slash"))).toBe(true);
-    expect(registered.every((skill) => skill.location.endsWith("SKILL.md"))).toBe(true);
+    expect(registered.every((skill) => skill.path.endsWith("SKILL.md"))).toBe(true);
   });
 
   it("rejects malformed owned frontmatter", () => {
@@ -31,6 +31,7 @@ describe("pstack plugin", () => {
 
   it("registers inherited-model subagents with the expected permissions", async () => {
     const prompts = await loadPrompts();
+
     const definitions = new Map<
       string,
       {

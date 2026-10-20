@@ -16,7 +16,6 @@ const watchedSessions = new Map<string, { primarySessionID: string; userID: stri
 const CompactionSummary = z.object({
   eventID: z.string(),
   reason: z.enum(["auto", "manual"]),
-  recent: z.string(),
   text: z.string(),
 });
 
@@ -69,7 +68,6 @@ export function compactionUpdate(sessionID: string, summary: CompactionSummary) 
     JSON.stringify({
       sessionID,
       reason: summary.reason,
-      recentMessageID: summary.recent,
       summary: summary.text,
     }),
   ].join("\n\n");
@@ -233,7 +231,6 @@ export default {
           void resync(event.data.sessionID, {
             eventID: event.id,
             reason: event.data.reason,
-            recent: event.data.recent,
             text: event.data.text,
           }).catch((error) => {
             console.error(`[${SOURCE}] compaction resync failed`, error);

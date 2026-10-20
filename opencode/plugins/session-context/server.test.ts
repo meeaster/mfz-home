@@ -21,7 +21,7 @@ function assistant(
 ): SessionContextMessage {
   type AssistantPart = Extract<SessionContextMessage, { type: "assistant" }>["content"][number];
 
-  const parts: AssistantPart[] = [{ type: "text", text, state: {} }];
+  const parts: AssistantPart[] = [{ type: "text", text }];
 
   if (options.toolStatus) {
     parts.push({
@@ -37,8 +37,6 @@ function assistant(
             : options.toolStatus === "completed"
               ? { status: "completed", input: {}, content: [{ type: "text", text: "done" }], metadata: undefined }
               : { status: "error", input: {}, error: { type: "Error", message: "failed" }, content: undefined, metadata: undefined },
-      providerState: undefined,
-      providerResultState: undefined,
       time: { created },
     });
   }
@@ -98,9 +96,8 @@ function compaction(id: string, status: "running" | "completed" | "failed", rece
           status,
           reason: "manual",
           summary: "summary",
-          recent,
           time: { created },
-          metadata: undefined,
+          metadata: { recent },
         }) as SessionContextMessage,
   );
 }
@@ -197,8 +194,8 @@ describe("session-context formatter", () => {
         message({
           ...result,
           content: [
-            { type: "reasoning", text: "thinking", state: {}, time: undefined },
-            { type: "tool", id: "tool", name: "read", executed: true, state: { status: "error", input: {}, error: { type: "Error", message: "failed" }, content: [{ type: "text", text: longResult }], metadata: undefined }, providerState: undefined, providerResultState: undefined, time: { created } },
+            { type: "reasoning", text: "thinking", time: undefined },
+            { type: "tool", id: "tool", name: "read", executed: true, state: { status: "error", input: {}, error: { type: "Error", message: "failed" }, content: [{ type: "text", text: longResult }], metadata: undefined }, time: { created } },
           ],
         } as SessionContextMessage),
       ],

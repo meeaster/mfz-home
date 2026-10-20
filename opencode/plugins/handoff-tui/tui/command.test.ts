@@ -11,7 +11,7 @@ function context(sessionID?: string) {
   const promptResult = {
     id: "prompt",
     sessionID: inboxSessionID,
-    timeCreated: 0,
+    time: { created: 0 },
     type: "user",
     payload: { text: "" },
     delivery: "queue",
@@ -20,7 +20,7 @@ function context(sessionID?: string) {
   const compactResult = {
     id: "compact",
     sessionID: inboxSessionID,
-    timeCreated: 0,
+    time: { created: 0 },
     type: "compaction",
     payload: {},
     delivery: "steer",
