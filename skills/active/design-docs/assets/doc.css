@@ -1276,6 +1276,9 @@ html.js .plan-canvas .diagram { margin-inline: 0; }
 /* Markers pinned to a diagram element's top-right corner: place a .ref, or a .pins group of several, with --x and --y. */
 .diagram > .ref, .diagram > .pins { z-index: 2; }
 .pins { display: inline-flex; gap: 4px; }
+/* A box's markers: placed at the box's top-right corner (--x = its right edge, --y = its top), aligned just inside it and
+   centred on the border. */
+.diagram > .pins.corner { transform: translate(calc(-100% - 10px), -50%); white-space: nowrap; }
 .edge-label .ref { margin-left: 4px; }
 
 /* Decision map nodes */

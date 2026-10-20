@@ -16,11 +16,12 @@ A diagram is there so the reader can take something in without reading it, which
 | Connection | `<path class="edge">` / `class="edge new"` | Direction of flow, with an arrowhead. New connections take the option's colour. |
 | Connection label | `.edge-label` (`.new` for coloured) | What flows or how: "syslog · VPN", "PrivateLink", "HTTPS". |
 | Passes through | `.via` chip on the line | A hop the traffic crosses without stopping: a gateway, VPN, or peering. |
-| Evidence | `<a class="ref ref-e">E4</a>` pinned to a corner | How we know this part is true. |
-| Not confirmed | `<a class="ref ref-q">Q3</a>` pinned to a corner | An assumption that an open question would confirm. |
-| Decision | `<a class="ref ref-d">D2</a>` on the part or line it decides | Coloured by the decision's status. Put one on every dashed part, and on solid parts a settled decision shaped, such as sizing or retention. |
+| Evidence | `<a class="ref ref-e">E4</a>` in the box's corner group | How we know this part is true. |
+| Not confirmed | `<a class="ref ref-q">Q3</a>` in the box's corner group | An assumption that an open question would confirm. |
+| Decision | `<a class="ref ref-d">D2</a>` in the corner group of the part it decides | Coloured by the decision's status. Put one on every dashed part, and on solid parts a settled decision shaped, such as sizing or retention. |
 | Designed elsewhere | `<a class="page-link" href="#area-id">Page <svg>…</svg></a>` beside a box | The part has its own area page. |
-| Several markers | `<span class="pins">` holding refs | More than one claim about the same box. A marker can also sit inside an `.edge-label` when the claim is about the connection. |
+| A box's markers | `<span class="pins corner" style="--x:…;--y:…">` holding its refs | See [Markers](#markers). |
+| A line's markers | `<span class="pins line" style="--x:…;--y:…">`, or refs inside its `.edge-label` | Claims about the connection, not either end. |
 
 - Every box, zone and non-obvious connection carries an evidence or question marker.
 - If nothing supports a part, either find evidence or add an open question.
@@ -28,6 +29,16 @@ A diagram is there so the reader can take something in without reading it, which
 - On a design page, draw only the design as it stands. Alternatives belong in the brief that weighs them.
 - The security view of each option has its own conventions (boundaries, numbered flows, protection labels); see [security](security.md).
 - When several environments or accounts are set up identically, draw one and say so in the zone label ("staging and prod, identical"), with a marker for how that's known. Draw them separately only where they differ.
+
+## Markers
+
+You place every marker; nothing moves them after you. Readers find a box's markers in one place, so:
+
+- **One group per box, at its top-right corner.** Put all of a box's refs in one `<span class="pins corner">` and give it the box's own right edge and top as coordinates: `--x` is the box's `--x` plus its `--w`, `--y` is its `--y`. The style aligns the group's right end just inside that corner, centred on the border, so you never work out an offset.
+- **Two or more refs show as one counted button** that lists them, amber when any is open; one ref shows as itself. Group what belongs to the box, nothing else.
+- **A line's markers stay on the line:** a decision or question about a connection goes in its `.edge-label`, or in a `<span class="pins line">` placed beside the line, clear of both ends.
+- **Nothing covers text.** A corner group mustn't sit on the box's own title, on a zone's label, on a line label or on another group. When a corner is crowded, move what's crowding it (shift the box, shorten or move the label, nudge the line) rather than moving the group off its corner.
+- **Check it by looking.** After building, screenshot every diagram in each of its views and confirm each group sits on its box's corner and covers nothing. `check` warns about a marker outside a corner or line group, and a corner group that isn't on a box's corner, but only a screenshot shows overlap.
 
 ## Coordinates
 
