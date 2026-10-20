@@ -1022,6 +1022,50 @@ function checkMarkerEdges(text, where) {
   return warnings;
 }
 
+// Diagram markers sit in a box's corner group or a line's group (see diagrams.md › Markers). This only reports; where a
+// marker goes is the author's call.
+const ANY_DIAGRAM = /<div class="diagram(?: [^"]*)?"[^>]*style="[^"]*--w:\d+/g;
+
+const BOX = /<div class="(?:node|zone|area-node)(?: [^"]*)?"[^>]*style="([^"]*)"/g;
+
+const POSITIONED = /<(a|span) class="((?:ref ref-\w|pins)[^"]*)"[^>]*style="([^"]*)"[^>]*>([\s\S]*?)<\/\1>/g;
+
+const styleVars = (style) => Object.fromEntries([...style.matchAll(/--(\w+):\s*(-?\d+(?:\.\d+)?)/g)].map((match) => [match[1], Number(match[2])]));
+
+function checkCornerMarkers(text, where) {
+  const warnings = [];
+  const starts = [...text.matchAll(ANY_DIAGRAM)].map((match) => match.index);
+
+  starts.forEach((start, index) => {
+    const segment = text.slice(start, starts[index + 1] ?? text.length);
+
+    const boxes = [...segment.matchAll(BOX)].flatMap((match) => {
+      const box = styleVars(match[1]);
+
+      return box.w === undefined ? [] : [box];
+    });
+
+    for (const match of segment.matchAll(POSITIONED)) {
+      const classes = match[2].split(/\s+/);
+      const at = styleVars(match[3]);
+      const label = match[4].replace(/<[^>]+>/g, " ").split(/\s+/).filter(Boolean).join(" ");
+      const line = where(lineAt(text, start + match.index));
+
+      if (at.x === undefined || classes.includes("line")) continue;
+
+      if (!classes.includes("pins")) {
+        warnings.push(`${line}: marker ${label} is placed on its own; put it in its box's corner group (pins corner) or a line's group (pins line)`);
+      } else if (!classes.includes("corner")) {
+        warnings.push(`${line}: marker group ${label} isn't a corner or line group; use pins corner at its box's top-right, or pins line on a connection`);
+      } else if (!boxes.some((box) => Math.abs(box.x + box.w - at.x) <= 2 && Math.abs(box.y - at.y) <= 2)) {
+        warnings.push(`${line}: corner group ${label} at --x:${at.x};--y:${at.y} isn't on a box's top-right corner; give it the box's --x plus --w, and its --y`);
+      }
+    }
+  });
+
+  return warnings;
+}
+
 // [doc.html, the records file, folder] for a folder, a doc.html, or a records file.
 function resolve(target) {
   const isDir = existsSync(target) && statSync(target).isDirectory();
@@ -1126,6 +1170,7 @@ async function check(target) {
   const text = checkText(p, where);
 
   warnings.push(...checkMarkerEdges(source.text, where));
+  warnings.push(...checkCornerMarkers(source.text, where));
   warnings.push(...checkFlowChips(source.text, where));
 
   const pages = checkPages(p, source.text, where);
