@@ -146,7 +146,7 @@ skills:
   vision-steward:
     agents: { opencode: true, claude-code: true, codex: true }
   audit-ai-writing:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   grill-with-docs:
     agents: { opencode: false, claude-code: false, codex: false }
   grill-me:
@@ -183,13 +183,13 @@ skills:
   ui-ux-design:
     agents: { opencode: false, claude-code: false, codex: false }
   show-me:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   visual-explainer:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   visual-pr:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   pr-lens:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
 mcp:
   browser-control:
     agents: [opencode, claude-code, codex]
