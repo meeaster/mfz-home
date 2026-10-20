@@ -32,7 +32,7 @@ Write each rewrite to `<design>/.review/changes.json`. The folder ignores itself
 
 ## 3. Show them
 
-Run `node <skill>/scripts/doc.mjs review <folder>` and open `<folder>/.review/<slug>.review.html`. Each changed passage has a flag that opens the current and changed text side by side; "N changes" in the top bar lists them all and goes to each, and Current / Changed switches the whole doc. Tell the user it's ready and what the pass covered.
+Run `node <skill>/scripts/doc.mjs review <folder>`. It builds two copies the normal way: `<slug>.review.html`, the doc as it is, and `<slug>.changed.html`, the doc with every draft change applied, so the changed copy shows exactly what would publish. Open the current one. Each changed passage is outlined with a flag that opens the current and changed text side by side; "N changes" in the top bar lists them all and goes to each; Current / Changed switches between the copies at the same place. Look at the changed copy yourself before handing it over: the phrases underline, lists and snippets render, and every change is flagged. Tell the user it's ready and what the pass covered.
 
 ## 4. Revise with the user
 

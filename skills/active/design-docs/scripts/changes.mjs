@@ -135,6 +135,8 @@ const partsOf = (value) =>
       })
     : null;
 
+const startOf = (value) => plainText(Array.isArray(value) ? String(value[0]).replace(/^[^:]{1,40}:\s*/, "") : value);
+
 export function reviewData(folder, changes) {
   return changes.map((change) => ({
     id: change.id,
@@ -143,12 +145,30 @@ export function reviewData(folder, changes) {
     state: changeState(folder, change),
     added: addedIds(change),
     was: plainText(change.was),
-    // What the passage starts with on the page: a field in parts shows its first part's text under its label.
-    match: plainText(Array.isArray(change.was) ? String(change.was[0]).replace(/^[^:]{1,40}:\s*/, "") : change.was),
+    // What the passage starts with on the page, now and once changed: a field in parts shows its first part's text
+    // under its label.
+    match: startOf(change.was),
+    changedMatch: startOf(change.proposed),
     proposed: plainText(change.proposed),
     proposedParts: partsOf(change.proposed),
     recordId: change.target.record ?? null,
   }));
+}
+
+// Writes one change into a design folder: the design itself, or the review's changed copy.
+export function writeChange(folder, change) {
+  if (change.target.field !== undefined) {
+    const slot = recordSlot(folder, change.target);
+
+    slot.holder[change.target.field] = change.proposed;
+    writeFileSync(slot.path, `${JSON.stringify(slot.data, null, 2)}\n`);
+
+    return;
+  }
+
+  const file = pagePath(folder, change.target);
+
+  writeFileSync(file, readFileSync(file, "utf8").replace(String(change.was), () => String(change.proposed)));
 }
 
 export function applyChanges(folder, ids) {
@@ -174,17 +194,7 @@ export function applyChanges(folder, ids) {
       continue;
     }
 
-    if (change.target.field !== undefined) {
-      const slot = recordSlot(folder, change.target);
-
-      slot.holder[change.target.field] = change.proposed;
-      writeFileSync(slot.path, `${JSON.stringify(slot.data, null, 2)}\n`);
-    } else {
-      const file = pagePath(folder, change.target);
-
-      writeFileSync(file, readFileSync(file, "utf8").replace(String(change.was), () => String(change.proposed)));
-    }
-
+    writeChange(folder, change);
     applied.push(change);
   }
 

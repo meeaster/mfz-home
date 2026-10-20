@@ -7,11 +7,15 @@
 
 .rv-target { position: relative; outline: 1px dashed color-mix(in srgb, var(--rv) 55%, transparent); outline-offset: 4px; border-radius: 4px; }
 .rv-target.rv-flash { outline: 2px solid var(--rv); }
+.rv-continues { outline: 1px dashed color-mix(in srgb, var(--rv) 55%, transparent); outline-offset: 4px; border-radius: 4px; }
+.rv-changed .rv-continues { outline-color: color-mix(in srgb, var(--rv-ins) 60%, transparent); }
 .rv-flag { position: absolute; top: -9px; right: -8px; z-index: 3; border: 1px solid var(--rv); background: var(--rv-bg); color: var(--rv); font: 600 11px/1 var(--font-mono); padding: 4px 6px; border-radius: 999px; cursor: pointer; }
 .rv-flag:hover { background: var(--rv); color: #fff; }
 .rv-inline > .rv-flag { position: static; margin-left: 4px; vertical-align: 1px; padding: 2px 5px; }
-.rv-changed { display: block; box-shadow: inset 3px 0 0 var(--rv-ins); padding-left: 10px; }
-span.rv-changed { display: inline; box-shadow: none; padding: 0; background: var(--rv-ins-bg); }
+/* In the changed copy, flags and outlines are green: this is what the draft would publish. */
+.rv-changed .rv-target { outline-color: color-mix(in srgb, var(--rv-ins) 60%, transparent); }
+.rv-changed .rv-flag { border-color: var(--rv-ins); background: var(--rv-ins-bg); color: var(--rv-ins); }
+.rv-changed .rv-flag:hover { background: var(--rv-ins); color: #fff; }
 del.rv { color: var(--rv-del); background: var(--rv-del-bg); text-decoration: line-through; border-radius: 3px; padding: 0 2px; }
 ins.rv { color: var(--rv-ins); background: var(--rv-ins-bg); text-decoration: none; border-radius: 3px; padding: 0 2px; }
 .rv-parts { margin: 0; }
