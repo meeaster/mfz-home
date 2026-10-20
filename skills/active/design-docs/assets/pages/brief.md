@@ -40,7 +40,7 @@ WHY IT HAS TO BE SETTLED NOW.
 
 FRAMING: WHAT'S BEING CHOSEN AND WHAT STAYS THE SAME EITHER WAY.
 
-::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour | evidence: How we know | question"
+::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour"
 :::
 
 <!-- The cards come from the options under D1 in design.md. Draw each option's picture as a component and name it:

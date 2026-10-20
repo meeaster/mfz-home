@@ -58,7 +58,7 @@ Framing: what's being chosen and what stays the same.
 
 **Inside a section**
 
-- Paragraphs and `- ` lists. IDs become mentions; `[text](#id)` links; `**bold**`, `*italic*`, `` `code` ``; inline HTML passes through.
+- Paragraphs, `- ` and `1. ` lists, `> ` quotes, and fenced snippets, which all break a long passage into pieces and work in In short and section intros too. Name a snippet's language after the fence (```` ```hcl ````, ```` ```bash ````, ```` ```json ````, ```` ```yaml ````, ```` ```powershell ````, ```` ```sql ````) and the build colours it in the doc's palette, with a header and a Copy button; ```` ```console ```` is a terminal session, where `$ ` lines are commands and the rest is their output; a fence with no language stays plain. `check` lists the languages it knows. In How it works, a bare fence is a text diagram for agents and stays out of the page. `[the phrase](#D1)` links a record by the words that name it; a bare ID becomes a mention, and a bracketed one after a claim, `(E2)`, is gathered into its paragraph's or cell's marker by the doc's script. `[text](#id)` links anything else; `**bold**`, `*italic*`, `` `code` ``; inline HTML passes through. See [writing](writing.md#less-on-the-page).
 - `### Title {#id}` and an optional line under it: a subhead. With an id it's a sub-link in the rail; `{#id rail=Cost}` gives it a shorter name there.
 - A pipe table becomes a `.table`.
 - `::: name key=value` … `:::` renders a component, with the lines between as its body. `<!-- component name key=value -->` does the same in one line, and works in HTML too.
@@ -76,7 +76,7 @@ Framing: what's being chosen and what stays the same.
 | `cost-options D1` | A bar per option splitting the shared part from the difference, then the cost lines grouped into "differs" (those that `Vary with` the decision) and "same". It counts the lines on the pages the decision reaches (its Page and Applies to, and the overview's own); a decision with neither counts every line. It shows the Costs basis first, each line's category and Applies when, and Unknown for a line with no figure; the totals count only what's known and say what they leave out. While every line is unknown, leave it out; the Cost section already says what isn't known. |
 | `decision-map [D1 D2]` | The page's decisions, the ones they follow and the ones waiting on them, in columns by what must be decided first, with each one's open questions under it. |
 | `flows <view>` | A security view's data flows table, from the Flows records whose ID starts with the view (`B` for B-F1). |
-| `diagram-key items="today \| new: label \| …" [title=…] [design]` | A legend from named entries: `today`, `outside`, `new`, `pending`, `sketch`, `retired`, `area`, `context`, `covered`, `blocking`, `first`, `decision`, `evidence`, `question`, `boundary`, `crosses`, `attention`, `protected`, `transit`. `name: label` changes an entry's words and `name(sample)` its sample, as in `boundary: Our AWS account` or `transit(TLS · IAM)`. Give the flow entries the view's own numbers: `crosses(F1) \| attention(F2) \| protected(F3)`. |
+| `diagram-key items="today \| new: label \| …" [title=…] [design]` | A legend from named entries: `today`, `outside`, `new`, `pending`, `sketch`, `retired`, `area`, `context`, `covered`, `blocking`, `first`, `boundary`, `crosses`, `attention`, `protected`, `transit`. `name: label` changes an entry's words and `name(sample)` its sample, as in `boundary: Our AWS account` or `transit(TLS · IAM)`. Give the flow entries the view's own numbers: `crosses(F1) \| attention(F2) \| protected(F3)`. |
 | `goals [served]` | The body's lines as the numbered goals; with an empty body, the bullets of design.json's Goals. With `served`, each goal lists the deliverables that serve it. |
 | `scope-note` | "Not part of this design:" and the body; with an empty body, the `Not in scope:` line of design.json's Goals. |
 | `design-section section=<problem\|goals\|how-it-works>` | That prose section of design.json, with its fenced diagrams in text left out. |
@@ -152,7 +152,8 @@ What a component or raw block draws builds from the classes in `assets/doc.css`,
 | `<span class="tag">D1</span>` | A mono tag |
 | `<span class="letter">A</span>` inside `.opt-a` | An option's letter in its colour; `letter sm` in tables, `letter sm plain` for set-aside options, `numeral` for numbered options |
 | `<a class="ref ref-e" href="#E2">E2</a>` | A marker that opens the record's card: `ref-q`, `ref-d`, `ref-r` for the others. Wrap several on one box in `<span class="pins" style="--x:…;--y:…">`. |
-| `<a class="mention" href="#Q2">Q2</a>` | The same inside a sentence |
+| `<a class="mention phrase" href="#Q2">the phrase</a>` | A record named in a sentence; `mention` alone keeps the ID as the text |
+| `<button class="ref-marker">` | Built by the doc's script, never written: the marker that lists a paragraph's, cell's or chip group's references |
 | `<a class="page-link" href="#s3-archive"><svg>…</svg>Page · S3 archive</a>` | A link to another page |
 | `<span class="verdict yes\|partly\|no">Reason.</span>` | A verdict |
 

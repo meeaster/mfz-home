@@ -42,7 +42,9 @@ import {
   Renderer,
   writeFormat
 } from "./records.mjs";
+import { ChangesError, applyChanges, readChanges, reviewData, reviewFolder } from "./changes.mjs";
 import { bind, renderPages } from "./render.mjs";
+import { SNIPPET_LANGUAGES } from "./snippets.mjs";
 import { esc, escAll, splitLines, unescape } from "./text.mjs";
 
 const SCRIPTS = dirname(fileURLToPath(import.meta.url));
@@ -910,6 +912,61 @@ function checkHandPending(text, where, folder) {
 }
 
 // A flow's chip in a diagram has the colour of its row in the flows table.
+// Page prose: decisions, questions and requirements named in words, not written as bracketed IDs.
+const BRACKETED_RECORD = /\((?:[^()]*?[,;]\s*)?[DQR]\d+\b[^()]*\)/g;
+
+function checkPageProse(folder) {
+  const warnings = [];
+  const pagesFolder = join(folder, "pages");
+
+  if (!existsSync(pagesFolder)) {
+    return warnings;
+  }
+
+  for (const name of readdirSync(pagesFolder).filter((file) => file.endsWith(".md")).sort()) {
+    const lines = splitLines(readFileSync(join(pagesFolder, name), "utf8"));
+    let inBlock = false;
+    let inFence = false;
+    let bracketed = 0;
+
+    for (const line of lines) {
+      if (line.trim().startsWith("```")) {
+        const fence = line.trim().slice(3).trim().toLowerCase();
+
+        if (!inFence && fence !== "" && !SNIPPET_LANGUAGES.includes(fence)) {
+          warnings.push(`pages/${name}: snippet language '${fence}' isn't one the doc colours; it shows plain. Known: ${SNIPPET_LANGUAGES.join(", ")}`);
+        }
+
+        inFence = !inFence;
+        continue;
+      }
+
+      if (inFence) {
+        continue;
+      }
+
+      if (line.startsWith(":::")) {
+        inBlock = !inBlock && line.trim() !== ":::";
+        continue;
+      }
+
+      const prose = !inBlock && line.trim() !== "" && !/^\s*(?:\||<|#|---)/.test(line);
+
+      if (!prose) {
+        continue;
+      }
+
+      bracketed += [...line.matchAll(BRACKETED_RECORD)].length;
+    }
+
+    if (bracketed > 0) {
+      warnings.push(`pages/${name}: ${bracketed} decision, question or requirement ID${bracketed === 1 ? "" : "s"} in brackets in prose; link the words that name each one, [the phrase](#D1)`);
+    }
+  }
+
+  return warnings;
+}
+
 function checkFlowChips(text, where) {
   const rows = new Map([...text.matchAll(/<tr id="([\w-]+-F\d+)" data-ref="flow"><td><span class="([^"]*)"/g)].map((match) => [match[1], new Set(match[2].split(/\s+/))]));
   const warnings = [];
@@ -1044,6 +1101,7 @@ async function check(target) {
 
     warnings.push(...checkAgainstRecords(design, filled, where));
     warnings.push(...checkHandPending(filled, where, dirname(shell)));
+    warnings.push(...checkPageProse(dirname(shell)));
 
     const knowledge = checkKnowledgeLinks(design, folder);
 
@@ -1300,7 +1358,8 @@ function asset(folder, name) {
   return readFileSync(existsSync(local) ? local : join(SKILL_ASSETS, name), "utf8");
 }
 
-function build(shell, source, design, out, keep) {
+// extras: a review copy's own styles, script and data, added after the doc's.
+function build(shell, source, design, out, keep, extras = null) {
   let text = source.text;
 
   if (keep) {
@@ -1369,6 +1428,13 @@ function build(shell, source, design, out, keep) {
 
   if (jsCount > 0) {
     text = replaceFirst(text, "</body>", `<script>\n${js}</script>\n</body>`);
+  }
+
+  if (extras !== null) {
+    const data = JSON.stringify(extras.data).replaceAll("</", "<\\/");
+
+    text = replaceFirst(text, "</head>", `<style>\n${extras.css}</style>\n</head>`);
+    text = replaceFirst(text, "</body>", `<script type="application/json" id="review-changes">${data}</script>\n<script>\n${extras.js}</script>\n</body>`);
   }
 
   mkdirSync(dirname(out), { recursive: true });
@@ -1454,11 +1520,47 @@ async function migrate(folder) {
 const USAGE = `usage: doc.mjs check <design folder | doc.html>
        doc.mjs build <design folder | doc.html> [-o <out.html>] [--pages <id,id>]
        doc.mjs migrate <design folder>
+       doc.mjs review <design folder>
+       doc.mjs apply-changes <design folder> <C1 C2 … | all>
 
   check    report broken references, missing parts, and local paths
   build    check, then write one self-contained HTML file (default: <folder>/published/<slug>.html,
            the slug from <html data-doc>; with --pages, <slug>-<page ids>.html)
-  migrate  bring a design folder written for an older version of this skill up to date`;
+  migrate  bring a design folder written for an older version of this skill up to date
+  review   build a local review copy showing the draft changes in <folder>/.review/changes.json
+           (written to <folder>/.review/<slug>.review.html; the folder is git-ignored)
+  apply-changes  write the named draft changes into the design and drop them from the draft`;
+
+function review(doc, source, design) {
+  const shell = resolve(doc)[0];
+  const folder = dirname(shell);
+  const { changes } = readChanges(folder);
+  const data = reviewData(folder, changes);
+  const out = join(reviewFolder(folder), `${docSlug(source.text, shell)}.review.html`);
+
+  for (const change of data) {
+    if (change.state === "stale") console.log(`note: ${change.id} rewrites text that has changed since it was drafted`);
+
+    if (change.added.length > 0) console.log(`note: ${change.id} cites ${change.added.join(", ")}, which the current text doesn't`);
+  }
+
+  console.log(`${data.length} draft change(s)`);
+
+  return build(shell, source, design, out, null, { css: asset(folder, "review.css"), js: asset(folder, "review.js"), data });
+}
+
+function applyDraft(doc, ids) {
+  const folder = dirname(resolve(doc)[0]);
+  const { applied, skipped } = applyChanges(folder, ids);
+
+  for (const change of applied) console.log(`applied ${change.id}: ${change.where ?? change.target.field ?? change.target.file}`);
+
+  for (const note of skipped) console.log(`skipped ${note}`);
+
+  console.log(`${applied.length} applied, ${skipped.length} skipped; log them in changes.md, then check and build`);
+
+  return skipped.length > 0 ? 1 : 0;
+}
 
 async function main(argv) {
   let parsed;
@@ -1479,7 +1581,9 @@ async function main(argv) {
     return 0;
   }
 
-  if (!["check", "build", "migrate"].includes(command) || doc === undefined || parsed.positionals.length > 2) {
+  const applying = command === "apply-changes";
+
+  if (!["check", "build", "migrate", "review", "apply-changes"].includes(command) || doc === undefined || (applying ? parsed.positionals.length < 3 : parsed.positionals.length > 2)) {
     console.error(USAGE);
 
     return 2;
@@ -1487,6 +1591,10 @@ async function main(argv) {
 
   if (command === "migrate") {
     return migrate(doc);
+  }
+
+  if (applying) {
+    return applyDraft(doc, parsed.positionals.slice(2));
   }
 
   const { errors, warnings, source, design } = await check(doc);
@@ -1530,13 +1638,23 @@ async function main(argv) {
     return build(shell, source, keep && keep.length > 0 ? null : design, out, keep && keep.length > 0 ? keep : null);
   }
 
+  if (command === "review") {
+    if (errors.length > 0 || source === null) {
+      console.log("no review copy: fix the errors first");
+
+      return 1;
+    }
+
+    return review(doc, source, design);
+  }
+
   return errors.length > 0 ? 1 : 0;
 }
 
 try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (error) {
-  if (error instanceof Stop || error instanceof JsonError) {
+  if (error instanceof Stop || error instanceof JsonError || error instanceof ChangesError) {
     console.error(error.message);
     process.exitCode = 1;
   } else {

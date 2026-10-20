@@ -1,6 +1,6 @@
 # Diagrams
 
-Diagrams show what the design is for and how it's divided on the overview, the design on the overview and area pages, and each option's shape in a brief. Each is a component of the doc's own (`components/<name>.html`), drawn for its content: absolutely placed HTML boxes over an SVG layer of connectors, so text wraps and themes like the rest of the page. There is no layout engine, so a diagram can take whatever shape explains the design best. What depends on a record is bound to it (see [components](components.md#bindings)), so a status change redraws it. A brief's decision map is the exception: `::: decision-map` draws it from the records.
+A diagram is there so the reader can take something in without reading it, which makes the text beside it short: it says what the picture can't, never what it shows (see [writing](writing.md#the-whole-system-and-its-parts)). Diagrams show what the design is for and how it's divided on the overview, the design on the overview and area pages, and each option's shape in a brief. Each is a component of the doc's own (`components/<name>.html`), drawn for its content: absolutely placed HTML boxes over an SVG layer of connectors, so text wraps and themes like the rest of the page. There is no layout engine, so a diagram can take whatever shape explains the design best. What depends on a record is bound to it (see [components](components.md#bindings)), so a status change redraws it. A brief's decision map is the exception: `::: decision-map` draws it from the records.
 
 ## Conventions
 
@@ -24,7 +24,7 @@ Diagrams show what the design is for and how it's divided on the overview, the d
 
 - Every box, zone and non-obvious connection carries an evidence or question marker.
 - If nothing supports a part, either find evidence or add an open question.
-- Put a short "Reading the diagrams" key (`::: diagram-key`) above the first option or design card. On design pages, add `design` to it and include the `pending` and `decision` entries; the example's overview has one.
+- Put a short "Reading the diagrams" key (`::: diagram-key`) above the first option or design card, for how things are drawn: `today`, `new`, `pending`, `sketch` and the like. On design pages, add `design` to it; the example's overview has one. Leave reference chips out of it: a chip says what it is when clicked, and the key draws nothing for `decision`, `evidence` or `question`.
 - On a design page, draw only the design as it stands. Alternatives belong in the brief that weighs them.
 - The security view of each option has its own conventions (boundaries, numbered flows, protection labels); see [security](security.md).
 - When several environments or accounts are set up identically, draw one and say so in the zone label ("staging and prod, identical"), with a marker for how that's known. Draw them separately only where they differ.

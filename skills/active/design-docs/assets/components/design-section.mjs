@@ -1,6 +1,6 @@
 // A prose section of design.md (problem, goals, how-it-works), shown where a page asks for it, so the
-// words an agent reads in design.md are the words people read in the doc. Diagrams in text are for
-// agents; the page draws its own picture, so fenced blocks are left out.
+// words an agent reads in design.md are the words people read in the doc. A fence that names its language
+// is a snippet and shows; a bare fence is a text diagram for agents, and the page draws its own picture.
 //
 //   ::: design-section section=how-it-works
 //   :::
@@ -15,14 +15,22 @@ export default async function designSection({ props, model, markdown, error }) {
   }
 
   const lines = [];
-  let fenced = false;
+  let fence = null;
 
   for (const line of text.split("\n")) {
-    if (line.trim().startsWith("```")) {
-      fenced = !fenced;
-    } else if (!fenced) {
-      lines.push(line);
+    const opening = fence === null && line.trim().startsWith("```");
+
+    if (opening) {
+      fence = line.trim().slice(3).trim() === "" ? "diagram" : "snippet";
+    } else if (fence !== null && line.trim().startsWith("```")) {
+      if (fence === "snippet") lines.push(line);
+
+      fence = null;
+
+      continue;
     }
+
+    if (fence !== "diagram") lines.push(line);
   }
 
   return `<div class="prose">\n${await markdown(lines.join("\n").trim())}\n</div>`;

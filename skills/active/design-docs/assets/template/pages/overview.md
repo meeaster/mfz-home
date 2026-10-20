@@ -45,7 +45,7 @@ HOW THE DESIGN IS DIVIDED, AND WHAT SHAPES ALL OF IT.
 ::: design-section section=how-it-works
 :::
 
-::: diagram-key design title="Reading the diagrams" items="today | new | pending | decision | evidence | question"
+::: diagram-key design title="Reading the diagrams" items="today | new | pending"
 :::
 
 <!-- Everything in one picture, at the level where decisions that span areas are argued. Draw it as

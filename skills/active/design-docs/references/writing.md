@@ -2,13 +2,46 @@
 
 A design doc is read together on a shared screen, and someone who doesn't know the system (often a manager) should be able to follow any page of it. It records where the design stands, not what to do next. The overview says what problem is being solved, what's being built, and the state of everything in it. A brief lays out one question so the team can decide; it doesn't have to recommend anything. Area pages go deeper on one part. See [pages](pages.md) for which pages a doc needs.
 
+## Less on the page
+
+Readers lose the thread in long paragraphs, repeated facts and a wall of IDs. Write each page to show what a reader needs to follow it, and let everything else open from it: cards, marker lists, modals and area pages carry the detail. This is progressive disclosure, and it governs every choice below.
+
+**Each statement has one home.** Say it there; everywhere else, name it and link to it.
+
+| Statement | Its home | Elsewhere |
+| --- | --- | --- |
+| What a finding says | The evidence record | Cite it after the claim it backs |
+| Where a decision stands | Its Status, with Why once Leaning or Decided | Nothing: the status chip shows it |
+| What the AI recommends | Recommendation | Nothing: it shows beside the decision |
+| How it got here: who said what, which meeting | The meeting's Summary and Outcomes; `changes.md` | Not in a decision's or question's fields |
+| Each option's strengths and costs | The option's own fields | The Explanation names the options without weighing them |
+| A figure used twice | A fact, `{fact:key}` | Unchanged |
+
+**Digestible, at any length.** Write as long as the content needs, in pieces a reader takes in one at a time. A few sentences, then a break:
+
+- a new paragraph, a few sentences more;
+- bullets, for parallel points or steps;
+- a number pulled out on its own line, or a short table, for figures and comparisons;
+- a quote, inline or set off, for what someone said or a document states;
+- a code snippet, for a command, a config value or a policy line, with its language named so it's coloured (```` ```bash ````, ```` ```hcl ````), or ```` ```console ```` to show a command and what it printed;
+- a small diagram, when the point is a shape: what connects to what, what comes first.
+
+A paragraph that runs past a handful of sentences is the sign to break it. Fields work the same way: an Explanation in its parts, So far as where it stands now, a Note as one sentence. In short stays at the level of the whole page.
+
+**References.** Readers follow names, not IDs, so the text names things and the doc does the rest.
+
+- A decision, question or requirement is named in words, and the words are the link: `[where the workers are hosted](#D9)`. The phrase renders with an underline in the record's colour and opens its card. Link the words the sentence already uses; never make an ID the subject of a sentence ("D1 decides…").
+- Evidence is cited after the claim it backs, `(E77)`. The doc gathers each paragraph's evidence into one "N sources" marker at its end, and a table cell's references into one small marker at the end of the cell.
+- Two or more chips side by side, in a table cell or on a diagram box, show as one counted button that lists them, amber when anything in it is open.
+- Keep icons and IDs out of the middle of sentences. The top bar's IDs switch shows every ID where it was written, for meetings that discuss "D9".
+
 ## Headers
 
 Every page starts with a header: the title (about ten words at most), a one-sentence dek, a context line, and the last-updated date. The dek says what the title can't: the page's answer or where it stands, never a list of what the page covers. The overview's says what the system does, more concretely than its title. A brief's says where the decision stands and what it turns on. An area's says what the part guarantees and what's still open in it. On shared pages, Meetings says what the meetings so far settled, and Evidence says when and where the findings came from. A brief's title is its question ("Where should the log pipeline workers run?"). The overview's names what's being built ("Log ingestion in our cloud"). On pages other than the overview, the context line starts with a link back to it ("Overview / area", "Overview / brief"). Under an overview's or area's header, the progress line shows how much is settled (see [pages](pages.md)). Leave out parts that don't exist rather than inventing names. No owner, audience, or status fields. The rail's short title is two or three words.
 
 ## Section intros
 
-Most sections need only their heading. Add an intro under a heading only when it says something the heading and the content can't: the one or two sentences a diagram summarises, a decision's framing, the basis of the figures (monthly, at which prices), or a limit on scope that isn't visible in the content. An intro that describes what the section holds, or explains how to read it, repeats the heading; leave it out. The same test applies to a subtitle under any title, such as a card's.
+Most sections need only their heading. Add an intro under a heading only when it says something the heading and the content can't: what a diagram can't show (why it's shaped this way, what's uncertain), a decision's framing, the basis of the figures (monthly, at which prices), or a limit on scope that isn't visible in the content. An intro that describes what the section holds, or explains how to read it, repeats the heading; leave it out. The same test applies to a subtitle under any title, such as a card's.
 
 ## Overview sections
 
@@ -35,6 +68,7 @@ Leave out a section with nothing real in it: cost for a process change, the secu
 
 ## The whole system and its parts
 
+- **Let the picture carry it.** A diagram exists so the reader doesn't have to read what it shows. The text with it, the design card's summary or the section's intro, says only what the picture can't: why it's shaped this way, what to notice, what's still uncertain. If a sentence names the boxes and the lines between them, cut it.
 - **Draw the current best picture,** at the level where decisions that span areas are argued. Where a decision is still open, draw what's leaned towards or assumed, bind the parts that depend on it (`data-pending="D1"`, which dashes them until it's decided), and put that decision's marker on them. Don't draw the alternatives; they belong in the decision's brief.
 - **Choose the picture the design needs:** components and networks for infrastructure, the deliverables side by side for a migration, the steps and hand-offs for a process. The security view applies whenever data crosses a boundary.
 - **When a decision is made,** the bound parts turn solid on the next build. Redraw only when what was chosen differs from what was drawn; a part drawn for one option can carry `data-when="D1=B"` so it shows only while that option is chosen or leaned towards.
@@ -161,7 +195,7 @@ When the item is consequential or ambiguous, write the explanation in parts, eac
 - E (evidence), Q (question), D (decision) and R (requirement) numbers are unique across the doc and stable. Never renumber: meeting notes and conversations refer to them.
 - When something is answered, superseded, or dropped, update it in place and say so rather than reusing its number.
 - When a brief joins a design doc, keep its numbers if they're free; otherwise renumber once, at that moment, and note it in the next meeting summary.
-- IDs are for markers and citations; people read names. In prose, name the thing and cite its ID after it: "if the workers get their own network (D1)", "logs staying in the GovCloud partition (R6) fails". An ID never stands in for the thing as the subject of a sentence ("if D1 lands on B", "R6 fails", "once Q1 and Q4 come back"). Chips in tables and rails stay the short ID.
+- IDs are for markers and citations; people read names. In prose, link the words that name the thing: "if [the workers get their own network](#D1)", "[logs staying in the GovCloud partition](#R6) fails"; cite evidence after its claim, "(E77)". An ID never stands in for the thing as the subject of a sentence ("if D1 lands on B", "R6 fails", "once Q1 and Q4 come back"). Chips in tables and rails stay the short ID. Older text that writes "(D1)" after the name still renders; convert it in an editing pass.
 - An ID written as an example rather than a reference, such as "D4 decided" in a design about change logs, needs its escape (`\D4`); otherwise it links to the doc's own D4 if there is one.
 - An ID from another system, such as an ADR number, is provenance: cite it in `Source` or `Recorded from`, not as the name a reader has to decode.
 

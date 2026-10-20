@@ -2,12 +2,15 @@
 // its own label after a colon, and its own sample text in brackets; entries
 // are separated by |.
 //
-//   ::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour | evidence | question"
+//   ::: diagram-key title="Reading the diagrams" items="today | new: Added by the option, in its colour | pending"
 //   :::
 //   ::: diagram-key items="boundary: Our AWS account | crosses | transit(TLS · IAM): How each flow is protected"
 //   :::
 //
 // design puts it in the design's colours (an overview or area design).
+//
+// A key explains how things are drawn. Reference chips (decision, evidence, question) say what they are when clicked,
+// so those entries are accepted for older pages but drawn as nothing.
 
 const ENTRIES = {
   today: ['<i class="swatch"></i>', "Exists today"],
@@ -21,9 +24,9 @@ const ENTRIES = {
   covered: ['<i class="swatch new"></i>', "Covered in this brief"],
   blocking: ['<i class="swatch question"></i>', "Open question that blocks it"],
   first: ["", "→ Must be decided first"],
-  decision: ['<span class="ref ref-d" data-state="open">D1</span>', "Decision, coloured by status"],
-  evidence: ['<span class="ref ref-e">E1</span>', "Evidence"],
-  question: ['<span class="ref ref-q">Q1</span>', "Not confirmed yet"],
+  decision: null,
+  evidence: null,
+  question: null,
   boundary: ['<i class="swatch boundary-swatch"></i>', "Compliance boundary"],
   crosses: ['<span class="flow cross">F1</span>', "Crosses the boundary"],
   attention: ['<span class="flow warn">F2</span>', "Needs attention"],
@@ -41,8 +44,12 @@ export default function diagramKey({ props, esc, error }) {
       const [, name, sample] = /^([\w-]+)\s*(?:\((.*)\))?$/.exec(head.trim()) ?? [undefined, head.trim()];
       const known = ENTRIES[name];
 
+      if (known === null) {
+        return "";
+      }
+
       if (known === undefined) {
-        error(`diagram-key: no entry '${name}' (${Object.keys(ENTRIES).join(", ")})`);
+        error(`diagram-key: no entry '${name}' (${Object.keys(ENTRIES).filter((entry) => ENTRIES[entry] !== null).join(", ")})`);
 
         return "";
       }
