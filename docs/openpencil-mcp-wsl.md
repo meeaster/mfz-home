@@ -2,7 +2,7 @@
 
 OpenPencil runs on Windows. Its MCP server runs in WSL as a user systemd service. OpenPencil reads `%USERPROFILE%\AppData\Local\OpenPencil\mcp.json` and connects to `http://127.0.0.1:7600`. The WSL service writes discovery metadata to that Windows path through `/mnt/c` and listens on WSL loopback port `7600`. WSL localhost forwarding carries the Windows connection to the service.
 
-The Personal base mise profile pins `@open-pencil/mcp` to `0.16.0-beta.3`. The systemd unit sets `OPENPENCIL_MCP_APP_TIMEOUT_MS=0` so the service stays up while the editor is closed. Authentication remains disabled for this loopback-only setup. Any local process that can reach port `7600` can call the MCP server. The base mise profile applies a one-day release-age limit to npm dependencies. Start WSL and confirm the service is active before launching OpenPencil. If the WSL server is unavailable, OpenPencil may start the installed Windows MCP package instead.
+The Personal base mise profile pins `@open-pencil/mcp` to major version `0`. The systemd unit sets `OPENPENCIL_MCP_APP_TIMEOUT_MS=0` so the service stays up while the editor is closed. Authentication remains disabled for this loopback-only setup. Any local process that can reach port `7600` can call the MCP server. The base mise profile applies a one-day release-age limit to npm dependencies. Start WSL and confirm the service is active before launching OpenPencil. If the WSL server is unavailable, OpenPencil may start the installed Windows MCP package instead.
 
 ## Install and start the service
 
@@ -18,7 +18,7 @@ Run these commands from WSL after changing the mise or systemd source files:
 
 ```sh
 mfz apply --target mise
-mise install 'npm:@open-pencil/mcp@0.16.0-beta.3'
+mise install 'npm:@open-pencil/mcp@0'
 mfz apply --target dotfiles
 systemctl --user daemon-reload
 systemctl --user enable --now openpencil-mcp.service
