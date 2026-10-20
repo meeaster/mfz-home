@@ -38,9 +38,9 @@ designs/<slug>/
 When a session starts work on a design, or on an effort linked to one:
 
 1. Find it: with Cairn, the effort view (`catalog_effort show`) lists linked designs among its files; otherwise the user names it.
-2. Read `design.json` in full, `evidence.json` and `meetings.json` as SKILL.md's What to read says for the task, and the `changes.md` entries since the effort's last session, counted the way the effort-context skill's resume procedure defines, and check what in the effort cites the IDs they changed.
+2. For substantive work, prepare or refresh the working packet with [the preparation playbook](../playbooks/prepare.md). Read `design.json` in full and the `changes.md` entries since the last handoff; check what in linked work cites the IDs they changed. The packet's impact map covers relevant evidence, meetings and sources; SKILL.md's What to read sets the authoring reads.
 3. Run `check` on the folder. Besides problems, it says when the published doc is behind `changes.md`.
-4. Read a transcript, session, or other source only when a record's reasoning needs checking; its `Recorded from` says where to look.
+4. Reopen a transcript, session or other original for missing consequential support, contradiction, ambiguous authority or material freshness; its `Recorded from` says where to look. Keep the packet reconciled as the discussion and records change.
 
 ## Working on it
 
@@ -60,7 +60,7 @@ When a session starts work on a design, or on an effort linked to one:
 
 When the working direction changes so far that most of the design would be rewritten (another platform, another architecture), start a new version rather than editing the old one into it:
 
-1. Build the doc, then run `doc.mjs new-version <folder>`. It freezes the current version, with its published doc, in `versions/v<N>/` and makes the folder the next version, with its change log and meetings empty.
+1. Prepare the rewrite's packet and private carryforward map from the current design before freezing it. Build the doc, then run `doc.mjs new-version <folder>`. It freezes the current version, with its published doc, in `versions/v<N>/` and makes the folder the next version, with its change log and meetings empty.
 2. Rewrite the folder as the current state, as if there had been no earlier version. Keep what still holds, drop what doesn't, and number each kind of record afresh from 1. Drop the AI recommendations, whose evidence numbers belonged to the earlier version; refresh them with [the recommend playbook](../playbooks/recommend.md) once the version stands. Nothing in it says what carried over or what changed; a reader of the latest version never needs an earlier one. `check` names the records that still point at the old meetings.
 3. Check and build. The published doc is the latest version; a menu in its top bar opens the earlier ones, published beside it as `<slug>.v<N>.html`.
 

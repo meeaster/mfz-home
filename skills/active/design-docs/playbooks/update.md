@@ -4,10 +4,10 @@ Everything a routine update needs is on this page. An update has two turns: prop
 
 ## 1. Pick it up
 
+- Prepare or refresh the working packet with [prepare.md](prepare.md), including the source (meeting summary, email or answer), its authority, and cross-design consequences. Gathering covers the source in full and all relevant evidence; the author uses the supported packet instead of repeating that reading.
 - `design.json` in full: the prose, facts and records.
-- `changes.md`: the entries since the last session.
-- `evidence.json` and `meetings.json`: only the items you will cite or change, unless the update changes why a decision was made or could contradict existing evidence; then read `evidence.json` in full.
-- The source (meeting summary, email) in full.
+- `changes.md`: the entries since the last handoff.
+- The evidence and meeting items you will cite or change, plus precise source passages needed to apply the proposals. Missing support, contradictions or wider discussion trigger packet expansion before dependent edits.
 
 ## 2. Propose, don't apply
 

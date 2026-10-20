@@ -4,7 +4,7 @@ Everything a research run needs is on this page. A research run takes the open q
 
 ## 1. Pick it up
 
-- `design.json` in full, `evidence.json` in full (research must not repeat or contradict a finding without saying so), and `changes.md` since the last session.
+- Prepare or refresh the packet with [prepare.md](prepare.md), covering prior findings and contradictions relevant to the questions so research is not repeated. Read `design.json` in full, `changes.md` since the last handoff, and evidence items the new findings cite or change. Gathering covers the relevant original evidence; new findings refresh the packet.
 - The questions in scope: the ones the user named, or every open question whose `Answer from` starts with `Research`.
 - The working direction, when the design has one: research finds what it needs. A finding that it can't meet a requirement is evidence like any other; record it, and report it rather than researching alternatives to the direction.
 
