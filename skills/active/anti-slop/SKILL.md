@@ -44,4 +44,4 @@ The preflight is a design reminder, not a substitute for the final diagnostic pa
 
 Each read-only pass enables every upstream generic anti-slop rule plus the native `oxc/no-accumulating-spread` companion rule at error severity. With `--effect`, it also enables every rule in the vendored `anti-slop-effect` entrypoint at error severity. All passes use isolated configuration, so target repository Oxlint configuration is not loaded or merged.
 
-Upstream source: `dmmulroy/anti-slop`, untagged post-v0.1.2 commit `c44ef22ca116d0ba62a3ff663a0bd13a3f3fa40b`. The vendored source and license notices are in this skill package.
+Upstream source: `dmmulroy/anti-slop`, untagged post-v0.1.2 commit `13909c9e07590f5a85d93c62712259fe14a883f7`. The vendored source and license notices are in this skill package.

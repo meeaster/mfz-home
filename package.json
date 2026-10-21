@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
+    "test:anti-slop": "node --test tests/anti-slop-spacing.test.mjs",
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {

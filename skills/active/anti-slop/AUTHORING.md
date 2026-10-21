@@ -32,10 +32,11 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 - **Project files only** (human, 2026-10-13). Agents were running it on throwaway scripts they wrote for themselves in temp directories; the human doesn't care how those look.
 - **Validate every operand before doing anything**, so a bad later path never produces a partial scan or partial fix. Operands go to Oxlint in their original order and are never widened to a common ancestor.
 - **The vendored plugin isn't held to its own rules.** Its ESTree boundary code legitimately uses `unknown`, `typeof`, and assertions, and upstream excludes it from linting too. Report this as an intended exclusion; don't patch upstream bytes to silence it.
+- **Single-line bindings stay grouped at every scope** (2026-10-21), following upstream PR #45. A leading comment on the next binding, a multiline binding, or a following executable statement still requires separation; existing blank lines remain untouched.
 
 ## Sources
 
 | Source | Revision | Local use |
 |---|---|---|
-| [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) generic and Effect plugins | untagged `c44ef22c` after v0.1.2 (package version still `0.1.2`) | Vendored under `vendor/anti-slop` with the root MIT license and the nested ESLint Stylistic `LICENSE` and `UPSTREAM.md`; upstream tests, installer, skill text, and repository config are excluded. On refresh, copy the complete shipped asset tree, check it byte-for-byte against upstream, run upstream's `pnpm check`, and update the commit stamp in `SKILL.md` |
+| [dmmulroy/anti-slop](https://github.com/dmmulroy/anti-slop) generic and Effect plugins | untagged `13909c9e` after v0.1.2 (package version still `0.1.2`) | Vendored under `vendor/anti-slop` with the root MIT license and the nested ESLint Stylistic `LICENSE` and `UPSTREAM.md`; upstream tests, installer, skill text, and repository config are excluded. The focused local spacing integration test is `pnpm test:anti-slop`; on refresh, port relevant changes while preserving Oxlint adapters, update the vendoring record, and update the commit stamp in `SKILL.md` |
 | Oxlint and `@oxlint/plugins` | major 1, resolved through `mise` | The launcher finds both with `mise where`/`mise which`; also requires the native `oxc/no-accumulating-spread` companion rule that upstream rules depend on |
