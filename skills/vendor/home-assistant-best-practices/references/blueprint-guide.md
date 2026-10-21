@@ -1,5 +1,7 @@
 # Blueprints
 
+> **A blueprint is a file, but you still should not hand-write it.** It lives at `config/blueprints/<domain>/<author>/<name>.yaml`, and the WebSocket API authors it for you: `blueprint/save` takes `{domain, path, yaml, source_url?}`, validates against the blueprint schema, and writes the file — with `blueprint/import`, `blueprint/list`, `blueprint/delete`, and `blueprint/substitute` alongside it. Prefer that over an unchecked file write. The automations *created from* a blueprint are ordinary config-API objects.
+
 A **blueprint is a reusable, parameterized automation/script/template** — a skeleton whose device- and entity-specific parts are replaced by user-provided **inputs**. Author a blueprint only when a pattern will be instantiated more than once or shared/distributed. A one-off automation should stay a plain automation; don't blueprint what you'll use once.
 
 ## Table of Contents
@@ -59,7 +61,7 @@ Common selectors:
 | Selector | Yields | Use for |
 |----------|--------|---------|
 | `entity` | entity_id(s) | Picking specific entities; filter with `domain`, `device_class`, `integration` |
-| `target` | a target dict (entities/devices/areas/floors/labels) | Anything you pass straight to a service call's `target:` |
+| `target` | a target dict (entities/devices/areas/floors/labels) | Anything you pass straight to an action's `target:` |
 | `device` | device_id(s) | Device triggers, or device-level actions (rare — prefer entities) |
 | `area` / `floor` / `label` | area/floor/label id(s) | Scoping actions to a whole area/floor/label |
 | `number` | number | Timeouts, brightness, thresholds; set `min`/`max`/`step`/`mode`/`unit_of_measurement` |
@@ -88,7 +90,7 @@ Add `multiple: true` to accept a list. Filter by `integration:` when the bluepri
 The issue this guide most often resolves. Both point at "what to control," but they produce different shapes:
 
 - **`entity` selector → `entity_id`(s).** Use it when you need the id itself — for a `state` trigger's `entity_id`, a `states(...)` lookup in a template, or an action that specifically wants an entity.
-- **`target` selector → a target dict** (`{entity_id, device_id, area_id, floor_id, label_id}`). Use it when the value flows straight into a service call's `target:`. It lets the user target entities, whole devices, or entire areas/floors/labels — more flexible for "act on these lights," where the user might prefer to say "all lights in the living room area."
+- **`target` selector → a target dict** (`{entity_id, device_id, area_id, floor_id, label_id}`). Use it when the value flows straight into an action's `target:`. It lets the user target entities, whole devices, or entire areas/floors/labels — more flexible for "act on these lights," where the user might prefer to say "all lights in the living room area."
 
 ```yaml
 # target selector — pass directly to target:
@@ -168,9 +170,9 @@ actions:
       brightness_pct: "{{ brightness_pct }}"   # use the variable, never !input
 ```
 
-For **templated triggers**, bind inputs through `trigger_variables:` (a separate top-level key evaluated before triggers fire). It supports **limited templates only** — no `states()`/`state_attr()` — and exists mainly to pass a blueprint `!input` into trigger options (see `automation-patterns.md#trigger-types`). Don't put state-based templates there.
+For **templated triggers**, bind inputs through `trigger_variables:` (a separate top-level key evaluated before triggers fire). It supports **limited templates only** — no `states()`/`state_attr()` — and exists mainly to pass a blueprint `!input` into trigger options (see [triggers-and-conditions #trigger-types](triggers-and-conditions.md#trigger-types)). Don't put state-based templates there.
 
-`enabled:` on an individual trigger/condition/action also accepts a blueprint `!input` (evaluated once at load) — handy for optional behavior toggled by a `boolean` input (see `automation-patterns.md#enabled-on-individual-triggers-conditions-and-actions`).
+`enabled:` on an individual trigger/condition/action also accepts a blueprint `!input` (evaluated once at load) — handy for optional behavior toggled by a `boolean` input (see [automation-actions #enabled-on-individual-triggers-conditions-and-actions](automation-actions.md#enabled-on-individual-triggers-conditions-and-actions)).
 
 ## Versioning and Updates
 

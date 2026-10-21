@@ -1,7 +1,16 @@
 > **Prefer a Template Helper over YAML.**
-> Before writing any `template:` block, create a Template Helper via the HA config flow (MCP tool or API) or via the UI:
-> Settings → Devices & Services → Helpers → Create Helper → Template.
-> Use `template:` YAML only when explicitly requested or when neither programmatic nor UI access is available.
+> Before writing any `template:` block, create a Template Helper through the HA config flow
+> (programmatically, or in the UI: Settings → Devices & Services → Helpers → Create Helper →
+> Template). It is UI-editable; a `template:` YAML entry needs a `template.reload` and is not.
+>
+> **Write `template:` YAML when** the user asks for it, when neither path is available, or when
+> the entity needs something the flow has no field for — **trigger-based templates**,
+> **`attributes:`**, or several entities in one block. Those cases are real and are marked
+> *YAML-only* throughout this file; see
+> [helper-selection #template-helpers](helper-selection.md#template-helpers) for the full list.
+> The YAML blocks below show **config shape**. Where one is the thing to write, use managed
+> YAML editing ([yaml-only-integrations](yaml-only-integrations.md)) — never an unchecked
+> hand-edit.
 
 # Template Guidelines
 
@@ -15,6 +24,7 @@ This document covers when templates ARE the right choice in Home Assistant, and 
 5. [Common Patterns](#common-patterns)
 6. [Error Handling](#error-handling)
 7. [Performance Considerations](#performance-considerations)
+8. [Reusable Macros](#reusable-macros)
 
 ---
 
@@ -22,9 +32,9 @@ This document covers when templates ARE the right choice in Home Assistant, and 
 
 Templates are the RIGHT choice when:
 
-### 1. Dynamic Service Data
+### 1. Dynamic Action Data
 
-You need to pass dynamic values to service calls based on entity states or trigger context.
+You need to pass dynamic values to actions based on entity states or trigger context.
 
 ```yaml
 actions:
@@ -33,7 +43,7 @@ actions:
       entity_id: light.bedroom
     data:
       brightness_pct: "{{ states('input_number.default_brightness') | int }}"
-      kelvin: "{{ 6500 if is_state('binary_sensor.daytime', 'on') else 2700 }}"
+      color_temp_kelvin: "{{ 6500 if is_state('binary_sensor.daytime', 'on') else 2700 }}"
 ```
 
 ### 2. Dynamic Notification Messages
@@ -168,18 +178,21 @@ Do NOT use templates when a native alternative exists:
 | `{{ states('x') \| float > 25 }}` | `condition: numeric_state` with `above: 25` |
 | `{{ now().hour >= 9 }}` | `condition: time` with `after: "09:00:00"` |
 | `{{ is_state('sun.sun', 'below_horizon') }}` | `condition: sun` with `after: sunset` |
-| `wait_template: "{{ is_state(...) }}"` | `wait_for_trigger` with state trigger |
 | Template sensor summing values | `min_max` helper with `type: sum` |
 | Template binary sensor with threshold | `threshold` helper |
 | Template sensor averaging over time | `statistics` helper |
 
-See `automation-patterns.md` and `helper-selection.md` for comprehensive alternatives.
+See [triggers-and-conditions](triggers-and-conditions.md), [automation-actions](automation-actions.md) and [helper-selection](helper-selection.md) for comprehensive alternatives.
 
 ---
 
 ## Template Sensor Best Practices
 
-### Always Include unique_id
+### Always Include unique_id — in YAML blocks only
+
+A `unique_id` is what gives the entity a registry entry, so the UI can rename it, assign it
+to an area, and customize it — and so a later rename sticks instead of being regenerated from
+`name` on the next reload. **Every `template:` YAML entity needs one.**
 
 ```yaml
 template:
@@ -188,6 +201,10 @@ template:
         unique_id: my_custom_sensor  # Enables UI customization
         state: "{{ states('sensor.source') }}"
 ```
+
+**Do not submit `unique_id` to the Template Helper flow** — it is not a field there; the
+config entry supplies one. This is the single most common key to wrongly carry over when
+converting a YAML block into a helper.
 
 ### Always Define Availability
 
@@ -244,33 +261,72 @@ template:
         state: "{{ states('sensor.amps') | float * 230 }}"
 ```
 
-### Use Trigger-Based for Efficiency
+### Use Trigger-Based to Capture Trigger Context
 
-Trigger-based templates only update when sources change:
+Trigger-based templates re-evaluate only when their trigger fires, and are the **only**
+template form with access to the `trigger` variable. That second property is the real reason
+to reach for them: a state-based template is recomputed from current states and therefore
+cannot know *which* entity changed, or what the previous value was.
 
 ```yaml
+# Trigger-based: records WHICH sensor fired — impossible in a state-based template
 template:
   - triggers:                    # Recommended plural form (HA 2024.10+)
       - trigger: state
         entity_id:
-          - sensor.temp_bedroom
-          - sensor.temp_living
+          - binary_sensor.motion_hall
+          - binary_sensor.motion_kitchen
+        to: "on"
     sensor:
-      - name: "Average Temperature"
-        state: >
-          {% set temps = [
-            states('sensor.temp_bedroom') | float(0),
-            states('sensor.temp_living') | float(0)
-          ] %}
-          {{ (temps | sum / temps | count) | round(1) }}
-        unit_of_measurement: "°C"
+      - name: "Last Motion"
+        unique_id: last_motion
+        state: "{{ trigger.to_state.name }}"
+        attributes:
+          entity_id: "{{ trigger.entity_id }}"
+          at: "{{ now().isoformat() }}"
+```
+
+**Trigger-based blocks are YAML-only** — the Template Helper flow has no trigger step, and
+no `attributes:` field. This example uses both.
+
+**Two 2026.9 additions to the YAML shape:**
+- `attributes:` works on every template platform, trigger-based or not. Before 2026.9 only
+  `sensor`, `binary_sensor`, `image`, `event` and `vacuum` took it. It accepts a map of
+  templates, as above, or one template that renders a whole map. You cannot set an attribute
+  the entity already owns, such as `brightness` on a template light or `latitude` on a template
+  device_tracker: most platforms reject the config, the rest drop it at runtime with a logged
+  error.
+- `conditions:` can sit on a single entity, gating that entity's update after the block's
+  triggers fire. The older block-level `conditions:` gates every entity in the block. Put both
+  on a trigger block only: HA refuses a per-entity `conditions:` when the block has no trigger.
+
+```yaml
+# Per-entity conditions: this sensor updates only while someone is home
+template:
+  - triggers:
+      - trigger: state
+        entity_id: sensor.power_meter
+    sensor:
+      - name: "Power While Home"
+        unique_id: power_while_home
+        conditions:
+          - condition: state
+            entity_id: binary_sensor.occupancy
+            state: "on"
+        state: "{{ trigger.to_state.state }}"
+        unit_of_measurement: "W"
+        device_class: power
         state_class: measurement
 ```
 
-**Benefits of trigger-based:**
-- Only evaluates when trigger fires (not on every state change)
-- Access to `trigger` variable
-- More efficient for complex templates
+**Use trigger-based when you need:**
+- The `trigger` variable — which entity fired, `from_state` / `to_state`, event data
+- A value captured at an instant rather than recomputed (timestamps, "last X")
+- A deliberately throttled update (a `time_pattern` trigger over an expensive template)
+
+**Do not** reach for it to average or sum entities — that is a `min_max` helper, not a
+template, whether or not a trigger is involved. See
+[helper-selection #numeric-aggregation](helper-selection.md#numeric-aggregation).
 
 ### YAML Block Structure Conventions (HA 2024.10+)
 
@@ -284,7 +340,7 @@ not in separate blocks per entity. Trigger-based blocks (with their own `trigger
 must be separate regardless of entity type, since each block defines its own trigger context:
 
 ```yaml
-# CORRECT — state-based sensors: one block, multiple entries:
+# RIGHT — state-based sensors: one block, multiple entries:
 template:
   - binary_sensor:
       - name: "Motion Room A"
@@ -294,7 +350,7 @@ template:
         unique_id: motion_room_b
         state: "{{ ... }}"
 
-# AVOID — state-based sensors split across separate blocks:
+# WRONG — state-based sensors split across separate blocks:
 template:
   - binary_sensor:
       - name: "Motion Room A"
@@ -384,20 +440,20 @@ automation:
 Always use `states()` function, not `states.sensor.x.state`:
 
 ```yaml
-# GOOD - Returns 'unknown' if entity doesn't exist
+# RIGHT — Returns 'unknown' if entity doesn't exist
 {{ states('sensor.temperature') }}
 
-# BAD - Errors if entity doesn't exist
+# WRONG — Errors if entity doesn't exist
 {{ states.sensor.temperature.state }}
 ```
 
 ### Safe Numeric Conversion
 
 ```yaml
-# GOOD - Default value if conversion fails
+# RIGHT — Default value if conversion fails
 {{ states('sensor.temperature') | float(0) }}
 
-# BAD - Errors if state is 'unavailable' or 'unknown'
+# WRONG — Errors if state is 'unavailable' or 'unknown'
 {{ states('sensor.temperature') | float }}
 ```
 
@@ -429,9 +485,29 @@ Always use `states()` function, not `states.sensor.x.state`:
 
 ### Attribute Access with Default
 
+`state_attr` returns `None` when the attribute is absent (a light that is off has no
+`brightness`) or the entity does not exist. Jinja's `default` substitutes only for an
+**undefined** name, and `None` is defined — so it passes straight through and the template
+renders the string `None`.
+
 ```yaml
+# WRONG — renders "None" while the light is off
 {{ state_attr('light.bedroom', 'brightness') | default(0) }}
+
+# RIGHT — the second argument makes default replace any falsy value, None included
+{{ state_attr('light.bedroom', 'brightness') | default(0, true) }}
+
+# RIGHT — a type filter's default covers None and converts in one step
+{{ state_attr('light.bedroom', 'brightness') | int(0) }}
 ```
+
+The same trap applies to `| default(...)` after anything that can yield `None`
+(`state_attr`, `.get()`, an attribute that exists but is null) — pass `true` or use
+`int()`/`float()` — but they are not equivalent. `default(x, true)` replaces **any** falsy
+value, so a real `0`, `False` or `''` becomes the default too; `int(x)`/`float(x)` fall back
+only when the **conversion fails**, so a real `0` stays `0` and `False` converts to `0`.
+Where a falsy value is meaningful, use the conversion filter, or test explicitly — see
+[Handle None Attributes](#handle-none-attributes).
 
 ### Time Since State Change
 
@@ -479,12 +555,20 @@ Always use `states()` function, not `states.sensor.x.state`:
 {{ states('sensor.x') | float(default=0) }}
 {{ states('sensor.x') | int(default=-1) }}
 
-# For attribute access
-{{ state_attr('light.x', 'brightness') | default(100) }}
+# For attribute access - `true` is required, because state_attr returns None
+{{ state_attr('light.x', 'brightness') | default(100, true) }}
 
-# For entire template failures
-{{ states('sensor.missing') | default('Unknown', true) }}
+# For a missing or unavailable entity - test it; no default filter will catch it
+{{ states('sensor.missing') if has_value('sensor.missing') else 'Unknown' }}
 ```
+
+**A default filter cannot rescue a missing entity.** `states()` returns the *string*
+`"unknown"` for an entity that does not exist (and `"unavailable"` for one that is
+offline). Both are non-empty strings, so both are truthy: `| default('Unknown', true)`
+leaves them untouched and the template renders `unknown`. `has_value()` is the test that
+covers missing, `unknown`, and `unavailable` in one call — in a full template. Limited
+template contexts (a blueprint's `trigger_variables:`, `enabled:`) have no `states()` or
+`has_value()`; see [blueprint-guide #referencing-inputs-input-and-templating](blueprint-guide.md#referencing-inputs-input-and-templating).
 
 ### Availability Template
 
@@ -538,22 +622,26 @@ template:
 
 > The legacy per-domain template-sensor form (`sensor:` → `- platform:` → `sensors:` → `value_template:`, i.e. a `template` platform nested under a domain key) was **removed in HA 2026.6** and no longer loads. Use the top-level `template:` integration key with `state:`, as above.
 
-### Use Trigger-Based Templates for Complex Logic
+### Throttle an Expensive Template With a Time Trigger
+
+A `time_pattern` trigger caps how often an expensive template runs, regardless of how often
+its sources change. Use it for genuinely expensive work — not for aggregation, which is a
+[`min_max`](helper-selection.md#numeric-aggregation) helper.
 
 ```yaml
-# EFFICIENT - Only runs when specified triggers fire
+# Runs every 5 minutes instead of on every source change
 template:
   - triggers:
       - trigger: time_pattern
-        minutes: "/5"  # Every 5 minutes
+        minutes: "/5"
     sensor:
-      - name: "Complex Calculation"
+      - name: "Grid Import Cost Today"
+        unique_id: grid_import_cost_today
         state: >
-          {% set total = 0 %}
-          {% for sensor in states.sensor | selectattr('attributes.device_class', 'eq', 'energy') %}
-            {% set total = total + states(sensor.entity_id) | float(0) %}
-          {% endfor %}
-          {{ total }}
+          {{ (states('sensor.grid_import_today') | float(0)
+              * states('input_number.tariff_rate') | float(0)) | round(2) }}
+        unit_of_measurement: "EUR"
+        device_class: monetary
 ```
 
 ### Cache Complex Calculations
@@ -590,6 +678,110 @@ automation:
 
 ---
 
+## Reusable Macros
+
+Jinja macros live in `config/custom_templates/` and let several templates share one definition. Reach for them only once a template is already the right tool — a native trigger/condition and a built-in helper ruled out (see [When to Avoid Templates](#when-to-avoid-templates)). A macro de-duplicates templates you were going to write anyway; it is not a reason to write more of them. HA's own bar: once the same template appears in two or three places, save it once and reuse it.
+
+| Situation | Use |
+|-----------|-----|
+| One template needs the value | A `{% set %}` variable in that template |
+| Several templates need the same *value* | One cached template sensor the others reference (see [Cache Complex Calculations](#cache-complex-calculations)) |
+| Several templates apply the same *logic* to different entities (battery-level thresholds, occupancy rules, unit conversion) | A macro |
+
+### Macro Setup
+
+The `.jinja` file requires filesystem access to the config directory — there is no UI or config-flow path for it. Without file access, hand the user the file content and the reload step instead of working around it. The consuming template is unaffected: the same `{% from %}` import works inside a Template Helper's state template, so preferring a Template Helper over a `template:` YAML block still applies.
+
+| Step | Detail |
+|------|--------|
+| Create `config/custom_templates/` | HA does not create it; a missing directory is not an error, it just yields no macros |
+| Add a `*.jinja` file | Subdirectories are scanned too; only the `.jinja` extension is loaded |
+| Import by path relative to `custom_templates/` | `battery.jinja`, or `sensors/battery.jinja` for a file in a subdirectory |
+| Call `homeassistant.reload_custom_templates` | Admin action, no restart. Required after every edit — HA holds the sources in memory. `homeassistant.reload_all` includes it |
+
+
+```jinja
+{# config/custom_templates/battery.jinja #}
+{% macro battery_state(entity_id) -%}
+  {%- set level = states(entity_id) | int(-1) -%}
+  {%- if level < 0 -%}unknown
+  {%- elif level <= 15 -%}critical
+  {%- elif level <= 30 -%}low
+  {%- else -%}ok
+  {%- endif -%}
+{%- endmacro %}
+```
+
+```yaml
+template:
+  - sensor:
+      - name: "Phone Battery Status"
+        unique_id: phone_battery_status
+        state: >
+          {% from 'battery.jinja' import battery_state %}
+          {{ battery_state('sensor.phone_battery') }}
+```
+
+The import goes inside every template that uses the macro — imports are per-template, not global.
+
+### Imports Do Not Carry the Caller's Context
+
+The costliest mistake. An imported macro sees the template environment's globals, but none of the calling template's variables — a missing one renders empty and logs `Template variable warning: ... is undefined`, while attribute access on it (`trigger.entity_id`) fails the render outright.
+
+| Available inside an imported macro | NOT available |
+|------------------------------------|---------------|
+| `states`, `state_attr`, `is_state`, `is_state_attr`, `expand`, `has_value`, `now()` and the rest of HA's template functions and filters | `trigger`, `this`, `value_json`, variables bound from a Blueprint `!input`, `repeat`, and anything `{% set %}` in the calling template |
+
+```jinja
+{# WRONG — `this` and `trigger` are undefined here; the attribute access errors #}
+{% macro describe() -%}
+  {{ this.entity_id }} fired from {{ trigger.entity_id }}
+{%- endmacro %}
+
+{# RIGHT — the caller passes them in #}
+{% macro describe(entity_id, source) -%}
+  {{ entity_id }} fired from {{ source }}
+{%- endmacro %}
+```
+
+`{% from 'battery.jinja' import battery_state with context %}` does expose the caller's variables, but ties the macro to one caller's variable names. Pass arguments instead.
+
+### Macros That Return Values
+
+A macro produces **text**. A macro meant to yield a number, boolean, or list returns a string of one instead, so `{{ battery_level('sensor.phone') | float }}` silently parses its own output rather than passing a number through.
+
+For a real return value, give the macro a `returns` argument and convert it with the `as_function` filter:
+
+```jinja
+{# config/custom_templates/battery.jinja #}
+{% macro macro_is_low(entity_id, returns) -%}
+  {%- set level = states(entity_id) | int(-1) -%}
+  {% do returns(level >= 0 and level <= 15) %}
+{%- endmacro %}
+```
+
+```jinja
+{% from 'battery.jinja' import macro_is_low %}
+{% set is_low = macro_is_low | as_function %}
+{{ 'charge it' if is_low('sensor.phone_battery') else 'fine' }}
+```
+
+`as_function` strips a leading `macro_` from the name — hence the convention of prefixing the macro and dropping it on the function.
+
+### State Tracking Is Unaffected
+
+`states()` and the other state functions called inside an imported macro register their entities as dependencies exactly as they would inline, so template sensors still update on state changes. No extra wiring needed.
+
+### Macro Pitfalls
+
+| Symptom | Cause |
+|---------|-------|
+| `TemplateNotFound` | File is not under `config/custom_templates/`, does not end in `.jinja`, or `reload_custom_templates` has not run since it was added |
+| Edits have no effect | Sources are cached in memory — call `homeassistant.reload_custom_templates` |
+| Empty output where a caller variable should be, or `'trigger' is undefined` in the log | Context does not cross an import — pass it as a macro argument |
+
+---
+
 ## Quick Reference: Functions and Filters
 
 ### State Functions
@@ -611,7 +803,7 @@ automation:
 | `float(default)` | Convert to float |
 | `int(default)` | Convert to int |
 | `round(precision)` | Round number |
-| `default(value)` | Provide fallback |
+| `default(value, true)` | Fallback; the `true` is what catches `None` |
 | `timestamp_custom(format)` | Format timestamp |
 | `from_json` | Parse JSON string |
 | `to_json` | Convert to JSON string |

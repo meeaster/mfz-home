@@ -1,6 +1,32 @@
 # Device Control Patterns
 
-Best practices for controlling devices, triggering from Zigbee buttons/remotes, and structuring service calls.
+> **The YAML below shows config shape, not a file to hand-edit.** Create and update these through the HA config API, which validates the config and needs no restart. Actions and triggers are submitted as part of an automation or script object.
+
+Best practices for controlling devices, triggering from buttons and remotes, and structuring actions.
+
+> **Check for a purpose-specific trigger first.** Since 2026.7 the default building block is
+> a purpose-specific trigger/condition — `motion.detected`, `door.opened`,
+> `switch.turned_on`, `temperature.crossed_threshold` — aimed at a `target:` that accepts an
+> area, floor, or label instead of a list of entity IDs. The generic `state` patterns in this
+> file remain correct and are the right answer when no purpose-specific block matches, but
+> check for one before reaching for them; see
+> [triggers-and-conditions #purpose-specific-triggers--conditions-default-since-20267](triggers-and-conditions.md#purpose-specific-triggers--conditions-default-since-20267).
+>
+> This does not soften the entity-over-device rule below — it strengthens it. A
+> purpose-specific `target:` takes `entity_id` / `area_id` / `floor_id` / `label_id` (and
+> `device_id`, which you should still avoid), and targeting an area is what removes the stale
+> entity list *and* the `device_id` at once.
+
+## Table of Contents
+1. [Entity ID vs Device ID](#entity-id-vs-device-id)
+2. [Action Best Practices](#action-best-practices)
+3. [Button/Remote Patterns](#buttonremote-patterns)
+4. [Domain-Specific Patterns](#domain-specific-patterns)
+5. [Vacuum Control](#vacuum-control)
+6. [Response Data](#response-data)
+7. [Common Mistakes](#common-mistakes)
+8. [Quick Reference: Action Structure](#quick-reference-action-structure)
+9. [Quick Reference: Trigger Types for Devices](#quick-reference-trigger-types-for-devices)
 
 ---
 
@@ -15,14 +41,15 @@ Best practices for controlling devices, triggering from Zigbee buttons/remotes, 
 ### Device Triggers vs State Triggers
 
 ```yaml
-# ❌ WRONG - device_id changes if device is re-added
+# WRONG — device_id changes if device is re-added
 triggers:
   - trigger: device
     device_id: abc123def456
     domain: binary_sensor
     type: motion
 
-# ✅ RIGHT - entity_id is stable and renameable
+# RIGHT — entity_id is stable and renameable
+#    (generic fallback — check motion.detected with an area target first)
 triggers:
   - trigger: state
     entity_id: binary_sensor.hallway_motion
@@ -39,11 +66,11 @@ The only cases where `device_id` might be acceptable:
 
 ---
 
-## Service Calls Best Practices
+## Action Best Practices
 
 ### Use target: Structure
 
-Modern Home Assistant service calls use the `target:` key to specify entities, areas, or devices:
+Modern Home Assistant actions use the `target:` key to specify entities, areas, or devices:
 
 ```yaml
 actions:
@@ -102,14 +129,48 @@ target:
 
 ---
 
-## Zigbee Button/Remote Patterns
+## Button/Remote Patterns
+
+### First: does the integration expose an `event.*` entity?
+
+Many integrations now represent a stateless button press as an **event entity** rather than
+a bus event or a device trigger. Where one exists and is stable, it is the best target — a
+normal entity, so it can be renamed, is reachable by area or label, and survives a device
+re-add as long as the integration assigns a stable unique ID. Trigger on it with
+`event.received`:
+
+```yaml
+triggers:
+  - trigger: event.received
+    target:
+      entity_id: event.living_room_remote_button
+    options:
+      event_type:
+        - short_release   # values are integration-defined; read them off the entity
+```
+
+The available `event_type` values come from the entity's own `event_types` attribute —
+read them rather than guessing. A plain `state` trigger on the entity fires on *any* event
+type, which is the right choice only when you genuinely want all of them.
+
+No double-press value in that list means the device does not report one. For example, HA's
+Hue integration leaves `double_short_release` out of every Hue button's `event_types`. Say
+so, and offer to count two presses within a short window instead of inventing a value.
+
+Two Zigbee stacks are exceptions:
+
+- **ZHA has no event platform**, so ZHA remotes use the `zha_event` pattern below.
+- **Zigbee2MQTT's event entities are experimental and off by default** — they need
+  `homeassistant: {experimental_event_entities: true}`, and Z2M documents both the feature
+  and its event-type names as subject to change. Prefer its autodiscovered `device` trigger
+  or an `mqtt` trigger unless the user has already opted in.
 
 ### ZHA (Zigbee Home Automation)
 
 ZHA buttons fire `zha_event` events. Use **event triggers** with `device_ieee` (the device's IEEE address), which is **persistent** across re-adds.
 
 ```yaml
-# ✅ ZHA button trigger - device_ieee is persistent
+# RIGHT — device_ieee is persistent across re-adds
 triggers:
   - trigger: event
     event_type: zha_event
@@ -118,11 +179,11 @@ triggers:
       command: "toggle"
 ```
 
-For a complete multi-button remote with trigger_id + choose, see `references/examples.yaml` Example 2.
+For a complete multi-button remote with trigger_id + choose, see [examples.yaml](examples.yaml) Example 2.
 
 #### Finding ZHA Event Data
 
-1. Go to **Developer Tools → Events**
+1. Go to **Tools → Events** (named **Developer Tools** before 2026.8)
 2. Subscribe to `zha_event`
 3. Press your button
 4. Copy the `device_ieee` and `command` values
@@ -132,7 +193,7 @@ For a complete multi-button remote with trigger_id + choose, see `references/exa
 Z2M creates **MQTT device triggers** that are autodiscovered. These are acceptable because Z2M manages the device-to-trigger mapping.
 
 ```yaml
-# ✅ Z2M device trigger - autodiscovered
+# RIGHT — Z2M device_id is managed by autodiscovery
 triggers:
   - trigger: device
     device_id: abc123def456  # OK for Z2M, managed by autodiscovery
@@ -168,7 +229,7 @@ triggers:
 
 ### Lights
 
-**Color temperature:** Always use `color_temp_kelvin` (e.g., `3000`). The legacy `color_temp` parameter (in mireds) was removed in 2026.3.
+**Color temperature:** Always use `color_temp_kelvin` (e.g., `3000`). The legacy `color_temp` parameter (in mireds) was removed in 2026.3. When migrating, convert the value: Kelvin = 1,000,000 ÷ mireds (500 mireds = 2000 K).
 
 ```yaml
 # Turn on with brightness and transition
@@ -237,6 +298,21 @@ actions:
       tilt_position: 75
 ```
 
+**Speed (2026.9+):** `cover.open_cover`, `cover.close_cover` and `cover.set_cover_position`
+take an optional `speed`. The values are per entity: read its `supported_speeds` attribute and
+pass one of those strings. A value outside that list raises a validation error. A cover with no
+`supported_speeds` ignores the option and moves at its normal speed.
+
+```yaml
+actions:
+  - action: cover.set_cover_position
+    target:
+      entity_id: cover.living_room_blinds
+    data:
+      position: 50
+      speed: fast          # one of the entity's supported_speeds
+```
+
 ### Media Players
 
 ```yaml
@@ -266,7 +342,7 @@ actions:
   - action: notify.mobile_app_phone
     data:
       title: "Motion Detected"
-      message: "Motion in {{ trigger.to_state.attributes.friendly_name }}"
+      message: "Motion in {{ entity_name(trigger.entity_id) }}"
       data:
         tag: "motion-alert"
         actions:
@@ -281,7 +357,8 @@ actions:
     data:
       title: "Reminder"
       message: "Check the laundry"
-      notification_id: "laundry_reminder"
+      data:
+        notification_id: "laundry_reminder"   # nested: a top-level key is rejected
 ```
 
 ---
@@ -309,7 +386,7 @@ actions:
     target:
       entity_id: vacuum.roborock
     data:
-      area_id:
+      cleaning_area_id:           # NOT area_id: under data: that is read as a target
         - kitchen
         - living_room
 ```
@@ -337,7 +414,7 @@ Suggest the user configure segment-to-area mapping when possible to avoid vendor
 
 ## Response Data
 
-Some services return data. Use `response_variable` to capture it:
+Some actions return data. Use `response_variable` to capture it:
 
 ```yaml
 actions:
@@ -356,17 +433,17 @@ actions:
 
 ## Common Mistakes
 
-### ❌ Using entity_id in data instead of target
+### Using entity_id in data instead of target
 
 ```yaml
-# WRONG (deprecated)
+# WRONG — entity_id inside data: is the pre-2024.8 form
 actions:
   - action: light.turn_on
     data:
       entity_id: light.living_room
       brightness: 255
 
-# RIGHT
+# RIGHT — entities go in target:, parameters in data:
 actions:
   - action: light.turn_on
     target:
@@ -375,33 +452,33 @@ actions:
       brightness: 255
 ```
 
-### ❌ Hardcoding device_id for regular devices
+### Hardcoding device_id for regular devices
 
 ```yaml
-# WRONG - breaks on device re-add
+# WRONG — breaks on device re-add
 actions:
   - action: light.turn_on
     target:
       device_id: abc123def456
 
-# RIGHT
+# RIGHT — entity_id survives a device re-add
 actions:
   - action: light.turn_on
     target:
       entity_id: light.living_room
 ```
 
-### ❌ Forgetting service data structure
+### Forgetting action data structure
 
 ```yaml
-# WRONG - brightness_pct at wrong level
+# WRONG — brightness_pct at wrong level
 actions:
   - action: light.turn_on
     target:
       entity_id: light.living_room
     brightness_pct: 100
 
-# RIGHT - brightness_pct inside data
+# RIGHT — brightness_pct inside data
 actions:
   - action: light.turn_on
     target:
@@ -412,28 +489,41 @@ actions:
 
 ---
 
-## Quick Reference: Service Call Structure
+## Quick Reference: Action Structure
 
 ```yaml
 actions:
-  - action: domain.service_name   # Required
+  - action: <domain>.<name>       # Required
     target:                       # Optional but recommended
       entity_id: entity.id        # Single or list
       area_id: area_name          # Single or list
       device_id: device_id        # Avoid except for Z2M
-    data:                         # Service-specific parameters
+    data:                         # Action-specific parameters
       parameter: value
     response_variable: result     # Capture response (if needed)
 ```
 
 ## Quick Reference: Trigger Types for Devices
 
-| Device Type | ZHA | Zigbee2MQTT | Generic |
-|-------------|-----|-------------|---------|
-| Button/Remote | `event` (zha_event) | `device` or `mqtt` | `state` |
-| Motion sensor | `state` | `state` | `state` |
-| Door/Window | `state` | `state` | `state` |
-| Temperature | `state` or `numeric_state` | `state` or `numeric_state` | `state` or `numeric_state` |
-| Switch | `state` | `state` | `state` |
+Read left to right and stop at the first column that applies.
 
-Always prefer `state` triggers with `entity_id` for sensors and switches. Only use event/device triggers for stateless devices (buttons, remotes).
+| Device type | Purpose-specific (check first) | Generic fallback | Zigbee specifics |
+|-------------|-------------------------------|------------------|------------------|
+| Button/Remote | `event.received` on the `event.*` entity, when one exists | `state` on the `event.*` entity (fires on any event type) | ZHA: `event` trigger on `zha_event` + `device_ieee`. Z2M: `device` or `mqtt` trigger |
+| Motion sensor | `motion.detected` / `motion.cleared` | `state` | — |
+| Door/Window | `door.opened` / `door.closed`, `window.opened` / `window.closed` | `state` | — |
+| Temperature | `temperature.crossed_threshold` / `temperature.changed` | `numeric_state` or `state` | — |
+| Switch | `switch.turned_on` / `switch.turned_off` | `state` | — |
+| Battery (low flag, `binary_sensor`) | `battery.became_low` / `battery.no_longer_low` | `state` | — |
+| Battery (percentage, `sensor`) | `battery.level_crossed_threshold` / `battery.level_changed` | `numeric_state` | — |
+
+`battery.level_changed` fires on every level change while the reading is inside its
+threshold. For a one-time "dropped below N%" alert use `battery.level_crossed_threshold`: it
+fires only on the crossing, and ignores changes coming from `unavailable`/`unknown`, so a
+restart does not fire it again.
+
+Two rules survive whichever column you land in: **don't key a trigger off a `device_id`**
+outside the cases in [When Device ID is Acceptable](#when-device-id-is-acceptable), and
+**prefer a `target:` over a list of entity IDs** when the automation is really about "this
+area" rather than these specific entities — the area keeps working as devices are added,
+swapped, or removed.

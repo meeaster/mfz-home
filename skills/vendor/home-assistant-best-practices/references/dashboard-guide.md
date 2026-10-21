@@ -1,5 +1,7 @@
 # Dashboard Guide
 
+> **The YAML below shows config shape, not a file to hand-edit.** Storage-mode dashboards live in `.storage/` and are written through the Lovelace WebSocket API (`lovelace/config/save`) — never by editing the file. See [safe-refactoring #storage-mode-dashboards](safe-refactoring.md#storage-mode-dashboards-storagelovelace).
+
 Patterns and decisions for designing Home Assistant Lovelace dashboards.
 
 ## Table of Contents
@@ -29,6 +31,7 @@ Patterns and decisions for designing Home Assistant Lovelace dashboards.
   "title": "My Home",
   "icon": "mdi:home",
   "config": {
+    "background": {"image": "/local/background.jpg", "opacity": 30, "size": "cover"},
     "views": [
       {
         "title": "Overview",
@@ -86,7 +89,7 @@ Section `title` is soft-deprecated (frontend source marks it `@deprecated Use he
 }
 ```
 
-`background.image` is a plain path or media-source reference (the `url(...)` wrapper belongs only to the legacy string form of `background`); `opacity` is an integer 0–100. Badges also accept full objects: `{"type": "entity", "entity": "person.jane", "show_name": true, "color": "accent", "visibility": [...]}`.
+`background.image` is a plain path or media-source reference (the `url(...)` wrapper belongs only to the legacy string form of `background`); `opacity` is an integer 0–100. The same shape works at dashboard level, next to `views`, and each view that sets its own `background` overrides it. Badges also accept full objects: `{"type": "entity", "entity": "person.jane", "show_name": true, "color": "accent", "visibility": [...]}`.
 
 A `sections` view also supports a `header` (a markdown card plus badge positioning) and a `footer`:
 
@@ -142,13 +145,13 @@ views: []
 
 | Category | Cards |
 |----------|-------|
-| **Modern Primary** | tile, area, button, grid |
+| **Modern Primary** | tile, area, shortcut, button, grid |
 | **Container** | vertical-stack, horizontal-stack, grid |
 | **Logic** | conditional, entity-filter |
-| **Display** | sensor, history-graph, statistics-graph, gauge, energy, calendar, distribution |
+| **Display** | sensor, history-graph, statistics-graph, gauge, calendar, distribution, the energy cards |
 | **Legacy Control** | entity, entities, light, thermostat (use tile instead) |
 
-**Default:** Use `tile` card for most entities. Use `references/dashboard-cards.md` to look up all card types or fetch card-specific docs.
+**Default:** Use `tile` card for most entities. Use [dashboard-cards](dashboard-cards.md) to look up all card types and where to read a card's fields.
 
 ### Tile Card
 
@@ -217,6 +220,19 @@ The only built-in card that renders Jinja2 templates — the go-to for computed/
 
 The card auto-detects entities referenced in the template; `entity_id` (a list) is an optional fallback for when that analysis misses some, forcing a re-render on those. `text_only: true` strips the card chrome for inline labels.
 
+### Shortcut Card
+
+One tap to navigate, open a URL, launch Assist or run an action (2026.5). Left out, the label and icon come from the action. The text key is `label`, not `name`.
+
+```json
+{
+  "type": "shortcut",
+  "tap_action": {"action": "assist"}
+}
+```
+
+Use it instead of a `button` card with a `tap_action`. A `button` card is the fallback only before 2026.5.
+
 ### Per-Entity Graph Colors
 
 `history-graph` and `statistics-graph` cards accept a per-entity `color` via the entity object form:
@@ -241,8 +257,8 @@ Quick controls available on tile, area, humidifier, and thermostat cards.
 
 | Domain | Feature types |
 |--------|--------------|
-| Climate | `climate-hvac-modes`, `climate-fan-modes`, `climate-preset-modes`, `climate-swing-modes`, `climate-swing-horizontal-modes`, `target-temperature`, `target-humidity` |
-| Light | `light-brightness`, `light-color-temp`, `light-color-favorites` |
+| Climate | `climate-hvac-modes`, `climate-fan-modes`, `climate-preset-modes`, `climate-swing-modes`, `climate-swing-horizontal-modes`, `target-temperature`, `target-humidity` (humidifier entities, and climate entities that support it since 2026.9) |
+| Light | `light-brightness`, `light-color-temp`, `light-color-favorites`, `light-effect` (`effects:` filter list) |
 | Cover/Valve | `cover-open-close`, `cover-position`, `cover-position-favorite`, `cover-tilt`, `cover-tilt-position`, `cover-tilt-favorite`, `valve-open-close`, `valve-position`, `valve-position-favorite` |
 | Fan | `fan-speed`, `fan-preset-modes`, `fan-direction`, `fan-oscillate` |
 | Media | `media-player-playback` (configurable `controls`), `media-player-volume-slider`, `media-player-volume-buttons`, `media-player-source`, `media-player-sound-mode` |
@@ -250,7 +266,7 @@ Quick controls available on tile, area, humidifier, and thermostat cards.
 | Generic display | `trend-graph` (history sparkline; `hours_to_show`), `bar-gauge` (`min`/`max`) |
 | Generic control | `toggle`, `button` (run an action), `numeric-input` (`style`: `"buttons"`/`"slider"`), `select-options`, `counter-actions`, `date-set` |
 | Area card | `area-controls` |
-| Domain-specific | `alarm-modes`, `lock-commands`, `lock-open-door`, `vacuum-commands`, `lawn-mower-commands`, `humidifier-modes`, `humidifier-toggle`, `update-actions`, `water-heater-operation-modes` |
+| Domain-specific | `alarm-modes`, `lock-commands`, `lock-open-door`, `vacuum-commands`, `vacuum-fan-speed` (`fan_speeds:` filter list), `lawn-mower-commands`, `humidifier-modes`, `humidifier-toggle`, `update-actions`, `water-heater-operation-modes` |
 
 Mode-list features accept `style`: `"dropdown"` or `"icons"`. Tile cards also support `features_position`: `"bottom"` (default) or `"inline"`.
 
@@ -341,6 +357,19 @@ Cards, sections, and badges all accept `visibility` (a list of conditions, impli
 
 `screen` is the canonical way to show/hide cards by viewport (desktop vs. mobile).
 
+**Automation conditions (2026.10+).** `visibility` also accepts `template`, `sun`, `zone`, `device` and integration-provided conditions, written as in an automation. `trigger` is not accepted. They mix with the types above, also inside `and`/`or`/`not`.
+
+```json
+{
+  "visibility": [
+    {"condition": "sun", "after": "sunset"},
+    {"condition": "screen", "media_query": "(max-width: 767px)"}
+  ]
+}
+```
+
+`state` and `numeric_state` have two shapes since 2026.10: the dashboard one with `entity` (shown above; works on every version) and the automation one with `entity_id`, which the 2026.10 editor writes when a condition is edited. Keep whichever shape a config already has; write `entity` unless the instance runs 2026.10 or later.
+
 ---
 
 ## Custom Cards
@@ -383,7 +412,7 @@ Use the HA dashboard resource API to convert inline code to a hosted URL, then r
 ### Custom Card Workflow
 
 1. Write the card JavaScript class (see Minimal Custom Card above)
-2. Register it as a dashboard resource via the HA REST API (`/api/config/lovelace/resources`) with `resource_type: "module"`
+2. Register it as a dashboard resource: `lovelace/resources/create` over WebSocket with `res_type: "module"` and `url`, or the Resources tab under Settings > Dashboards
 3. Use the card in your dashboard config with the `custom:` prefix
 
 ```json
@@ -393,6 +422,12 @@ Use the HA dashboard resource API to convert inline code to a hosted URL, then r
   "name": "Living Room"
 }
 ```
+
+**Resource caching:** `/local/` is served with `public, max-age=2678400`, a 31-day cache, in desktop browsers as well as the Companion app. Editing a registered `.js` file in place leaves clients on the old copy until it expires or the client clears its cache.
+
+- HACS versions the plugin resource URLs it manages in storage (`?hacstag=<installed version>`), so a card installed through HACS is re-fetched on update. With YAML-mode resources HACS cannot update the URL, so that version string is yours to bump.
+- A resource registered by hand needs the same: bump a version query string on the resource `url`, `/local/quick-status-card.js?v=2.0.0`. Only a changed URL forces every client to re-fetch, so renaming the element tag does not help; the cached module still registers the old tag name.
+- A client already holding a stale copy needs a client-side fix: hard refresh, clear site data for the HA origin, or **Settings** > **Reset frontend cache** in the Companion app.
 
 ---
 
@@ -538,6 +573,7 @@ Custom cards predating sections views (early 2024) that haven't updated since ar
 | Map card markers show entity-name initials instead of values | `label_mode` is a **per-entity** option, not card-level: `"entities": [{"entity": "sensor.x", "label_mode": "state"}]` |
 | Cards lay out differently in spanned sections | A spanned section's grid widens with it (24 columns in a `column_span: 2` section) but is 12 when collapsed — see [Card Sizing and Responsive Layout](#card-sizing-and-responsive-layout) |
 | Map entities missing from map card | Only entities with `latitude`/`longitude` attributes are plotted — use template sensors carrying coordinates as attributes for fixed locations |
+| Custom card still stale after its file was updated | `/local/` is cached for 31 days: bump a version query string on the resource URL (`/local/my-card.js?v=2.0.0`), see [Custom Card Workflow](#custom-card-workflow). On a client already holding the old copy: hard refresh or **Settings** > **Reset frontend cache** in the Companion app |
 
 ---
 
@@ -550,7 +586,7 @@ Custom cards predating sections views (early 2024) that haven't updated since ar
 - Use **area** cards with navigation for hierarchical organization
 - Start sections with **heading** cards (`title`/`subtitle` styles); subtitle headings work well for inline caveats
 
-### Recent Dashboard Features (2026.2–2026.6)
+### Recent Dashboard Features (2026.2–2026.9)
 
 | Feature | Version | Details |
 |---------|---------|---------|
@@ -563,6 +599,10 @@ Custom cards predating sections views (early 2024) that haven't updated since ar
 | **Media player tile features** | 2026.5 | `media-player-source`, `media-player-sound-mode`, configurable playback `controls` |
 | **Weather forecast features** | 2026.6 | `temperature-forecast`, `precipitation-forecast` tile features |
 | **Per-entity graph color** | 2026.6 | `color` on each entity of `history-graph` / `statistics-graph` |
+| **Light effect feature** | 2026.9 | `light-effect` tile feature, for lights that report effects |
+| **Vacuum fan speed feature** | 2026.9 | `vacuum-fan-speed` tile feature |
+| **Climate target humidity** | 2026.9 | `target-humidity` now works on climate entities that support it |
+| **Dashboard background editor** | 2026.9 | A Background tab in the dashboard detail dialog edits the dashboard-level `background` key, which applies to every view that sets none of its own. The key itself predates 2026.9 |
 
 **Legacy patterns to avoid:**
 - Single-view dashboards with all cards in one long scroll
@@ -574,39 +614,19 @@ Custom cards predating sections views (early 2024) that haven't updated since ar
 
 ## Visual Iteration Workflow
 
-For iterative dashboard design with visual feedback, add a browser automation MCP server:
+Render the dashboard and look at it rather than reasoning about the JSON. Check the
+connected MCP server's tool list for a native dashboard-screenshot capability first —
+some servers ship one (sometimes as an opt-in/beta feature the user must enable), and it
+renders a view directly with no browser stack. Prefer the screenshot-only call for
+re-checks when you already hold the config; a combined config+screenshot call earns its
+payload only when you need both. Otherwise, where browser automation is available: write
+the config through the HA API, open `{base_url}/lovelace/{url_path}`, screenshot, adjust,
+repeat.
 
-### Recommended MCP Servers
-
-- **Playwright MCP** (`@anthropic/mcp-playwright`) — Take screenshots, interact with pages
-- **Puppeteer MCP** — Similar browser automation capabilities
-- **Browser DevTools MCP** — Inspect elements, debug layouts
-
-### Workflow
-
-```
-1. Create/update dashboard via the HA config API
-2. Navigate browser to dashboard URL (e.g., http://homeassistant.local:8123/lovelace/my-dashboard)
-3. Take screenshot to see current layout
-4. Analyze screenshot for issues (spacing, alignment, colors)
-5. Adjust configuration and repeat
-```
-
-### Example with Playwright MCP
-
-```
-1. Get the HA base URL from the system overview (e.g., "http://homeassistant.local:8123")
-2. Update dashboard config via the HA REST API
-3. Navigate browser to {base_url}/lovelace/{url_path}
-4. Take screenshot → analyze → adjust → repeat
-```
-
-### Benefits
-
-- See actual rendered output, not just JSON config
-- Catch visual issues (card overlap, responsive breakpoints)
-- Verify custom card styling
-- Test on different viewport sizes
+**Read `{base_url}` from the instance; never assume `:8123`.** Since 2026.8 a new Home
+Assistant OS install serves on a plain web address with no port suffix, and the port is
+user-settable from the interface, so the number that was a safe default for years no
+longer is. Existing installs keep whatever port they had.
 
 ### Screenshot Caveats
 
