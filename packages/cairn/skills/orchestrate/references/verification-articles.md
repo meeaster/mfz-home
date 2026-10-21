@@ -1,7 +1,14 @@
 # Verification articles
 
-A repository's verification article, `articles/<repo>-verification.md` in the knowledge base, says how work there is verified: how to check each kind of change and at what evidence level, and its verification gaps. The knowledge base is the owned location: write the article there even when it holds none yet, since a missing file only means none has been written. Write it up like any article with the `knowledge-base` skill, with one difference. A gap pairs a fact (what can't be verified, and the strongest evidence available) with a proposal (an idea that would close it, and its cost), and its status is the human's decision:
+Read this only for a separate, explicitly human-authorized task to promote session findings into the knowledge base. During ordinary orchestration, inspectors record verification gaps in the Cairn-assigned per-session folder; when the agreed shape leaves out an inspector, use the implementer's saved verification report. Do not create or update a verification article during handoff.
 
-- A new gap starts `proposed`. Merge a reported gap into an existing one on the same thing rather than adding a duplicate.
-- Keep each gap's status as the human set it: `proposed`, `accepted`, or `declined`, with their reason. Keeping the article current replaces superseded facts, never those decisions.
-- Keep declined gaps listed, so they aren't proposed again.
+## Curating an article
+
+After authorization, follow the `knowledge-base` skill and the knowledge base's `AGENTS.md`. A verification article at `articles/<repo>-verification.md` may hold reusable guidance on how to verify changes and human-authorized gap decisions. A missing article is not authorization to create one. Copy any cited session report into the knowledge base as evidence, following the `knowledge-base` skill; don't cite a path outside the knowledge base.
+
+For each authorized gap:
+
+- Start it as `proposed` unless the human has already set its status to `accepted` or `declined`.
+- Merge a report into an existing gap on the same thing rather than adding a duplicate.
+- Keep each status and the human's reason unchanged when maintaining the article.
+- Keep declined gaps listed so they aren't proposed again.
