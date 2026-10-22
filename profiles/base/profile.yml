@@ -194,7 +194,7 @@ mcp:
   browser-control:
     agents: [opencode, claude-code, codex]
   agent-browser:
-    agents: [opencode]
+    agents: [opencode, claude-code, codex]
   context7:
     agents: [opencode, claude-code, codex]
   openai-docs:
