@@ -42,6 +42,17 @@
 - **Behavior:** When progress depends on a background subagent and no useful independent work remains, briefly state what is pending and end the response.
 - **Behavior:** Do not issue tool calls solely to keep the session active or check whether a background subagent has finished.
 
+## Session location
+
+- **Behavior:** When a session in a folder containing several repositories is about to make changes that belong mainly to one of them, move the session to that repository before the first change so its instructions and configuration govern the work. Brief investigation does not warrant a move. If one repository owns the core change and the others only adapt to it, move to the owning repository; if none is primary, stay at the shared parent. Move once and state the destination and reason when moving.
+- **Tool:** In OpenCode, move the current session with the command below, replacing `<sessionID>` with the current conversation's session ID. The move applies at the next step boundary.
+
+```sh
+opencode api post /api/session/<sessionID>/move --data '{"directory":"<absolute path>"}'
+```
+
+- **Tool:** Claude Code agents cannot move a session; ask the user to run `/cd <path>`.
+
 ## OpenCode session compaction
 
 - **Behavior:** Invoke manual session compaction only when the user explicitly requests it. Context pressure or a task milestone alone does not authorize it.
