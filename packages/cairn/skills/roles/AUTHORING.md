@@ -17,6 +17,7 @@ Success: a delegated subagent gets a brief that names its role's expectations, m
 - **Return to the lead**: from an assumed role, the human asks to orchestrate again; the session loads `orchestrate`.
 - **Storyboard then build**: a creative director draws boards in OpenPencil alone, exports them at full size, and lists them by frame name; an `implementer/motion` builds from them without redesigning.
 - **Verify with gaps**: the inspector records evidence and gaps directly in its Cairn-assigned per-session folder while leaving the observed target and repository unchanged. Knowledge promotion is a separate human-authorized curation assignment, not a writer relay in verification.
+- **Browser inspection**: a focused check uses one inspector; broader coverage can fan out into scopes chosen for the target. The combined result accounts for every requested check without treating each scope as a new role or task type.
 
 Wrong behavior to rule out:
 
@@ -27,6 +28,7 @@ Wrong behavior to rule out:
 
 ## Decisions
 
+- **Browser inspection is one task type, with adaptive fan-out** (human, 2026-10-22). Browser experiments showed that focused assignments can catch issues missed by a whole-page inspector, but more workers are not always cheaper. The human rejected permanent desktop/mobile/interaction task types: the delegating model chooses complementary scopes and single versus fan-out execution. Model selection remains in `role-models`; the comparison is total cost for usable coverage, with no output-length cap. Design-document gathering remains task-specific rather than gaining an automatic fan-out rule.
 - **Split from `orchestrate` so any session can use roles** (human, 2026-10-13). See `orchestrate`'s record. This skill is model-invocable, unlike `orchestrate`, because an ordinary session must reach it when the human asks to delegate or to act as a role.
 - **Roles can be assumed** (human, 2026-10-13). Working with a creative director through a subagent puts the lead between the human and the director, and both relays lose intent; assuming the role removes them and keeps the session's context. Only conversational roles are assumable. The lead is assumed by loading `orchestrate`, so the lead has one definition. The model doesn't follow an assumed role, so the switch names the bound model and the human decides.
 - **Skills are chosen per role and task type** (human, 2026-10-13). Subagents load what the brief names, plus tool skills for tools the work uses. Taste skills (`impeccable`, `diagram-design`, `dataviz`, `technical-writing`, `unslop`) load only where a role or task type lists them, because they make style decisions that belong to the human or a creative role. The categories live here, not in the configuration catalog (human): Cairn owns the workflow, and the catalog is configuration management.

@@ -70,7 +70,7 @@ Compare the new request with the subagent's original assignment, not merely its 
 | Lead | lead | | all roles | yes, through `orchestrate` |
 | Gather | explorer | | | |
 | Gather | researcher | | | |
-| Gather | inspector | | | |
+| Gather | inspector | `browser` | | |
 | Gather | prototyper | | | |
 | Advise | architect | | | yes |
 | Advise | creative-director | `spec`, `storyboard` | prototyper | yes |
@@ -90,6 +90,7 @@ A delegated role that may dispatch gets told which roles it may use and to load 
 **researcher.** Answer from authoritative outside sources: documentation, releases, APIs, upstream source. Establish the exact version in use first. Prefer primary sources over search snippets, and read upstream source or tests when the docs leave doubt. You may clone into `/tmp/opencode/research/`; change nothing else. Return the answer first, then sources, the commit or tag behind any version-sensitive claim, and what's uncertain.
 
 **inspector.** Confirm the intended target and scope before gathering bulk evidence. Observe live state without changing it: Git, runtime output, cloud and SaaS systems through supported CLI or MCP access, prior sessions, rendered pages and screenshots. Return missing access requirements rather than probing credential stores. To check a change, check each acceptance criterion as the change's user would; the brief says whether the evidence is working material or for the human's review at handoff. Save evidence and record verification gaps directly in the Cairn-assigned per-session folder, without a writer relay. These session-evidence writes are the narrow exception to read-only observation; keep the target, repository files, and knowledge base unchanged. Leave out secrets. Return what you observed and the commands or queries behind it, so it can be checked again. Load `agent-sessions` for session work.
+- `browser`: verify rendered pages against the requested checks, using the selected browser's tool guidance. Choose one inspector for a focused check or fan out a broader inspection into complementary assignments. The delegating model chooses the number and scopes from the target and coverage needed; these scopes are not separate task types. Use the `inspector/browser` model for each worker, with independently controlled browser sessions or tabs. Each brief names its coverage and evidence requirements. Reconcile the results against the complete requested coverage, resolve conflicting claims, and retain unverified gaps. Judge the approach by total cost through usable verification, including failed work and follow-ups, rather than steps, tokens, or response length. This is verification, not interface redesign or taste-based QA.
 
 **prototyper.** Build the smallest runnable thing that answers the stated question, in the disposable location given. Don't productionize or commit it. Return what it showed, what's still uncertain, and where it is. Load `prototype`.
 
