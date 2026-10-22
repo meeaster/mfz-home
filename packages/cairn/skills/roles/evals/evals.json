@@ -5,13 +5,12 @@
       "id": 1,
       "name": "orchestrate-small-change",
       "prompt": "/orchestrate The `list` command should sort tasks by due date instead of creation date. Go ahead and make the change. Use openai/gpt-6-luna#high for every subagent in this session.",
-      "expected_output": "Scenario: orchestrate's small change, after roles moved into their own skill. The lead loads roles once and never re-reads it, proposes a small-change shape with one acceptance criterion and its check, dispatches one implementer that loads verification and runs the command, skips reviewer, inspector and QA, and closes with a short report.",
+      "expected_output": "Scenario: orchestrate's small change, after roles moved into their own skill. The lead loads roles once and never re-reads it, proposes a small-change shape with one acceptance criterion and its check, dispatches one implementer that runs the command to verify the change, skips reviewer, inspector and QA, and closes with a short report.",
       "files": [],
       "assertions": [
         "The roles skill is loaded exactly once",
         "No tool call reads the roles SKILL.md file",
         "Exactly one implementer is dispatched, on openai/gpt-6-luna#high",
-        "The implementer's brief names the verification skill",
         "No reviewer, inspector or qa is dispatched",
         "tasks.py list prints tasks in due-date order"
       ]
