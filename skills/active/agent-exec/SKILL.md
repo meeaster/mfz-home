@@ -2,8 +2,9 @@
 name: agent-exec
 description: >
   Run Codex, OpenCode, or Claude Code through its CLI (`codex exec`, `opencode run`, `claude -p`). Use before invoking
-  one of these CLIs from a shell or script, including plugin or configuration tests; to continue one of their
-  sessions; or to inspect a harness's models or variants.
+  one of these CLIs from a shell or script, including plugin or configuration tests; to continue a CLI session;
+  or to inspect models or variants through a CLI. Do not use for native subagent dispatch or model discovery
+  through OpenCode tools.
 ---
 
 # Agent Exec

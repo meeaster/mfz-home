@@ -236,8 +236,9 @@ skills:
     source: local
     skill: skills/active/agent-exec
     description: >
-      Run Codex, OpenCode, or Claude Code through its CLI, continue one of
-      their sessions, or inspect a harness's models or variants.
+      Run Codex, OpenCode, or Claude Code through its CLI, continue a CLI
+      session, or inspect models through a CLI. Not for native subagent
+      dispatch or model discovery through OpenCode tools.
   - name: codex-imagegen
     source: local
     skill: skills/active/codex-imagegen
