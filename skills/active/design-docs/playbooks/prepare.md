@@ -1,80 +1,90 @@
-# Playbook: prepare and maintain a working evidence packet
+# Playbook: prepare the writer's packet
 
-Substantive design work starts with a scoped packet: new designs, changes to direction, requirements, decisions or the plan, research, and meeting or email intake. Prepare it while the change is being discussed, before handing it to an author. Reuse and refresh it throughout that body of work. Wording-only and local presentation fixes use the editing workflow without a separate packet.
+A design gathers more than one writer can read: the records, every meeting, the research reports, and the knowledge articles and transcripts behind them. The packet is what gathering workers read on the writer's behalf, cut down to what the change needs: the system and the change in connected prose, the evidence and constraints that bear on it, and a map of everything in the design it touches. The writer reads the packet and `design.json`, and writes from them without reopening the pile.
 
-The purpose is broad consideration at lower authoring cost, not just avoiding a context limit. The design records and original sources remain authoritative. The packet is a working view, kept in the session or working-artifact location the user's setup supplies, outside the published design. Preparation changes neither design records nor source systems; the task's research or intake workflow still owns those writes and approval gates.
+Prepare one when the change rests on more than the writer can read alongside the design: a new version or change of direction, a new design built from many sources, a recommendation run across many decisions, or a meeting or email that brings long transcripts or research with it. Gathering runs on inexpensive models, but each worker still reads its share, so a packet pays only when it saves the writer more reading than it costs; a meeting on its own goes straight to [update.md](update.md), which reads the outline and the records the meeting touches. An editing pass ([edit.md](edit.md)) changes wording, not meaning, and needs none. [Research](research.md) is gathering itself: it reads a packet when there is one and adds what it finds.
 
-## 1. Establish scope and coverage
+The packet is a working copy, never a source. The records and the original sources stay authoritative, preparing it changes neither, and it changes no approval step: meeting proposals still wait for the user, and recommendations stay advice.
 
-Have a read-only gathering worker read `design.json` in full when it exists, inspect the design's evidence, meetings, changes and page/component topics, and map the proposed change to requirements, decisions, questions, facts, risks, flows and the plan. Follow repository and knowledge-base guidance before looking up their sources. For a new design, start with the request and available sources instead.
+## Who does what
 
-Scope is a starting question, not permission to ignore consequences. Search across the whole current design for dependencies, contradictory claims and affected consumers; then identify all source material relevant to that closure. Include evidence that challenges the proposed change. Sources outside the closure get a reason for exclusion; uncertain relevance gets investigated. Generated duplicates and layout code need not be read merely to count them as covered.
+| Step | Who | In OpenCode, with the `roles` skill (task type `design-docs`) |
+| --- | --- | --- |
+| Map the change, keep the packet current, hand it off | You, the session talking to the user | — |
+| Gather | Workers, one per domain | explorer; researcher when it looks beyond the design folder and the knowledge base |
+| Compile | One fresh worker | explorer |
+| Check | Workers that didn't compile it, one per domain | inspector |
+| Write | You, or the model the user picked for writing | — |
 
-Record the design/version, source identities and read boundaries, relevant records/topics, source locations, and coverage gaps. Before refreshing an existing packet, compare these boundaries with the current records, sources and conversation. A source's observation date stays attached to its claim; refreshing the packet does not make an old observation current.
+`roles` takes each role's model from `role-models`, using the `design-docs` task type where the user's profile has a row for it and the role's default otherwise. Handing work to a role doesn't start orchestration. Without it, use the cheapest model the harness offers that reads carefully, and say which in your report.
 
-**Done when:** the change and its cross-design consequences have an explicit coverage map, with every relevant source assigned or a named access gap. A gap is not evidence that nothing exists.
+## 1. Start the packet
 
-## 2. Gather by bounded domains
+A packet serves one session's task. A later session works on something else, so it prepares its own rather than reusing an old one. Keep it as files, so it survives compaction and the workers and writer can read it: `brief.md`, `evidence.md` and `coverage.md` (step 4 says what each holds), in the session's working folder (the one your setup names for the session's files), or in a temporary directory when there's none. Never put it in the design folder: it's not part of the design, and its local paths must not reach the repository.
 
-Delegate source reading to inexpensive gathering workers using the user's configured routing. Models and harness-specific dispatch mechanics belong to that setup, not this playbook. One worker can cover a small scope; fan out independent domains when the material is substantial. Partition by questions and dependencies, rather than equal file counts. A large domain can be subdivided before its worker has to repeatedly compact.
+## 2. Map what the change touches
 
-Give each worker the same proposed change, accepted direction and authority boundaries, plus its source ownership, dependencies on other workers and expected result. Workers read all relevant content in their assigned domain, follow material consequences beyond the initial list, and report overlaps or missing sources. Reuse existing research; new research or additional access follows the task's authority and research workflow. Workers gather and reconcile evidence, not choose architecture or accept requirements.
+Read the outline (`doc.mjs outline <folder>`); for a new design, the request and the sources named for it. Have one worker read `design.json`, the pages and the components in full and list every record and page that the change touches or that depends on them. In `coverage.md`, write the change under discussion and every record and page topic it touches: the requirements, decisions, questions, facts, risks, flows and deliverables it changes, and those that depend on them. Look across the whole design, not just the area the change names: a change of hosting reaches the archive's permissions and the rollback plan.
 
-Each returns a bounded, source-linked explanation with:
+Then list the sources that bear on it (evidence, meetings, research reports, knowledge articles, transcripts, repositories), including those that argue against the change. Follow repository and knowledge-base guidance before looking anything up. A source left out gets a reason; one you're unsure of gets gathered. A source you can't reach is a named gap, not a sign there's nothing there.
 
-- Findings, exact support or sufficient excerpts, original source locators, observation dates, applicable versions and limitations.
-- Human statements and accepted proposals separately from colleague guidance, AI advice and unresolved choices.
-- Constraints that affect alternatives, failure behavior, interfaces, permissions, rollout, recovery, ownership and validation—not just a list of questions marked unknown.
-- Relevant record IDs and topics, conflicts, exclusions and completed versus incomplete source coverage. Group IDs only when the same disposition and reason actually apply to each.
+**Done when** every touched record and every relevant source is in `coverage.md`, assigned to a domain or named as a gap.
 
-**Done when:** every assigned domain has complete relevant coverage or explicit gaps, and each finding's meaning and source can survive without the worker's transcript.
+## 3. Gather by domain
 
-## 3. Compile the packet
+Split the sources into domains by the questions they answer (routing, the archive, identity and permissions, cost, rollout), not into equal piles of files, and split a domain again when one worker would have to compact to finish it. A small change can be one domain.
 
-Use a fresh compiler when gathering has accumulated broad context. It reads the worker results, reconciles their interfaces, and opens targeted original passages for conflicts, ambiguous authority or missing consequential detail. It records those reopens and reasons. A worker's result is evidence of its reading, not an independent confirmation of the source's underlying system.
+Brief each worker with the change, the working direction, its domain's sources, the domains it overlaps, and what to return. Workers read everything relevant in their domain, follow a consequence out of it when they find one, and report overlaps and missing sources. They gather; they don't choose architecture or accept requirements. Each returns:
 
-Keep three linked sections or files, with one home for each claim:
+- Findings, each with the exact quote or enough of the passage to write from, where it is, when it was observed, which version it applies to, and its limits.
+- What people said, by who said it: the user and accepted proposals; colleagues' guidance; AI advice; choices nobody has made.
+- Constraints that shape the options, not only what's unknown: failure and recovery, interfaces and data formats, permissions, rollout, ownership, validation.
+- The record IDs each finding bears on, conflicts between sources, what was left out and why, and what wasn't read.
 
-| Part | What the author needs |
+**Done when** every domain is read in full or its gap is named, and each finding makes sense without the worker's transcript.
+
+## 4. Compile
+
+A fresh worker reads the workers' results and writes the three files, with one home for each claim:
+
+| File | Holds |
 | --- | --- |
-| Working brief | Connected problem, goals, exclusions, audience assumptions, current/proposed behavior, accepted direction, requirements, and the change under discussion. Preserve why the work matters and relevant dated scale baselines separately from forecasts or selected settings. |
-| Evidence and constraints | Supported claims with classification, scope/date/version, precise source locators and sufficient detail to author accurately. Retain behavior and distinctions that change a design choice: modes, product contracts, trust/read boundaries, failure/recovery semantics, change compatibility, permissions and telemetry limitations. |
-| Coverage and impact | Relevant IDs/topics and their disposition, dependencies, conflicts, source boundaries, exclusions and gaps. For a wholesale rewrite, account for every current record and page topic; the private carryforward map is not the new design's narrative. |
+| `brief.md` | The system and the change, connected: the problem and why it matters, the goals and what's left out, who reads the doc, how it works today and as proposed, the working direction, the requirements the change bears on, and the change itself. Dated figures for scale, apart from forecasts and chosen settings. |
+| `evidence.md` | Each supported claim with what kind it is, its scope, date and version, where it is, and enough detail to write from. Keep the distinctions that change a choice: modes, product contracts, trust and read boundaries, failure and recovery, compatibility, permissions, and what telemetry can and can't show. |
+| `coverage.md` | The touched records and topics and what happens to each, dependencies, conflicts, sources read and left out, and gaps. For a new version, the carryforward map: every current record and page topic and where it goes in the new version (kept, merged, dropped). The map is for the writer; the new version never tells that story. |
 
-Preserve requirement priority, acceptance, provenance and demonstrated coverage as separate properties. Keep data contracts, hosting direction and rollout scope distinct. An unresolved choice must retain the known constraints around it: “destination undecided” does not replace different formats, permissions or failure behavior. Keep useful contact routes and expressed ownership preferences dated and conditional; they are not final assignments. Model provenance is not decision authority or a confidence grade.
+Where results conflict, a source's authority is unclear, or a consequential detail is missing, the compiler opens the original passage and notes it under Reopened originals. A worker's result shows what it read, not how the system behaves.
 
-Avoid copying complete reports, duplicating the brief in every ledger, or compressing to a rigid token cap. State packet size and required versus optional reads; semantic sufficiency determines length. Original citations provide traceability, not a default rereading checklist. Keep local source locations in the working packet; the design's normal citation/privacy rules govern what is later published.
+A packet compiled from record IDs alone loses what sits between them, so keep these apart:
 
-**Done when:** a fresh author can explain the system and the proposed change, preserve constraints and authority, and identify what remains unresolved without reconstructing the original source pile.
+- A requirement's priority, who accepted it, where it came from, and whether anything has shown it's met.
+- The data contract, where it's hosted, and how far it rolls out.
+- What's known around an open choice: "destination undecided" still carries each destination's format, permissions and failure behaviour.
+- Who to ask and who would like to own what: dated, and not an assignment.
+- Which model made a recommendation: it's neither who decided nor a confidence.
 
-## 4. Check preservation
+Write as much as the change needs, without whole reports pasted in or the brief repeated in every file. Say at the top of `brief.md` how long the packet is and what the writer must read and may consult. Local paths stay in the packet; what reaches the design follows its usual privacy rules.
 
-Check the packet against its coverage map and original sources before authoring. For broad or consequential changes, use independent, bounded domain reviewers; they inspect originals, not just the compiler's inventory. A small scope can receive a direct source comparison. Keep review assignments bounded rather than giving one reviewer the entire pile.
+**Done when** a writer who has read nothing else could explain the system and the change, keep its constraints and who decided what, and say what's still open.
 
-Judge useful meaning, not sentence retention: identify material omissions, distortions, unsafe generalizations and safe compression. Verify source locators resolve to the supporting passages. Check inherited givens and priorities, explicit exclusions, relevant quantitative baselines, product/mode distinctions, raw-data and trust boundaries, failure/rollback behavior, and the known constraints around open questions. Complete ID counts alone do not establish preservation.
+## 5. Check it
 
-Repair material losses and recheck the affected domains. Report ready, ready with named gaps, or blocked. Genuine design unknowns can remain open; missing packet support for a consequential claim must be repaired or clearly withheld from authoring. Review of the packet does not establish production behavior or replace review of the resulting design.
+Workers that didn't compile the packet check it against the originals, one domain each; a small packet can get one direct comparison. They judge meaning, not sentence counts: what's missing that matters, what's distorted, what's generalised past its source, and what was safely cut. They confirm each locator opens the passage it cites, and check the givens and priorities, exclusions, figures for scale, product and mode distinctions, data and trust boundaries, failure and rollback, and the constraints around open questions. A complete ID count shows none of that.
 
-**Done when:** no known material preservation defect remains, and the author is told exactly which gaps constrain the work.
+Fix what they find and recheck those domains. Set `status` in `brief.md` to `ready`, `ready with gaps` (naming them under Gaps), or `blocked`. An open design question can stay open; a consequential claim with no support in the packet is fixed or kept out of the writing.
 
-## 5. Maintain it during discussion and edits
+**Done when** no known loss remains and the writer is told which gaps limit the work.
 
-The lead detects scope changes as the user talks; the user need not announce them. Record exploration, proposed changes and human acceptance distinctly. When a new point affects a dependency or challenges a claim, dispatch bounded gathering to update those packet sections and check for further consequences. Fan out when several domains are affected. Reconcile the updated packet before reasoning or writing that depends on it.
+## 6. Keep it current
 
-Reuse supported material within its recorded scope. A changed design/version, new source, conflicting finding, altered requirement or new user direction triggers a freshness and impact check, not automatic reuse and not an automatic full reread. Keep packet source boundaries and gaps current across handoffs. After accepted changes land, reconcile the packet with the resulting records or retire it; a later session checks freshness before using it.
+While the user talks, notice when the change grows; they won't always say so. Keep apart what was explored, what's proposed and what the user accepted. When a new point reaches a dependency or challenges a claim, send gathering at those domains, several at once when several are reached, and fold the results in before reasoning or writing that rests on them. A new source, a conflicting finding, a changed requirement or a new direction calls for checking what it touches: neither a full reread nor reuse unchecked. A claim keeps the date it was observed; refreshing the packet doesn't make it current. When work continues after accepted changes land, bring the packet in line with the records first.
 
-**Done when:** the packet reflects the latest relevant discussion and source state, and every scope extension has coverage or an explicit pending investigation.
+## 7. Hand off and write
 
-## 6. Hand off and author
+Give the writer the packet, what's agreed, the gaps, and the playbook for the task. The writer reads `brief.md` and what it marks required, the outline, the records `coverage.md` lists (`doc.mjs show`), the `changes.md` entries since the handoff, the pages and components it changes, and the skill references the edits need. It writes from the packet's supported claims without reopening evidence, transcripts, meetings or reports. It opens an original when something contradicts, a consequential detail is missing, who decided is unclear, the date could change the claim, or it's about to write something the packet doesn't cover. A broad new dependency goes back to gathering, not into the writer's context.
 
-Give the author the current packet, agreed changes, remaining gaps and the applicable authoring workflow. The author reads `design.json` in full when present, the change entries since the last handoff, affected records/pages/components, and the skill references needed for the edits. It relies on supported packet claims without automatically reopening all evidence, transcripts, meetings or research reports.
+The task's own steps finish the work: the sweep for every place a changed ID or fact appears, `check`, the review of what it says, and screenshots where pages changed. If records were renumbered, update the packet's references; old IDs stay in `coverage.md`, never in the design. A packet is never permission to change or publish the design.
 
-Reopen an original when a contradiction appears, consequential support/detail is missing, authority is ambiguous, freshness could change the claim, or writing introduces a claim outside packet coverage. Resolve broad new dependencies through gathering rather than expanding the author's context indiscriminately. Use documented build/version commands; implementation code is needed only when the procedure fails or its contract is unclear.
+## Without workers
 
-Apply only what the task permits: meeting proposals still wait for the human, research records findings through its playbook, and recommendations remain advice. After authoring, run the normal whole-folder consistency sweep, checker, semantic review and applicable rendered checks. Update the packet's references if record numbering changes; earlier IDs stay in private lineage, not current prose.
-
-**Done when:** the resulting design agrees with the accepted change and supported evidence, affected consumers are consistent, and verification gaps are reported. Saving a packet is not authorization to change or publish the design.
-
-## Without delegation
-
-When subagents are unavailable or disallowed, prepare the same packet locally in bounded source passes and disclose that fallback. For work that cannot preserve relevant coverage within available context, return the unexamined domains and request a narrower assignment or delegation; compaction is not proof of complete consideration. The packet format and authority boundaries stay the same.
+When subagents aren't available or allowed, build the same packet yourself, one domain at a time, and say so in your report. When the relevant material won't fit, name the domains you couldn't cover and ask for a narrower task or for workers; compacting your context doesn't count as having read something.

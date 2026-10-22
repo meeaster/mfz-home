@@ -4,7 +4,8 @@ Everything a research run needs is on this page. A research run takes the open q
 
 ## 1. Pick it up
 
-- Prepare or refresh the packet with [prepare.md](prepare.md), covering prior findings and contradictions relevant to the questions so research is not repeated. Read `design.json` in full, `changes.md` since the last handoff, and evidence items the new findings cite or change. Gathering covers the relevant original evidence; new findings refresh the packet.
+- The outline (`node <skill>/scripts/doc.mjs outline <folder>`), the questions in scope and the records they link, in full (`doc.mjs show`), and `changes.md` since the last handoff.
+- What's already found, so research isn't repeated or contradicted without saying so: this session's writer's packet when it has one, otherwise `evidence.json` in full. Research is gathering, so it needs no packet prepared first; when there is one, add the new findings to it ([prepare.md](prepare.md)).
 - The questions in scope: the ones the user named, or every open question whose `Answer from` starts with `Research`.
 - The working direction, when the design has one: research finds what it needs. A finding that it can't meet a requirement is evidence like any other; record it, and report it rather than researching alternatives to the direction.
 

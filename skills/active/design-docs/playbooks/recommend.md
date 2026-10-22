@@ -1,15 +1,14 @@
 # Playbook: recommend what to decide
 
-Everything a recommendation run needs is on this page. A recommendation run considers the whole design through a prepared evidence packet and writes the AI's recommendation on open decisions and questions: what it would pick, why, what would change its mind, and how sure it is. The published doc shows each one labelled as AI, apart from the team's own view, so the people deciding can agree, disagree or ignore it. A recommendation is advice: it goes in directly, and the decision's status, leaning and answer stay exactly as the team left them.
+Everything a recommendation run needs is on this page and in [prepare.md](prepare.md). A recommendation run weighs everything that bears on each open decision and question, and writes the AI's recommendation on open decisions and questions: what it would pick, why, what would change its mind, and how sure it is. The published doc shows each one labelled as AI, apart from the team's own view, so the people deciding can agree, disagree or ignore it. A recommendation is advice: it goes in directly, and the decision's status, leaning and answer stay exactly as the team left them.
 
 These are judgement calls, so run them with the most capable model available.
 
 ## 1. Pick it up
 
-Prepare or refresh the working packet with [prepare.md](prepare.md); its coverage includes all evidence and human positions relevant to the decisions, including contrary findings and cross-design consequences. Complete consideration belongs to the gathering and recommendation work together, not duplicate source loading.
-
-- `design.json` in full: the problem, goals, requirements, options, costs, risks and the questions each decision waits on.
-- Current packet and the evidence/meeting records the recommendation cites or changes. Reopen originals for a specific gap or contradiction rather than repeating broad research.
+- The outline (`node <skill>/scripts/doc.mjs outline <folder>`): the prose in full and one line per record.
+- In full, with `doc.mjs show`: each record in scope, its options, and the requirements, costs, risks and questions it waits on or shapes.
+- Every finding and every position people have taken on the records in scope, including those that cut against the team's leaning. For one or two records, `show` the evidence and meetings they cite and search `evidence.json` and `meetings.json` for their IDs. For more, prepare the writer's packet with [prepare.md](prepare.md), so you weigh all of it without reading every source, and open an original only for a specific gap or contradiction.
 - `changes.md` since the last handoff.
 
 The records in scope: the ones the user named, or else every decision that's Open or Leaning (and Later when what it follows is settled) and every open question whose `Answer from` is `Person` or `Approval`, where it has no recommendation yet or `check` says its recommendation is out of date. A question marked `Research` gets researched instead ([the research playbook](research.md)): evidence beats a suggestion.

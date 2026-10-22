@@ -2,11 +2,11 @@
 
 `design.json` holds what the design has established: terms, facts, requirements, parts, decisions with their options, risks, costs, data flows and open questions. `evidence.json` holds the evidence and `meetings.json` the meetings, in the same format; the build reads all three as one. It is the design's single source of truth. The pages write prose around it and draw its pictures; its tables, option cards, decision maps, cost bars and flow tables are rendered from it at build time, and diagrams bind their parts to it, so a fact is edited in one place and every page that shows it follows.
 
-A session that picks the design up reads `design.json` in full (and the other two when the task needs them), so write each record so it stands on its own: the question and what it means, the answer or leaning, why, and where it came from. `assets/example/design.json` is a complete one; `assets/template/design.json` is the starting point.
+A session that picks the design up reads its outline (`doc.mjs outline`: the prose, and one line per record) and then only the records it needs, in full (`doc.mjs show`), so write each record so it stands on its own, and its title so the outline line says what it is: the question and what it means, the answer or leaning, why, and where it came from. `assets/example/design.json` is a complete one; `assets/template/design.json` is the starting point.
 
 ## Layout
 
-The records are JSON, in three files. `design.json` holds the design; `evidence.json` holds `{"evidence": [...]}` and `meetings.json` holds `{"meetings": [...]}`. The build reads all three as one.
+The records are JSON, in three files. `design.json` holds the design; `evidence.json` holds `{"evidence": [...]}` and `meetings.json` holds `{"meetings": [...]}`. The build reads all three as one. Read them with `doc.mjs outline` and `show`, and change design.json and evidence.json with `doc.mjs set` (SKILL.md's What to read shows its forms).
 
 ```json
 {

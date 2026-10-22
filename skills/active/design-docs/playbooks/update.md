@@ -4,10 +4,11 @@ Everything a routine update needs is on this page. An update has two turns: prop
 
 ## 1. Pick it up
 
-- Prepare or refresh the working packet with [prepare.md](prepare.md), including the source (meeting summary, email or answer), its authority, and cross-design consequences. Gathering covers the source in full and all relevant evidence; the author uses the supported packet instead of repeating that reading.
-- `design.json` in full: the prose, facts and records.
+- The source (meeting summary, email or answer) in full: each proposal says what the source said, at the strength it said it.
+- The design's outline: `node <skill>/scripts/doc.mjs outline <folder>` prints the prose in full and one line per record.
 - `changes.md`: the entries since the last handoff.
-- The evidence and meeting items you will cite or change, plus precise source passages needed to apply the proposals. Missing support, contradictions or wider discussion trigger packet expansion before dependent edits.
+- In full, with `doc.mjs show <folder> <IDs>`: each record an outcome touches, and each record that depends on those. `doc.mjs refs <folder> <IDs>` lists every place that mentions each one; the follow-ons below come from these. Show a few records per call. Then the evidence and meeting items you will cite or change.
+- A packet ([prepare.md](prepare.md)) only when the source brings more than you can read alongside the design: a long transcript, a stack of research, or a change of direction.
 
 ## 2. Propose, don't apply
 
@@ -50,6 +51,9 @@ Run `check` and `build` (`check` warns about long or field-worded proposals; fix
 The user settles proposals by number: accept, reject, defer, or accept with a change. For each, set `status` to `Accepted`, `Changed`, `Rejected` or `Deferred`, and for anything but a plain accept put what the user said in `note`. Then apply every accepted and changed proposal (as changed) to the records, as below, and list each in the meeting's `Outcomes`: `<Kind> · <what> → <record IDs, fact:key, deliverable title, or Working direction>`. Set the meeting's status to `Summarised` once nothing is left `Proposed`. `check` fails when an accepted proposal has no outcome, or the latest meeting's outcomes don't match the records.
 
 ### Applying each change
+
+Apply record changes with `doc.mjs set <folder> -`, all of a step's changes in one call (SKILL.md's What to read shows the forms); it keeps the files' format and changes nothing if any change fails.
+
 
 **Working direction** (`direction`): what the approach is, then what it leaves open. When it's new, add `## Working direction`, empty, to the overview after In short. Then bring along what argued against it: In short, and any decision, option or question written as weighing another approach.
 

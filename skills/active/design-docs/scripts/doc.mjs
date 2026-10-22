@@ -45,6 +45,7 @@ import {
 import { ChangesError, applyChanges, readChanges, reviewData, reviewFolder, writeChange } from "./changes.mjs";
 import { bind, renderPages } from "./render.mjs";
 import { VersionError, publishVersions, startVersion } from "./versions.mjs";
+import { OutlineError, outline, refs, setRecords, show } from "./outline.mjs";
 import { SNIPPET_LANGUAGES } from "./snippets.mjs";
 import { esc, escAll, splitLines, unescape } from "./text.mjs";
 
@@ -1584,6 +1585,10 @@ const USAGE = `usage: doc.mjs check <design folder | doc.html>
        doc.mjs review <design folder>
        doc.mjs apply-changes <design folder> <C1 C2 … | all>
        doc.mjs new-version <design folder>
+       doc.mjs outline <design folder>
+       doc.mjs show <design folder> <ID …>
+       doc.mjs refs <design folder> <ID or phrase …>
+       doc.mjs set <design folder> <changes.json | ->
 
   check    report broken references, missing parts, and local paths
   build    check, then write one self-contained HTML file (default: <folder>/published/<slug>.html,
@@ -1594,7 +1599,14 @@ const USAGE = `usage: doc.mjs check <design folder | doc.html>
   apply-changes  write the named draft changes into the design and drop them from the draft
   new-version    freeze this version, with its published doc, in <folder>/versions/v<N>/ and start the next one in
            place: the records and pages stay to be rewritten as the current state; the change log and meetings
-           start empty`;
+           start empty
+  outline  print the design's prose in full and one line per record (ID, status, title), evidence and meetings included
+  show     print the named records in full: IDs as the outline lists them (D7, Q22, E43, S-F1, risk-3, meeting-5, D6/A)
+  refs     list every place each ID (whole word) or phrase (any case) appears: record and field, page or component line
+  set      apply a JSON list of record changes, all or none, keeping the files' format (- reads it from stdin):
+           {"target": "D6", "set": {"Status": "Decided"}}, {"target": "D6/A", "set": {...}},
+           {"target": "Q31", "replace": [["exact passage", "new text"]]}, {"target": "D6", "remove": ["Recommendation"]},
+           {"add": "questions", "record": {...}}, {"add": "D6/options", "record": {...}}, {"delete": "Q23"}`;
 
 // The design's own files, without its review copies or published doc; the copy sits inside the folder it copies.
 function copyDesign(from, to) {
@@ -1684,7 +1696,7 @@ async function main(argv) {
 
   const applying = command === "apply-changes";
 
-  if (!["check", "build", "migrate", "review", "apply-changes", "new-version"].includes(command) || doc === undefined || (applying ? parsed.positionals.length < 3 : parsed.positionals.length > 2)) {
+  if (!["check", "build", "migrate", "review", "apply-changes", "new-version", "outline", "show", "refs", "set"].includes(command) || doc === undefined || (applying || ["show", "refs"].includes(command) ? parsed.positionals.length < 3 : command === "set" ? parsed.positionals.length !== 3 : parsed.positionals.length > 2)) {
     console.error(USAGE);
 
     return 2;
@@ -1696,6 +1708,26 @@ async function main(argv) {
 
   if (applying) {
     return applyDraft(doc, parsed.positionals.slice(2));
+  }
+
+  if (["outline", "show", "refs"].includes(command)) {
+    const folder = resolve(doc)[2];
+    const names = parsed.positionals.slice(2);
+
+    console.log(command === "outline" ? outline(folder) : command === "show" ? show(folder, names) : refs(folder, names));
+
+    return 0;
+  }
+
+  if (command === "set") {
+    const source = parsed.positionals[2];
+    const changes = JSON.parse(readFileSync(source === "-" ? 0 : source, "utf8"));
+
+    for (const line of setRecords(resolve(doc)[2], changes)) console.log(line);
+
+    console.log("applied; run check, and log the change in changes.md");
+
+    return 0;
   }
 
   const { errors, warnings, source, design } = await check(doc);
@@ -1776,7 +1808,7 @@ async function main(argv) {
 try {
   process.exitCode = await main(process.argv.slice(2));
 } catch (error) {
-  if (error instanceof Stop || error instanceof JsonError || error instanceof ChangesError || error instanceof VersionError) {
+  if (error instanceof Stop || error instanceof JsonError || error instanceof ChangesError || error instanceof VersionError || error instanceof OutlineError) {
     console.error(error.message);
     process.exitCode = 1;
   } else {
