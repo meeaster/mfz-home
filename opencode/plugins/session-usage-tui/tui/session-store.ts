@@ -11,7 +11,7 @@ import type { SessionMessage } from "./messages.js";
  * Increment when the saved format, or the rules for which saved messages can still change, no longer match what
  * earlier files assume. A file with another version is ignored and rebuilt.
  */
-export const CACHE_VERSION = 1;
+export const CACHE_VERSION = 3;
 
 /** A session's messages as last read, with the session's fingerprint taken before they were read. */
 export type CachedSession = { sessionID: string; fingerprint: string; messages: readonly SessionMessage[] };

@@ -36,6 +36,12 @@ idle 6m · new model
   the total across all compactions in parentheses. The first amount counts the session's own later steps and its
   subagents' steps that started after the compaction. Without a compaction, a line shows one amount. These are
   catalog estimates, not billing records. **Total** sums them the same way.
+- **Claude Code steps** are priced from models.dev's `anthropic` entries. One such step runs a whole Claude Code
+  turn of many model calls while its tokens hold only the last call's, so the provider reports the turn's tokens by
+  API model (`native.usage`, subagents included) and the API model behind the step's alias (`native.apiModel`). Cost
+  lines and the Uncached and Cached totals count those tokens, each model on its own line; a context-priced tier is
+  chosen by that model's largest single call in the turn. The idle timer and cache lifetimes price the step's last
+  call as its API model.
 - **Idle timer** shows, in the prompt footer, how long the selected session has waited since its latest assistant
   message completed: `idle 42s`, `idle 6m`, `idle 1h 12m`. It hides while the session runs and before its first step
   completes. Its color follows the learned lifetime of the model that step used. For a learned lifetime it is muted

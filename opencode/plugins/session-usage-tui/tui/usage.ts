@@ -1,4 +1,4 @@
-import { latestCompletedCompactionIndex, pricingUsage, type SessionMessage } from "./messages.js";
+import { billedUsages, latestCompletedCompactionIndex, type SessionMessage } from "./messages.js";
 
 /** Input tokens split by whether they were read from the prompt cache. Cache writes count as uncached. */
 export type CacheTotals = { uncached: number; cached: number };
@@ -16,7 +16,7 @@ export type SessionUsage = {
 export function sessionUsage(messages: readonly SessionMessage[], boundary?: string): SessionUsage {
   const boundaryIndex = boundary === undefined ? -1 : messages.findIndex((message) => message.id === boundary);
   const current = boundaryIndex === -1 ? messages : messages.slice(0, boundaryIndex);
-  const steps = current.flatMap((message) => pricingUsage(message) ?? []);
+  const steps = current.flatMap(billedUsages);
   const usage: SessionUsage = {};
 
   if (steps.length > 0) {

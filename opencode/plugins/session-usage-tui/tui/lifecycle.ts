@@ -1,7 +1,7 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
 
 import { createMessageCache, type MessageCache } from "./message-cache.js";
-import { familyPricingUsages, pricingUsage, type SessionMessage } from "./messages.js";
+import { billedUsages, familyPricingUsages, type SessionMessage } from "./messages.js";
 import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
 import { createSessionStore, type SessionStore } from "./session-store.js";
 import type { ModelAliases } from "./models.js";
@@ -124,7 +124,7 @@ async function estimateCost(
   const usages = familyPricingUsages(familyMessages, sessionID, descendantsOf(context, sessionID, sessionIDs));
 
   const sessions = Object.fromEntries(familyMessages.map(({ sessionID: id, messages }) => {
-    const priced = aggregateCost(messages.flatMap((message) => pricingUsage(message) ?? []), priceCatalog, undefined, modelAliases);
+    const priced = aggregateCost(messages.flatMap(billedUsages), priceCatalog, undefined, modelAliases);
     const cost = priced.costs.reduce((sum, item) => sum + item.amount, 0);
 
     return [id, { ...sessionUsage(messages, context.data.session.get(id)?.revert?.messageID), cost }];

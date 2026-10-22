@@ -1,5 +1,5 @@
 import type { PricingUsage } from "./messages.js";
-import type { ModelAliases } from "./models.js";
+import { catalogProviderID, type ModelAliases } from "./models.js";
 
 export type Rates = {
   input?: number;
@@ -48,7 +48,7 @@ export function loadCatalog(): Promise<Catalog> {
 }
 
 export function ratesFor(model: Model, usage: PricingUsage): Rates | undefined {
-  const prompt = usage.tokens.input + usage.tokens.cacheRead + usage.tokens.cacheWrite;
+  const prompt = usage.context ?? usage.tokens.input + usage.tokens.cacheRead + usage.tokens.cacheWrite;
   const cost = normalizeRates(model.cost);
 
   return contextTier(cost, prompt) ?? cost;
@@ -66,9 +66,7 @@ export function aggregateCost(
 
   for (const usage of usages) {
     const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
-    const providerID = alias?.providerID ?? usage.providerID;
-    const modelID = alias?.modelID ?? usage.modelID;
-    const model = providerModels(priceCatalog, providerID)[modelID];
+    const model = catalogModel(usage, priceCatalog, modelAliases);
     const rates = model && ratesFor(model, usage);
 
     if (!rates) {
@@ -98,8 +96,7 @@ export function aggregateCost(
  * cache, and otherwise pays the input rate. Unknown when the model has no catalog price.
  */
 export function resumeCost(usage: PricingUsage, priceCatalog: Catalog, modelAliases: ModelAliases = {}): number | undefined {
-  const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
-  const model = providerModels(priceCatalog, alias?.providerID ?? usage.providerID)[alias?.modelID ?? usage.modelID];
+  const model = catalogModel(usage, priceCatalog, modelAliases);
   const { input, output, reasoning, cacheRead, cacheWrite } = usage.tokens;
   const context = input + output + reasoning + cacheRead + cacheWrite;
   const rates = model && ratesFor(model, { ...usage, tokens: { input: context, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0 } });
@@ -109,6 +106,15 @@ export function resumeCost(usage: PricingUsage, priceCatalog: Catalog, modelAlia
   const rate = finite(rates.cache_write) > 0 ? finite(rates.cache_write) : finite(rates.input);
 
   return (context * rate) / 1_000_000;
+}
+
+/** The catalog entry that prices a step: its configured alias, or its own model under the provider that sells it. */
+function catalogModel(usage: PricingUsage, priceCatalog: Catalog, modelAliases: ModelAliases): Model | undefined {
+  const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
+
+  if (alias) return providerModels(priceCatalog, alias.providerID)[alias.modelID];
+
+  return providerModels(priceCatalog, catalogProviderID(usage.providerID))[usage.catalogModelID ?? usage.modelID];
 }
 
 // Each catalog is materialized once per provider, not once per priced step.

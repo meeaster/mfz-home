@@ -11,7 +11,14 @@ export type PricingUsage = {
     cacheRead: number;
     cacheWrite: number;
   };
+  /** The catalog model to price with, when the recorded model ID is an alias such as Claude Code's `opus`. */
+  catalogModelID?: string;
+  /** The prompt size that selects context-priced tiers, when the tokens add up several model calls. */
+  context?: number;
 };
+
+/** Tokens of one model in a step, as the Claude Code provider reports them. */
+type ModelTokens = { input?: number; output?: number; cacheRead?: number; cacheWrite?: number; context?: number };
 
 export type SessionMessage = {
   id?: string;
@@ -25,6 +32,12 @@ export type SessionMessage = {
     reasoning?: number;
     cache?: { read?: number; write?: number };
   };
+  /**
+   * Provider metadata. One Claude Code step runs a whole turn of many model calls, subagents included, while its
+   * tokens hold only the last call's, so the Claude Code provider reports the turn's tokens by model in `usage` and
+   * the API model behind its alias in `apiModel`.
+   */
+  native?: { apiModel?: string; usage?: Record<string, ModelTokens> };
 };
 
 export type SessionMessageGroup = { sessionID: string; messages: readonly SessionMessage[] };
@@ -77,9 +90,12 @@ async function* messagePages(client: Context["client"], first: ListInput) {
 
 /** Keeps only the fields this plugin reads, so cached history doesn't hold message content. */
 function slim(message: SessionMessage): SessionMessage {
-  const { id, type, status, model, time, tokens } = message;
+  const { id, type, status, model, time, tokens, native } = message;
+  const slimmed: SessionMessage = { id, type, status, model, time, tokens };
 
-  return { id, type, status, model, time, tokens };
+  if (native?.apiModel !== undefined || native?.usage !== undefined) slimmed.native = { apiModel: native.apiModel, usage: native.usage };
+
+  return slimmed;
 }
 
 export function latestCompletedCompactionIndex(messages: readonly SessionMessage[]) {
@@ -105,9 +121,7 @@ export function familyPricingUsages(
   const pricedGroups = family.map(({ sessionID, messages }) => ({
     sessionID,
     usages: messages.flatMap((message, index) => {
-      const usage = pricingUsage(message);
-
-      return usage ? [{ index, created: message.time?.created, usage }] : [];
+      return billedUsages(message).map((usage) => ({ index, created: message.time?.created, usage }));
     }),
   }));
 
@@ -152,7 +166,38 @@ export function pricingUsage(message: SessionMessage): PricingUsage | undefined 
 
   if (message.model.variant) usage.variant = message.model.variant;
 
+  if (message.native?.apiModel) usage.catalogModelID = message.native.apiModel;
+
   return usage;
+}
+
+/**
+ * What a step billed: each model's tokens when its provider reports them by model, and otherwise the step's own
+ * tokens.
+ */
+export function billedUsages(message: SessionMessage): PricingUsage[] {
+  const step = pricingUsage(message);
+  const byModel = message.native?.usage;
+
+  if (!step || !byModel) return step ? [step] : [];
+
+  return Object.entries(byModel).map(([modelID, tokens]) => {
+    const usage: PricingUsage = {
+      providerID: step.providerID,
+      modelID,
+      tokens: {
+        input: finite(tokens.input),
+        output: finite(tokens.output),
+        reasoning: 0,
+        cacheRead: finite(tokens.cacheRead),
+        cacheWrite: finite(tokens.cacheWrite),
+      },
+    };
+
+    if (tokens.context !== undefined) usage.context = finite(tokens.context);
+
+    return usage;
+  });
 }
 
 function finite(value: number | undefined) {

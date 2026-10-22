@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { PricingUsage } from "./messages.js";
+import { billedUsages, pricingUsage, type PricingUsage, type SessionMessage } from "./messages.js";
 import { aggregateCost, materializeModels, ratesFor, resumeCost, type Catalog, type Model } from "./pricing.js";
 import type { ModelAliases } from "./models.js";
 
@@ -17,6 +17,60 @@ const usage = (modelID: string, input: number, variant?: string): PricingUsage =
 };
 
 describe("session cost pricing", () => {
+  it("prices a Claude Code turn's tokens by model from Anthropic's catalog entries", () => {
+    const catalog: Catalog = {
+      anthropic: {
+        models: {
+          "claude-opus-5-5": { name: "Claude Opus 5.5", cost: { input: 4, output: 20, cache_read: 0.2 } },
+          "claude-haiku-5-5": {
+            name: "Claude Haiku 5.5",
+            cost: { input: 1, tiers: [{ tier: { type: "context", size: 100_000 }, input: 5 }] }
+          }
+        }
+      }
+    };
+
+    // The step's own tokens are its last call; the turn's calls are in `native.usage`.
+    const step: SessionMessage = {
+      type: "assistant",
+      model: { providerID: "claude-code", id: "opus" },
+      time: { created: 1, completed: 2 },
+      tokens: { input: 1, output: 1, reasoning: 0, cache: { read: 1, write: 0 } },
+      native: {
+        apiModel: "claude-opus-5-5",
+        usage: {
+          "claude-opus-5-5": { input: 1_000_000, output: 100_000, cacheRead: 1_000_000, cacheWrite: 0, context: 300_000 },
+          // Many calls under 100k each add up past the tier; the largest call decides the rate.
+          "claude-haiku-5-5": { input: 1_000_000, output: 0, cacheRead: 0, cacheWrite: 0, context: 40_000 }
+        }
+      }
+    };
+
+    expect(aggregateCost(billedUsages(step), catalog)).toEqual({
+      costs: [
+        { key: "claude-code/claude-opus-5-5", model: "Claude Opus 5.5", amount: 6.2 },
+        { key: "claude-code/claude-haiku-5-5", model: "Claude Haiku 5.5", amount: 1 }
+      ],
+      unpriced: 0
+    });
+  });
+
+  it("prices a Claude Code alias's last call by its API model", () => {
+    const catalog: Catalog = { anthropic: { models: { "claude-opus-5-5": { cost: { input: 4 } } } } };
+
+    const step: SessionMessage = {
+      type: "assistant",
+      model: { providerID: "claude-code", id: "opus" },
+      time: { created: 1, completed: 2 },
+      tokens: { input: 1_000_000, output: 0, reasoning: 0, cache: { read: 0, write: 0 } },
+      native: { apiModel: "claude-opus-5-5" }
+    };
+
+    const usage = pricingUsage(step);
+
+    expect(usage && resumeCost(usage, catalog)).toBe(4);
+  });
+
   it("selects the largest qualifying context tier regardless of order", () => {
     const model: Model = {
       cost: {
