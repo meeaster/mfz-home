@@ -40,7 +40,7 @@ function shipAttempts(facts: RunFacts): string[] {
 
 /** Whether each dispatch went to `general`, named a role the loaded routing covers, and ran on that role's model. */
 function routingMismatches(dispatches: readonly Dispatch[], routing: ReturnType<typeof loadedRouting>): string[] {
-  if (routing === undefined) return ["the lead never loaded orchestration-routing"];
+  if (routing === undefined) return ["the lead never loaded role-models"];
 
   const mismatches: string[] = [];
 

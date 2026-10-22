@@ -5,7 +5,7 @@ import { z } from "zod";
  *
  * A preset names the candidate session model, the judge model, and the worker
  * models that must travel with them: named-agent overrides, or an
- * `orchestration-routing` skill variant for role-based delegation.
+ * `role-models` skill variant for role-based delegation.
  * `select-preset.ts` writes the selection and each eval's copies; `benchmark.ts`
  * reads the selection so the model list and the worker models can never disagree.
  */
@@ -20,7 +20,7 @@ export type Preset = {
   judge: `${string}/${string}`;
   /** Agent overrides keyed by role, with an optional `"*"` fallback. */
   agents: AgentModels;
-  /** Benchmark-relative `orchestration-routing` skill that replaces the rendered one; omit to keep live routing. */
+  /** Benchmark-relative `role-models` skill that replaces the rendered one; omit to keep live routing. */
   routing?: string;
 };
 

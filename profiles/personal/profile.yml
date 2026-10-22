@@ -47,7 +47,9 @@ extra_folders:
     signals: [Git worktree, isolated implementation, prototype]
     description: "Disposable Git worktrees for isolated project work across workspace repositories."
 skills:
-  orchestration-routing:
+  role-models:
+    agents: { opencode: true, claude-code: true, codex: false }
+  roles:
     agents: { opencode: true, claude-code: true, codex: false }
   session-brief:
     agents: { opencode: false, claude-code: false, codex: false }

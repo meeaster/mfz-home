@@ -6,7 +6,7 @@ import { routedModels, routingDrift, routingTable } from "./routing.js";
 
 const openevals = resolve(import.meta.dirname, "..");
 
-const liveSkill = resolve(openevals, "../skills/active/orchestration-routing/SKILL.md");
+const liveSkill = resolve(openevals, "../skills/active/role-models/SKILL.md");
 
 const table = `| Role | Task type | Model |
 | --- | --- | --- |

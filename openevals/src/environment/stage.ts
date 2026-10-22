@@ -9,7 +9,7 @@ export const defaultBenchmark = resolve(import.meta.dirname, "../../benchmarks/o
 export const configureScript = resolve(import.meta.dirname, "../candidate/configure-environment.ts");
 
 /** Fixture copy of a preset's routing skill; preparation installs it over the rendered one. */
-export const routingFixture = "orchestration-routing.md";
+export const routingFixture = "role-models.md";
 
 const evalSchema = z.object({ default: z.object({ workspace: z.object({ overlay: z.string().optional() }).optional() }) });
 

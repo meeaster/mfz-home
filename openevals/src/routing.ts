@@ -1,11 +1,14 @@
 /**
- * The `orchestration-routing` skill's model table, read from its Markdown. Benchmarks keep routing variants
+ * The `role-models` skill's model table, read from its Markdown. Benchmarks keep routing variants
  * as copies of the live skill that differ only in model cells; judges read the table the lead actually loaded.
  */
 export type RoutingRow = { role: string; taskType: string; model: string };
 
-/** A table row: `| role | task type | `provider/model#variant` |`. */
-const tableRow = /^\| *([\w-]+) *\| *([\w-]+) *\| *`([^`]+)` *\|$/u;
+/**
+ * A table row: `| role | task type | `provider/model#variant` |`, optionally followed by a Claude Code cell. Evals run on
+ * OpenCode, so the model is the first model cell.
+ */
+const tableRow = /^\| *([\w-]+) *\| *([\w-]+) *\| *`([^`]+)` *\|(?: *`[^`]+` *\|)?$/u;
 
 export function routingTable(text: string): RoutingRow[] {
   const rows: RoutingRow[] = [];

@@ -218,14 +218,14 @@ test("a preset's routing skill replaces the rendered one and leaves with the har
   try {
     await fixture(root);
 
-    const rendered = join(root, "workspace", ".openeval", "environment", "mindframe-z", "configs", "openeval", "opencode", "skills", "orchestration-routing", "SKILL.md");
+    const rendered = join(root, "workspace", ".openeval", "environment", "mindframe-z", "configs", "openeval", "opencode", "skills", "role-models", "SKILL.md");
 
     await write(rendered, "# Live routing\n");
-    await write(join(root, "workspace", ".openeval", "orchestration-routing.md"), "# Variant routing\n");
+    await write(join(root, "workspace", ".openeval", "role-models.md"), "# Variant routing\n");
 
     await configure(root);
 
-    expect(await readFile(join(root, "home", ".mindframe-z", "configs", "openeval", "opencode", "skills", "orchestration-routing", "SKILL.md"), "utf8")).toBe("# Variant routing\n");
+    expect(await readFile(join(root, "home", ".mindframe-z", "configs", "openeval", "opencode", "skills", "role-models", "SKILL.md"), "utf8")).toBe("# Variant routing\n");
     expect(existsSync(join(root, "workspace", ".openeval"))).toBe(false);
   } finally {
     await rm(root, { recursive: true, force: true });
@@ -237,9 +237,9 @@ test("a routing skill without a rendered one to replace fails preparation", asyn
 
   try {
     await fixture(root);
-    await write(join(root, "workspace", ".openeval", "orchestration-routing.md"), "# Variant routing\n");
+    await write(join(root, "workspace", ".openeval", "role-models.md"), "# Variant routing\n");
 
-    await expect(configure(root)).rejects.toThrow("no orchestration-routing skill");
+    await expect(configure(root)).rejects.toThrow("no role-models skill");
   } finally {
     await rm(root, { recursive: true, force: true });
   }

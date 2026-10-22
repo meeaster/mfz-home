@@ -6,7 +6,7 @@ function proposingRun(): EditableFacts {
   return {
     tools: [
       call("ses_root", "skill", { id: "orchestrate" }),
-      call("ses_root", "skill", { id: "orchestration-routing" }),
+      call("ses_root", "skill", { id: "role-models" }),
       dispatch("ses_explore", "explorer: map the todo CLI"),
     ],
     sessions: [{ id: "ses_root", model: { providerID: "openai", id: "gpt-6.1-sol", variant: "medium" } }, child("ses_explore", "openai/gpt-6-luna#high")],

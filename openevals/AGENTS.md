@@ -24,7 +24,7 @@ OpenEval copies only an eval's own fixture into the container, so everything can
 - **Staged environments and preparation code are task inputs.** Restaging a different environment or changing preparation requires new candidate evidence for every eval.
 - **Preparation leaves only task files.** It installs global configuration and the preset's worker models (its routing variant in place of the rendered skill, or named-agent models through project config, the only layer that overrides agent frontmatter), then removes its own harness files before the initial snapshot. Prompts and judges must not depend on harness files.
 - **Run on the budget preset.** Mark's model usage is limited by subscription, so every eval runs on its benchmark's `budget` preset, which is the default selection. Another preset, or a benchmark without a budget preset, runs only when Mark asks for it.
-- **Presets bind models together.** A preset sets the candidate (the lead), the judge, and the worker models. Workers get theirs from the `orchestration-routing` skill: a preset either keeps live routing or names a variant file, a copy of the live skill that changes only model cells, and the drift test holds it to that. Each preset is its own condition.
+- **Presets bind models together.** A preset sets the candidate (the lead), the judge, and the worker models. Workers get theirs from the `role-models` skill: a preset either keeps live routing or names a variant file, a copy of the live skill that changes only model cells, and the drift test holds it to that. Each preset is its own condition.
 - **Render and stage before planning.** A plan against a stale staged environment reports the wrong inputs.
 
 ## Validating a change

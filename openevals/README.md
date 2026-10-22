@@ -9,7 +9,7 @@ OpenEval benchmarks for the orchestration skills in this home. Each eval runs in
 - Cairn, built from the same source: preparation installs it where live does and adds its OpenCode plugin, and the rendered config runs its catalog server, so output files land under an empty catalog root in the candidate's home;
 - the live server plugins that work on the candidate's own sessions, bundled from the same source: `session-context`.
 
-Two flags remove parts of it: `--no-instructions` drops the global instructions with their pointers and references, and `--no-extra-skills` keeps only the required orchestration skills listed in `overlays/required.yml`. Other plugins, other MCP servers, and model pins are never rendered; the presets set models. A preset names the lead and judge models and, optionally, a routing variant: a copy of the live `orchestration-routing` skill with different worker models, installed in its place. The candidate container is the isolation boundary: it holds no credentials or host mounts, and pointers to host paths resolve to nothing there.
+Two flags remove parts of it: `--no-instructions` drops the global instructions with their pointers and references, and `--no-extra-skills` keeps only the required orchestration skills listed in `overlays/required.yml`. Other plugins, other MCP servers, and model pins are never rendered; the presets set models. A preset names the lead and judge models and, optionally, a routing variant: a copy of the live `role-models` skill with different worker models, installed in its place. The candidate container is the isolation boundary: it holds no credentials or host mounts, and pointers to host paths resolve to nothing there.
 
 ## Run a benchmark
 

@@ -23,9 +23,9 @@ skills:
     source: local
     skill: packages/cairn/skills/roles
     description: Role definitions for delegating work to subagents or assuming a role in the main session.
-  - name: orchestration-routing
+  - name: role-models
     source: local
-    skill: skills/active/orchestration-routing
+    skill: skills/active/role-models
     description: Personal model bindings for role-based delegation.
   - name: design-docs
     source: local

@@ -25,7 +25,7 @@ deployment, migration, production access, or another operator-gated action.
 
 ## Prepare
 
-Load `orchestration-routing` for worker and reviewer model bindings. Reload it after a profile or binding change before the next dispatch.
+Load `role-models` for worker and reviewer model bindings. Reload it after a profile or binding change before the next dispatch.
 
 Resolve the change, store, planning root, and implementation workspace through the Apply procedure.
 Read every returned context path and follow every applicable `operationGuidance` entry. Preserve the
@@ -88,7 +88,7 @@ Use one fresh native `subagent` call with:
 
 - a short outcome-based `description` starting with `implementer:`;
 - `agent`: `general`;
-- `model`: the `implementer` binding for `frontend` or `backend` from `orchestration-routing`;
+- `model`: the `implementer` binding for `frontend` or `backend` from `role-models`;
 - no `sessionID`; and
 - the complete worker brief as `prompt`.
 
@@ -130,7 +130,7 @@ authority, security, or likely irreversible-data risk stops for the user.
 
 ## Periodic Review
 
-Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review using the `reviewer/code` model binding from `orchestration-routing`, with `thermo-nuclear-code-quality-review` loaded and no fixes, only when one of these triggers occurs:
+Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review using the `reviewer/code` model binding from `role-models`, with `thermo-nuclear-code-quality-review` loaded and no fixes, only when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;
 - a coherent subsystem or vertical milestone is complete, the next batch moves to another seam, and

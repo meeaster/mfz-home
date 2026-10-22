@@ -6,7 +6,7 @@ import { loadedSkills, type RecordedSession, type RunFacts } from "./facts.js";
 /**
  * Facts about role-based delegation under `orchestrate`: every assignment goes to the built-in `general`
  * subagent, its description starts with the role (`implementer: build the CLI`, `reviewer/code: review it`),
- * and its model comes from the `orchestration-routing` skill the dispatcher loaded.
+ * and its model comes from the `role-models` skill the dispatcher loaded.
  */
 export type Dispatch = {
   /** Position of the `subagent` call among all recorded tool calls. */
@@ -117,10 +117,10 @@ export function dispatchesBy(facts: Pick<RunFacts, "tools" | "sessions">, sessio
   return dispatches;
 }
 
-/** The routing table from a session's first successful `orchestration-routing` load, with its call position. */
+/** The routing table from a session's first successful `role-models` load, with its call position. */
 export function loadedRouting(facts: Pick<RunFacts, "tools">, sessionID: string): { index: number; rows: RoutingRow[] } | undefined {
   for (const [index, tool] of facts.tools.entries()) {
-    if (tool.sessionID !== sessionID || loadedSkills([tool])[0] !== "orchestration-routing") continue;
+    if (tool.sessionID !== sessionID || loadedSkills([tool])[0] !== "role-models") continue;
 
     return { index, rows: routingTable(contentText(tool)) };
   }

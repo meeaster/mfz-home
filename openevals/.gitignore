@@ -3,4 +3,4 @@ results/
 .materialized/
 **/.openeval/environment/
 benchmarks/*/selected-preset.json
-**/.openeval/orchestration-routing.md
+**/.openeval/role-models.md

@@ -1,9 +1,9 @@
 ---
-name: orchestration-routing
+name: role-models
 description: Personal model bindings for role-based delegation. Load when orchestrate or a delegated implementation command selects a role's model.
 ---
 
-# Orchestration routing
+# Role models
 
 These are the human's Personal model preferences for delegated work. Use the exact reference for the role and task type, unless the human requests another model. A task-specific row takes precedence over its role's default. If the skill, binding, or model is unavailable, ask the human to choose a route before dispatching.
 

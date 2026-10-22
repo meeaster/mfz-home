@@ -41,7 +41,7 @@ export function goodRun(): EditableFacts {
   return {
     tools: [
       call("ses_root", "skill", { id: "orchestrate" }),
-      call("ses_root", "skill", { id: "orchestration-routing" }, `<skill_content name="orchestration-routing">\n${routing}\n</skill_content>`),
+      call("ses_root", "skill", { id: "role-models" }, `<skill_content name="role-models">\n${routing}\n</skill_content>`),
       dispatch("ses_build", "implementer: build the feature"),
       call("ses_build", "write", { filePath: "/workspace/src/feature.ts" }),
       dispatch("ses_review", "reviewer/code: review the feature"),

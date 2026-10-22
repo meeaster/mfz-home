@@ -96,13 +96,13 @@ test("installs a preset's routing skill into every eval fixture and removes it f
 
     await select("variant");
 
-    expect(await readFile(join(fixture, "orchestration-routing.md"), "utf8")).toBe("# Variant routing\n");
+    expect(await readFile(join(fixture, "role-models.md"), "utf8")).toBe("# Variant routing\n");
     // Without roles, no named-agent overrides remain from an earlier selection.
     expect(await Bun.file(join(fixture, "agent-models.json")).exists()).toBe(false);
 
     await select("live");
 
-    expect(await Bun.file(join(fixture, "orchestration-routing.md")).exists()).toBe(false);
+    expect(await Bun.file(join(fixture, "role-models.md")).exists()).toBe(false);
   } finally {
     await rm(root, { recursive: true, force: true });
   }

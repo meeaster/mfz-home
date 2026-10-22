@@ -2,7 +2,7 @@
 # and `--no-extra-skills` both derive from this list.
 skills:
   - orchestrate
-  - orchestration-routing
+  - role-models
   - design-partner
   - effort-context
   - thermo-nuclear-code-quality-review

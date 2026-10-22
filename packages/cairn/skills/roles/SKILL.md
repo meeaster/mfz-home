@@ -14,11 +14,11 @@ Any role marked "may dispatch", and any assumed role, can delegate to other role
 
 ## Delegate by role
 
-If `orchestration-routing` is not already loaded, load it now. Dispatch every assignment to the `general` subagent with its role and task type's model from that skill. Start the dispatch's description with the role name (`explorer: map the VPN accounts`). The subagent learns its job only from you, so put the role's expectations from [Role definitions](#role-definitions) into the brief, adapted to the assignment.
+If `role-models` is not already loaded, load it now. Dispatch every assignment with its role and task type's model from that skill: in OpenCode, to the `general` subagent; in Claude Code, with the Agent tool's `general-purpose` agent and its `model`. Start the dispatch's description with the role name (`explorer: map the VPN accounts`). The subagent learns its job only from you, so put the role's expectations from [Role definitions](#role-definitions) into the brief, adapted to the assignment.
 
 Before dispatching, confirm the selected model reference through model discovery unless it has already been confirmed in this session. Reuse confirmed references for subsequent delegations while the binding is unchanged. Repeat discovery only when the binding changes, the earlier confirmation is no longer available in context, or dispatch reports an unavailable model or variant.
 
-When continuing in a fresh session or after compaction, use the retained skill instructions if they are present; otherwise load `roles` and `orchestration-routing` before dispatching. After a profile change, reload both skills. Reload the routing skill after its bindings change.
+When continuing in a fresh session or after compaction, use the retained skill instructions if they are present; otherwise load `roles` and `role-models` before dispatching. After a profile change, reload both skills. Reload the routing skill after its bindings change.
 
 Architects, creative directors, reviewers, and QA run on expensive models. Recommend one with a reason, and dispatch when the human agrees. Asking for options, a creative direction, a review, or QA is agreement. Default triage is cheap; dispatch it when diagnosis is needed. Escalation triage runs on an expensive model: recommend it with a reason and dispatch when the human agrees.
 
@@ -51,7 +51,7 @@ Taste skills bring their own style and make decisions that belong to the human o
 
 When the human asks you to act as a role, take on its definition below in this session:
 
-- Announce the switch in a few lines: what you now do yourself and what you delegate, which skills you load (load them now), and the role's bound model from `orchestration-routing` when it differs from this session's model. The human decides whether to change models.
+- Announce the switch in a few lines: what you now do yourself and what you delegate, which skills you load (load them now), and the role's bound model from `role-models` when it differs from this session's model. The human decides whether to change models.
 - Hold the conversation the way `design-partner` describes; load it if it isn't loaded.
 - The previous role's instructions stop applying. Leaving the lead ends delegating by default; you do the role's own work and delegate only what another role does better.
 - Stay in the role until the human switches again or exits.
@@ -80,7 +80,7 @@ Compare the new request with the subagent's original assignment, not merely its 
 | Operate | operator | `git`, `pr`, other | explorer, researcher | |
 | Record | writer | | inspector | |
 
-A delegated role that may dispatch gets told which roles it may use and to load `roles` and `orchestration-routing`. Other delegated roles don't dispatch.
+A delegated role that may dispatch gets told which roles it may use and to load `roles` and `role-models`. Other delegated roles don't dispatch.
 
 ### Gather
 
