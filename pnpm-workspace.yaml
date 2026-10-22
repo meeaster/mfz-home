@@ -8,6 +8,7 @@ allowBuilds:
 packages:
   - mcp/*
   - packages/*
+  - opencode/plugins/claude-code
   - opencode/plugins/omp-advisor
   - opencode/plugins/optchat
   - opencode/plugins/handoff-tui

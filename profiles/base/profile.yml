@@ -298,6 +298,7 @@ opencode:
     - session-context
     # - skill-continuity
     - cairn
+    - claude-code
   tui_plugins:
     - handoff-tui
     - session-usage-tui
