@@ -177,7 +177,7 @@ skills:
   pr-writer:
     agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   diagram-design:
     agents: { opencode: true, claude-code: true, codex: true }
   ui-ux-design:
