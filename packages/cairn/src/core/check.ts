@@ -1,9 +1,9 @@
 import { existsSync, readdirSync } from "node:fs";
 import { isAbsolute, join, relative } from "node:path";
 import { integer, optionalText, text, timestamp, transaction, type Cairn } from "./db.ts";
-import { fileFacts, recordManagedFile, type FileFacts } from "./artifacts.ts";
+import { fileFacts, folderSession, recordManagedFile, type FileFacts } from "./artifacts.ts";
 import { member } from "./find.ts";
-import { absolutePath, isCairnOwned, relativeInsideRoot, safeSegment } from "./root.ts";
+import { absolutePath, isCairnOwned, relativeInsideRoot } from "./root.ts";
 import { markArtifactDirty } from "./views.ts";
 
 export type CheckReport = {
@@ -72,38 +72,6 @@ function recordedFiles(cairn: Cairn): Recorded[] {
   }
 
   return recorded;
-}
-
-// The session whose folder holds a file: a subagent's from its subagents/<native-id>/ folder inside the tree's
-// folder, otherwise the root session's from its sessions/<harness>/<month>/<native-id>/ prefix.
-function folderSession(cairn: Cairn, inside: string): number | null {
-  const match = /^sessions\/([^/]+)\/\d{4}-\d{2}\/([^/]+)\/(?:subagents\/([^/]+)\/)?/.exec(inside);
-
-  if (match === null) {
-    return null;
-  }
-
-  const [, harness = "", rootSegment, childSegment] = match;
-  let rootId: number | null = null;
-
-  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE harness = ${harness} AND parent_session_id IS NULL`) {
-    if (safeSegment(text(row, "native_id")) === rootSegment) {
-      rootId = integer(row, "id");
-      break;
-    }
-  }
-
-  if (rootId === null || childSegment === undefined) {
-    return rootId;
-  }
-
-  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE root_session_id = ${rootId} AND id != ${rootId}`) {
-    if (safeSegment(text(row, "native_id")) === childSegment) {
-      return integer(row, "id");
-    }
-  }
-
-  return rootId;
 }
 
 // Records the files in one session tree's folder that are new or have changed since they were recorded, crediting

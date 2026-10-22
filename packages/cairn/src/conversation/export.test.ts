@@ -115,6 +115,31 @@ function workspace() {
 }
 
 describe("conversation export", () => {
+  test("a result describes the command output it cites, credited to the subagent whose folder holds it", () => {
+    const cairn = workspace();
+
+    cairn.session("ses_root", "Log pipeline research");
+    cairn.user("ses_root", "Check the retention.");
+    cairn.cli(z.unknown(), "session", "start", "opencode:ses_check", "--parent", "opencode:ses_root");
+
+    const folder = join(cairn.root, "sessions", "opencode", "2026-09", "ses_root", "subagents", "ses_check");
+    const output = join(folder, "evidence", "lifecycle.txt");
+
+    mkdirSync(join(folder, "evidence"), { recursive: true });
+    writeFileSync(output, "Expiration: 90 days\n");
+    writeFileSync(join(folder, "elsewhere.txt"), "Not cited.\n");
+    writeFileSync(join(folder, "result.md"), "---\ntitle: Retention check\n---\n\n- AC1 holds: `evidence/lifecycle.txt` shows a 90-day expiration.\n");
+    cairn.index("opencode:ses_root");
+
+    const { artifacts } = cairn.cli(producedList, "find", "artifacts", "--session", "opencode:ses_check");
+
+    expect(artifacts.toSorted((a, b) => a.path.localeCompare(b.path))).toEqual([
+      { path: join(folder, "elsewhere.txt"), title: null, status: "undescribed", producer: { session: "opencode:ses_check" } },
+      { path: output, title: "lifecycle.txt", status: "active", producer: { session: "opencode:ses_check" } },
+      { path: join(folder, "result.md"), title: "Retention check", status: "active", producer: { session: "opencode:ses_check" } }
+    ]);
+  });
+
   test("each turn also records the files the session tree wrote to its folders from the shell", () => {
     const cairn = workspace();
 

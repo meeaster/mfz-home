@@ -64,7 +64,7 @@ Done when every check has run, or has a recorded reason it couldn't.
 
 ## Step 4: Save evidence
 
-For each criterion, save an artifact to a file: a screenshot, a short recording, the command and its output, or the request and its response. Save where the brief says; otherwise in a scratch directory outside the repository's tracked tree, such as the system's temporary directory, so evidence never ends up in a commit.
+For each criterion, save an artifact to a file: a screenshot, a short recording, the command and its output, or the request and its response. Save where the brief says; otherwise in your session's folder when Cairn names one at session start, and failing both, in a scratch directory outside the repository's tracked tree, such as the system's temporary directory, so evidence never ends up in a commit. Name each file in your report with its path, beside the criterion it shows.
 
 - Capture the state a reader needs, cropped or trimmed to the criterion, so reviewing the evidence is faster than reading the change.
 - Leave secrets, tokens, and personal data out of every artifact.

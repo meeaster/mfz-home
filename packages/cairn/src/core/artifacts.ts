@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync } from "node:fs";
-import { dirname } from "node:path";
+import { basename, dirname, resolve } from "node:path";
 import { formatSessionKey, type DescribeInput, type FileEventInput, type MoveInput, type PointerType } from "../schemas.ts";
-import { CairnError, insertedId, integer, optionalInteger, timestamp, transaction, type Cairn } from "./db.ts";
+import { CairnError, insertedId, integer, optionalInteger, optionalText, text, timestamp, transaction, type Cairn } from "./db.ts";
 import { loadArtifact, type ArtifactEntry } from "./find.ts";
 import { findArtifactId, requireArtifactId, requireEffortId } from "./lookup.ts";
 import { readFrontMatter } from "./front-matter.ts";
-import { absolutePath, folderCategory, isCairnOwned, relativeInsideRoot, storedPath } from "./root.ts";
+import { absolutePath, folderCategory, isCairnOwned, relativeInsideRoot, safeSegment, storedPath } from "./root.ts";
 import { ensureSession } from "./sessions.ts";
 import { markArtifactDirty } from "./views.ts";
 
@@ -76,11 +76,90 @@ function applyFrontMatter(cairn: Cairn, id: number, path: string, inside: string
   `;
 }
 
+// The session whose folder holds a file: a subagent's from its subagents/<native-id>/ folder inside the tree's
+// folder, otherwise the root session's from its sessions/<harness>/<month>/<native-id>/ prefix.
+export function folderSession(cairn: Cairn, inside: string): number | null {
+  const match = /^sessions\/([^/]+)\/\d{4}-\d{2}\/([^/]+)\/(?:subagents\/([^/]+)\/)?/.exec(inside);
+
+  if (match === null) {
+    return null;
+  }
+
+  const [, harness = "", rootSegment, childSegment] = match;
+  let rootId: number | null = null;
+
+  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE harness = ${harness} AND parent_session_id IS NULL`) {
+    if (safeSegment(text(row, "native_id")) === rootSegment) {
+      rootId = integer(row, "id");
+      break;
+    }
+  }
+
+  if (rootId === null || childSegment === undefined) {
+    return rootId;
+  }
+
+  for (const row of cairn.sql.all`SELECT id, native_id FROM session WHERE root_session_id = ${rootId} AND id != ${rootId}`) {
+    if (safeSegment(text(row, "native_id")) === childSegment) {
+      return integer(row, "id");
+    }
+  }
+
+  return rootId;
+}
+
+// A path a Markdown file names, with an extension: absolute, or relative to the file's folder.
+const citedPath = /(?:^|[\s`'"(<[])((?:\/|\.{1,2}\/)?[\w@+.-]+(?:\/[\w@+.-]+)*\.[A-Za-z0-9]{1,8})(?=$|[\s`'")>\].,:;])/gm;
+
+// A file that can't carry front matter, such as captured command output, is described by the Markdown in a session
+// folder that names it: its file name as its title and the citing line as its description, with an informs link to
+// the Markdown. Only undescribed files take this, and a cited file not yet recorded is recorded by its folder.
+function describeCited(cairn: Cairn, citingId: number, path: string, inside: string): void {
+  // The conversation export quotes paths people mentioned; it describes nothing.
+  if (!inside.startsWith("sessions/") || !inside.endsWith(".md") || basename(inside) === "conversation.md") {
+    return;
+  }
+
+  const citing = cairn.sql.get`SELECT title FROM artifact WHERE id = ${citingId}`;
+  const citingTitle = (citing === undefined ? null : optionalText(citing, "title")) ?? basename(path);
+
+  for (const line of readFileSync(path, "utf8").split("\n")) {
+    for (const match of line.matchAll(citedPath)) {
+      const target = resolve(dirname(path), match[1] ?? "");
+      const cited = relativeInsideRoot(cairn, target);
+      const facts = cited === null || cited.endsWith(".md") || isCairnOwned(cited) ? null : fileFacts(target);
+
+      if (cited === null || facts === null) {
+        continue;
+      }
+
+      const known = cairn.sql.get`SELECT id, status FROM artifact WHERE path_or_url = ${cited}`;
+      const id = known === undefined ? recordFile(cairn, cited, facts, folderSession(cairn, cited)).id : integer(known, "id");
+
+      if (known !== undefined && text(known, "status") !== "undescribed") {
+        continue;
+      }
+
+      const said = line.replaceAll(/[`*_#>|]/g, " ").replaceAll(/\s+/g, " ").trim().slice(0, 240);
+
+      cairn.sql.run`
+        UPDATE artifact SET category = COALESCE(category, 'evidence'), title = COALESCE(title, ${basename(cited)}),
+          description = COALESCE(description, ${`${said} (cited in ${citingTitle})`}), status = 'active', updated_at = ${timestamp(cairn)}
+        WHERE id = ${id}
+      `;
+      addArtifactLink(cairn, id, "informs", citingId, "cairn");
+      markArtifactDirty(cairn, id);
+    }
+  }
+}
+
 // Without a known producer, a file at a path from location is credited to the session it was handed to.
 export function recordManagedFile(cairn: Cairn, inside: string, facts: FileFacts, producerId: number | null): RecordedFile {
   const recorded = recordFile(cairn, inside, facts, producerId);
+  const path = absolutePath(cairn, "managed", inside);
 
-  applyFrontMatter(cairn, recorded.id, absolutePath(cairn, "managed", inside), inside);
+  applyFrontMatter(cairn, recorded.id, path, inside);
+  describeCited(cairn, recorded.id, path, inside);
 
   return recorded;
 }
