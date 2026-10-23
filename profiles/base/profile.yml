@@ -12,6 +12,15 @@ instruction_references:
   - name: personal-knowledge
     path: instructions/personal_knowledge.md
     description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
+  - name: explanatory-artifacts
+    path: instructions/explanatory_artifacts.md
+    description: Before creating or revising an explanatory page, visual artifact, or diagram, including with diagram-design
+  - name: github-actions
+    path: instructions/github_actions.md
+    description: Before creating or changing GitHub Actions workflows or actions
+  - name: opencode-session-api
+    path: instructions/opencode_session_api.md
+    description: In OpenCode, before moving the session to another directory or compacting it on request
 capability_groups:
   - name: agent-tooling
     title: Agent Tooling

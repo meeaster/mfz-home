@@ -17,60 +17,32 @@
 - **Behavior:** Prefer exact dependency versions. Install machine-wide tools and global packages released at least one day ago; inside a project, follow the project's own minimum release age setting.
 - **Behavior:** Saving output changes the output, not execution routing. Capture and resume use `effort-context` when requested; neither selects orchestration nor starts ongoing maintenance. Only explicit human selection activates `orchestrate` or standalone design partnership.
 
-## Explanatory artifacts
-
-- **Behavior:** In pages or visual artifacts created to explain something, omit authoring-process commentary, research provenance, snapshot dates, and artifact approval or lifecycle statuses unless explicitly requested.
-- **Behavior:** Integrate necessary supporting information into the relevant page elements rather than detached footnotes. Make the presentation understandable through its layout and labels rather than instructions on how to read it.
-- **Behavior:** Omit footer summaries and takeaway callouts that merely repeat information already clear from the page’s headings, labels, or content.
-
-## Diagrams
-
-- **Behavior:** When using `diagram-design` to create or revise a diagram, inspect screenshots of the rendered result at its intended display sizes, checking both the whole diagram and native-size detail against the skill’s applicable design rules. Repair observed defects and recheck affected views. Report what was inspected and any checks that remain unverified.
-- **Behavior:** When inspecting `diagram-design` output, trace each connector from source to destination. Confirm its endpoints align with the intended element boundaries, arrowheads visibly join the line and meet the intended target, and the route has no unintended overlaps with elements, labels, or other connectors.
-
 ## Version and freshness
 
 - **Behavior:** Ground version-sensitive work on maintained libraries, frameworks, SDKs, CLIs, APIs, and services in current evidence rather than model knowledge of releases, availability, defaults, or limitations.
 - **Behavior:** For existing projects, establish the applicable dependency version, API version, release channel, or service compatibility settings from project evidence and use matching documentation.
-- **Behavior:** For new adoption, upgrades, or current-state questions, verify the latest stable release or current service behavior through official release notes, registry metadata, or authoritative documentation. Distinguish stable releases from previews; the newest release is not automatically the appropriate installation target.
-- **Behavior:** Check consequential version-sensitive claims against the applicable primary source. A search snippet, Context7 result, or unversioned page alone does not establish freshness.
-- **Behavior:** Reuse sufficiently current evidence within the assignment; recheck when the target changes, sources conflict, or freshness could materially change the decision.
-
-## OpenCode background work
-
-- **Fact:** OpenCode background subagents notify the parent session when they finish. Ending the parent response does not cancel their work.
-- **Behavior:** When progress depends on a background subagent and no useful independent work remains, briefly state what is pending and end the response.
-- **Behavior:** Do not issue tool calls solely to keep the session active or check whether a background subagent has finished.
+- **Behavior:** For new adoption, upgrades, or current-state questions, verify the latest stable release or current service behavior through official release notes, registry metadata, or authoritative documentation; a search snippet, Context7 result, or unversioned page alone does not establish freshness. Distinguish stable releases from previews; the newest release is not automatically the appropriate installation target.
 
 ## Session location
 
 - **Behavior:** When a session in a folder containing several repositories is about to make changes that belong mainly to one of them, move the session to that repository before the first change so its instructions and configuration govern the work. Brief investigation does not warrant a move. If one repository owns the core change and the others only adapt to it, move to the owning repository; if none is primary, stay at the shared parent. Move once and state the destination and reason when moving.
-- **Tool:** In OpenCode, move the current session with the command below, replacing `<sessionID>` with the current conversation's session ID. The move applies at the next step boundary.
-
-```sh
-opencode api post /api/session/<sessionID>/move --data '{"directory":"<absolute path>"}'
-```
-
 - **Tool:** Claude Code agents cannot move a session; ask the user to run `/cd <path>`.
 
 ## OpenCode session compaction
 
 - **Behavior:** Invoke manual session compaction only when the user explicitly requests it. Context pressure or a task milestone alone does not authorize it.
-- **Tool:** For an explicit compaction request, use the command below directly without loading the `opencode` skill. Replace `<sessionID>` with the current conversation's session ID unless the user names another session. Load `opencode` if the command fails or the request needs additional procedure.
-
-```sh
-opencode api post /api/session/<sessionID>/compact --data '{}'
-```
-
-- **Fact:** A successful response confirms that compaction was requested, not completed. It runs at the next safe model-step boundary.
 
 ## Git and CI
 
 - **Behavior:** For delegated Git operations, provide the repository, intended changes, authorized operations, and relevant validation results. Preserve the user's exact scope and require the resulting commit identity, push status, and remaining changes as applicable.
 - **Style:** Use Conventional Commits.
-- **Behavior:** For GitHub Actions, prefer mature current releases pinned to commit SHAs.
-- **Behavior:** Validate GitHub Actions with `actionlint` and `zizmor --min-severity high`.
-- **Tool:** Declare local or reusable action outputs in metadata and write step outputs to `$GITHUB_OUTPUT`.
+
+## Code judgment
+
+- **Behavior:** Before adding complexity for a speculative race, failure, or security edge case, explain the concrete failure mode, its likelihood, and the complexity cost, and get agreement.
+- **Behavior:** Do not revalidate values already guaranteed by a schema, constructor, or type; validate at the owning boundary and pass typed values inward.
+- **Behavior:** Extract a helper only when it is reused or names a real concept that makes the caller read as the main path; otherwise keep the logic inline.
+- **Behavior:** Comment non-obvious constraints and surprising behavior, not obvious assignments or control flow.
 
 ## Testing
 
@@ -81,5 +53,3 @@ opencode api post /api/session/<sessionID>/compact --data '{}'
 ## JavaScript and TypeScript
 
 - **Tool:** Load `anti-slop` before editing JavaScript or TypeScript project files and run its final check on the changed source and test files, including delegated changes.
-- **Behavior:** Skip `anti-slop` for throwaway files agents create for their own work, such as scripts in temporary directories or one-off helpers that are not part of a project.
-- **Behavior:** Complete the anti-slop checkpoint without in-scope diagnostics or suppressions; follow the skill's scope and verification rules.

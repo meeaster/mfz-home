@@ -32,7 +32,13 @@
 - **Tool:** For the WSL Dozen path, set `VK_ICD_FILENAMES` to the discovered Dozen ICD, `WGPU_BACKEND=vulkan`, `LD_LIBRARY_PATH` to the WSL driver libraries, and `MESA_D3D12_DEFAULT_ADAPTER_NAME` to a substring of the detected GPU name.
 - **Tool:** Set `WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER=1` only when required by the selected Dozen path.
 - **Behavior:** Before continuing with Dozen, verify the render reports the intended `Microsoft Direct3D12 (...)` adapter and Vulkan.
+- **Behavior:** Never export the Dozen variables globally; they hide the other Vulkan drivers and change library lookup for every program.
+- **Fact:** If the `GPU:` line names llvmpipe despite the Dozen variables, that Psychopomp checkout still builds its wgpu instance with `Instance::default()`, which ignores the `WGPU_*` variables.
 - **Fact:** Psychopomp rendering overrides are separate from FFmpeg NVENC/AMF settings.
+
+### Known machines
+
+- **Tool:** Personal WSL machine (AMD Radeon RX 9070 XT): `VK_ICD_FILENAMES=/usr/share/vulkan/icd.d/dzn_icd.json WGPU_BACKEND=vulkan WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER=1 LD_LIBRARY_PATH=/usr/lib/wsl/lib MESA_D3D12_DEFAULT_ADAPTER_NAME=9070`. The `GPU:` line should read `Microsoft Direct3D12 (AMD Radeon RX 9070 XT) (Vulkan)`. Do not use the older D3D12 OpenGL route (`GALLIUM_DRIVER=d3d12`) there; its Mesa driver deadlocks mid-render.
 
 ## fframes
 

@@ -6,6 +6,10 @@ capability_groups:
     summary: Personal trading alerts, market-data ingestion, and stock analysis knowledge.
 instructions:
   - instructions/personal.md
+instruction_references:
+  - name: artifact-sharing
+    path: instructions/artifact_sharing.md
+    description: When the user asks to put a viewable artifact in the share folder or for a shareable link
 thread:
   stores:
     - name: personal-knowledge
