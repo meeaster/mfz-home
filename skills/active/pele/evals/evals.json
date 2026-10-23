@@ -1,0 +1,54 @@
+{
+  "skill_name": "pele",
+  "evals": [
+    {
+      "id": 1,
+      "eval_name": "classic flowchart",
+      "prompt": "Our checkout goes: cart, then shipping address, then payment. If payment fails the customer can retry up to 3 times, otherwise the order is cancelled. When payment succeeds we send a confirmation email. Write this as a Mermaid flowchart, save the source as checkout.mmd, and render it to checkout.svg in the current directory.",
+      "expected_output": "Render a classic diagram. checkout.mmd holds a flowchart and checkout.svg is a rendered SVG of it.",
+      "files": [],
+      "expectations": [
+        "checkout.svg exists and is an SVG document",
+        "checkout.svg contains the labels for the cart, payment, and confirmation email steps",
+        "checkout.mmd is a flowchart that renders with Pele 1.7.0 without errors"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "use case diagram",
+      "prompt": "Make a use case diagram for a public library: members borrow, return, and reserve books; librarians manage the catalog and collect fines; borrowing a book always includes checking the membership is valid. Write it in Mermaid, save it as library.mmd, and render it to library.svg here.",
+      "expected_output": "Write and render a newer type. library.mmd is a usecase-beta diagram with an include relationship, and library.svg renders it.",
+      "files": [],
+      "expectations": [
+        "library.mmd is a use case diagram that starts with usecase-beta, not a flowchart standing in for one",
+        "library.mmd renders with Pele 1.7.0 without errors",
+        "library.mmd declares an include relationship from borrowing to checking membership",
+        "library.svg exists and is an SVG document containing the Member and Librarian actors"
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "wardley map",
+      "prompt": "Create a Wardley map in Mermaid for a tea shop. The customer wants a cup of tea, which needs tea, hot water, and a cup. Hot water needs water and a kettle, and the kettle needs power. Place power as a commodity and the cup of tea itself as fairly custom. Save it as teashop.mmd and render it to teashop.svg in this folder.",
+      "expected_output": "Write and render a newer type with unusual syntax. teashop.mmd is a wardley-beta map and teashop.svg renders it.",
+      "files": [],
+      "expectations": [
+        "teashop.mmd is a Wardley map that starts with wardley-beta",
+        "teashop.mmd renders with Pele 1.7.0 without errors",
+        "teashop.mmd links kettle to power",
+        "teashop.svg exists and is an SVG document containing the Kettle and Power components"
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "mermaid in markdown only",
+      "prompt": "Create docs/auth.md with a short explanation of our OAuth login flow (browser redirects to the identity provider, user signs in, provider redirects back with a code, our server exchanges the code for tokens) and include a Mermaid sequence diagram of it in a fenced code block so it shows up on GitHub.",
+      "expected_output": "Adjacent prompt that should not trigger the skill: the user wants Mermaid inside Markdown, not a rendered file.",
+      "files": [],
+      "expectations": [
+        "docs/auth.md contains a fenced mermaid code block with a sequenceDiagram",
+        "No SVG or PNG files were created"
+      ]
+    }
+  ]
+}

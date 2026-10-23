@@ -43,6 +43,10 @@ skills:
       edits, then run the pinned upstream anti-slop Oxlint rules read-only as the
       final checkpoint or when explicitly requested. Not for throwaway agent
       scripts outside a project.
+  - name: pele
+    source: local
+    skill: skills/active/pele
+    description: Render Mermaid diagram text to SVG offline with a vendored Pele build, with verified examples for every diagram type.
   - name: development-principles
     source: local
     skill: skills/active/development-principles
