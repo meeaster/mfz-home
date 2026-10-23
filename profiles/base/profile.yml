@@ -1,16 +1,16 @@
 name: base
 description: Shared base config for all profiles.
 instructions:
-  - instructions/AGENTS.md
+  - instructions/global.md
 instruction_references:
   - name: video-editing
-    path: instructions/VIDEO_EDITING.md
+    path: instructions/video_editing.md
     description: Before FFmpeg video processing or encoding, or Psychopomp or fframes rendering
   - name: browser
-    path: instructions/BROWSER.md
+    path: instructions/browser.md
     description: Before any task involving a browser, including opening a page for the user to view, frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
   - name: personal-knowledge
-    path: instructions/PERSONAL_KNOWLEDGE.md
+    path: instructions/personal_knowledge.md
     description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
 capability_groups:
   - name: agent-tooling

@@ -3,7 +3,7 @@
 ## Configuration sources
 
 - The Personal profile extends `base`. Put shared configuration in `profiles/base/profile.yml` and Personal-only overrides in `profiles/personal/profile.yml`.
-- This file governs repository work. Cross-repository agent guidance is rendered from `instructions/AGENTS.md` and `instructions/PERSONAL.md`; branch-specific guidance is selected through profile `instruction_references`.
+- This file governs repository work. Cross-repository agent guidance is rendered from `instructions/global.md` and `instructions/personal.md`; branch-specific guidance is selected through profile `instruction_references`.
 - Catalog entries define available assets; profiles select them. Adding a catalog entry alone does not enable it.
 
 ## Task-specific guidance

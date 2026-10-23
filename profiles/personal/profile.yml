@@ -5,7 +5,7 @@ capability_groups:
   - name: personal-trading
     summary: Personal trading alerts, market-data ingestion, and stock analysis knowledge.
 instructions:
-  - instructions/PERSONAL.md
+  - instructions/personal.md
 thread:
   stores:
     - name: personal-knowledge

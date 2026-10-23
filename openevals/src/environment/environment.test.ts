@@ -102,7 +102,7 @@ test("source overrides accept rendered inputs and reject everything else", () =>
   expect(overridable("packages/cairn/skills/orchestration/references/harnesses/opencode.md")).toBe(true);
   expect(overridable("opencode/agents/explore.md")).toBe(true);
   expect(overridable("profiles/base/profile.yml")).toBe(true);
-  expect(overridable("instructions/PERSONAL.md")).toBe(true);
+  expect(overridable("instructions/personal.md")).toBe(true);
   expect(overridable("catalog/references.yml")).toBe(true);
   expect(overridable("packages/cairn/src/core/efforts.ts")).toBe(true);
   expect(overridable("packages/cairn/dist/cli.js")).toBe(false);

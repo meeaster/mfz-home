@@ -50,7 +50,7 @@ export async function archiveSource(sourceHome: string, sourceCommit: string, de
  * outside these paths stays at the commit.
  */
 export function overridable(path: string): boolean {
-  return /^instructions\/[A-Z_]+\.md$/u.test(path) ||
+  return /^instructions\/[a-z_]+\.md$/u.test(path) ||
     /^catalog\/(?:skills|references|mcp)\.yml$/u.test(path) ||
     /^profiles\/(?:base|personal)\/profile\.yml$/u.test(path) ||
     /^opencode\/agents\/[a-z-]+\.md$/u.test(path) ||
