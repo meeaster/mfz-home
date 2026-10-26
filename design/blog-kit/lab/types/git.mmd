@@ -1,0 +1,18 @@
+---
+config:
+  gitGraph:
+    rotateCommitLabel: false
+---
+gitGraph TB:
+  commit id: "main"
+  branch opw-prototype
+  checkout opw-prototype
+  commit id: "s3 bucket"
+  commit id: "pod identity"
+  checkout main
+  merge opw-prototype id: "apply"
+  branch pipeline
+  checkout pipeline
+  commit id: "pipeline root"
+  checkout main
+  merge pipeline id: "pipeline id"

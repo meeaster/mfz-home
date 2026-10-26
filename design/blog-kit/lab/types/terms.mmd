@@ -1,0 +1,20 @@
+---
+config:
+  flowchart:
+    rankSpacing: 36
+---
+flowchart LR
+  subgraph z1["1 · dev-core vpc"]
+    direction TB
+    agent(["Agent<br/>customer-0 server"]) --> nlb["NLB<br/>443 · TLS"]
+  end
+  subgraph z2["2 · eks"]
+    opw["OPW<br/>pod"]
+  end
+  subgraph z3["3 · destinations"]
+    dd[["Datadog<br/>redacted copy"]]
+    s3[("S3 bucket<br/>raw copy")]
+  end
+  nlb --> opw
+  opw --> dd
+  opw --> s3

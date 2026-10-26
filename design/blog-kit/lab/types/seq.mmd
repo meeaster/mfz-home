@@ -1,0 +1,17 @@
+sequenceDiagram
+  participant A as Agent
+  participant N as NLB
+  participant W as OPW
+  participant D as Datadog
+  participant S as S3
+  A->>N: send logs (TLS)
+  N->>W: forward :8282
+  activate W
+  W->>W: scan + redact
+  par two copies
+    W->>D: redacted
+  and
+    W->>S: raw (PutObject)
+  end
+  deactivate W
+  Note over W,S: raw copy never leaves GovCloud

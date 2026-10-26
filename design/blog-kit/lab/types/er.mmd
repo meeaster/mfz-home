@@ -1,0 +1,14 @@
+erDiagram
+  PIPELINE ||--o{ SOURCE : reads
+  PIPELINE ||--o{ PROCESSOR_GROUP : runs
+  PROCESSOR_GROUP ||--o{ PROCESSOR : contains
+  PIPELINE ||--o{ DESTINATION : writes
+  PIPELINE {
+    string id
+    string name
+  }
+  DESTINATION {
+    string id
+    string type
+    string inputs
+  }

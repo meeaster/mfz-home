@@ -1,0 +1,6 @@
+flowchart LR
+  reader(["Agent<br/>actor · stadium"]) ==>|"main path"| svc["Worker<br/>component · box"]
+  svc --> scan{{"Scanner<br/>transform · hexagon"}}
+  scan --> bucket[("S3 bucket<br/>store · cylinder")]
+  scan -.->|"async"| dd[["Datadog<br/>external · subroutine"]]
+  svc --> ok{"Healthy?"}

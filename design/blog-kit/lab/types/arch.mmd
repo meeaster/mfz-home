@@ -1,0 +1,10 @@
+architecture-beta
+  group vpc(cloud)[dev-core vpc]
+  group eks(server)[eks] in vpc
+  service nlb(internet)[NLB] in vpc
+  service opw(server)[OPW] in eks
+  service s3(disk)[S3 raw]
+  service dd(cloud)[Datadog]
+  nlb:R --> L:opw
+  opw:R --> L:s3
+  opw:B --> T:dd

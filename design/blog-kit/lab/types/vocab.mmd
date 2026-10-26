@@ -1,0 +1,14 @@
+flowchart TB
+  agent(["Agent<br/>actor · stadium"])
+  worker["Worker<br/>component · box"]
+  ok{"healthy?"}
+  scan{{"Scanner<br/>transform · hexagon"}}
+  bucket[("S3 bucket<br/>store · cylinder")]
+  dd[["Datadog<br/>external · subroutine"]]
+  legacy["Old API<br/>component · box"]
+  agent ==>|"main path"| worker
+  worker --> ok
+  ok -->|"logs"| scan
+  ok --x|"denied"| legacy
+  scan --> bucket
+  scan -.->|"async"| dd

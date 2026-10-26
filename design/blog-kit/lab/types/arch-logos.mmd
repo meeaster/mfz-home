@@ -1,0 +1,14 @@
+architecture-beta
+  group aws(logos:aws)[dev-core aws]
+  group eks(logos:kubernetes)[eks] in aws
+  service gh(logos:github-icon)[GitHub]
+  service flux(logos:flux)[Flux] in eks
+  service nlb(logos:aws-elb)[NLB] in aws
+  service opw(logos:datadog)[OPW] in eks
+  service s3(logos:aws-s3)[S3] in aws
+  service dd(logos:datadog)[Datadog]
+  gh:R --> L:flux
+  flux:R --> L:opw
+  nlb:B --> T:opw
+  opw:R --> L:s3
+  opw:B --> T:dd

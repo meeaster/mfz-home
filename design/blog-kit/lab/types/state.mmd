@@ -1,0 +1,11 @@
+stateDiagram-v2
+  [*] --> Starting
+  Starting --> Polling: API key loaded
+  state "running" as Running {
+    direction LR
+    Polling --> Processing: graph received
+    Processing --> Polling: every 5 s
+  }
+  Processing --> Degraded: destination error
+  Degraded --> Processing: retry ok
+  Degraded --> [*]: crash
