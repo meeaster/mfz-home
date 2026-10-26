@@ -31,6 +31,7 @@ yamllint = "1"
 "npm:aws-cdk" = "2"
 "npm:sfw" = "2"
 "npm:@open-pencil/mcp" = "0"
+"npm:@open-pencil/cli" = "0"
 "npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
 "npm:executor" = "2.0.0-beta.14"
 # Tool skills follow the installed version; a failed refresh must not fail the install.

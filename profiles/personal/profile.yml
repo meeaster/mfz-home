@@ -93,7 +93,9 @@ mcp:
   pencil:
     agents: [opencode, claude-code, codex]
   openpencil:
-    agents: [opencode, claude-code]
+    agents:
+      enabled: [claude-code]
+      disabled: [opencode]
 claude:
   settings:
     permissions:

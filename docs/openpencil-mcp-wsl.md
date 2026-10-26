@@ -32,6 +32,10 @@ mise exec -- openpencil-mcp-http --version
 ss -H -ltnp 'sport = :7600'
 ```
 
+The base `.zshrc` exports the same `OPENPENCIL_MCP_DISCOVERY_PATH`, so the OpenPencil CLI in WSL shells (`openpencil documents list`) reaches the service. The Windows CLI can't use this setup: the discovery file names a WSL process ID, which Windows treats as stale. Don't install `@open-pencil/mcp` on Windows as well; the app starts it when it's on PATH, and the two servers overwrite each other's discovery file.
+
+Open WSL files in the app by their `\\wsl.localhost\<distro>\…` path. The app runs on Windows, so a Linux path such as `/home/mark/…` resolves to `C:\home\mark\…` and saves land there. `openpencil documents open` resolves its argument as a Linux path first, so send UNC paths as an `open_file` RPC over the service socket (`POST /rpc` with `{"command":"open_file","args":{"path":…}}`).
+
 The listener should be `127.0.0.1:7600`. Check health from WSL:
 
 ```sh
