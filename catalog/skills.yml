@@ -47,6 +47,23 @@ skills:
     source: local
     skill: skills/active/pele
     description: Render Mermaid diagram text to SVG offline with a vendored Pele build, with verified examples for every diagram type.
+  # diffs and highlights link to each other by relative path; keep both names.
+  - name: diffs
+    description: >
+      Pierre's guide to @pierre/diffs: render or edit code files, diffs,
+      patches, merge conflicts, and CodeView surfaces, including SSR and workers.
+    source: vendored
+    repo: https://github.com/pierrecomputer/pierre
+    ref: main
+    subtree: skills/diffs
+  - name: highlights
+    description: >
+      Pierre's guide to @pierre/highlights: generate syntax-highlighted HTML or
+      tokens with WebAssembly lexers and Zed-compatible themes.
+    source: vendored
+    repo: https://github.com/pierrecomputer/pierre
+    ref: main
+    subtree: skills/highlights
   - name: development-principles
     source: local
     skill: skills/active/development-principles

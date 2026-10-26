@@ -99,3 +99,9 @@ skills:
   explainer-motion:
     commit: 3a50a2bf1897ddeaa4e5a71df85224107aaf734b
     digest: 02eae90e70e5d1067ea29a931f0f3ffe845966acdbd2d82333a6a55e269d25aa
+  diffs:
+    commit: f6cccd8a258825af15980e8d80f56d05c8473cd6
+    digest: 287508f3418a6d3bceeff535e4e02345756ab2e3753610bf3a5a6979c4b20e03
+  highlights:
+    commit: f6cccd8a258825af15980e8d80f56d05c8473cd6
+    digest: dd4428c113113fb8d579949a69f79e27cb0e14512e6a599f6975d99e38341cf3
