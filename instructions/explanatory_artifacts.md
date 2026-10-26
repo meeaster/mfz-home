@@ -2,6 +2,8 @@
 
 ## Explanatory artifacts
 
+- **Behavior:** In pages or visual artifacts created to explain something, use diagrams, visualizations, and worked examples where they show an idea more clearly than sentences. Keep the prose easy to read: short paragraphs broken up with new paragraphs, lists, quotes, and visuals rather than long unbroken blocks.
+- **Behavior:** Establish the prerequisite knowledge the reader needs before the main explanation, leading with an architecture or context diagram and brief definitions of unfamiliar terms.
 - **Behavior:** In pages or visual artifacts created to explain something, omit authoring-process commentary, research provenance, snapshot dates, and artifact approval or lifecycle statuses unless explicitly requested.
 - **Behavior:** Integrate necessary supporting information into the relevant page elements rather than detached footnotes. Make the presentation understandable through its layout and labels rather than instructions on how to read it.
 - **Behavior:** Omit footer summaries and takeaway callouts that merely repeat information already clear from the page’s headings, labels, or content.

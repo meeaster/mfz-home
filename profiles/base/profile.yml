@@ -18,6 +18,9 @@ instruction_references:
   - name: github-actions
     path: instructions/github_actions.md
     description: Before creating or changing GitHub Actions workflows or actions
+  - name: open-pencil
+    path: instructions/open_pencil.md
+    description: Before using the OpenPencil app, its CLI, or its MCP tools
   - name: opencode-session-api
     path: instructions/opencode_session_api.md
     description: In OpenCode, before moving the session to another directory or compacting it on request
@@ -73,6 +76,10 @@ skills:
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
   pele:
+    agents: { opencode: true, claude-code: true, codex: true }
+  diffs:
+    agents: { opencode: true, claude-code: true, codex: true }
+  highlights:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
     agents: { opencode: true, claude-code: true, codex: true }
@@ -141,7 +148,7 @@ skills:
   skill-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
   technical-blog:
-    agents: { opencode: true, claude-code: false, codex: false }
+    agents: { opencode: true, claude-code: true, codex: true }
   artifact-context:
     agents: { opencode: true, claude-code: true, codex: true }
   technical-writing:
