@@ -17,6 +17,71 @@ Use this guidance for HTML articles and interactive artifacts. Pair the prose wi
 - A small live demo may run the actual function under discussion in the browser when it is self-contained. Say in the caption that it runs the real code, and identify any stubbed input.
 - Give stat tiles, captions, and labels the specific numbers; let the surrounding prose say why they matter.
 
+## Desktop layout
+
+On a phone, everything is one column. On desktop (from about 1100px), the page is one wide content column that the text fills and the components are set into.
+
+### Principles
+
+1. **Text fills the column.** Paragraphs, headings and lists use the full content width. A narrow text column beside wide components looks pinched.
+2. **Components are set in and sized to their content.** Code, tables and callouts sit a tab in from the text; a component that doesn't use the width (a repo card, a diagram) doesn't get stretched, because the extra width is just empty space inside its frame.
+3. **Components and diagrams are centred.**
+4. **Use the width for content, not margins.** When a diagram is narrow and tall, its text goes beside it.
+
+### Rules
+
+- The content column is `min(1040px, 100vw − 352px)` from 1100px: it leaves room for the contents list in the left margin, and changes smoothly so nothing moves when the list appears at 1200px. Prose, headings and lists take its full width.
+- Code excerpts and diffs, tables, callouts and disclosures are inset one tab (48px) from the text on each side. A figure whose text below needs the room (the diagram with terms) is inset-wide too, with its diagram centred on the paper.
+- A diagram-only figure is as wide as its diagram (never upscaled, never below 1.0 scale on desktop), centred; its caption takes the figure's width rather than setting it.
+- A diagram narrower than about half the column puts the text that explains it beside it: the figure at its natural width, the text in the rest, vertically centred (`.beside`: `grid-template-columns: auto minmax(0, 1fr)`). Use it when the text maps onto the diagram, such as numbered steps beside a flow. It stacks below 1100px.
+- Repo cards keep a fixed width (about 760px) and are centred. Two or three introduced together sit side by side as vertical cards (see [implementation walkthroughs](implementation-walkthrough.md)).
+- From 1200px, a sticky contents list sits in the left margin: the article's sections (and subsections where the article is organised by them), with short labels. It's plain anchor links, so it works without JavaScript; with JavaScript, an IntersectionObserver marks the section in view. Hidden below 1200px.
+- Wide and narrow variants of a diagram (one per breakpoint) are separate `.fig` elements; call `window.pen.redraw()` when the media query changes, because the pen skips a hidden figure.
+- Check at 1280, 1440 and 1920: every diagram at 1.0 scale, nothing overlapping the contents list, and no horizontal scroll with every disclosure open.
+
+## File pills and the viewer
+
+A file pill names a file in running text and links to it. With `scripts/file-viewer.js` inlined at the end of the page, clicking one opens the file in a dialog instead, with the lines the sentence is about highlighted and scrolled into view.
+
+- Give a pill the lines it means when the sentence points at specific lines: `data-lines="27,29,33-34"`, shown in the pill as `L27, 29, 33–34` in pink. Leave lines off when the sentence is about the file as a whole.
+- A pill's `href` is the file's row in the article's file index, so it works without JavaScript; `data-file` names that row. "Full file ↗" links on an excerpt's header do the same, with the excerpt's range as their lines, so the reader sees those lines in the whole file.
+- The row carries `data-repo`, `data-path` and `--hue`, and holds the file's code: the whole file if it's new, the diff if it was modified, plus the whole patched file in a `<template class="whole">`. The viewer gives modified files Changes and Whole file tabs, and opens on Whole file when a highlighted line isn't in the diff. The script's header comment has the full markup contract.
+- Highlighted lines are pink (they're what the sentence is about). Style the dialog with these rules:
+
+  ```css
+  .viewer { width: min(1100px, calc(100vw - 32px)); max-height: calc(100vh - 48px); padding: 0; border: 1px solid var(--border); border-radius: 12px; background: var(--bg); color: var(--fg); display: none; flex-direction: column; overflow: hidden; }
+  .viewer[open] { display: flex; } .viewer::backdrop { background: rgb(15 16 22 / .7); } body:has(.viewer[open]) { overflow: hidden; }
+  .vh { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 12px 14px 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .vdot { width: 9px; height: 9px; border-radius: 50%; background: var(--hue); } .vt { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+  .vrepo { color: var(--muted); font-size: 12px; } .vpath { font: 13px var(--mono); overflow-wrap: anywhere; } .vlines { color: var(--pink); font-weight: 600; }
+  .vtabs { display: inline-flex; border: 1px solid var(--border); border-radius: 7px; overflow: hidden; } .vtabs[hidden] { display: none; }
+  .vtabs button { color: var(--muted); background: none; border: 0; padding: 5px 11px; } .vtabs [aria-selected="true"] { background: color-mix(in srgb, var(--fg) 10%, transparent); color: var(--fg); }
+  .vh form { margin: 0; } .vclose { width: 30px; height: 30px; border: 1px solid var(--border); border-radius: 7px; background: none; } .vclose svg { fill: var(--muted); }
+  .vb { overflow: auto; flex: 1; min-height: 0; } .vb .code-head { display: none; } .vb .code-body { position: relative; }
+  .vband { position: absolute; left: 0; right: 0; background: color-mix(in srgb, var(--pink) 16%, transparent); box-shadow: inset 3px 0 var(--pink); pointer-events: none; }
+  @media (max-width: 640px) { .vh { display: grid; grid-template-columns: auto 1fr auto; } .vh form { grid-column: 3; grid-row: 1; } .vt { grid-column: 2; grid-row: 1; } .vlines, .vtabs { grid-column: 1 / -1; justify-self: start; } }
+  ```
+
+- Check every pill: the right file opens, exactly its lines are highlighted and the first is in view, and closing puts the code back in its row.
+
+## Links to sources
+
+Link the vendor or product page a claim rests on, at the claim, so a reader can check it: how a service behaves, a default, a permission, a setting's name. Use the source link component for these; ordinary links stay plain, and file pills stay pills.
+
+- **Check before linking.** Open each page and confirm it says what the linked sentence claims, at the version the article describes; a chart or provider page links the release the change pins (a tag, not `main`). If the page doesn't support the claim, change or flag the claim instead of linking it.
+- **Link the words the page supports**, at the first mention: "an API key that has Remote Configuration enabled", not "see the docs". About one link per claim the reader might doubt; a walkthrough needs a handful, not one per paragraph.
+- **The component:** the source's mark (Simple Icons, uncoloured, muted), the words with a dotted underline, then ↗; a `title` gives the page's title and site. Without JavaScript it's just a link.
+
+  ```html
+  <a class="src" href="…" title="Install the Worker · docs.datadoghq.com"><svg class="mk" viewBox="0 0 24 24" aria-hidden="true">…</svg>API key that has Remote Configuration enabled<span class="ex" aria-hidden="true">↗</span></a>
+  ```
+  ```css
+  a.src { color: var(--fg); text-decoration: underline dotted color-mix(in srgb, var(--cyan) 70%, transparent); text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+  a.src:hover { color: var(--cyan); text-decoration-style: solid; }
+  a.src .mk { width: .8em; height: .8em; fill: var(--muted); margin-right: .28em; vertical-align: -.02em; }
+  a.src .ex { font-size: .78em; margin-left: 2px; color: var(--muted); }
+  ```
+
 ## Diagrams
 
 Render Mermaid to SVG at build time with Pele when the `pele` skill is available, and inline the SVG. Otherwise use another build-time renderer that produces static SVG. Read [Diagram system](diagram-system.md) before drawing: it sets the colour system, house style, icons, spacing rules, the post-render fixes, and the overlap check every diagram follows.
