@@ -3,7 +3,7 @@ description: Implement the accepted current-session design through a fresh worke
 subagent: false
 ---
 
-Load `role-models`. Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `general` subagent as an implementer.
+Turn the accepted design in this session into one tight execution brief, then immediately delegate its implementation to the native `general` subagent as an implementer.
 
 This is an ephemeral handoff, not an OpenSpec change. Do not create or update proposal, specification, design, task, or other planning artifacts, and do not run OpenSpec commands.
 
@@ -33,9 +33,9 @@ The execution brief must state:
 
 Use one fresh native `subagent` call with:
 
-- a short outcome-based `description` starting with `implementer:`
+- a short outcome-based `description` starting with `implementer/frontend:` or `implementer/backend:`, from which Cairn binds the model
 - `agent`: `general`
-- `model`: the `implementer` binding for `frontend` or `backend` from `role-models`
+- no `model`
 - no `sessionID`
 - the complete execution brief as `prompt`
 

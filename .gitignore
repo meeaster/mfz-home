@@ -3,5 +3,3 @@ node_modules/
 __pycache__/
 *.pyc
 mcp/discord/dist/
-# Created by mise run cairn:link; points at the Cairn checkout's built plugin.
-opencode/plugins/cairn

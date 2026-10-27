@@ -1,26 +1,18 @@
-# Cairn is developed in its own checkout and used from it: these tasks build it there and link its commands into
-# ~/.local/bin, which is on PATH for shells and for the OpenCode service, and its plugin into opencode/plugins/cairn.
+# Cairn is developed in its own checkout, and the profiles load its plugin and skills from there. This task clones
+# the checkout, installs its dependencies, and links its commands into ~/.local/bin, which is on PATH for shells and
+# for the OpenCode service. Cairn runs from source, so edits apply when OpenCode or the command next starts.
 
 [vars]
 cairn = "{{env.HOME}}/workspace/repos/cairn"
 
-[tasks."cairn:link"]
-description = "Build the Cairn checkout and link its commands and OpenCode plugin"
+[tasks."cairn:install"]
+description = "Clone Cairn if needed, install its dependencies, and link its commands"
 run = '''
 set -eu
 cairn="{{vars.cairn}}"
+[ -d "$cairn" ] || gh repo clone meeaster/cairn "$cairn"
 pnpm --dir "$cairn" install --frozen-lockfile
-pnpm --dir "$cairn" build
-# OpenCode loads a plugin only when its entry file resolves inside the plugin folder, so the whole folder is linked.
-[ -L opencode/plugins/cairn ] || rm -rf opencode/plugins/cairn
-ln -sfn "$cairn/dist/opencode" opencode/plugins/cairn
-# Node resolves a linked entry to its real path, so the CLI still finds the UI and the plugin beside it in dist/.
 mkdir -p "$HOME/.local/bin"
-ln -sfn "$cairn/dist/cli.js" "$HOME/.local/bin/cairn"
-ln -sfn "$cairn/dist/mcp.js" "$HOME/.local/bin/cairn-mcp"
+ln -sfn "$cairn/bin/cairn.js" "$HOME/.local/bin/cairn"
+ln -sfn "$cairn/bin/cairn-mcp.js" "$HOME/.local/bin/cairn-mcp"
 '''
-
-[tasks."cairn:dev"]
-description = "Link Cairn, then rebuild it on every change"
-depends = ["cairn:link"]
-run = "pnpm --dir {{vars.cairn}} dev"

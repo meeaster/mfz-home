@@ -299,7 +299,7 @@ opencode:
     - session-usage
     - session-context
     # - skill-continuity
-    - cairn
+    - ~/workspace/repos/cairn
     - claude-code
   tui_plugins:
     - handoff-tui

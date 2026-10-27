@@ -25,7 +25,7 @@ deployment, migration, production access, or another operator-gated action.
 
 ## Prepare
 
-Load `role-models` for worker and reviewer model bindings. Reload it after a profile or binding change before the next dispatch.
+Cairn binds each dispatch's model from the role that starts its `description`, so pass no `model`.
 
 Resolve the change, store, planning root, and implementation workspace through the Apply procedure.
 Read every returned context path and follow every applicable `operationGuidance` entry. Preserve the
@@ -86,9 +86,9 @@ not create a separate worker or checkpoint for ledger-only acceptance.
 
 Use one fresh native `subagent` call with:
 
-- a short outcome-based `description` starting with `implementer:`;
+- a short outcome-based `description` starting with `implementer/frontend:` or `implementer/backend:`;
 - `agent`: `general`;
-- `model`: the `implementer` binding for `frontend` or `backend` from `role-models`;
+- no `model`;
 - no `sessionID`; and
 - the complete worker brief as `prompt`.
 
@@ -125,12 +125,12 @@ After the worker returns:
 5. Refresh `openspec instructions apply` with the selected store and reconcile progress.
 
 Do not accept a task from worker self-report alone. If the batch fails, classify the concrete failure
-before retrying. Use at most one fresh `general` remediation for that batch, using the applicable `implementer` model binding; unresolved product,
+before retrying. Use at most one fresh `general` remediation for that batch, described as the applicable `implementer` role; unresolved product,
 authority, security, or likely irreversible-data risk stops for the user.
 
 ## Periodic Review
 
-Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review using the `reviewer/code` model binding from `role-models`, with `thermo-nuclear-code-quality-review` loaded and no fixes, only when one of these triggers occurs:
+Coordinator review is sufficient after ordinary batches. Run one fresh native `general` review, its `description` starting with `reviewer/code:`, with `thermo-nuclear-code-quality-review` loaded and no fixes, only when one of these triggers occurs:
 
 - three accepted implementation batches have accumulated since the previous independent review;
 - a coherent subsystem or vertical milestone is complete, the next batch moves to another seam, and

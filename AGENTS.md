@@ -10,7 +10,7 @@
 
 - For OpenCode plugins, commands, agents, or TUI assets, read `opencode/AGENTS.md` before changing them.
 - For Executor routing changes or unverified live behavior, load `/home/mark/workspace/knowledge/personal-knowledge/threads/executor-mcp-routing-evidence/digest.md` before changing configuration or renderer behavior.
-- Cairn, its skills (including orchestration, design-docs, and knowledge-base), its role model bindings, and its OpenEval benchmarks live in its own repository at `~/workspace/repos/cairn`; change them there, not here. This home only enables it: `mise run cairn:link` builds the checkout and links its commands and OpenCode plugin, and the profiles enable the plugin, Claude Code marketplace, hooks, and MCP server.
+- Cairn, its skills (including orchestration, design-docs, and knowledge-base), its role model bindings, and its OpenEval benchmarks live in its own repository at `~/workspace/repos/cairn`; change them there, not here. This home only configures it: `mise run cairn:install` clones the checkout, installs its dependencies, and links its commands, and the profiles load the plugin from the checkout and enable the Claude Code marketplace, hooks, and MCP server.
 
 ## Verification
 
