@@ -3,38 +3,6 @@ skills:
     source: local
     skill: skills/active/agents-md-authoring
     description: Focused authoring and review of repository and folder-local AGENTS.md guidance.
-  - name: learnings
-    source: local
-    skill: packages/cairn/skills/learnings
-    description: Recording reusable operational lessons for later agents.
-  - name: design-partner
-    source: local
-    skill: packages/cairn/skills/design-partner
-    description: Explicit human-facing design partnership.
-  - name: effort-context
-    source: local
-    skill: packages/cairn/skills/effort-context
-    description: Bounded storage, capture, resume, and assigned maintenance.
-  - name: orchestrate
-    source: local
-    skill: packages/cairn/skills/orchestrate
-    description: Human-only orchestration entry, delegating by role.
-  - name: roles
-    source: local
-    skill: packages/cairn/skills/roles
-    description: Role definitions for delegating work to subagents or assuming a role in the main session.
-  - name: role-models
-    source: local
-    skill: skills/active/role-models
-    description: Personal model bindings for role-based delegation.
-  - name: design-docs
-    source: local
-    skill: skills/active/design-docs
-    description: Designs as lasting records of what a system is and why, and the HTML design docs, decision briefs and meeting updates built from them.
-  - name: knowledge-base
-    source: local
-    skill: skills/active/knowledge-base
-    description: Portable plain-file knowledge bases of articles, sources and evidence, with their check script.
   - name: anti-slop
     source: local
     skill: skills/active/anti-slop
@@ -70,14 +38,6 @@ skills:
     description: >
       Shared engineering judgment for explicit requests or workflows that require
       Development Principles.
-  - name: debugging
-    source: local
-    skill: skills/active/debugging
-    description: Fact-constrained diagnosis of bugs using controls, signals, and hypothesis elimination.
-  - name: verification
-    source: local
-    skill: skills/active/verification
-    description: Prove a change works by exercising it as its user would, with evidence per acceptance criterion.
   - name: pr-review
     source: local
     skill: skills/active/pr-review

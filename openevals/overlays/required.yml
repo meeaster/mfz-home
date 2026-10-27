@@ -1,9 +1,0 @@
-# Skills and agents every rendered environment must contain; the contract check
-# and `--no-extra-skills` both derive from this list.
-skills:
-  - orchestrate
-  - role-models
-  - design-partner
-  - effort-context
-  - thermo-nuclear-code-quality-review
-agents: []

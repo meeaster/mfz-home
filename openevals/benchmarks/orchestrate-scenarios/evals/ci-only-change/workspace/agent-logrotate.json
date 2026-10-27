@@ -1,6 +1,0 @@
-{
-  "path": "/var/log/vpn-agent/*.log",
-  "rotate": 14,
-  "maxSizeMiB": 50,
-  "compress": true
-}

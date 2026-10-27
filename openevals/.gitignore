@@ -1,6 +1,0 @@
-node_modules/
-results/
-.materialized/
-**/.openeval/environment/
-benchmarks/*/selected-preset.json
-**/.openeval/role-models.md

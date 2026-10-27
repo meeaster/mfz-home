@@ -3,6 +3,5 @@ node_modules/
 __pycache__/
 *.pyc
 mcp/discord/dist/
-packages/cairn/dist/
-# Created by mise run cairn:install or cairn:link; points at the installed plugin.
+# Created by mise run cairn:link; points at the Cairn checkout's built plugin.
 opencode/plugins/cairn

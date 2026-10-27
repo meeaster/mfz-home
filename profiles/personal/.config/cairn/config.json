@@ -1,4 +1,69 @@
 {
   "designs": "~/workspace/artifacts/cairn/designs",
-  "knowledge": "~/workspace/artifacts/cairn/knowledge"
+  "knowledge": "~/workspace/artifacts/cairn/knowledge",
+  "models": {
+    "tiers": {
+      "fast": {
+        "opencode": "openai/gpt-6-luna#high",
+        "claude-code": "haiku"
+      },
+      "fast-sonnet": {
+        "opencode": "openai/gpt-6-luna#high",
+        "claude-code": "sonnet"
+      },
+      "fast-max": {
+        "opencode": "openai/gpt-6-luna#max",
+        "claude-code": "sonnet"
+      },
+      "balanced": {
+        "opencode": "openai/gpt-6.1-sol#medium",
+        "claude-code": "sonnet"
+      },
+      "strong-sonnet": {
+        "opencode": "openai/gpt-6.1-sol#high",
+        "claude-code": "sonnet"
+      },
+      "deep": {
+        "opencode": "openai/gpt-6.1-sol#high",
+        "claude-code": "opus"
+      },
+      "astra": {
+        "opencode": "openai/gpt-6-astra#medium",
+        "claude-code": "opus"
+      },
+      "astra-high": {
+        "opencode": "openai/gpt-6-astra#high",
+        "claude-code": "opus"
+      }
+    },
+    "roles": {
+      "prototyper": "strong-sonnet",
+      "architect": "astra",
+      "architect/design-docs": "deep",
+      "creative-director": "astra-high",
+      "triage": "fast-max",
+      "implementer/motion": "fast-sonnet"
+    }
+  },
+  "skills": {
+    "slots": {
+      "code-review": "thermo-nuclear-code-quality-review",
+      "pr-review": "pr-review",
+      "pr-description": {
+        "skill": "pr-writer",
+        "autoinvoke": true
+      },
+      "interface-quality": "impeccable",
+      "engineering-judgment": "development-principles",
+      "prototyping": {
+        "skill": "prototype",
+        "autoinvoke": true
+      },
+      "agent-guidance": {
+        "skill": "writing-for-agents",
+        "autoinvoke": true
+      },
+      "reader-context": "artifact-context"
+    }
+  }
 }

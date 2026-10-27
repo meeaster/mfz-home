@@ -55,24 +55,10 @@ thread:
 skills:
   agents-md-authoring:
     agents: { opencode: true, claude-code: true, codex: true }
-  design-docs:
-    agents: { opencode: true, claude-code: true, codex: true }
-  knowledge-base:
-    agents: { opencode: true, claude-code: true, codex: true }
   open-pencil-design:
     agents: { opencode: false, claude-code: false, codex: false }
   open-pencil:
     agents: { opencode: false, claude-code: false, codex: false }
-  design-partner:
-    agents: { opencode: true, claude-code: true, codex: false }
-  learnings:
-    agents: { opencode: true, claude-code: true, codex: false }
-  effort-context:
-    agents: { opencode: true, claude-code: true, codex: false }
-  orchestrate:
-    agents: { opencode: true, claude-code: true, codex: false }
-  roles:
-    agents: { opencode: true, claude-code: false, codex: false }
   anti-slop:
     agents: { opencode: true, claude-code: true, codex: true }
   pele:
@@ -83,10 +69,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
     agents: { opencode: true, claude-code: true, codex: true }
-  debugging:
-    agents: { opencode: false, claude-code: false, codex: false }
-  verification:
-    agents: { opencode: false, claude-code: false, codex: false }
   pr-review:
     agents: { opencode: true, claude-code: true, codex: true }
   effect:
@@ -223,8 +205,9 @@ mcp:
     agents: [opencode, claude-code, codex]
   terminal-control:
     agents: [opencode, claude-code, codex]
+  # OpenCode gets the catalog tools from the Cairn plugin; Claude Code still needs the MCP server.
   cairn:
-    agents: [opencode, claude-code]
+    agents: [claude-code]
 opencode:
   # OpenCode always loads ~/.claude/skills and ~/.agents/skills, including the claude.ai skills synced into
   # ~/.claude/skills/synced. Skill permissions match names, not folders, so deny the synced names and any mfz
@@ -287,8 +270,9 @@ opencode:
           - action: skill
             resource: learnings
             effect: allow
-          # OpenCode exposes MCP tools through code mode's execute tool, which the built-in explore agent denies.
-          # Each tool called inside execute still checks its own rule, so only the Cairn search below opens up.
+          # OpenCode exposes the Cairn plugin's catalog tools through code mode's execute tool, which the built-in
+          # explore agent denies. Each tool called inside execute still checks its own rule, so only the Cairn search
+          # below opens up.
           - action: execute
             resource: "*"
             effect: allow
@@ -390,6 +374,15 @@ claude:
       commit: ""
       pr: ""
     syncClaudeAiSkills: true
+    # Cairn's skills, loaded in place from its checkout, so skill edits apply at the next session or /reload-plugins.
+    # Its hooks and MCP server stay below until the plugin carries them.
+    extraKnownMarketplaces:
+      cairn:
+        source:
+          source: directory
+          path: /home/mark/workspace/repos/cairn
+    enabledPlugins:
+      cairn@cairn: true
     # The built-in agents-md plugin defaults to loading AGENTS.md only in projects without a CLAUDE.md.
     # Load nested AGENTS.md files beside CLAUDE.md too; files CLAUDE.md already imports aren't loaded twice.
     pluginConfigs:
