@@ -37,6 +37,26 @@ const paper = section('Paper', 'Dot spacing', 'Mark moved the default paper from
   ...[12, 16, 20, 24, 28, 32].map((n) => card(400, `Dots · ${n}px`, img(`dots-${n}`, 400, 281), [n === 24 ? verdict('chosen', 'The default paper.') : verdict('no', 'Not chosen.')])),
 ]));
 
+// Article layout: options tried on the OPW walkthrough rewrite (2026-10-26), before the Article layout page's rules.
+const shot = (name, w, h) => img(`layout/${name}`, 560, Math.round((h * 560) / w));
+const layout = section('Article layout', 'Columns, components and the file index', 'Options tried while laying out the OPW walkthrough on desktop. What was chosen is on the Article layout page.', `
+<Frame flex="col" w="fill" gap={28}>
+${row([
+  card(560, 'A 720px reading column', shot('narrow-column', 1280, 1000), [verdict('no', 'Text pinched beside wide components, with large empty margins.')]),
+  card(560, 'Text at 820px, components out to 1040px', shot('wider-text', 1440, 900), [verdict('no', 'Better, but text and components still disagreed on width.')]),
+  card(560, 'Components at the full column width', shot('no-inset', 1440, 900), [verdict('no', 'Code flush with the text edge; components need a tab in to read as set into the text.')]),
+])}
+${row([
+  card(560, 'Repo cards with a colour strip', shot('card-strips', 1280, 1000), [verdict('no', 'Mark doesn\'t like the side strips; colour moved to names, dots and chips.')]),
+  card(560, 'File list after the repo cards', shot('old-appendix', 1440, 900), [verdict('no', 'The card list and the file bars repeat each other and say nothing about why a file is there.')]),
+])}
+${row([
+  card(560, 'Appendix A · GitHub "Files changed"', shot('appendix-github', 1440, 1000), [verdict('no', 'Familiar, but says what changed, not why; grouped by repository instead of by need.')]),
+  card(560, 'Appendix B · Two-pane browser', shot('appendix-browser', 1440, 1000), [verdict('no', 'Compact, but one file at a time works against an appendix people skim.')]),
+  card(560, 'Appendix C · Annotated index by need', '<Rectangle w={560} h={40} fill="#00000000" />', [verdict('chosen', 'Says why each file exists, in the article\'s own structure. See the Article layout page.')]),
+])}
+</Frame>`);
+
 const jsx = `
 <Frame name="Explorations" flex="col" w={1880} p={48} gap={56} fill="#282A36" ${v('bg')}>
   <Frame name="Header" flex="col" w="fill" gap={10}>
@@ -68,6 +88,7 @@ ${section('Drawing style', 'Four rounds of style', 'Each round rendered the same
   ]),
 ]))}
 ${paper}
+${layout}
 ${section('Icons', 'Icon treatments', 'Coloured icons looked wrong, and full-colour logos brought their own colours into the system: GitHub\'s black vanished and Datadog\'s purple collided with the purple group. Every option below keeps icons uncoloured.', `
 <Frame flex="col" w="fill" gap={28}>
 ${row([
@@ -101,6 +122,6 @@ ${section('Ruled out', 'Everything else that was tried', 'Options without their 
 </Frame>`)}
 </Frame>`;
 
-// SECTION=paper writes only the Dot spacing section, to add it to the page without rebuilding the rest.
-const only = process.env.SECTION === 'paper' ? paper : null;
+// SECTION=paper or SECTION=layout writes only that section, to add it to the page without rebuilding the rest.
+const only = process.env.SECTION === 'paper' ? paper : process.env.SECTION === 'layout' ? layout : null;
 writeFileSync(process.argv[2], JSON.stringify({ jsx: only ?? jsx, x: 0, y: only ? -3000 : 0, ...(process.argv[3] && { replace_id: process.argv[3] }) }));
