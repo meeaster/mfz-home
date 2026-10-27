@@ -617,3 +617,11 @@ skills:
     tool: github:xdevplatform/xurl
     repo: https://github.com/xdevplatform/xurl
     subtree: SKILL.md
+  - name: skill-diet
+    description: >
+      Keep agent skills lean and correct: put each fact on the lowest level
+      that reaches the agent in time, and trim skills that bloat or drift.
+    source: vendored
+    repo: https://github.com/nicobailon/skill-diet
+    ref: main
+    subtree: .

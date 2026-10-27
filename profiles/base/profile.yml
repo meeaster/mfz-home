@@ -92,6 +92,8 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   thermo-nuclear-code-quality-review:
     agents: { opencode: true, claude-code: true, codex: true }
+  skill-diet:
+    agents: { opencode: true, claude-code: true, codex: true }
   adversarial-code-review:
     agents: { opencode: false, claude-code: false, codex: false }
   impeccable:
