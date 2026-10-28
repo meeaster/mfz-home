@@ -19,6 +19,10 @@
         "opencode": "openai/gpt-6.1-sol#medium",
         "claude-code": "sonnet"
       },
+      "terra": {
+        "opencode": "openai/gpt-6.1-terra#high",
+        "claude-code": "sonnet"
+      },
       "strong-sonnet": {
         "opencode": "openai/gpt-6.1-sol#high",
         "claude-code": "sonnet"
@@ -41,8 +45,13 @@
       "architect": "astra",
       "architect/design-docs": "deep",
       "creative-director": "astra-high",
-      "triage": "fast-max",
-      "implementer/motion": "fast-sonnet"
+      "triage": "terra",
+      "implementer/motion": "fast-sonnet",
+      "implementer": "terra",
+      "inspector/investigate": "terra",
+      "operator": "fast",
+      "operator/pr": "terra",
+      "operator/jira": "terra"
     }
   },
   "skills": {
