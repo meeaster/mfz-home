@@ -174,8 +174,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   handoff:
     agents: { opencode: true, claude-code: true, codex: true }
-  pr-writer:
-    agents: { opencode: true, claude-code: true, codex: true }
   dataviz:
     agents: { opencode: false, claude-code: false, codex: false }
   diagram-design:

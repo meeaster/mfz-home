@@ -415,14 +415,6 @@ skills:
     description: >
       Plan and coordinate an OpenSpec implementation as a standalone, plan-first
       workflow.
-  - name: pr-writer
-    source: local
-    skill: skills/active/pr-writer
-    description: >
-      Write or refresh a GitHub PR title and description, then create, update, or
-      merge the PR with gh under the user's authority. Use when opening or merging
-      a PR, writing or rewriting a PR title/body, or refreshing one after the branch
-      changed.
   - name: visual-explainer
     description: Generate beautiful, self-contained HTML pages that visually explain
       systems, code changes, plans, and data. Use when the user asks for a
