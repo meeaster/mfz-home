@@ -18,8 +18,8 @@ if [ "${actual_origin%.git}" != "${expected_origin%.git}" ]; then
 fi
 
 branch=$(git -C "$workspace" branch --show-current)
-if [ "$branch" != "v2" ]; then
-  printf '%s\n' "workspace branch is not v2: ${branch:-detached}" >&2
+if [ "$branch" != "dev" ]; then
+  printf '%s\n' "workspace branch is not dev: ${branch:-detached}" >&2
   exit 1
 fi
 

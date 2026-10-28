@@ -30,7 +30,7 @@ run:
 workspace:
   type: git
   repository: https://github.com/anomalyco/opencode.git
-  branch: v2
+  branch: dev
   cleanliness: clean
   allowDetached: false
   allowDiverged: false
@@ -42,6 +42,6 @@ schedule:
 actions:
   - id: prepare-review-repository
     path: actions/prepare-review-repository.sh
-    description: Verify the provisioned v2 review checkout without changing it
+    description: Verify the provisioned dev review checkout without changing it
     inputs: []
     outputs: [origin, branch, baseline]
