@@ -7,6 +7,7 @@
 ## Tool selection
 
 - **Tool:** Use `visual-explainer` only when the user explicitly requests that skill.
+- **Tool:** When the user asks to open projects in Zed, open them all in one window as a multi-root workspace by passing every folder to a single `zed` invocation; do not open a separate window per project. From WSL, run the Windows CLI (`/mnt/c/Users/*/AppData/Local/Programs/Zed/bin/zed`) as `zed --wsl <user>@<distro> -n <folder>...`, taking the user from `whoami` and the distro from `wslpath -w /` (`\\wsl.localhost\<distro>\`); `$WSL_DISTRO_NAME` can be empty in agent shells, and a blank distro fails with "Failed to connect to WSL".
 - **Tool:** Load `technical-writing` and `unslop` only when explicitly requested or when drafting or substantively revising a human-facing deliverable, such as a README, documentation page, RFC, article, or PR description. Routine replies, short commit messages, and primarily agent-consumed instructions, plans, handoffs, coordination records, and evidence do not trigger these skills. Choose by intended audience and purpose, not file type or location. This restriction takes precedence over broader loading directives in either skill.
 
 ## Working preferences
