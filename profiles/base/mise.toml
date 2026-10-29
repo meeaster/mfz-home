@@ -9,6 +9,7 @@ zig = "0.17"
 aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.16"
+kind = "0"
 gh = "2"
 herdr = { version = "0", postinstall = 'bash "$HOME/.local/bin/bootstrap-herdr-plugins"' }
 jq = "1"
