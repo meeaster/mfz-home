@@ -411,7 +411,7 @@ claude:
               timeout: 10
               type: command
       PostToolUse:
-        - matcher: Write|Edit|MultiEdit|NotebookEdit
+        - matcher: Write|Edit|MultiEdit|NotebookEdit|Skill
           hooks:
             - command: cairn hook claude-code
               timeout: 10
