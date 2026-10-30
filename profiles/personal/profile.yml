@@ -73,7 +73,7 @@ mcp:
   x-docs:
     agents: [opencode, claude-code, codex]
   homeassistant:
-    agents: [opencode]
+    agents: [opencode, claude-code]
   unifi-network:
     agents: [opencode, claude-code]
   robinhood:
