@@ -300,7 +300,6 @@ opencode:
     - session-context
     # - skill-continuity
     - ~/workspace/repos/cairn
-    - claude-code
   tui_plugins:
     - handoff-tui
     - session-usage-tui

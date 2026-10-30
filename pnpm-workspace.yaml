@@ -7,7 +7,6 @@ allowBuilds:
   protobufjs: false
 packages:
   - mcp/*
-  - opencode/plugins/claude-code
   - opencode/plugins/omp-advisor
   - opencode/plugins/optchat
   - opencode/plugins/handoff-tui
