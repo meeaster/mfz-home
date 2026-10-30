@@ -89,6 +89,12 @@ servers:
     type: local
     transport: stdio
     command: [browser-control-mcp]
+  # Runs from a source checkout; `mise run browse:update` builds it and links opencode-browser.
+  browse:
+    description: Browse MCP server for driving the user's Chromium browser through the Browse extension.
+    type: local
+    transport: stdio
+    command: [opencode-browser, mcp]
   agent-browser:
     description: First-party browser automation MCP server for interaction, screenshots, and diagnostics.
     type: local

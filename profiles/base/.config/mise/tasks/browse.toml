@@ -1,0 +1,62 @@
+["browse:update"]
+description = "Clone or fast-forward Browse from source, build it, install the relay runtime, and refresh the unpacked extension"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Browse is not on npm yet, so it runs from a source checkout.
+src=${BROWSE_SRC:-$HOME/.local/src/browse}
+if [ -d "$src/.git" ]; then
+  git -C "$src" pull --ff-only --quiet
+else
+  mkdir -p "$(dirname "$src")"
+  git clone --quiet https://github.com/anomalyco/browse.git "$src"
+fi
+echo "browse: source at $src ($(git -C "$src" log -1 --format='%h %s'))"
+
+(cd "$src" && bun install --silent && cd cli && bun install --silent && bun run build)
+cli="$src/cli/dist/cli.mjs"
+mkdir -p "$HOME/.local/bin"
+ln -sfn "$cli" "$HOME/.local/bin/opencode-browser"
+
+# install always writes its MCP entry into $XDG_CONFIG_HOME/opencode, which mfz renders; point it at a
+# throwaway folder. It still installs the runtime, restarts an outdated relay, and pairs dist/.
+scratch=$(mktemp -d)
+trap 'rm -rf "$scratch"' EXIT
+XDG_CONFIG_HOME="$scratch" node "$cli" install --no-open --no-wait | grep -v -e 'MCP server' -e 'Restart opencode'
+
+if ! grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+  echo "browse: load the unpacked extension from $src/dist"
+  exit 0
+fi
+
+# Windows Chrome loads the extension from a Windows folder, which keeps working when WSL is not running.
+dest=${BROWSE_EXTENSION_DIR:-}
+if [ -z "$dest" ]; then
+  # Run cmd.exe from a Windows drive so it does not warn about a UNC working directory.
+  localappdata=$(cd /mnt/c && /mnt/c/Windows/System32/cmd.exe /d /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r') || true
+  if [ -z "$localappdata" ]; then
+    echo "browse: cannot reach Windows to find %LOCALAPPDATA%; set BROWSE_EXTENSION_DIR" >&2
+    exit 1
+  fi
+  dest="$(wslpath -u "$localappdata")/Browse/extension"
+fi
+
+if diff -rq "$src/dist" "$dest" >/dev/null 2>&1; then
+  echo "browse: extension already current at $(wslpath -w "$dest")"
+  exit 0
+fi
+mkdir -p "$dest"
+rsync -a --delete "$src/dist"/ "$dest"/
+echo "browse: extension synced to $(wslpath -w "$dest")"
+
+# install's own reload ran before the copy, so ask the relay to reload the extension again.
+token=$(cat "$HOME/.local/share/opencode-browser/relay-token")
+if curl -fsS -m 5 -X POST -H "Authorization: Bearer $token" -H 'content-type: application/json' -d '{}' \
+  http://127.0.0.1:19988/extension/reload >/dev/null 2>&1; then
+  echo "browse: asked the extension to reload"
+else
+  echo "browse: extension not connected; reload Browse in chrome://extensions"
+fi
+echo "browse: restart agent sessions so their browse MCP servers run the new build"
+'''

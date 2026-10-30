@@ -78,8 +78,9 @@ skills:
   # Claude Code and Codex use the CLI through this skill; OpenCode uses the MCP server with Code Mode.
   agent-browser:
     agents: { opencode: false, claude-code: true, codex: true }
+  # Replaced by Browse, whose agents read its guide from the browse MCP skill tool.
   browser-control:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: false, claude-code: false, codex: false }
   windows-app-recording:
     agents: { opencode: true, claude-code: true, codex: false }
   terminal-control:
@@ -191,7 +192,7 @@ skills:
   pr-lens:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
-  browser-control:
+  browse:
     agents: [opencode, claude-code, codex]
   agent-browser:
     agents: [opencode, claude-code, codex]
