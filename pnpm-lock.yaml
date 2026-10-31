@@ -58,22 +58,7 @@ importers:
         specifier: 4.1.9
         version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.13.2)(vite@8.3.1(@types/node@24.13.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
 
-  opencode/plugins/handoff-tui:
-    devDependencies:
-      '@opencode/plugin':
-        specifier: 2.1.1
-        version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-
-  opencode/plugins/omp-advisor:
-    devDependencies:
-      '@opencode/plugin':
-        specifier: 2.1.1
-        version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-      zod:
-        specifier: 4.4.3
-        version: 4.4.3
-
-  opencode/plugins/optchat:
+  opencode/plugins/active/optchat:
     dependencies:
       '@opencode/ai':
         specifier: 2.1.1
@@ -98,22 +83,7 @@ importers:
         specifier: 1.9.12
         version: 1.9.12
 
-  opencode/plugins/pstack:
-    devDependencies:
-      '@opencode/plugin':
-        specifier: 2.1.1
-        version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-      '@types/node':
-        specifier: 24.13.2
-        version: 24.13.2
-      typescript:
-        specifier: 6.0.3
-        version: 6.0.3
-      vitest:
-        specifier: 4.1.9
-        version: 4.1.9(@opentelemetry/api@1.9.0)(@types/node@24.13.2)(vite@8.3.1(@types/node@24.13.2)(esbuild@0.28.2)(jiti@2.7.0)(yaml@2.9.0))
-
-  opencode/plugins/session-context:
+  opencode/plugins/active/session-context:
     dependencies:
       '@opencode/client':
         specifier: 2.1.1
@@ -125,7 +95,7 @@ importers:
         specifier: 4.4.3
         version: 4.4.3
 
-  opencode/plugins/session-usage:
+  opencode/plugins/active/session-usage:
     dependencies:
       '@opencode/plugin':
         specifier: 2.1.1
@@ -134,18 +104,6 @@ importers:
         specifier: 4.1.8
         version: 4.1.8
     devDependencies:
-      effect:
-        specifier: 4.0.1
-        version: 4.0.1
-      opencode-drive:
-        specifier: 2.3.0
-        version: 2.3.0(effect@4.0.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-
-  opencode/plugins/session-usage-tui:
-    devDependencies:
-      '@opencode/plugin':
-        specifier: 2.1.1
-        version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
       '@opentui/core':
         specifier: 0.6.6
         version: 0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10)
@@ -158,38 +116,21 @@ importers:
       effect:
         specifier: 4.0.1
         version: 4.0.1
+      opencode-drive:
+        specifier: 2.3.0
+        version: 2.3.0(effect@4.0.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
       solid-js:
         specifier: 1.9.12
         version: 1.9.12
 
-  opencode/plugins/skill-continuity:
-    dependencies:
-      zod:
-        specifier: 4.4.3
-        version: 4.4.3
+  opencode/plugins/in-progress/pstack:
     devDependencies:
       '@opencode/plugin':
         specifier: 2.1.1
         version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-
-  opencode/plugins/work-ledger:
-    dependencies:
-      '@opencode/plugin':
-        specifier: 2.1.1
-        version: 2.1.1(@opentelemetry/semantic-conventions@1.43.0)(@opentui/core@0.6.6(typescript@6.0.3)(web-tree-sitter@0.25.10))(@opentui/solid@0.6.6(solid-js@1.9.12)(typescript@6.0.3)(web-tree-sitter@0.25.10))(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
-      zod:
-        specifier: 4.4.3
-        version: 4.4.3
-    devDependencies:
       '@types/node':
         specifier: 24.13.2
         version: 24.13.2
-      effect:
-        specifier: 4.0.1
-        version: 4.0.1
-      opencode-drive:
-        specifier: 2.3.0
-        version: 2.3.0(effect@4.0.1)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)(redis@6.2.1(@opentelemetry/api@1.9.0))(solid-js@1.9.12)
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -1199,6 +1140,7 @@ packages:
   '@smithy/core@3.33.3':
     resolution: {integrity: sha512-CsOeKq/9kA3y6VJHt+/+VTCtBaxJ4OTFpgrjIUhPpDIKxBci1k2bJaQASF2h/ELWrulGp+t97DZ0mevfAD8idg==}
     engines: {node: '>=18.0.0'}
+    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/credential-provider-imds@4.5.2':
     resolution: {integrity: sha512-A9uSdn72ozbRUSit0eib0TW7nXuNPlaeM0zcGkJ+nE6tFcSDbnmtwoxbTCFBukVQcszDAyvsd7+rTduPTXpygg==}

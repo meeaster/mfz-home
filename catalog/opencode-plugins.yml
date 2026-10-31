@@ -1,0 +1,28 @@
+plugins:
+  - name: session-usage
+    description: session_usage tool for a session's token and cost usage, plus sidebar Usage and Running boxes and a prompt-footer idle timer that replace OpenCode's Context box.
+    source: local
+    path: opencode/plugins/active/session-usage
+  - name: session-context
+    description: session_context tool loading another session's active context as a filtered, incrementally readable transcript.
+    source: local
+    path: opencode/plugins/active/session-context
+  - name: optchat
+    description: Victor Taelin's OptChat design, a compacted conversation view with prompt-cache warm-up.
+    source: local
+    path: opencode/plugins/active/optchat
+  - name: pstack
+    description: Skills-first OpenCode V2 adaptation of pstack.
+    source: local
+    path: opencode/plugins/in-progress/pstack
+  - name: cairn
+    description: Cairn's catalog of efforts, sessions, and files, with its skills and role models.
+    source: path
+    path: ~/workspace/repos/cairn
+  # The plannotator_inbox tool is enabled per host in ~/.plannotator/config.json. OpenCode's installer applies npm
+  # min-release-age but ignores its exclude list, so pin a version at least 3 days old.
+  - name: plannotator
+    description: Plan review and the Plannotator Inbox.
+    source: npm
+    package: "@plannotator/opencode"
+    version: 0.28.8

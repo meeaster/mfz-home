@@ -294,16 +294,12 @@ opencode:
     theme:
       name: dracula
     plugins:
-      # session-usage-tui replaces OpenCode's built-in Context box in the sidebar.
+      # session-usage's TUI part replaces OpenCode's built-in Context box in the sidebar.
       - "-opencode.sidebar.context"
   plugins:
     - session-usage
     - session-context
-    # - skill-continuity
-    - ~/workspace/repos/cairn
-  tui_plugins:
-    - handoff-tui
-    - session-usage-tui
+    - cairn
   commands:
     - apply-spec
     - implement-design

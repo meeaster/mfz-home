@@ -1,0 +1,25 @@
+{
+  "name": "mindframe-z-session-usage",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts",
+    "./server": "./index.ts",
+    "./tui": "./tui/index.tsx"
+  },
+  "scripts": {
+    "test:drive": "opencode-drive run ./drive/regression.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.1.1",
+    "zod": "4.1.8"
+  },
+  "devDependencies": {
+    "@opentui/core": "0.6.6",
+    "@opentui/keymap": "0.6.6",
+    "@opentui/solid": "0.6.6",
+    "effect": "4.0.1",
+    "opencode-drive": "2.3.0",
+    "solid-js": "1.9.12"
+  }
+}
