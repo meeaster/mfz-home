@@ -5,19 +5,45 @@ description: Build, migrate, debug, or review an OpenCode server or native TUI p
 
 # OpenCode Plugin Authoring
 
-Use the current [OpenCode plugin documentation](https://opencode.ai/v2/docs/build/plugins) as the normative server-plugin API and configuration source. Fetch it before selecting server entrypoints, hooks, config shape, or package metadata. Inspect the installed stable OpenCode version and the published `@opencode/plugin` releases before changing a plugin that imports or types against the SDK; use the exact SDK release matching the CLI. For native TUI behavior the server page does not document, inspect the matching release source and [runtime loading](references/runtime-loading.md) rather than extending the server contract by analogy.
+The [OpenCode plugin docs](https://opencode.ai/v2/docs/build/plugins) are the API source: package layout, loading, `Plugin.define`, the context APIs, hooks, the Effect entrypoint, TUI parts, and V1 migration. Read the pages for the parts you're building before writing code. This skill holds only what those pages don't say: behavior learned from running plugins, and where to look in the OpenCode source when the docs run out.
 
-If the stable SDK is unavailable, stop and report the publication blocker instead of using a beta, development, or reserved package.
+Expect to read source. When the docs and the installed release disagree, the release's source wins; read it at the tag matching `opencode --version`.
 
-## Build
+## Where to look in the source
 
-1. Classify the request before editing: server plugin, native TUI plugin, published package, or local development plugin. Preserve a V1 implementation unless the request explicitly replaces it.
-2. Read the current documentation. For a server plugin, use its supported default export, hooks, configuration, and verification endpoint. Use Promise `setup` for a simple lifecycle; choose the Effect entrypoint when the plugin already uses Effect or benefits from scoped fibers, finalizers, or typed failures, and declare `effect` directly. For a native TUI plugin, verify the matching release's loader, context types, slot contract, and runtime bridge before coding; do not transfer the server Effect contract to a TUI API that only exposes `setup`.
-3. Inspect the active OpenCode version and the plugin's actual runtime package boundary. Declare every non-host runtime import in that plugin's `dependencies` and prove it resolves from the rendered entrypoint's directory; a manifest outside that directory's ancestors, including a shared config-directory `package.json`, satisfies nothing. Match the published `@opencode/plugin` release exactly to the installed stable CLI when the plugin imports or types against the SDK. Type-only imports are development dependencies, not rendered runtime requirements.
-4. Read [runtime loading](references/runtime-loading.md) before selecting a TUI layout, dependency installation strategy, configuration owner, or diagnostic conclusion. Also read its event-consumer guidance when a server plugin subscribes to events, creates sessions, generates responses, or emits synthetic messages.
-5. Implement the smallest plugin and configuration change. Validate plugin options and every contribution against the matching release schema before registration. Build each contribution from its required fields. Add an optional property only after checking that its value is not `undefined`; never include an absent value through object-literal shorthand. One invalid contribution can abort plugin reload and leave unrelated services such as model discovery unavailable. Keep hooks fast. Give every long-lived resource an explicit cleanup path. Before an event-driven plugin performs work, exclude events produced by that work so the plugin cannot trigger itself recursively.
-6. Verify types, rendered files, and a fresh runtime. For server plugins, inspect active IDs through the documented OpenCode API, check server logs for reload errors, and exercise an unrelated service such as model listing to prove initialization completed. If the plugin consumes events, execute the triggering behavior, confirm that plugin-owned sessions and messages do not retrigger it, reload the plugin, and confirm that one event causes one action. For native TUI plugins, use an isolated visible-slot test that executes the render body; plugin status or typechecking alone is insufficient.
+In the OpenCode repository ([anomalyco/opencode](https://github.com/anomalyco/opencode)):
 
-## Completion
+| Question | Start at |
+|---|---|
+| The docs pages themselves, at that revision | `services/www/src/docs/content/build/plugins/` |
+| What a Promise context method or hook event really does | `packages/plugin/src/promise/adapter.ts`, `packages/plugin/src/effect/session.ts` (hook event types) |
+| When a hook fires and what it receives | `packages/core/src/plugin/host.ts`, `packages/core/src/session/model-request.ts` (request hooks per kind) |
+| A working plugin to copy patterns from | built-in plugins in `packages/core/src/plugin/` (`goal.ts`, `warming.ts`, `provider/claude-agent/`) |
+| TUI loading and the modules the host supplies | `packages/tui/src/plugin/` |
 
-The plugin has a unique ID and release-supported default export, the correct OpenCode component owns its configuration, all non-host runtime imports resolve from its rendered entrypoint, and a fresh OpenCode process exercises the expected server or visible TUI behavior. Event-driven plugins also prove bounded execution after a reload and leave model listing available.
+## Gotchas
+
+### Request hooks
+
+- **Mirror prefix changes into `generate`.** The docs say each request kind has its own hook. What they don't say: when `context` adds messages or system text, or removes tools, and `generate` doesn't, every `ctx.session.generate` call (such as `/btw` or a goal review) sends a different prefix from the session's own requests and misses their prompt cache. On the `claude-agent` provider it's worse: generate forks the native Claude session only when its messages hash the same as the saved checkpoints, so a mismatch resends the whole conversation as new input. Register the same handler for `generate`, and for `compaction` when the change matters there.
+- **`session.generate` is text only.** It sends the session's tools but runs no tool loop, so a reply that calls a tool comes back as empty text; tell the model not to call tools. It reads history only up to the last settled message, and its token usage is neither returned nor recorded on the session (only a server log line). To measure it, read the provider response in the `http.response` hook where `event.kind === "generate"`.
+
+### Contributions
+
+- **Omit absent optional fields.** Registries decode contributions (skills, agents, commands, tools) with schemas that reject a key present with value `undefined`. Object-literal shorthand of an absent value does exactly that, and one rejected contribution can abort the whole plugin reload. The symptom shows up elsewhere: model listing times out. After a reload, check the server log for the first reload error and query `/api/model`.
+
+### Event consumers
+
+- **A plugin's own work re-enters the event stream.** Sessions it creates, messages it sends, and generations it runs arrive as events. Remember the IDs of sessions the plugin owns and skip them; a `parentID` check misses plugin-owned top-level sessions. After a reload, trigger one event and confirm it causes exactly one action.
+
+### Dependencies and loading
+
+- **Imports resolve from the plugin's entrypoint directory.** A plugin loaded by path from a source checkout resolves through that checkout's install; a `package.json` in the OpenCode config directory only reaches plugins placed beneath it. Find the entrypoint (the configured URL, or `source.path` from `/api/plugin`) and resolve each runtime import from there.
+- **The TUI host supplies its UI modules.** `@opencode/plugin/tui`, `solid-js`, and the `@opentui/*` modules are provided at runtime; keep them as dev and peer dependencies and import them directly rather than bundling copies.
+- **`cli.json` belongs to the CLI**, which rewrites it. Merge a TUI-only plugin entry into it; don't replace or symlink the file.
+- **Use the latest stable SDK.** Depend on the `@opencode/plugin` release on npm's `latest` tag, since OpenCode itself is kept on its latest release; never a beta, next, or development build. If the installed CLI is older than that release, report the gap rather than downgrading the SDK.
+
+### Verification
+
+- **Prove it in a fresh process.** Hot reload can keep the last good plugin generation, so it doesn't prove a dependency or entrypoint change.
+- **A TUI plugin is done when its slot renders.** `/plugins` status and typechecks don't show that the render body ran, and a contained render failure may not mark the plugin failed. Mount the slot in an isolated TUI with a real route and viewport; `opencode-drive` does this when available.
