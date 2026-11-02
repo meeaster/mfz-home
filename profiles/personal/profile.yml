@@ -30,21 +30,24 @@ references:
   - opencode-plugins
   - openwiki
 extra_folders:
-  - path: /home/mark/workspace/specs/workspace-specs
+  - path: ~/workspace/specs/workspace-specs
     group: knowledge-and-artifacts
     summary: Workspace specifications
     signals: [OpenSpec, cross-project specifications, task ledgers]
     description: Machine-wide OpenSpec store for cross-project proposals, specifications, and task ledgers.
-  - path: /home/mark/workspace/knowledge/personal-knowledge
+    url: https://github.com/meeaster/workspace-specs
+  - path: ~/workspace/knowledge/personal-knowledge
     group: knowledge-and-artifacts
     summary: Personal knowledge
     signals: [Personal knowledge, Practices, Session Captures]
     description: "Private Personal knowledge: accepted synthesis, Practices, Session Capture boundaries, threads, and ledgers."
-  - path: /home/mark/workspace/knowledge/personal-sources
+    url: https://github.com/meeaster/personal-knowledge
+  - path: ~/workspace/knowledge/personal-sources
     group: knowledge-and-artifacts
     summary: Personal source evidence
     signals: [Personal sources, voice notes, Session Captures]
     description: "Private Personal source evidence: immutable voice notes and canonical append-only Session Captures."
+    url: https://github.com/meeaster/personal-sources
   - path: ~/workspace/worktrees
     group: knowledge-and-artifacts
     summary: Disposable worktrees

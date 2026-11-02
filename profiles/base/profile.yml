@@ -435,6 +435,19 @@ extra_folders:
     summary: Personal Mindframe-Z home
     signals: [Mindframe-Z, Personal profile, agent configuration]
     description: Personal mindframe-z home for shared base and Personal profile configuration.
+    url: https://github.com/meeaster/mfz-home
+  - path: ~/workspace/repos/mindframe-z
+    group: agent-tooling
+    summary: Mindframe-Z engine
+    signals: [Mindframe-Z, mfz CLI, renderers]
+    description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
+    url: https://github.com/meeaster/mindframe-z
+  - path: ~/workspace/repos/cairn
+    group: agent-tooling
+    summary: Cairn
+    signals: [Cairn, efforts, role models]
+    description: "Cairn: catalog of efforts, sessions, and artifacts, with its skills, role model bindings, OpenCode plugin, and Claude Code marketplace."
+    url: https://github.com/meeaster/cairn
   - path: ~/.mindframe-z
     group: agent-tooling
     summary: Generated Mindframe-Z state
