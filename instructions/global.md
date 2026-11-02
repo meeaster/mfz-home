@@ -35,6 +35,7 @@
 
 ## Git and CI
 
+- **Behavior:** Work in the current checkout, including when it has local changes. Create a worktree or isolated clone only when the user explicitly asks for one; A/B tests, prototypes, automation, and local changes do not count as a request.
 - **Behavior:** For delegated Git operations, provide the repository, intended changes, authorized operations, and relevant validation results. Preserve the user's exact scope and require the resulting commit identity, push status, and remaining changes as applicable.
 - **Style:** Use Conventional Commits.
 

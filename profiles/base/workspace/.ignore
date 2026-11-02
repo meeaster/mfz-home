@@ -1,0 +1,6 @@
+# Keeps broad searches started at the workspace root out of throwaway and upstream
+# material. ripgrep, and the agent search tools built on it, honor this file without a
+# Git repository; naming one of these paths explicitly still searches it.
+/scratch/
+/references/
+/worktrees/
