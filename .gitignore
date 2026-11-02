@@ -3,3 +3,4 @@ node_modules/
 __pycache__/
 *.pyc
 mcp/discord/dist/
+.claude/worktrees/
