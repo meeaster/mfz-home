@@ -258,6 +258,7 @@ opencode:
   config:
     experimental:
       subagent_depth: 3
+      artifacts: true
     agents:
       # Orchestrate dispatches every role to general; implementers, operators, and writers dispatch nested roles.
       general:
