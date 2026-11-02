@@ -5,8 +5,10 @@ go = "1"
 python = "3.14"
 # mise cannot pass rustup's --no-self-update, and a failed rustup self-update fails an otherwise successful toolchain upgrade.
 rust = { version = "1", postinstall = "rustup set auto-self-update disable" }
-zig = "0.17"
-"cargo:terminal-control" = { version = "1", postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
+# 0.15.2 builds terminal-control only; 0.17 is first, so it is the zig on PATH.
+zig = ["0.17", "0.15.2"]
+# Its libghostty build runs the zig on PATH and requires 0.15.2. The exact-version path exists as soon as zig installs.
+"cargo:terminal-control" = { version = "1", depends = ["zig", "rust"], install_env = { PATH = "{{ xdg_data_home }}/mise/installs/zig/0.15.2/bin:{{ env.PATH }}" }, postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
 aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.16"
