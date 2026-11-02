@@ -7,8 +7,11 @@ fi
 
 typeset -U path fpath plugins
 
-# Shared executables and completions used across machines.
+# Shared executables and completions used across machines. The mise-guard wrapper comes first
+# so every mise activation, including the oh-my-zsh plugin's, and every child process routes
+# installs through sfw.
 path=(
+  "$HOME/.local/bin/mise-guard"
   "$HOME/.local/bin"
   "$HOME/.opencode/bin"
   "$HOME/bin"

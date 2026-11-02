@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Routes every mise install through Socket Firewall (sfw). This directory comes before
+# ~/.local/bin on PATH for interactive shells (.zshrc) and for the services agents run under
+# (their systemd units), so agents and `mfz setup` resolve this `mise` instead of the real one.
+set -euo pipefail
+
+real="$HOME/.local/bin/mise"
+
+case "${1:-}" in
+  install | i | use | u | upgrade | up)
+    if ! sfw=$("$real" which sfw 2>/dev/null); then
+      # Nothing can protect the firewall's own download; it is a single GitHub release binary.
+      echo "mise: installing Socket Firewall before routing installs through it" >&2
+      "$real" install github:SocketDev/sfw-free
+      sfw=$("$real" which sfw)
+    fi
+    exec "$sfw" "$real" "$@"
+    ;;
+esac
+
+# mise activate embeds argv0 as the command its shell function runs, so keep it pointing here.
+exec -a "$0" "$real" "$@"
