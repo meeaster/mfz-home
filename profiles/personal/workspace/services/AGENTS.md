@@ -6,18 +6,6 @@ its own `AGENTS.md` before making changes.
 
 ## Service Inventory
 
-### Buzz
-
-- `buzz/source/` is the pristine upstream Buzz application checkout. It owns the
-  relay, desktop and mobile clients, CLI, and agent harness source.
-- `buzz/production/` is the machine-specific operations repository for the
-  private Buzz deployment. It owns Compose overrides, lifecycle automation,
-  systemd units, provider integration, and operational runbooks.
-- Application behavior belongs in `buzz/source/`; deployment-specific behavior
-  belongs in `buzz/production/`.
-- Do not start, stop, migrate, restore, upgrade, or cut over the production
-  service without an explicit human request.
-
 ### Workspace User Services
 
 Definitions under `systemd/user/`:

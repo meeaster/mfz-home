@@ -40,7 +40,6 @@ Tools, skills, MCP servers, and repositories worth remembering, whether or not t
 - [Deep Agents JS](https://github.com/langchain-ai/deepagentsjs): TypeScript version of Deep Agents.
 - [Vercel AI SDK](https://github.com/vercel/ai): provider-independent TypeScript SDK for model calls, streaming, tools, and agents.
 - [Eve](https://github.com/vercel/eve): filesystem-first framework for durable backend agents defined by project files.
-- [Buzz](https://github.com/block/buzz): Nostr-based collaboration relay connecting people, coding agents, channels, and Git.
 
 ## Benchmarks
 
