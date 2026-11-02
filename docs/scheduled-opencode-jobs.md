@@ -178,7 +178,7 @@ Relevant source:
 
 ## Nesting and permissions
 
-Set the maximum nesting depth once in the shared base profile:
+Set the maximum nesting depth once in the shared dev profile:
 
 ```yaml
 opencode:

@@ -63,8 +63,8 @@ low-risk benefit from sharing a runtime-neutral helper.
 
 ## Current repository state
 
-The base profile selects the shared V2 `session-usage` server plugin and
-`session-cost-tui` native TUI in `profiles/base/profile.yml`. Personal-only V2
+The dev profile selects the shared V2 `session-usage` server plugin and
+`session-cost-tui` native TUI in `profiles/dev/profile.yml`. Personal-only V2
 plugins remain selected from the Personal profile.
 
 The source tree contains these active and archived V2 implementations:

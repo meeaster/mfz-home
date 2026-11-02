@@ -1,5 +1,5 @@
 name: personal
-extends: base
+extends: dev
 description: Personal AI setup with Home Assistant integrations.
 capability_groups:
   - name: personal-trading

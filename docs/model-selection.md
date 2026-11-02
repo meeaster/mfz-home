@@ -247,7 +247,7 @@ tokens, latency, cost, and whether escalation was required.
 - Compare model and effort combinations on the same prompt and tool budget.
 - Measure cost per successful task, not just cost per model call.
 - Update runtime descriptions and native agent assignments when the routing
-  policy changes. Keep `profiles/base/profile.yml` synchronized with this guide.
+  policy changes. Keep `profiles/dev/profile.yml` synchronized with this guide.
 - Promote a community observation into default routing only after it survives
   representative local work.
 

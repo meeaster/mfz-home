@@ -27,7 +27,7 @@ Success: a cold reader can tell what happened, separate decisions from proposals
 - **Checkpoints move only through `scripts/set-adapter-state.py`.** In a live run a model hand-copied the state and transposed one hex character in a source fingerprint; the validator accepted it and the next refresh failed. Structural validation can't catch source-inexact state.
 - **Only parent human messages establish decisions and corrections.** Child prompts are delegated assistant direction, and child reports or tool success can't show acceptance. Locator syntax can't prove the role, so the agent checks it after writing.
 - **Refresh safety over cursor compatibility.** Anything other than a verified append rebuilds instead of being converted.
-- **Enabled in the base profile but off in Personal**, while its retained source still names `artifact-context` for the durable artifact.
+- **Enabled in the dev profile but off in Personal**, while its retained source still names `artifact-context` for the durable artifact.
 
 ## Sources
 

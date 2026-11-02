@@ -46,11 +46,11 @@ These statements describe the repository on 2026-09-15. They are not redesign pr
 - `opencode/agents/agent-author.md` owns AI-consumed behavioral instructions. It cannot dispatch children. Analysis does not authorize edits.
 - `opencode/agents/artifact-author.md` owns durable reader-facing communication artifacts. It cannot dispatch children. It names `confluence-writer` for Confluence and `visual-explainer` for self-contained HTML. It does not currently name `jira-writer`.
 - `opencode/agents/operator.md` owns explicitly requested, settled operational outcomes. It may dispatch only `explore` and `research` under its current task map.
-- `profiles/base/profile.yml` assigns `openai/gpt-6-sol`, variant `medium`, to `agent-author` and `artifact-author`.
-- `profiles/base/profile.yml` assigns `openai/gpt-6-luna`, variant `high`, to `explore` and `operator`. `opencode/agents/inspect.md` assigns the same model and variant to `inspect`.
+- `profiles/dev/profile.yml` assigns `openai/gpt-6-sol`, variant `medium`, to `agent-author` and `artifact-author`.
+- `profiles/dev/profile.yml` assigns `openai/gpt-6-luna`, variant `high`, to `explore` and `operator`. `opencode/agents/inspect.md` assigns the same model and variant to `inspect`.
 - `profiles/personal/profile.yml` retains Sol/medium for `agent-author`. It does not override `artifact-author`, `explore`, or `operator` in the inspected section.
 - The repository does not fix the main session model. An orchestrator with no model setting inherits the parent model at runtime. The observed coordinator session for this investigation used Sol/medium, but that observation is not a general configuration rule.
-- `profiles/base/profile.yml` sets `opencode.config.experimental.subagent_depth` to `2`. Repository documentation describes this as permitting `root -> worker -> child`; the setting does not grant task permission by itself.
+- `profiles/dev/profile.yml` sets `opencode.config.experimental.subagent_depth` to `2`. Repository documentation describes this as permitting `root -> worker -> child`; the setting does not grant task permission by itself.
 
 ### Mandatory file-backed evidence
 
@@ -451,8 +451,8 @@ The following paths may change only if later decisions accept the corresponding 
 - `opencode/agents/artifact-author.md`: add direct-tool or leaf-helper access only if later evidence supports it.
 - `opencode/agents/agent-author.md`: add narrow helper or tool permissions only if later evidence supports it.
 - `opencode/agents/operator.md`: align compact typed returns and selective note behavior while preserving explicit mutation authority.
-- `profiles/base/profile.yml`: change `subagent_depth` only if measured evidence supports nested leaf helpers; add only named task permissions needed by the accepted topology.
-- `profiles/personal/profile.yml`: change only Personal-specific model or permission policy. Keep shared behavior in `base`.
+- `profiles/dev/profile.yml`: change `subagent_depth` only if measured evidence supports nested leaf helpers; add only named task permissions needed by the accepted topology.
+- `profiles/personal/profile.yml`: change only Personal-specific model or permission policy. Keep shared behavior in `dev`.
 - `skills/active/jira-writer/SKILL.md`: clarify the relation between editorial ownership, direct publication, and mechanical sync if live tests show ambiguity.
 - `skills/active/confluence-writer/SKILL.md`: preserve the fresh approval gate and drift behavior while clarifying any accepted writer or helper split.
 - `skills/vendor/visual-explainer/SKILL.md`: likely remains the HTML craft and render owner. Do not add a generic deployment contract without a named destination.

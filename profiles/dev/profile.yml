@@ -1,4 +1,4 @@
-name: base
+name: dev
 extends: core
 description: Shared development config for workstations and servers.
 instruction_references:
