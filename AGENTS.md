@@ -2,7 +2,7 @@
 
 ## Configuration sources
 
-- Profiles layer as `core` → `dev` → `dev-personal`, and `core` → `slim`. `core` holds what every machine needs, including thin clients: the shell, core tools, global instructions, and OpenCode TUI preferences. `dev` holds shared development configuration. `dev-personal` holds Personal-only overrides. `slim` is for thin clients that attach to a server's OpenCode.
+- Profiles layer as `core` → `dev` → `dev-personal`, and `core` → `slim`. `core` holds what every machine needs, including thin clients: the shell, core tools, workspace guidance, global instructions, and OpenCode TUI preferences. `dev` holds shared development configuration. `dev-personal` holds Personal-only overrides. `slim` is for thin clients that attach to a server's OpenCode.
 - Profile list fields only accumulate down the chain, so a child cannot remove what a parent selects. Put anything a thin client should not get in `dev` or below, not in `core`.
 - This file governs repository work. Cross-repository agent guidance is rendered from `instructions/global.md` and `instructions/personal.md`; branch-specific guidance is selected through profile `instruction_references`.
 - Catalog entries define available assets; profiles select them. Adding a catalog entry alone does not enable it.
