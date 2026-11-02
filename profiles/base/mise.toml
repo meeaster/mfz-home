@@ -7,8 +7,10 @@ python = "3.14"
 rust = { version = "1", postinstall = "rustup set auto-self-update disable" }
 # 0.15.2 builds terminal-control only; 0.17 is first, so it is the zig on PATH.
 zig = ["0.17", "0.15.2"]
-# Its libghostty build runs the zig on PATH and requires 0.15.2. The exact-version path exists as soon as zig installs.
-"cargo:terminal-control" = { version = "1", depends = ["zig", "rust"], install_env = { PATH = "{{ xdg_data_home }}/mise/installs/zig/0.15.2/bin:{{ env.PATH }}" }, postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
+# Its libghostty build runs the zig on PATH and requires 0.15.2; the exact-version path exists as soon as zig installs.
+# Zig fetches ghostty dependencies through any proxy and ignores NO_PROXY, and the sfw proxy rejects them, so this
+# build alone runs without the proxy. Its crates skip sfw; minimum_release_age still applies.
+"cargo:terminal-control" = { version = "1", depends = ["zig", "rust"], install_env = { PATH = "{{ xdg_data_home }}/mise/installs/zig/0.15.2/bin:{{ env.PATH }}", HTTP_PROXY = "", HTTPS_PROXY = "", http_proxy = "", https_proxy = "" }, postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
 aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.16"
