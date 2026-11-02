@@ -1,7 +1,6 @@
 name: base
-description: Shared base config for all profiles.
-instructions:
-  - instructions/global.md
+extends: core
+description: Shared development config for workstations and servers.
 instruction_references:
   - name: video-editing
     path: instructions/video_editing.md
@@ -255,7 +254,6 @@ opencode:
     - action: skill
       resource: xlsx
       effect: deny
-  global_instructions: true
   config:
     experimental:
       subagent_depth: 3
@@ -293,8 +291,6 @@ opencode:
   websearch:
     provider: exa
   cli:
-    theme:
-      name: dracula
     plugins:
       # session-usage's TUI part replaces OpenCode's built-in Context box in the sidebar.
       - "-opencode.sidebar.context"

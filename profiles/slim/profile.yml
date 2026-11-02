@@ -1,0 +1,4 @@
+name: slim
+extends: core
+description: Thin client for machines that run OpenCode locally for light tasks and attach to a server's OpenCode for development.
+agents: [opencode]

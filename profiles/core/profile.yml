@@ -1,0 +1,9 @@
+name: core
+description: Shared essentials for every machine, including thin clients that attach to a server's OpenCode.
+instructions:
+  - instructions/global.md
+opencode:
+  global_instructions: true
+  cli:
+    theme:
+      name: dracula

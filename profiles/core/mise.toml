@@ -1,0 +1,21 @@
+[tools]
+node = "26"
+gh = "2"
+jq = "1"
+ripgrep = "15"
+pnpm = "12"
+# The firewall binary itself, pinned; ~/.local/bin/mise-guard/mise routes installs through it.
+"github:SocketDev/sfw-free" = { version = "1", bin = "sfw" }
+bat = "0"
+"aqua:sharkdp/fd" = "10"
+
+[settings]
+minimum_release_age = "1d"
+# Skipped in non-interactive sessions, so agent-run installs never update mise mid-command.
+self_update.auto = true
+# Installs run only through ~/.local/bin/mise-guard/mise, which routes package downloads through sfw.
+auto_install = false
+
+[settings.npm]
+package_manager = "pnpm"
+

@@ -1,5 +1,4 @@
 [tools]
-node = "26"
 bun = "1.4"
 go = "1"
 python = "3.14"
@@ -15,15 +14,11 @@ aws-cli = "2"
 aws-sam-cli = "1"
 terraform = "1.16"
 kind = "0"
-gh = "2"
 # A new release can change the server protocol, so stop the old server before bootstrapping plugins; `server stop` bypasses the protocol guard, and no server may be running.
 herdr = { version = "0", postinstall = 'herdr server stop >/dev/null 2>&1 || true; bash "$HOME/.local/bin/bootstrap-herdr-plugins"' }
-jq = "1"
 pipx = "1"
 pre-commit = "4"
-ripgrep = "15"
 uv = "0"
-pnpm = "12"
 actionlint = "1"
 zizmor = "1"
 shellcheck = "0"
@@ -36,8 +31,6 @@ tflint = "0"
 yamllint = "1"
 "npm:ccstatusline" = "2"
 "npm:aws-cdk" = "2"
-# The firewall binary itself, pinned; ~/.local/bin/mise-guard/mise routes installs through it.
-"github:SocketDev/sfw-free" = { version = "1", bin = "sfw" }
 "npm:@open-pencil/mcp" = "0"
 "npm:@open-pencil/cli" = "0"
 "npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
@@ -50,22 +43,10 @@ yamllint = "1"
 "npm:@opencode-ai/browser-control" = { version = "0", postinstall = "mise run browser-control:sync-extension || echo 'browser-control: extension sync failed; rerun mise run browser-control:sync-extension' >&2; mfz skills refresh --tool npm:@opencode-ai/browser-control || echo 'browser-control: skill refresh failed; rerun mfz skills refresh' >&2" }
 "npm:opencode-drive" = { version = "2", postinstall = "mfz skills refresh --tool npm:opencode-drive || echo 'opencode-drive: skill refresh failed; rerun mfz skills refresh' >&2" }
 "github:charmbracelet/glow" = "3"
-bat = "0"
 imagemagick = "7"
 ffmpeg = "9"
-"aqua:sharkdp/fd" = "10"
 "pipx:git-filter-repo" = "2"
 "cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
-
-[settings]
-minimum_release_age = "1d"
-# Skipped in non-interactive sessions, so agent-run installs never update mise mid-command.
-self_update.auto = true
-# Installs run only through ~/.local/bin/mise-guard/mise, which routes package downloads through sfw.
-auto_install = false
-
-[settings.npm]
-package_manager = "pnpm"
 
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
