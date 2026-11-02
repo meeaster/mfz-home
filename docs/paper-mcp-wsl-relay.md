@@ -63,7 +63,7 @@ From the repository root, remove the two rendered symlinks only after verifying 
 
 ```sh
 rm ~/.config/systemd/user/paper-mcp-relay.service ~/.local/bin/paper-mcp-relay.mjs
-rm profiles/personal/.config/systemd/user/paper-mcp-relay.service profiles/personal/.local/bin/paper-mcp-relay.mjs
+rm profiles/dev-personal/.config/systemd/user/paper-mcp-relay.service profiles/dev-personal/.local/bin/paper-mcp-relay.mjs
 mfz apply --target dotfiles
 systemctl --user daemon-reload
 ```

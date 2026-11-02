@@ -18,7 +18,7 @@ sudo apt-get install -y git curl ca-certificates libatomic1 build-essential
    ```text
    Set up mindframe-z on this machine. Fetch
    https://raw.githubusercontent.com/meeaster/mindframe-z/main/docs/agent-setup.md
-   and follow its steps. My home: https://github.com/meeaster/mfz-home, profile personal.
+   and follow its steps. My home: https://github.com/meeaster/mfz-home, profile dev-personal.
    Before running mfz setup, put ~/.local/bin/mise-guard first on PATH.
    ```
 
@@ -27,7 +27,7 @@ sudo apt-get install -y git curl ca-certificates libatomic1 build-essential
    ```sh
    curl -fsSL https://raw.githubusercontent.com/meeaster/mindframe-z/main/scripts/install.sh | bash
    export PATH="$HOME/.local/bin/mise-guard:$HOME/.local/bin:$HOME/.local/share/mise/shims:$PATH"
-   mfz --profile personal setup --clone https://github.com/meeaster/mfz-home
+   mfz --profile dev-personal setup --clone https://github.com/meeaster/mfz-home
    ```
 
    `~/.local/bin/mise-guard` must be on `PATH` before setup starts. Setup's first

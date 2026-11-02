@@ -17,7 +17,7 @@ The server's tools come from the Pen app: `browser`, `execute`, `get_app_state`,
 
 ## MFZ catalog and clients
 
-`catalog/mcp.yml` declares `pencil` as a local stdio server with the command above, enabled for `opencode`, `claude-code` and `codex` in `profiles/personal/profile.yml`. Run `mfz apply` after changing the catalog.
+`catalog/mcp.yml` declares `pencil` as a local stdio server with the command above, enabled for `opencode`, `claude-code` and `codex` in `profiles/dev-personal/profile.yml`. Run `mfz apply` after changing the catalog.
 
 A running OpenCode server can keep a cached failure from a previous state. Reconnect it without restarting the server:
 

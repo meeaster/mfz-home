@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
 const servicePath = new URL(
-  "../../profiles/personal/.config/systemd/user/discord-mcp.service",
+  "../../profiles/dev-personal/.config/systemd/user/discord-mcp.service",
   import.meta.url
 );
 

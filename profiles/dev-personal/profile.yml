@@ -1,4 +1,4 @@
-name: personal
+name: dev-personal
 extends: dev
 description: Personal AI setup with Home Assistant integrations.
 capability_groups:

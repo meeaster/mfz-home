@@ -19,10 +19,10 @@ The design should also support implementation workers that gather bounded local 
 The implementation adds these job files:
 
 ```text
-profiles/personal/.config/opencode/jobs/opencode-pr-review.md
-profiles/personal/.config/opencode/jobs/opencode-pr-review-task.md
-profiles/personal/.config/systemd/user/opencode-pr-review.service
-profiles/personal/.config/systemd/user/opencode-pr-review.timer
+profiles/dev-personal/.config/opencode/jobs/opencode-pr-review.md
+profiles/dev-personal/.config/opencode/jobs/opencode-pr-review-task.md
+profiles/dev-personal/.config/systemd/user/opencode-pr-review.service
+profiles/dev-personal/.config/systemd/user/opencode-pr-review.timer
 ```
 
 The shared profile sets `experimental.subagent_depth: 2`, enables the body-free `scheduled-worker`, and allows `worker` and `scheduled-worker` to delegate only to `explore` and `research`.

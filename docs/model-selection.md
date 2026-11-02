@@ -253,7 +253,7 @@ tokens, latency, cost, and whether escalation was required.
 
 ## Local Runtime Notes
 
-Orchestration roles now take their models from the tiers in Cairn's config (`profiles/personal/.config/cairn/config.json`), and the native agents below are archived (see the orchestrate design in the Cairn repository, `docs/orchestrate/design.md`). The block records their last assignments.
+Orchestration roles now take their models from the tiers in Cairn's config (`profiles/dev-personal/.config/cairn/config.json`), and the native agents below are archived (see the orchestrate design in the Cairn repository, `docs/orchestrate/design.md`). The block records their last assignments.
 
 The last native agent assignments were:
 

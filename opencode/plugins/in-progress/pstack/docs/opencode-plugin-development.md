@@ -27,7 +27,7 @@ Cursor model setup, transcript readers, Benny automations, Graphite workflows, p
 The active path is:
 
 ```text
-profiles/personal/profile.yml
+profiles/dev-personal/profile.yml
   -> Mindframe-Z renders the pstack server-plugin entry
   -> OpenCode resolves and imports src/index.ts
   -> Plugin.define({ id: "pstack", setup })
@@ -37,7 +37,7 @@ profiles/personal/profile.yml
   -> OpenCode materializes the skill and agent state
 ```
 
-`profiles/personal/profile.yml` selects `pstack` under `opencode.plugins`. The profile does not enumerate the packaged skills or agents. OpenCode discovers them only after the plugin runs.
+`profiles/dev-personal/profile.yml` selects `pstack` under `opencode.plugins`. The profile does not enumerate the packaged skills or agents. OpenCode discovers them only after the plugin runs.
 
 `src/index.ts` owns the complete pstack registration path:
 
@@ -281,7 +281,7 @@ Use the narrowest owner for each change:
 | Add a transform | `setup` and the matching registration helper | Unit test plus runtime inspection of the transformed domain. |
 | Add a runtime hook | `setup` | Focused hook test, failure behavior, and a fresh operation that executes the hook. |
 | Add a resource with a lifecycle | `setup` cleanup | Reload and shutdown evidence that the resource is released. |
-| Add a runtime import | `package.json` and `profiles/personal/profile.yml` | Resolution from the rendered entrypoint in a fresh process. |
+| Add a runtime import | `package.json` and `profiles/dev-personal/profile.yml` | Resolution from the rendered entrypoint in a fresh process. |
 | Add TUI behavior | A separate native TUI entrypoint and CLI configuration | Visible slot execution in a fresh TUI process. Server-plugin loading is insufficient. |
 
 Before changing a skill, run `mfz guide skills`. Before changing the plugin or profile, run `mfz guide`.

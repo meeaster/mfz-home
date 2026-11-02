@@ -13,7 +13,7 @@ git show a07693789dae875630b891bc3692fe726bc9469c:instructions/BROWSER.md
 git show a07693789dae875630b891bc3692fe726bc9469c:instructions/PERSONAL_KNOWLEDGE.md
 ```
 
-These are the source files for `profiles/dev/profile.yml` and `profiles/personal/profile.yml`. MFZ also generates a capability index and pointers to on-demand instruction references in the rendered global instructions. The generated text is a separate source of context; this inventory does not classify every entry in that index. Repository-local `AGENTS.md` files and the agent's harness instructions are separate layers.
+These are the source files for `profiles/dev/profile.yml` and `profiles/dev-personal/profile.yml`. MFZ also generates a capability index and pointers to on-demand instruction references in the rendered global instructions. The generated text is a separate source of context; this inventory does not classify every entry in that index. Repository-local `AGENTS.md` files and the agent's harness instructions are separate layers.
 
 ## Classify what a line does
 

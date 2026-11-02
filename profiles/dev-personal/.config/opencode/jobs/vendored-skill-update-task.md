@@ -16,7 +16,7 @@ For one matching PR, require `origin/automation/vendored-skill-updates`. A local
 
 For zero matching PRs, require local `main` to be equal to or strictly behind `origin/main`; local-only or diverged commits are a blocking failure. Switch to `main`, fast-forward it to `origin/main`, and record that exact commit. Observe whether the remote automation branch exists and record its exact commit. If it exists, query all matching pull requests with the same exact repository, base, and owner-qualified head filters. Recycle the branch only when the newest historical match is closed or merged and its recorded head commit equals the observed remote branch. A remote branch with no matching historical PR or a changed head is unexpected partial state and blocks the run. Do not select or rewrite the automation branch yet.
 
-Run this exact branch-rooted check: `mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile personal skills check`. Parse only tab-separated `current`, `update available`, `unpromoted`, and `check failed` records. Require each update's observed revision to be a full lowercase Git SHA. A failed, malformed, duplicate, or unpromoted record blocks publication. When every record is current, leave the selected branch clean, send no Discord message, and return `No vendored-skill updates.`
+Run this exact branch-rooted check: `mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile dev-personal skills check`. Parse only tab-separated `current`, `update available`, `unpromoted`, and `check failed` records. Require each update's observed revision to be a full lowercase Git SHA. A failed, malformed, duplicate, or unpromoted record blocks publication. When every record is current, leave the selected branch clean, send no Discord message, and return `No vendored-skill updates.`
 
 If updates exist and no PR is open, prepare the stable automation branch from the recorded `origin/main` only after checking branch state:
 
@@ -30,7 +30,7 @@ After switching, require `HEAD` to equal the recorded base and require a clean s
 
 For each update, stage the exact observed revision with:
 
-`mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile personal skills stage <name> --commit <full-sha>`
+`mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile dev-personal skills stage <name> --commit <full-sha>`
 
 Bind the printed candidate ID to that skill and revision. Read the complete candidate provenance, digest, inventory, deterministic findings, old-to-new diff, and source tree under `/home/mark/.mindframe-z/skill-candidates/`. Confirm that provenance, baseline, target subtrees or provider variants, inventory, files, and digests agree. Account for every retained, added, removed, renamed, executable, binary, URL-bearing, and dependency-bearing file, including unchanged files.
 
@@ -38,7 +38,7 @@ Review all candidate content statically for authority escalation, unrelated or s
 
 Promote only approved candidates, by explicit candidate ID, with:
 
-`mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile personal skills promote <candidate-id>`
+`mfz --root /home/mark/.local/state/opencode-jobs/vendored-skill-update/repo --home /home/mark --profile dev-personal skills promote <candidate-id>`
 
 If no candidate is approved, require the clone to remain unchanged, report the blocked candidates to Discord, and stop. For mixed outcomes, continue with the approved safe subset and retain the omitted outcomes for the report.
 
