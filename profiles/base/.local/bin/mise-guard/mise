@@ -6,6 +6,12 @@ set -euo pipefail
 
 real="$HOME/.local/bin/mise"
 
+# mise links its shims to the path it ran from, so after a reshim through this wrapper every shim
+# (pnpm, cargo, ...) lands here too. Only `mise` itself is routed; `pnpm install` is not `mise install`.
+if [ "$(basename "$0")" != mise ]; then
+  exec -a "$0" "$real" "$@"
+fi
+
 case "${1:-}" in
   install | i | use | u | upgrade | up)
     if ! sfw=$("$real" which sfw 2>/dev/null); then

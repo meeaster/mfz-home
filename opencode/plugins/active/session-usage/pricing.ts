@@ -1,13 +1,7 @@
-export type Tokens = {
-  input: number;
-  output: number;
-  reasoning: number;
-  cache: { read: number; write: number };
-};
+import type { PricingUsage } from "./messages.js";
+import { catalogProviderID, type ModelAliases } from "./models.js";
 
-export type ModelRef = { id: string; providerID: string; variant?: string };
-
-type Rates = {
+export type Rates = {
   input?: number;
   output?: number;
   cache_read?: number;
@@ -22,12 +16,18 @@ type Rates = {
   }>;
 };
 
-type Model = {
+export type Model = {
+  name?: string;
   cost?: Rates;
   experimental?: { modes?: Record<string, { cost?: Rates }> };
 };
 
 export type Catalog = Record<string, { models?: Record<string, Model> }>;
+
+/** A model's estimate, by its recorded `providerID/modelID` key and the label it is shown with. */
+export type Cost = { key: string; model: string; amount: number; sinceCompaction?: number };
+
+export type CostEstimate = { costs: Cost[]; unpriced: number };
 
 let catalog: Promise<Catalog> | undefined;
 
@@ -36,7 +36,7 @@ export function loadCatalog(): Promise<Catalog> {
     catalog = fetch("https://models.dev/api.json", { signal: AbortSignal.timeout(10_000) }).then(async (response) => {
       if (!response.ok) throw new Error(`models.dev returned ${response.status}`);
 
-      // SAFETY: models.dev owns this endpoint contract; callers fail closed when loading or pricing fails.
+      // SAFETY: models.dev owns this endpoint's catalog contract; malformed data is caught by this promise chain and rendered as unavailable.
       return (await response.json()) as Catalog;
     });
   }
@@ -47,41 +47,110 @@ export function loadCatalog(): Promise<Catalog> {
   });
 }
 
-export function priceTokens(tokens: Tokens, ref: ModelRef, priceCatalog: Catalog): number | undefined {
-  const models = priceCatalog[ref.providerID]?.models ?? {};
-  const model = models[ref.id] ?? modeModel(models, ref.id);
-  const rates = model && ratesFor(model, tokens);
+export function ratesFor(model: Model, usage: PricingUsage): Rates | undefined {
+  const prompt = usage.context ?? usage.tokens.input + usage.tokens.cacheRead + usage.tokens.cacheWrite;
+  const cost = normalizeRates(model.cost);
+
+  return contextTier(cost, prompt) ?? cost;
+}
+
+export function aggregateCost(
+  usages: readonly PricingUsage[],
+  priceCatalog: Catalog,
+  sinceCompactionUsages?: readonly PricingUsage[],
+  modelAliases: ModelAliases = {}
+): CostEstimate {
+  const costs = new Map<string, Cost>();
+  const sinceCompaction = sinceCompactionUsages && new Set(sinceCompactionUsages);
+  let unpriced = 0;
+
+  for (const usage of usages) {
+    const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
+    const model = catalogModel(usage, priceCatalog, modelAliases);
+    const rates = model && ratesFor(model, usage);
+
+    if (!rates) {
+      unpriced += 1;
+      continue;
+    }
+
+    const key = `${usage.providerID}/${usage.modelID}`;
+    const item = costs.get(key) ?? { key, model: alias ? key : model.name ?? usage.modelID, amount: 0 };
+    const amount = price(usage, rates);
+
+    if (sinceCompaction && item.sinceCompaction === undefined) item.sinceCompaction = 0;
+
+    item.amount += amount;
+
+    if (sinceCompaction?.has(usage)) item.sinceCompaction = (item.sinceCompaction ?? 0) + amount;
+
+    costs.set(key, item);
+  }
+
+  return { costs: [...costs.values()].sort((left, right) => right.amount - left.amount), unpriced };
+}
+
+/**
+ * What the next request would cost to read the step's context back uncached once the prompt cache has expired: its
+ * whole prompt and its output, which the next prompt carries. A model that prices cache writes writes it all back to the
+ * cache, and otherwise pays the input rate. Unknown when the model has no catalog price.
+ */
+export function resumeCost(usage: PricingUsage, priceCatalog: Catalog, modelAliases: ModelAliases = {}): number | undefined {
+  const model = catalogModel(usage, priceCatalog, modelAliases);
+  const { input, output, reasoning, cacheRead, cacheWrite } = usage.tokens;
+  const context = input + output + reasoning + cacheRead + cacheWrite;
+  const rates = model && ratesFor(model, { ...usage, tokens: { input: context, output: 0, reasoning: 0, cacheRead: 0, cacheWrite: 0 } });
 
   if (!rates) return undefined;
 
-  return (
-    (tokens.input * finite(rates.input) +
-      (tokens.output + tokens.reasoning) * finite(rates.output) +
-      tokens.cache.read * finite(rates.cache_read) +
-      tokens.cache.write * finite(rates.cache_write)) /
-    1_000_000
-  );
+  const rate = finite(rates.cache_write) > 0 ? finite(rates.cache_write) : finite(rates.input);
+
+  return (context * rate) / 1_000_000;
 }
 
-function modeModel(models: Record<string, Model>, id: string): Model | undefined {
-  for (const [baseID, model] of Object.entries(models)) {
-    for (const [mode, options] of Object.entries(model.experimental?.modes ?? {})) {
-      if (`${baseID}-${mode}` === id) return { ...model, cost: mergeRates(model.cost, options.cost) };
-    }
+/** The catalog entry that prices a step: its configured alias, or its own model under the provider that sells it. */
+function catalogModel(usage: PricingUsage, priceCatalog: Catalog, modelAliases: ModelAliases): Model | undefined {
+  const alias = modelAliases[`${usage.providerID}/${usage.modelID}`];
+
+  if (alias) return providerModels(priceCatalog, alias.providerID)[alias.modelID];
+
+  return providerModels(priceCatalog, catalogProviderID(usage.providerID))[usage.catalogModelID ?? usage.modelID];
+}
+
+// Each catalog is materialized once per provider, not once per priced step.
+const materialized = new WeakMap<Catalog, Map<string, Record<string, Model>>>();
+
+function providerModels(priceCatalog: Catalog, providerID: string) {
+  let providers = materialized.get(priceCatalog);
+
+  if (!providers) {
+    providers = new Map();
+    materialized.set(priceCatalog, providers);
   }
 
-  return undefined;
+  let models = providers.get(providerID);
+
+  if (!models) {
+    models = materializeModels(priceCatalog[providerID]?.models ?? {});
+    providers.set(providerID, models);
+  }
+
+  return models;
 }
 
-function ratesFor(model: Model, tokens: Tokens): Rates | undefined {
-  const prompt = tokens.input + tokens.cache.read + tokens.cache.write;
-  const cost = normalizeRates(model.cost);
-
-  const tier = cost?.tiers
-    ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
-    .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
-
-  return tier ?? cost;
+export function materializeModels(models: Record<string, Model>): Record<string, Model> {
+  return Object.fromEntries(Object.entries(models).flatMap(([id, model]) => [
+    [id, { ...model, cost: normalizeRates(model.cost) }],
+    ...Object.entries(model.experimental?.modes ?? {}).map(([mode, options]) => [
+      `${id}-${mode}`,
+      {
+        ...model,
+        name: `${model.name ?? id} ${mode.charAt(0).toUpperCase()}${mode.slice(1)}`,
+        cost: mergeRates(model.cost, options.cost),
+        experimental: undefined
+      }
+    ])
+  ]));
 }
 
 function mergeRates(base: Rates | undefined, override: Rates | undefined): Rates | undefined {
@@ -98,6 +167,12 @@ function mergeRates(base: Rates | undefined, override: Rates | undefined): Rates
   return { ...normalizedBase, ...normalizedOverride, tiers: [...tiers.values()] };
 }
 
+function contextTier(cost: Rates | undefined, prompt: number) {
+  return cost?.tiers
+    ?.filter((entry) => entry.tier?.type === "context" && prompt > finite(entry.tier.size))
+    .sort((left, right) => finite(right.tier?.size) - finite(left.tier?.size))[0];
+}
+
 function normalizeRates(input: Rates | undefined): Rates | undefined {
   if (!input) return undefined;
 
@@ -112,23 +187,31 @@ function normalizeRates(input: Rates | undefined): Rates | undefined {
         input: tier.input ?? 0,
         output: tier.output ?? 0,
         cache_read: tier.cache_read ?? 0,
-        cache_write: tier.cache_write ?? 0,
+        cache_write: tier.cache_write ?? 0
       })) ?? []),
-      ...(input.context_over_200k
-        ? [{
-            tier: { type: "context", size: 200_000 },
-            input: input.context_over_200k.input ?? 0,
-            output: input.context_over_200k.output ?? 0,
-            cache_read: input.context_over_200k.cache_read ?? 0,
-            cache_write: input.context_over_200k.cache_write ?? 0,
-          }]
-        : []),
-    ],
+      ...(input.context_over_200k ? [{
+        tier: { type: "context", size: 200_000 },
+        input: input.context_over_200k.input ?? 0,
+        output: input.context_over_200k.output ?? 0,
+        cache_read: input.context_over_200k.cache_read ?? 0,
+        cache_write: input.context_over_200k.cache_write ?? 0
+      }] : [])
+    ]
   };
 }
 
 function tierKey(rate: NonNullable<Rates["tiers"]>[number]) {
   return `${rate.tier?.type ?? "base"}:${rate.tier?.size ?? 0}`;
+}
+
+function price(usage: PricingUsage, rates: Rates) {
+  return (
+    (usage.tokens.input * finite(rates.input) +
+      (usage.tokens.output + usage.tokens.reasoning) * finite(rates.output) +
+      usage.tokens.cacheRead * finite(rates.cache_read) +
+      usage.tokens.cacheWrite * finite(rates.cache_write)) /
+    1_000_000
+  );
 }
 
 function finite(value: number | undefined) {
