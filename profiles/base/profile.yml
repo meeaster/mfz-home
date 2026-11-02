@@ -34,6 +34,7 @@ capability_groups:
   - name: motion-graphics
     title: Motion Graphics
     summary: Code-first motion graphics, explainer videos, and rendered presentation backgrounds.
+repos: [mfz-home, mindframe-z, cairn, psychopomp]
 references:
   - opencode
   - openspec
@@ -431,24 +432,6 @@ extra_folders:
     summary: Workspace root
     signals: [cross-repository work, specifications, knowledge]
     description: Workspace root for cross-repository project work and shared specifications, knowledge, references, artifacts, and scratch material.
-  - path: ~/workspace/repos/mfz-home
-    group: agent-tooling
-    summary: Personal Mindframe-Z home
-    signals: [Mindframe-Z, Personal profile, agent configuration]
-    description: Personal mindframe-z home for shared base and Personal profile configuration.
-    url: https://github.com/meeaster/mfz-home
-  - path: ~/workspace/repos/mindframe-z
-    group: agent-tooling
-    summary: Mindframe-Z engine
-    signals: [Mindframe-Z, mfz CLI, renderers]
-    description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
-    url: https://github.com/meeaster/mindframe-z
-  - path: ~/workspace/repos/cairn
-    group: agent-tooling
-    summary: Cairn
-    signals: [Cairn, efforts, role models]
-    description: "Cairn: catalog of efforts, sessions, and artifacts, with its skills, role model bindings, OpenCode plugin, and Claude Code marketplace."
-    url: https://github.com/meeaster/cairn
   - path: ~/.mindframe-z
     group: agent-tooling
     summary: Generated Mindframe-Z state
@@ -459,9 +442,3 @@ extra_folders:
     summary: Agent diagram artifacts
     signals: [diagrams, SVG, architecture visuals]
     description: Agent diagram files and exports.
-  - path: ~/workspace/repos/psychopomp
-    group: motion-graphics
-    summary: Psychopomp
-    signals: [Psychopomp, motion graphics, explainer video, Scene Plans]
-    description: "Code-first motion graphics and explainer videos: Rust Scene Programs write Scene Plans that a wgpu renderer turns into video or native presentations. The meeaster fork of kitlangton/psychopomp; the psychopomp skill's commands run from this checkout."
-    url: https://github.com/meeaster/psychopomp

@@ -1,0 +1,67 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/meeaster/mindframe-z/main/schemas/repos.schema.json
+# Repositories the workspace clones and agents may edit. Profiles and machine config select them
+# by name; GitHub entries clone over the machine's git.protocol.
+repos:
+  - name: mfz-home
+    github: meeaster/mfz-home
+    group: agent-tooling
+    summary: Personal Mindframe-Z home
+    signals: [Mindframe-Z, Personal profile, agent configuration]
+    description: Personal mindframe-z home for shared base and Personal profile configuration.
+  - name: mindframe-z
+    github: meeaster/mindframe-z
+    group: agent-tooling
+    summary: Mindframe-Z engine
+    signals: [Mindframe-Z, mfz CLI, renderers]
+    description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
+  - name: cairn
+    github: meeaster/cairn
+    group: agent-tooling
+    summary: Cairn
+    signals: [Cairn, efforts, role models]
+    description: "Cairn: catalog of efforts, sessions, and artifacts, with its skills, role model bindings, OpenCode plugin, and Claude Code marketplace."
+  - name: psychopomp
+    github: meeaster/psychopomp
+    group: motion-graphics
+    summary: Psychopomp
+    signals: [Psychopomp, motion graphics, explainer video, Scene Plans]
+    description: "Code-first motion graphics and explainer videos: Rust Scene Programs write Scene Plans that a wgpu renderer turns into video or native presentations. The meeaster fork of kitlangton/psychopomp; the psychopomp skill's commands run from this checkout."
+  - name: workspace-specs
+    github: meeaster/workspace-specs
+    path: specs/workspace-specs
+    group: knowledge-and-artifacts
+    summary: Workspace specifications
+    signals: [OpenSpec, cross-project specifications, task ledgers]
+    description: Machine-wide OpenSpec store for cross-project proposals, specifications, and task ledgers.
+  - name: personal-knowledge
+    github: meeaster/personal-knowledge
+    path: knowledge/personal-knowledge
+    group: knowledge-and-artifacts
+    summary: Personal knowledge
+    signals: [Personal knowledge, Practices, Session Captures]
+    description: "Private Personal knowledge: accepted synthesis, Practices, Session Capture boundaries, threads, and ledgers."
+  - name: personal-sources
+    github: meeaster/personal-sources
+    path: knowledge/personal-sources
+    group: knowledge-and-artifacts
+    summary: Personal source evidence
+    signals: [Personal sources, voice notes, Session Captures]
+    description: "Private Personal source evidence: immutable voice notes and canonical append-only Session Captures."
+  - name: tradingview-email-router
+    github: meeaster/tradingview-email-router
+    group: personal-trading
+    summary: Trading alert routing
+    signals: [TradingView alerts, AWS routing, live trading]
+    description: TradingView alert-routing system for AWS workflow and live-trading changes
+  - name: x-tweet-ingestion
+    github: meeaster/x-tweet-ingestion
+    group: personal-trading
+    summary: Cashtag tweet ingestion
+    signals: [X ingestion, stock cashtags, daily analysis]
+    description: Stock-cashtag X ingestion pipeline and daily-analysis code
+  - name: x-tweet-knowledge
+    github: meeaster/x-tweet-knowledge
+    group: personal-trading
+    summary: Stock analysis knowledge
+    signals: [X analysis, stock briefings, generated digests]
+    description: Companion X tweet analysis configuration, digests, and generated stock briefings

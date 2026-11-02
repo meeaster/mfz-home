@@ -17,8 +17,8 @@ plugins:
     path: opencode/plugins/in-progress/pstack
   - name: cairn
     description: Cairn's catalog of efforts, sessions, and files, with its skills and role models.
-    source: path
-    path: ~/workspace/repos/cairn
+    source: repo
+    repo: cairn
   # The plannotator_inbox tool is enabled per host in ~/.plannotator/config.json. OpenCode's installer applies npm
   # min-release-age but ignores its exclude list, so pin a version at least 3 days old.
   - name: plannotator
