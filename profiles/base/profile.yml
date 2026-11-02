@@ -378,7 +378,7 @@ claude:
       cairn:
         source:
           source: directory
-          path: /home/mark/workspace/repos/cairn
+          path: "{repo:cairn}"
     enabledPlugins:
       cairn@cairn: true
     # The built-in agents-md plugin defaults to loading AGENTS.md only in projects without a CLAUDE.md.
@@ -390,7 +390,7 @@ claude:
     hooks:
       SessionStart:
         - hooks:
-            - command: bash '/home/mark/.claude/hooks/herdr-agent-state.sh' session
+            - command: bash "$HOME/.claude/hooks/herdr-agent-state.sh" session
               timeout: 10
               type: command
           matcher: "*"
