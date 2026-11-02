@@ -6,7 +6,12 @@ The source for Mark's AI tool configuration and workspace guidance, rendered by
 ## Setting up a new machine
 
 The machine needs bash, git, and curl, plus Git access to this repository and the
-other repositories it declares.
+other repositories it declares. This home's tools also need a C toolchain for
+`cargo:` installs and `libatomic` for Node; on Ubuntu or Debian:
+
+```sh
+sudo apt-get install -y git curl ca-certificates libatomic1 build-essential
+```
 
 1. Install OpenCode, then give it this prompt:
 
