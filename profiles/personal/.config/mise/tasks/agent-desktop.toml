@@ -1,0 +1,71 @@
+["agent-desktop:install"]
+description = "Install or upgrade the Windows agent-desktop CLI in a Windows folder and link it into ~/.local/bin (WSL only); skips a current install"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Under WSL, only the Windows build sees Windows apps (UI Automation); the Linux build sees only WSLg apps through
+# AT-SPI. npm and mise tool installs both pick the Linux binary here, so this task fetches the Windows release.
+if ! grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+  echo "agent-desktop: not running under WSL; nothing to install"
+  exit 0
+fi
+
+# Newest stable release at least a day old, matching the profile's minimum_release_age.
+tag=$(curl -fsSL 'https://api.github.com/repos/vercel-labs/agent-desktop/releases?per_page=20' | node -e '
+  const cutoff = Date.now() - 24 * 60 * 60 * 1000
+  const release = JSON.parse(require("fs").readFileSync(0, "utf8"))
+    .find((r) => !r.draft && !r.prerelease && Date.parse(r.published_at) <= cutoff)
+  if (release) console.log(release.tag_name)
+')
+if [ -z "$tag" ]; then
+  echo "agent-desktop: no stable release older than a day" >&2
+  exit 1
+fi
+version=${tag#v}
+
+dest=${AGENT_DESKTOP_DIR:-}
+if [ -z "$dest" ]; then
+  # Run cmd.exe from a Windows drive so it does not warn about a UNC working directory.
+  localappdata=$(cd /mnt/c && /mnt/c/Windows/System32/cmd.exe /d /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r') || true
+  if [ -z "$localappdata" ]; then
+    echo "agent-desktop: cannot reach Windows to find %LOCALAPPDATA%; set AGENT_DESKTOP_DIR" >&2
+    exit 1
+  fi
+  dest="$(wslpath -u "$localappdata")/Programs/agent-desktop"
+fi
+exe="$dest/agent-desktop.exe"
+link="$HOME/.local/bin/agent-desktop"
+
+installed=$("$exe" version 2>/dev/null | node -e 'try { console.log(JSON.parse(require("fs").readFileSync(0, "utf8")).data.version) } catch {}' || true)
+if [ "$installed" = "$version" ]; then
+  ln -sfn "$exe" "$link"
+  echo "agent-desktop: $version already installed at $(wslpath -w "$exe")"
+  exit 0
+fi
+
+asset="agent-desktop-$tag-x86_64-pc-windows-msvc.tar.gz"
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+base="https://github.com/vercel-labs/agent-desktop/releases/download/$tag"
+curl -fsSL -o "$tmp/$asset" "$base/$asset"
+curl -fsSL -o "$tmp/checksums.txt" "$base/checksums.txt"
+# checksums.txt has CRLF line endings.
+(cd "$tmp" && tr -d '\r' < checksums.txt | grep "  $asset\$" | sha256sum -c --quiet -)
+# The checksum comes from the same release, so it only catches corruption; the attestation proves origin.
+if command -v gh >/dev/null 2>&1 && gh auth status >/dev/null 2>&1; then
+  gh attestation verify "$tmp/$asset" --repo vercel-labs/agent-desktop >/dev/null
+  echo "agent-desktop: attestation verified"
+else
+  echo "agent-desktop: gh not signed in; skipped attestation check" >&2
+fi
+
+# Replace the folder's contents together: the README requires every file from one release.
+mkdir -p "$dest"
+find "$dest" -mindepth 1 -delete
+tar -xzf "$tmp/$asset" -C "$dest"
+mkdir -p "$(dirname "$link")"
+ln -sfn "$exe" "$link"
+echo "agent-desktop: ${installed:-nothing} -> $version at $(wslpath -w "$exe")"
+"$link" version
+'''

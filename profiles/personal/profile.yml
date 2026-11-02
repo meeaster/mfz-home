@@ -72,6 +72,8 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   open-pencil-drive:
     agents: { opencode: true, claude-code: true, codex: false }
+  agent-desktop:
+    agents: { opencode: true, claude-code: true, codex: true }
 mcp:
   x-docs:
     agents: [opencode, claude-code, codex]
