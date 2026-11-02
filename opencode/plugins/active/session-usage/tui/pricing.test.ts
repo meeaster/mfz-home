@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { billedUsages, pricingUsage, type PricingUsage, type SessionMessage } from "./messages.js";
-import { aggregateCost, materializeModels, ratesFor, resumeCost, type Catalog, type Model } from "./pricing.js";
-import type { ModelAliases } from "./models.js";
+import { billedUsages, pricingUsage, type SessionMessage } from "./messages.js";
+import { aggregateCost, materializeModels, ratesFor, resumeCost, type Catalog, type Model, type PricingUsage } from "../pricing.js";
+import type { ModelAliases } from "../models.js";
 
 const usage = (modelID: string, input: number, variant?: string): PricingUsage => {
   const result: PricingUsage = {

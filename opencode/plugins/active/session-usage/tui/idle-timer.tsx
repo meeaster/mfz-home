@@ -4,8 +4,8 @@ import { createMemo, createSignal, onCleanup, Show } from "solid-js";
 
 import type { ModelLifetime } from "./cache-lifetime.js";
 import { idleStatus, idleThresholds, lastStep, type IdleLevel, type IdleThresholds } from "./idle.js";
-import type { ModelAliases } from "./models.js";
-import { loadCatalog, resumeCost, type Catalog } from "./pricing.js";
+import type { ModelAliases } from "../models.js";
+import { loadCatalog, resumeCost, type Catalog } from "../pricing.js";
 
 /**
  * How long the session has been idle since its latest completed step, shown only while it isn't running, colored by

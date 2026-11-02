@@ -14,14 +14,14 @@
     "viewer": "bun viewer/cli.ts"
   },
   "dependencies": {
-    "@opencode/ai": "2.1.1",
-    "@opencode/plugin": "2.1.1",
+    "@opencode/ai": "2.2.5",
+    "@opencode/plugin": "2.2.5",
     "zod": "4.1.8"
   },
   "devDependencies": {
-    "@opentui/core": "0.6.6",
-    "@opentui/keymap": "0.6.6",
-    "@opentui/solid": "0.6.6",
-    "solid-js": "1.9.12"
+    "@opentui/core": "0.8.1",
+    "@opentui/keymap": "0.8.1",
+    "@opentui/solid": "0.8.1",
+    "solid-js": "1.9.17"
   }
 }

@@ -11,15 +11,15 @@
     "test:drive": "opencode-drive run ./drive/regression.ts"
   },
   "dependencies": {
-    "@opencode/plugin": "2.1.1",
+    "@opencode/plugin": "2.2.5",
     "zod": "4.1.8"
   },
   "devDependencies": {
-    "@opentui/core": "0.6.6",
-    "@opentui/keymap": "0.6.6",
-    "@opentui/solid": "0.6.6",
-    "effect": "4.0.1",
+    "@opentui/core": "0.8.1",
+    "@opentui/keymap": "0.8.1",
+    "@opentui/solid": "0.8.1",
+    "effect": "4.0.6",
     "opencode-drive": "2.3.0",
-    "solid-js": "1.9.12"
+    "solid-js": "1.9.17"
   }
 }

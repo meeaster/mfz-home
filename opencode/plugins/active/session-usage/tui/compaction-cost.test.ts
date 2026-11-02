@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { familyPricingUsages, type SessionMessage, type SessionMessageGroup } from "./messages.js";
-import { aggregateCost, type Catalog } from "./pricing.js";
+import { aggregateCost, type Catalog } from "../pricing.js";
 
 const assistant = (modelID: string, input: number, created = 0): SessionMessage => ({
   type: "assistant",

@@ -86,7 +86,13 @@ export async function setupSessionUsage(
   const latestInputs = new Map<string, number>();
   const pricedSessions = new Map<string, number>();
   const controller = new AbortController();
-  const events = context.event.subscribe({ signal: controller.signal })[Symbol.asyncIterator]();
+
+  const events = context.event
+    .subscribe({
+      types: ["session.step.started", "session.usage.updated", "session.step.ended", "session.step.failed"],
+      signal: controller.signal,
+    })
+    [Symbol.asyncIterator]();
 
   const consume = (async () => {
     for (;;) {

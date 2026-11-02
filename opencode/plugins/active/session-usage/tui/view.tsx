@@ -5,7 +5,7 @@ import { createEffect, createMemo, createSignal, For, Match, onCleanup, Show, Sw
 import { lifetimeLabel, type ModelLifetime } from "./cache-lifetime.js";
 import { cacheLine, costLine, fit, share, subagentLine, tokens, totalLine, WIDTH } from "./format.js";
 import { createCostLifecycle, type MessageObserver, type UsageEstimate } from "./lifecycle.js";
-import type { ModelAliases } from "./models.js";
+import type { ModelAliases } from "../models.js";
 import { catalogRenderState } from "./render-state.js";
 import type { ContextUsage } from "./usage.js";
 

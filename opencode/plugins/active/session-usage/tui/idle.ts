@@ -1,6 +1,7 @@
 import type { Lifetime } from "./cache-lifetime.js";
 import { money } from "./format.js";
-import { pricingUsage, type PricingUsage, type SessionMessage } from "./messages.js";
+import type { PricingUsage } from "../pricing.js";
+import { pricingUsage, type SessionMessage } from "./messages.js";
 
 /** Idle seconds past which the timer warns, and past which the prompt cache has likely expired. */
 export type IdleThresholds = { warnAfter: number; expiredAfter: number };

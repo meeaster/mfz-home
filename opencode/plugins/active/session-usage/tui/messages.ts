@@ -1,21 +1,6 @@
 import type { Context } from "@opencode/plugin/tui/plugin";
+import type { PricingUsage } from "../pricing.js";
 
-export type PricingUsage = {
-  providerID: string;
-  modelID: string;
-  variant?: string;
-  tokens: {
-    input: number;
-    output: number;
-    reasoning: number;
-    cacheRead: number;
-    cacheWrite: number;
-  };
-  /** The catalog model to price with, when the recorded model ID is an alias such as Claude Code's `opus`. */
-  catalogModelID?: string;
-  /** The prompt size that selects context-priced tiers, when the tokens add up several model calls. */
-  context?: number;
-};
 
 /** Tokens of one model in a step, as the Claude Code provider reports them. */
 type ModelTokens = { input?: number; output?: number; cacheRead?: number; cacheWrite?: number; context?: number };

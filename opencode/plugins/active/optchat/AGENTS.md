@@ -93,10 +93,10 @@ gist before changing the tree, view or compaction logic; it is the specification
   this upsert is undocumented: check it first if the agent disappears after an OpenCode upgrade.
 - The `context` hook can replace `event.messages` entirely; new messages are built with `Message.user` from
   `@opencode/ai`.
-- Compactions run through `ctx.generate.text` by default; with `compactorRoute: "session"` they run in child sessions: `ctx.session.create` with the
+- Compactions run through `ctx.experimental.generate.text` by default; with `compactorRoute: "session"` they run in child sessions: `ctx.session.create` with the
   optchat session as `parentID`, then `prompt`, the experimental `session.wait`, and `context` to read the reply,
   whose tokens and cost OpenCode records. Child sessions get no generated title. The `context` hook gives them only
-  `COMPACTOR` as the system prompt and no tools; keep them bare. `generate` mode uses `ctx.generate.text`, which
+  `COMPACTOR` as the system prompt and no tools; keep them bare. `generate` mode uses `ctx.experimental.generate.text`, which
   takes only a prompt and a model (no system prompt, tools or usage), so its prompt embeds the system text.
 - Assistant final replies are only seen through the `session.text.ended` event; `session.execution.*` events
   release the per-chat turn lock.

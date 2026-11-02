@@ -1,4 +1,4 @@
-import type { Cost } from "./pricing.js";
+import type { Cost } from "../pricing.js";
 import type { CacheTotals, ContextUsage } from "./usage.js";
 
 /** The columns a sidebar line has before it wraps: OpenCode's 42-column sidebar less its padding. */

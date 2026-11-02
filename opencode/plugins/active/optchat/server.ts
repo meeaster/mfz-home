@@ -174,7 +174,7 @@ export default Plugin.define({
     const compactStateless = async (store: Store, compaction: Compaction): Promise<string> => {
       const prompt = flatPrompt(compaction)
       const started = Date.now()
-      const { text } = await ctx.generate.text({ prompt, model: compactor })
+      const { text } = await ctx.experimental.generate.text({ prompt, model: compactor })
       const ms = Date.now() - started
       const rates = await ratesOfCompactor()
       const call: CallRecord = { date: new Date().toISOString(), model: compactorName, prompt: bytes(prompt), reply: bytes(text), ms }
@@ -840,7 +840,11 @@ export default Plugin.define({
     }
 
     // A turn's final reply has no later model call to observe it, and a finished turn frees its chat.
-    const iterator = ctx.event.subscribe()[Symbol.asyncIterator]()
+    const iterator = ctx.event
+      .subscribe({
+        types: ["session.execution.succeeded", "session.execution.failed", "session.execution.interrupted", "session.text.ended"],
+      })
+      [Symbol.asyncIterator]()
 
     const events = (async () => {
       try {

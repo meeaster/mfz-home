@@ -1,5 +1,21 @@
-import type { PricingUsage } from "./messages.js";
 import { catalogProviderID, type ModelAliases } from "./models.js";
+
+export type PricingUsage = {
+  providerID: string;
+  modelID: string;
+  variant?: string;
+  tokens: {
+    input: number;
+    output: number;
+    reasoning: number;
+    cacheRead: number;
+    cacheWrite: number;
+  };
+  /** The catalog model to price with, when the recorded model ID is an alias such as Claude Code's `opus`. */
+  catalogModelID?: string;
+  /** The prompt size that selects context-priced tiers, when the tokens add up several model calls. */
+  context?: number;
+};
 
 export type Rates = {
   input?: number;
@@ -23,6 +39,16 @@ export type Model = {
 };
 
 export type Catalog = Record<string, { models?: Record<string, Model> }>;
+
+/** Token counts in the shape OpenCode's session events report them. */
+export type Tokens = {
+  input: number;
+  output: number;
+  reasoning: number;
+  cache: { read: number; write: number };
+};
+
+export type ModelRef = { id: string; providerID: string; variant?: string };
 
 /** A model's estimate, by its recorded `providerID/modelID` key and the label it is shown with. */
 export type Cost = { key: string; model: string; amount: number; sinceCompaction?: number };
@@ -216,4 +242,18 @@ function price(usage: PricingUsage, rates: Rates) {
 
 function finite(value: number | undefined) {
   return value !== undefined && Number.isFinite(value) && value >= 0 ? value : 0;
+}
+
+/** The cost of one step's tokens, or undefined when the catalog has no price for the model. */
+export function priceTokens(tokens: Tokens, ref: ModelRef, priceCatalog: Catalog): number | undefined {
+  const usage: PricingUsage = {
+    providerID: ref.providerID,
+    modelID: ref.id,
+    tokens: { input: tokens.input, output: tokens.output, reasoning: tokens.reasoning, cacheRead: tokens.cache.read, cacheWrite: tokens.cache.write },
+  };
+
+  const model = catalogModel(usage, priceCatalog, {});
+  const rates = model && ratesFor(model, usage);
+
+  return rates && price(usage, rates);
 }

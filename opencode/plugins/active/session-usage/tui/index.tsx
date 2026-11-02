@@ -6,7 +6,7 @@ import type { ModelLifetime } from "./cache-lifetime.js";
 import { IdleTimer } from "./idle-timer.js";
 import { createLifetimeLearner } from "./lifetime-learner.js";
 import { View } from "./view.js";
-import type { ModelAliases } from "./models.js";
+import type { ModelAliases } from "../models.js";
 import { reactiveSessionID } from "./slot.js";
 
 const plugin = {

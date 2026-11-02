@@ -2,9 +2,9 @@ import type { Context } from "@opencode/plugin/tui/plugin";
 
 import { createMessageCache, type MessageCache } from "./message-cache.js";
 import { billedUsages, familyPricingUsages, type SessionMessage } from "./messages.js";
-import { aggregateCost, loadCatalog, type CostEstimate } from "./pricing.js";
+import { aggregateCost, loadCatalog, type CostEstimate } from "../pricing.js";
 import { createSessionStore, type SessionStore } from "./session-store.js";
-import type { ModelAliases } from "./models.js";
+import type { ModelAliases } from "../models.js";
 import { sessionUsage, type SessionUsage } from "./usage.js";
 
 /** The family's cost by model, with each family session's own usage and estimated cost. */
