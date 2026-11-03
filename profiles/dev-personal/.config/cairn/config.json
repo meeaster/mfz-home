@@ -60,7 +60,7 @@
       "code-review": "thermo-nuclear-code-quality-review",
       "pr-review": "pr-review",
       "pr-description": {
-        "skill": "pr-writer",
+        "skill": "tracks",
         "autoinvoke": true
       },
       "interface-quality": "impeccable",
