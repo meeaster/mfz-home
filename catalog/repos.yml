@@ -33,6 +33,12 @@ repos:
     summary: Workspace specifications
     signals: [OpenSpec, cross-project specifications, task ledgers]
     description: Machine-wide OpenSpec store for cross-project proposals, specifications, and task ledgers.
+  - name: personal-work
+    github: meeaster/personal-work
+    group: knowledge-and-artifacts
+    summary: Personal work
+    signals: [Cairn designs, Cairn knowledge base, tracks, GitHub issues]
+    description: "Private personal work repository: Cairn's designs, its knowledge base, and delivery tracks published as GitHub issues."
   - name: personal-knowledge
     github: meeaster/personal-knowledge
     path: knowledge/personal-knowledge

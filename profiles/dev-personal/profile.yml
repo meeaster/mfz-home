@@ -29,7 +29,7 @@ agents: [opencode, claude-code, codex, pi]
 references:
   - opencode-plugins
   - openwiki
-repos: [workspace-specs, personal-knowledge, personal-sources]
+repos: [workspace-specs, personal-knowledge, personal-sources, personal-work]
 extra_folders:
   - path: ~/workspace/worktrees
     group: knowledge-and-artifacts
