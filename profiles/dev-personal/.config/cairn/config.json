@@ -1,6 +1,7 @@
 {
   "designs": "~/workspace/artifacts/cairn/designs",
   "knowledge": "~/workspace/artifacts/cairn/knowledge",
+  "tracks": "~/workspace/tracks",
   "models": {
     "tiers": {
       "fast": {
