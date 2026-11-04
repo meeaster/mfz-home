@@ -49,6 +49,7 @@
       "triage": "terra",
       "implementer/motion": "fast-sonnet",
       "implementer": "terra",
+      "implementer/plan": "deep",
       "inspector/investigate": "terra",
       "operator": "fast",
       "operator/pr": "terra",
