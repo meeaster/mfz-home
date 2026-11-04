@@ -27,6 +27,7 @@
 ## Session location
 
 - **Behavior:** When a session in a folder containing several repositories is about to make changes that belong mainly to one of them, move the session to that repository before the first change so its instructions and configuration govern the work. Brief investigation does not warrant a move. If one repository owns the core change and the others only adapt to it, move to the owning repository; if none is primary, stay at the shared parent. Move once and state the destination and reason when moving.
+- **Behavior:** Never move a session into a records folder the session context names, such as a tracks folder, knowledge base, or designs folder, even when a step changes only records there. Write those records from where the session works, and keep the session with the code the work changes.
 - **Tool:** Claude Code agents cannot move a session; ask the user to run `/cd <path>`.
 
 ## OpenCode session compaction
