@@ -46,7 +46,7 @@
       "architect": "astra",
       "architect/design-docs": "deep",
       "creative-director": "astra-high",
-      "triage": "terra",
+      "triage": "balanced",
       "implementer/motion": "fast-sonnet",
       "implementer": "terra",
       "implementer/plan": "deep",
