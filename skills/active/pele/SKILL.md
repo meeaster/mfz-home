@@ -1,6 +1,6 @@
 ---
 name: pele
-description: Render Mermaid diagram text to SVG with the bundled Pele renderer, offline and without a browser. Use when Mermaid source needs to become an SVG or image file, when checking that Mermaid source parses, or when writing a newer Mermaid type such as usecase, wardley, venn, ishikawa, cynefin, railroad, treeView, swimlane, eventmodeling, or agentflow.
+description: Render Mermaid diagram text to SVG or PNG with the bundled Pele renderer, offline and without a browser, including every mermaid block in a Markdown file. Use when Mermaid source needs to become an SVG or image file, when checking that Mermaid source parses, or when writing a newer Mermaid type such as usecase, wardley, venn, ishikawa, cynefin, railroad, treeView, swimlane, eventmodeling, or agentflow.
 ---
 
 # Pele
@@ -15,11 +15,15 @@ node scripts/render.mjs diagram.mmd -o diagram.svg
 
 Paths to `scripts/` are relative to this skill's directory. Input comes from a file or stdin; output goes to `-o` or stdout. Run `node scripts/render.mjs --help` for the width, font, and padding options.
 
+- **PNG:** name the output `.png` (`-o diagram.png`). It needs `rsvg-convert` or ImageMagick's `magick` on PATH; the script says so when neither is there.
+- **Markdown:** a `.md` input renders each `` ```mermaid `` block. With several, `-o doc.png` writes `doc-1.png`, `doc-2.png`, ...
+- **Another converter:** `--flat` writes an SVG with its CSS variables replaced by their values (see Output).
+
 A diagram that fails to parse exits with status 1 and prints Pele's error on stderr, including the line and column.
 
 ## Output
 
-- Colors are CSS custom properties with fallback values, such as `var(--pele-fg,#1f1f1f)`. Browsers and other CSS-aware viewers show them; converters without CSS variable support draw them wrong. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
+- Colors are CSS custom properties with fallback values, such as `var(--pele-fg,#1f1f1f)`. Browsers and other CSS-aware viewers show them; converters without CSS variable support, including librsvg and ImageMagick, draw every shape black, which is why PNG output and `--flat` replace them first. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
 - Labels are sized from an Arial width table. `--font` sets the font the SVG draws with but not the measurement, so a font much wider or narrower than Arial misfits its boxes.
 - The root `<svg>` has the classes `pele` and `pele-<type>`; nodes, edges, and labels carry `pele-node`, `pele-edge`, `pele-label`, and similar classes, with `data-id` set to the source id.
 

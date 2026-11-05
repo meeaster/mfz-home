@@ -1,20 +1,30 @@
 #!/usr/bin/env node
-// Renders Mermaid text to SVG with the Pele build vendored beside this skill.
+// Renders Mermaid text to SVG with the Pele build vendored beside this skill, and to PNG through an installed
+// SVG converter. A Markdown input renders each of its mermaid blocks.
+import { spawnSync } from "node:child_process";
 import { readFileSync, writeFileSync } from "node:fs";
+import { extname } from "node:path";
 import { parseArgs } from "node:util";
 import { PeleError, render } from "../vendor/pele/pele.js";
 
-const usage = `Usage: node scripts/render.mjs [input.mmd] [options]
+const usage = `Usage: node scripts/render.mjs [input] [options]
 
 Reads Mermaid from the input file, or from stdin when it is omitted or "-",
-and writes SVG to the output file, or to stdout.
+and writes SVG to the output file, or to stdout. A .md input renders every
+\`\`\`mermaid block; with several, the output name gets -1, -2, ... before
+its extension.
 
-  -o, --output <file>     Write the SVG to a file
+  -o, --output <file>     Write to a file; a .png name renders a PNG
   -w, --width <px>        Width available to the diagram; some types lay out narrower to fit
       --font <family>     Font family the SVG draws labels in (default: sans-serif)
       --font-size <px>    Label font size
       --padding <px>      Space around the diagram
-  -h, --help              Show this help`;
+      --flat              Replace CSS variables with their values, so converters
+                          without CSS-variable support draw the right colors
+      --scale <n>         PNG pixels per SVG pixel (default: 2)
+  -h, --help              Show this help
+
+PNG needs rsvg-convert or ImageMagick (magick) on PATH.`;
 
 function fail(message) {
   console.error(`render: ${message}`);
@@ -32,6 +42,8 @@ try {
       font: { type: "string" },
       "font-size": { type: "string" },
       padding: { type: "string" },
+      flat: { type: "boolean" },
+      scale: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -63,29 +75,85 @@ const options = {
   padding: pixels("padding", values.padding, true),
 };
 
+const scale = pixels("scale", values.scale ?? "2", false);
 const input = positionals[0] ?? "-";
+const png = values.output !== undefined && extname(values.output).toLowerCase() === ".png";
 
-let source;
+let text;
 
 try {
-  source = readFileSync(input === "-" ? 0 : input, "utf8");
+  text = readFileSync(input === "-" ? 0 : input, "utf8");
 } catch (error) {
   fail(error.message);
 }
 
-let svg;
+const markdown = /\.(md|markdown)$/i.test(input);
+const sources = markdown ? [...text.matchAll(/^```mermaid[^\n]*\n([\s\S]*?)^```/gm)].map((match) => match[1]) : [text];
 
-try {
-  ({ svg } = render(source, options));
-} catch (error) {
-  if (!(error instanceof PeleError)) throw error;
+if (sources.length === 0) fail(`${input} has no \`\`\`mermaid block`);
 
-  console.error(`render: ${error.message}`);
-  process.exit(1);
+if (sources.length > 1 && values.output === undefined) fail(`${input} has ${sources.length} mermaid blocks; name an output file with -o`);
+
+if (png && values.output === undefined) fail("PNG needs an output file");
+
+// Pele colors through two layers of custom properties, public ones with fallbacks (var(--pele-fg,#1f1f1f)) and
+// internal ones defined from them (--_fg); librsvg and ImageMagick support neither and draw shapes black.
+function flatten(svg) {
+  let flat = svg.replace(/var\(--[\w-]+,([^()]*)\)/g, "$1");
+  const defined = new Map([...flat.matchAll(/(--[\w-]+)\s*:\s*([^;"}]+)/g)].map(([, name, value]) => [name, value.trim()]));
+
+  for (let pass = 0; pass < 5 && /var\(--/.test(flat); pass++) {
+    flat = flat.replace(/var\((--[\w-]+)\)/g, (whole, name) => defined.get(name) ?? whole);
+  }
+
+  return flat;
 }
 
-if (values.output === undefined) {
-  process.stdout.write(`${svg}\n`);
-} else {
-  writeFileSync(values.output, `${svg}\n`);
+function onPath(command) {
+  return spawnSync(command, ["--version"], { stdio: "ignore" }).status === 0;
+}
+
+const converter = !png ? null : onPath("rsvg-convert") ? "rsvg-convert" : onPath("magick") ? "magick" : null;
+
+if (png && converter === null) fail("PNG needs rsvg-convert or ImageMagick (magick) on PATH; without one, write an SVG with --flat for another converter");
+
+function toPng(svg, file) {
+  const args = converter === "rsvg-convert"
+    ? ["--zoom", String(scale), "--background-color", "white", "--output", file]
+    : ["-density", String(96 * scale), "-background", "white", "svg:-", file];
+
+  const result = spawnSync(converter, args, { input: svg });
+
+  if (result.status !== 0) fail(`${converter} failed: ${result.stderr.toString().trim()}`);
+}
+
+function outputName(index) {
+  if (sources.length === 1) return values.output;
+
+  const extension = extname(values.output);
+
+  return `${values.output.slice(0, values.output.length - extension.length)}-${index + 1}${extension}`;
+}
+
+for (const [index, source] of sources.entries()) {
+  let svg;
+
+  try {
+    ({ svg } = render(source, options));
+  } catch (error) {
+    if (!(error instanceof PeleError)) throw error;
+
+    console.error(`render: ${markdown ? `mermaid block ${index + 1}: ` : ""}${error.message}`);
+    process.exit(1);
+  }
+
+  if (png) {
+    toPng(flatten(svg), outputName(index));
+  } else if (values.output === undefined) {
+    process.stdout.write(`${values.flat ? flatten(svg) : svg}\n`);
+  } else {
+    writeFileSync(outputName(index), `${values.flat ? flatten(svg) : svg}\n`);
+  }
+
+  if (values.output !== undefined) console.error(`render: wrote ${outputName(index)}`);
 }
