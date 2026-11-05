@@ -2,8 +2,10 @@
 // Renders Mermaid text to SVG with the Pele build vendored beside this skill, and to PNG through an installed
 // SVG converter. A Markdown input renders each of its mermaid blocks.
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
-import { extname } from "node:path";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { extname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { PeleError, render } from "../vendor/pele/pele.js";
 
@@ -118,6 +120,37 @@ function theme(svg) {
     .replace(/<svg([^>]*?) style="/, '<svg$1 style="background:var(--pele-bg,' + dracula.bg + ');');
 }
 
+// Notes are annotations, written by hand like the human's blog: Kalam, pink when the note sits in a highlighted
+// band (`rect` in a sequence diagram) to say why it is highlighted, muted elsewhere. A note's box and any message
+// label inside a band take the band's colour, so text sits on the highlight with no outline and no dark patch,
+// and lifelines stop at the text instead of running through it.
+function annotate(svg) {
+  const bands = [...svg.matchAll(/<rect class="pele-rect" x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)" style="[^"]*?fill:([^;"]+)/g)]
+    .map(([, x, y, width, height, fill]) => ({ x: Number(x), y: Number(y), width: Number(width), height: Number(height), fill }));
+
+  const bandAround = (x, y, width, height) => bands.find((band) => {
+    const middleX = Number(x) + Number(width) / 2;
+    const middleY = Number(y) + Number(height) / 2;
+
+    return middleX > band.x && middleX < band.x + band.width && middleY > band.y && middleY < band.y + band.height;
+  });
+
+  return svg
+    .replace(/(<g class="pele-edge-label"[^>]*><rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*?)fill="[^"]*"/g,
+      (whole, start, x, y, width, height) => {
+        const band = bandAround(x, y, width, height);
+
+        return band ? `${start}fill="${band.fill}"` : whole;
+      })
+    .replace(/(<g class="pele-note"[^>]*>)<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"([^>]*)\/>(<text [^>]*?)fill="[^"]*"/g,
+      (whole, group, x, y, width, height, rest, text) => {
+        const band = bandAround(x, y, width, height);
+
+        return `${group}<rect x="${x}" y="${y}" width="${width}" height="${height}"${rest} fill="${band?.fill ?? "var(--_bg)"}" stroke="none"/>`
+          + `${text}font-family="Kalam, cursive" font-size="16" fill="${band ? "var(--_c)" : "var(--_m)"}"`;
+      });
+}
+
 // Pele colors through two layers of custom properties, public ones with fallbacks (var(--pele-fg,#1f1f1f)) and
 // internal ones defined from them (--_fg); librsvg and ImageMagick support neither and draw shapes black.
 function flatten(svg) {
@@ -144,9 +177,21 @@ function toPng(svg, file) {
     ? ["--zoom", String(scale), "--background-color", dracula.bg, "--output", file]
     : ["-density", String(96 * scale), "-background", dracula.bg, "svg:-", file];
 
-  const result = spawnSync(converter, args, { input: svg });
+  // The converter finds the bundled Kalam through a fontconfig file that adds this skill's fonts to the system's.
+  const fonts = fileURLToPath(new URL("../assets/fonts/", import.meta.url));
+  const system = [process.env.FONTCONFIG_FILE, "/etc/fonts/fonts.conf", "/usr/local/etc/fonts/fonts.conf", "/opt/homebrew/etc/fonts/fonts.conf"].filter(Boolean);
+  const dir = mkdtempSync(join(tmpdir(), "pele-fonts-"));
+  const config = join(dir, "fonts.conf");
 
-  if (result.status !== 0) fail(`${converter} failed: ${result.stderr.toString().trim()}`);
+  writeFileSync(config, `<?xml version="1.0"?>\n<fontconfig>${system.map((file) => `<include ignore_missing="yes">${file}</include>`).join("")}<dir>${fonts}</dir><cachedir>${dir}</cachedir></fontconfig>\n`);
+
+  try {
+    const result = spawnSync(converter, args, { input: svg, env: { ...process.env, FONTCONFIG_FILE: config } });
+
+    if (result.status !== 0) fail(`${converter} failed: ${result.stderr.toString().trim()}`);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
 }
 
 function outputName(index) {
@@ -161,7 +206,7 @@ for (const [index, source] of sources.entries()) {
   let svg;
 
   try {
-    svg = theme(render(source, options).svg);
+    svg = annotate(theme(render(source, options).svg));
   } catch (error) {
     if (!(error instanceof PeleError)) throw error;
 

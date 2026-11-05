@@ -24,6 +24,7 @@ A diagram that fails to parse exits with status 1 and prints Pele's error on std
 ## Output
 
 - Colors are CSS custom properties whose fallbacks are this skill's Dracula values, such as `var(--pele-fg,#f8f8f2)`, and the root `<svg>` paints the background. Browsers and other CSS-aware viewers show them; converters without CSS variable support, including librsvg and ImageMagick, draw every shape black, which is why PNG output and `--flat` replace them first. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
+- Notes are annotations, drawn handwritten in Kalam with no box: pink when the note sits inside a sequence `rect` band, saying why that part is highlighted, and muted elsewhere. Message labels inside a band take its colour. PNG output uses the Kalam bundled in `assets/fonts/`; an SVG shows Kalam only where it is installed or loaded.
 - Labels are sized from an Arial width table. `--font` sets the font the SVG draws with but not the measurement, so a font much wider or narrower than Arial misfits its boxes. PNG and `--flat` output default to Arial or a font with its widths (Liberation Sans, Arimo) when one is installed.
 - The root `<svg>` has the classes `pele` and `pele-<type>`; nodes, edges, and labels carry `pele-node`, `pele-edge`, `pele-label`, and similar classes, with `data-id` set to the source id.
 
