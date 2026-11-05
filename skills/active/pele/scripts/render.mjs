@@ -101,6 +101,23 @@ if (sources.length > 1 && values.output === undefined) fail(`${input} has ${sour
 
 if (png && values.output === undefined) fail("PNG needs an output file");
 
+// Dracula, the human's theme for every diagram. These replace Pele's defaults as the fallbacks of its --pele-*
+// variables, so a page can still restyle an SVG, and flattening bakes them into PNG and --flat output. Muted is
+// lighter than Dracula's comment colour for contrast, and borders mix it 60% over the background.
+const dracula = {
+  bg: "#282a36", fg: "#f8f8f2", muted: "#a3a8c3", line: "#c6c8d8", border: "#72768b",
+  surface: "#282a36", "surface-alt": "#282a36", accent: "#ff79c6", critical: "#ff5555", error: "#ff5555",
+  "series-1": "#8be9fd", "series-2": "#bd93f9", "series-3": "#f1fa8c", "series-4": "#50fa7b",
+  "series-5": "#ffb86c", "series-6": "#ff79c6", "series-7": "#ff5555", "series-8": "#a3a8c3",
+};
+
+// The root also paints the background, since Dracula's light text disappears on a white page.
+function theme(svg) {
+  return svg
+    .replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (whole, name) => (name in dracula ? `var(--pele-${name},${dracula[name]})` : whole))
+    .replace(/<svg([^>]*?) style="/, '<svg$1 style="background:var(--pele-bg,' + dracula.bg + ');');
+}
+
 // Pele colors through two layers of custom properties, public ones with fallbacks (var(--pele-fg,#1f1f1f)) and
 // internal ones defined from them (--_fg); librsvg and ImageMagick support neither and draw shapes black.
 function flatten(svg) {
@@ -124,8 +141,8 @@ if (png && converter === null) fail("PNG needs rsvg-convert or ImageMagick (magi
 
 function toPng(svg, file) {
   const args = converter === "rsvg-convert"
-    ? ["--zoom", String(scale), "--background-color", "white", "--output", file]
-    : ["-density", String(96 * scale), "-background", "white", "svg:-", file];
+    ? ["--zoom", String(scale), "--background-color", dracula.bg, "--output", file]
+    : ["-density", String(96 * scale), "-background", dracula.bg, "svg:-", file];
 
   const result = spawnSync(converter, args, { input: svg });
 
@@ -144,7 +161,7 @@ for (const [index, source] of sources.entries()) {
   let svg;
 
   try {
-    ({ svg } = render(source, options));
+    svg = theme(render(source, options).svg);
   } catch (error) {
     if (!(error instanceof PeleError)) throw error;
 
