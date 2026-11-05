@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, statSync, symlinkSync, writeFileSync } from "node:fs";
+import { dirname, extname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawn, spawnSync } from "node:child_process";
 
@@ -49,6 +49,8 @@ if (positionalArgs.length === 0) {
 
 const targets = [];
 
+const lintable = new Set([".js", ".mjs", ".cjs", ".jsx", ".ts", ".mts", ".cts", ".tsx", ".vue", ".svelte", ".astro"]);
+
 for (const positionalArg of positionalArgs) {
   if (positionalArg.length === 0) {
     console.error("anti-slop: target path must not be empty");
@@ -62,7 +64,19 @@ for (const positionalArg of positionalArgs) {
     process.exit(2);
   }
 
+  // Oxlint reads only these; given anything else it reports "No files found" and fails, which agents took as a
+  // problem to work around (extracting an HTML page's inline script). Skip such files and say why instead.
+  if (statSync(target).isFile() && !lintable.has(extname(target).toLowerCase())) {
+    console.error(`anti-slop: skipped ${relative(process.cwd(), target) || target}: not a JavaScript or TypeScript file, so there is nothing to check (scripts inside HTML aren't checked)`);
+    continue;
+  }
+
   targets.push(target);
+}
+
+if (targets.length === 0) {
+  console.error("anti-slop: nothing to check");
+  process.exit(0);
 }
 
 const tempDir = mkdtempSync(join(process.env.TMPDIR ?? "/tmp", "anti-slop-"));

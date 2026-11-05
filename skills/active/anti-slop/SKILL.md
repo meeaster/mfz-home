@@ -5,7 +5,7 @@ description: Load before JavaScript or TypeScript project edits for concise anti
 
 # Anti-slop
 
-Use the preflight before changing JavaScript or TypeScript, then use the read-only diagnostic pass after the edit batch. This skill is portable across TypeScript and JavaScript repositories. Default diagnostics write no target files. The launcher never installs packages, reads target Oxlint configuration, or changes dependencies, manifests, or configuration; explicit `--fix-spacing` is its only source-writing mode.
+Use the preflight before changing JavaScript or TypeScript files, then use the read-only diagnostic pass after the edit batch. Other files, including scripts inside HTML pages, are out of scope: the launcher skips them and says so, and that's a complete checkpoint, not a gap to work around. This skill is portable across TypeScript and JavaScript repositories. Default diagnostics write no target files. The launcher never installs packages, reads target Oxlint configuration, or changes dependencies, manifests, or configuration; explicit `--fix-spacing` is its only source-writing mode.
 
 ## Preflight
 

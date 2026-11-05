@@ -12,6 +12,7 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 
 - **Ordinary JS/TS change** without mentioning anti-slop: loads the preflight before editing, runs the checkpoint once after the batch on the changed files (disjoint files stay separate, not widened to a common ancestor), reruns after fixes.
 - **Non-JS change**: doesn't load or run it.
+- **Script inside an HTML page**: out of scope. The launcher skips the file and says so; the agent doesn't extract the script to lint it.
 - **Throwaway agent script**, such as a Node script in a temp directory written to inspect data or drive a tool: doesn't load or run it.
 - **Explicit "run anti-slop on this directory"**: all pinned rules at error severity, known violations reported, target unchanged.
 - **Effect codebase**: `--effect` enables the Effect rules for the whole invocation; without it they stay off regardless of the target's dependencies.
@@ -30,6 +31,7 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 - **Suppressions fail the checkpoint** (human, 2026-08-20). An agent added a file-level `oxlint-disable` that silently bypassed the rules; the human considers them rules agents must follow.
 - **`--fix-spacing` is the only writing mode** (2026-09-10). Agents spent edits reproducing a mechanical spacing fix by hand. The fix pass gets a configuration with only the spacing rule, and always runs after a read-only pass under existing edit authority. The launcher prints a one-line stderr hint on spacing findings to steer agents to it. General `--fix`, `--config`, and other passthrough flags stay unsupported so the launcher can't drift into a general Oxlint front end with different policy.
 - **Project files only** (human, 2026-10-13). Agents were running it on throwaway scripts they wrote for themselves in temp directories; the human doesn't care how those look.
+- **Non-JS/TS files are skipped with a message, and a run with nothing left exits 0** (human, 2026-11-04). Given an HTML page, Oxlint said "No files found to lint" and failed; an orchestrated build then spent about two minutes extracting the page's inline script, running baselines and trying fixes in a scratch copy, with nothing found. The human scoped the check to JS/TS files.
 - **Validate every operand before doing anything**, so a bad later path never produces a partial scan or partial fix. Operands go to Oxlint in their original order and are never widened to a common ancestor.
 - **The vendored plugin isn't held to its own rules.** Its ESTree boundary code legitimately uses `unknown`, `typeof`, and assertions, and upstream excludes it from linting too. Report this as an intended exclusion; don't patch upstream bytes to silence it.
 - **Single-line bindings stay grouped at every scope** (2026-10-21), following upstream PR #45. A leading comment on the next binding, a multiline binding, or a following executable statement still requires separation; existing blank lines remain untouched.

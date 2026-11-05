@@ -55,4 +55,4 @@
 
 ## JavaScript and TypeScript
 
-- **Tool:** Load `anti-slop` before editing JavaScript or TypeScript project files and run its final check on the changed source and test files, including delegated changes.
+- **Tool:** Load `anti-slop` before editing JavaScript or TypeScript project files and run its final check on the changed source and test files, including delegated changes. Scripts inside HTML pages are out of scope.
