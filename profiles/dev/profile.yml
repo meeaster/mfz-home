@@ -87,8 +87,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   fframes-video:
     agents: { opencode: true, claude-code: true, codex: true }
-  psychopomp:
-    agents: { opencode: true, claude-code: true, codex: true }
   explainer-motion:
     agents: { opencode: true, claude-code: true, codex: true }
   thermo-nuclear-code-quality-review:
