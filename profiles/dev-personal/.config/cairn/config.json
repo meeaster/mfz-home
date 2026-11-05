@@ -2,6 +2,9 @@
   "designs": "~/workspace/repos/personal-work/designs",
   "knowledge": "~/workspace/repos/personal-work/knowledge",
   "tracks": "~/workspace/repos/personal-work/tracks",
+  "projectTracks": {
+    "~/workspace/repos/tracks-sim-app": "~/workspace/repos/tracks-sim/tracks"
+  },
   "diagramTheme": "~/.config/cairn/diagram-theme.json",
   "models": {
     "tiers": {
