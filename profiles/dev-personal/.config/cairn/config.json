@@ -57,9 +57,8 @@
       "inspector/investigate": "terra",
       "operator": "terra-medium",
       "writer": "terra",
-      "operator/pr": "terra-medium",
-      "operator/jira": "terra-medium",
-      "inspector/browser": "terra-medium"
+      "inspector/browser": "terra-medium",
+      "operator/publish": "fast"
     }
   },
   "skills": {
