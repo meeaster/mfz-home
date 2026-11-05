@@ -5,7 +5,7 @@ description: Render Mermaid diagram text to SVG or PNG with the bundled Pele ren
 
 # Pele
 
-Pele renders Mermaid 12.1 syntax to SVG with its own layout and visual style. This skill draws every diagram in the Dracula theme, on a dark background. The build in `vendor/pele/` needs only Node 20 or later.
+Pele renders Mermaid 12.1 syntax to SVG with its own layout and visual style. The build in `vendor/pele/` needs only Node 20 or later.
 
 ## Render
 
@@ -21,11 +21,18 @@ Paths to `scripts/` are relative to this skill's directory. Input comes from a f
 
 A diagram that fails to parse exits with status 1 and prints Pele's error on stderr, including the line and column.
 
+## Theme
+
+`--theme <file>` applies a JSON theme; the session context or the user names the file when there is one, and without one Pele's own colours apply. Its keys, each optional:
+
+- `colors`: values for Pele's variables, keyed without the `--pele-` prefix (`"bg": "#282a36"`). They become the variables' fallbacks, so a page can still restyle an SVG, and a themed `bg` also paints the SVG's and the PNG's background.
+- `highlight`: `band` is the colour a light sequence `rect` band becomes, since a light-theme highlight is an unreadable block on a dark background; the other entries are the colours to write into `style`, `linkStyle` and `rect` lines.
+- `notes`: `{ "font": "Kalam", "size": 16 }` draws notes as handwritten annotations with no box, in the accent colour inside a band and muted elsewhere. Kalam ships in `assets/fonts/`, so PNG output has it on any machine; an SVG shows it only where it's installed or loaded.
+
 ## Output
 
-- Colors are CSS custom properties whose fallbacks are this skill's Dracula values, such as `var(--pele-fg,#f8f8f2)`, and the root `<svg>` paints the background. Browsers and other CSS-aware viewers show them; converters without CSS variable support, including librsvg and ImageMagick, draw every shape black, which is why PNG output and `--flat` replace them first. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
-- Highlight in Dracula: `rect rgb(70, 53, 74)` for a sequence band (pink at 14% over the background); `style` or `linkStyle` with pink `#ff79c6` for emphasis and orange `#ffb86c`, green `#50fa7b` or red `#ff5555` for status. A light band colour, picked for a light theme, is drawn as the pink band so text inside stays readable.
-- Notes are annotations, drawn handwritten in Kalam with no box: pink when the note sits inside a sequence `rect` band, saying why that part is highlighted, and muted elsewhere. Message labels inside a band take its colour. PNG output uses the Kalam bundled in `assets/fonts/`; an SVG shows Kalam only where it is installed or loaded.
+- Colors are CSS custom properties with fallback values, such as `var(--pele-fg,#1f1f1f)`. Browsers and other CSS-aware viewers show them; converters without CSS variable support, including librsvg and ImageMagick, draw every shape black, which is why PNG output and `--flat` replace them first. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
+- Message labels inside a sequence `rect` band take the band's colour.
 - Labels are sized from an Arial width table. `--font` sets the font the SVG draws with but not the measurement, so a font much wider or narrower than Arial misfits its boxes. PNG and `--flat` output default to Arial or a font with its widths (Liberation Sans, Arimo) when one is installed.
 - The root `<svg>` has the classes `pele` and `pele-<type>`; nodes, edges, and labels carry `pele-node`, `pele-edge`, `pele-label`, and similar classes, with `data-id` set to the source id.
 

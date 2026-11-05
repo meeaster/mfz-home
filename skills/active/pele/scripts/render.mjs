@@ -25,6 +25,8 @@ its extension.
       --flat              Replace CSS variables with their values, so converters
                           without CSS-variable support draw the right colors
       --scale <n>         PNG pixels per SVG pixel (default: 2)
+      --theme <file>      A JSON theme: colors for Pele's variables, the color a light
+                          highlight band becomes, and handwritten notes (see SKILL.md)
   -h, --help              Show this help
 
 PNG needs rsvg-convert or ImageMagick (magick) on PATH.`;
@@ -47,6 +49,7 @@ try {
       padding: { type: "string" },
       flat: { type: "boolean" },
       scale: { type: "string" },
+      theme: { type: "string" },
       help: { type: "boolean", short: "h" },
     },
   });
@@ -103,35 +106,44 @@ if (sources.length > 1 && values.output === undefined) fail(`${input} has ${sour
 
 if (png && values.output === undefined) fail("PNG needs an output file");
 
-// Dracula, the human's theme for every diagram. These replace Pele's defaults as the fallbacks of its --pele-*
-// variables, so a page can still restyle an SVG, and flattening bakes them into PNG and --flat output. Muted is
-// lighter than Dracula's comment colour for contrast, and borders mix it 60% over the background.
-const dracula = {
-  bg: "#282a36", fg: "#f8f8f2", muted: "#a3a8c3", line: "#c6c8d8", border: "#72768b",
-  surface: "#282a36", "surface-alt": "#282a36", accent: "#ff79c6", critical: "#ff5555", error: "#ff5555",
-  "series-1": "#8be9fd", "series-2": "#bd93f9", "series-3": "#f1fa8c", "series-4": "#50fa7b",
-  "series-5": "#ffb86c", "series-6": "#ff79c6", "series-7": "#ff5555", "series-8": "#a3a8c3",
-};
+// A theme file sets the fallbacks of Pele's --pele-* variables (`colors`, keyed without the prefix), so a page can
+// still restyle an SVG and flattening bakes them into PNG and --flat output; `highlight.band`, the colour a light
+// highlight band becomes; and `notes`, which draws notes as handwritten annotations. Without one, Pele's defaults.
+let themeFile = {};
 
-// The root also paints the background, since Dracula's light text disappears on a white page.
+if (values.theme !== undefined) {
+  try {
+    themeFile = JSON.parse(readFileSync(values.theme, "utf8"));
+  } catch (error) {
+    fail(`--theme ${values.theme}: ${error.message}`);
+  }
+}
+
+const colors = themeFile.colors ?? {};
+const background = colors.bg ?? "white";
+
 function theme(svg) {
-  return svg
-    .replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (whole, name) => (name in dracula ? `var(--pele-${name},${dracula[name]})` : whole))
-    .replace(/<svg([^>]*?) style="/, '<svg$1 style="background:var(--pele-bg,' + dracula.bg + ');');
+  const themed = svg.replace(/var\(--pele-([\w-]+),([^()]*)\)/g, (whole, name) => (name in colors ? `var(--pele-${name},${colors[name]})` : whole));
+
+  // A themed background is painted on the root, since light text disappears on a white page.
+  return colors.bg ? themed.replace(/<svg([^>]*?) style="/, `<svg$1 style="background:var(--pele-bg,${colors.bg});`) : themed;
 }
 
-// A band colour picked for a light theme, such as a pale yellow, turns the dark page into a bright block with
-// unreadable text. A band is emphasis here, and the note on it is pink, so a light band becomes the pink tint
-// (pink at 14% over the background); a band that is already dark keeps its colour.
+// A band colour picked for a light theme turns a dark page into a bright block with unreadable text, so a light
+// band takes the theme's band colour; a dark band keeps its own.
 function darkenBands(svg) {
+  const band = themeFile.highlight?.band;
+
+  if (!band) return svg;
+
   return svg.replace(/(<rect class="pele-rect"[^>]*?fill:)rgba?\((\d+),\s*(\d+),\s*(\d+)[^)]*\)/g, (whole, start, red, green, blue) =>
-    0.2126 * red + 0.7152 * green + 0.0722 * blue < 110 ? whole : `${start}rgb(70, 53, 74)`);
+    0.2126 * red + 0.7152 * green + 0.0722 * blue < 110 ? whole : `${start}${band}`);
 }
 
-// Notes are annotations, written by hand like the human's blog: Kalam, pink when the note sits in a highlighted
-// band (`rect` in a sequence diagram) to say why it is highlighted, muted elsewhere. A note's box and any message
-// label inside a band take the band's colour, so text sits on the highlight with no outline and no dark patch,
-// and lifelines stop at the text instead of running through it.
+// Message labels inside a band take the band's colour, so they don't sit on background-coloured patches. With the
+// theme's `notes`, a note becomes a handwritten annotation in its font: accent colour inside a band, saying why it
+// is highlighted, muted elsewhere, on a box of the band's or background colour with no outline, so lifelines stop
+// at the text instead of running through it.
 function annotate(svg) {
   svg = darkenBands(svg);
 
@@ -145,19 +157,23 @@ function annotate(svg) {
     return middleX > band.x && middleX < band.x + band.width && middleY > band.y && middleY < band.y + band.height;
   });
 
-  return svg
+  const labelled = svg
     .replace(/(<g class="pele-edge-label"[^>]*><rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"[^>]*?)fill="[^"]*"/g,
       (whole, start, x, y, width, height) => {
         const band = bandAround(x, y, width, height);
 
         return band ? `${start}fill="${band.fill}"` : whole;
-      })
+      });
+
+  if (!themeFile.notes) return labelled;
+
+  return labelled
     .replace(/(<g class="pele-note"[^>]*>)<rect x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)"([^>]*)\/>(<text [^>]*?)fill="[^"]*"/g,
       (whole, group, x, y, width, height, rest, text) => {
         const band = bandAround(x, y, width, height);
 
         return `${group}<rect x="${x}" y="${y}" width="${width}" height="${height}"${rest} fill="${band?.fill ?? "var(--_bg)"}" stroke="none"/>`
-          + `${text}font-family="Kalam, cursive" font-size="16" fill="${band ? "var(--_c)" : "var(--_m)"}"`;
+          + `${text}font-family="${themeFile.notes.font}, cursive" font-size="${themeFile.notes.size ?? 16}" fill="${band ? "var(--_c)" : "var(--_m)"}"`;
       });
 }
 
@@ -184,10 +200,10 @@ if (png && converter === null) fail("PNG needs rsvg-convert or ImageMagick (magi
 
 function toPng(svg, file) {
   const args = converter === "rsvg-convert"
-    ? ["--zoom", String(scale), "--background-color", dracula.bg, "--output", file]
-    : ["-density", String(96 * scale), "-background", dracula.bg, "svg:-", file];
+    ? ["--zoom", String(scale), "--background-color", background, "--output", file]
+    : ["-density", String(96 * scale), "-background", background, "svg:-", file];
 
-  // The converter finds the bundled Kalam through a fontconfig file that adds this skill's fonts to the system's.
+  // The converter finds bundled fonts, such as Kalam for notes, through a fontconfig file that adds this skill's fonts to the system's.
   const fonts = fileURLToPath(new URL("../assets/fonts/", import.meta.url));
   const system = [process.env.FONTCONFIG_FILE, "/etc/fonts/fonts.conf", "/usr/local/etc/fonts/fonts.conf", "/opt/homebrew/etc/fonts/fonts.conf"].filter(Boolean);
   const dir = mkdtempSync(join(tmpdir(), "pele-fonts-"));
