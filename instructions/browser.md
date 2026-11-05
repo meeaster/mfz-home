@@ -20,7 +20,7 @@
 - **Behavior:** Coordinate operations that affect shared browser state.
 - **Tool:** For concurrent browser tasks or agents sharing an MCP process, create separate Browse sessions and pass their IDs explicitly.
 - **Tool:** Run Playwright in Browse's `execute` runtime; its `page`, `state`, and helpers are unavailable in the outer tool-orchestration runtime.
-- **Fact:** Browse runs from a source checkout. If the `browse` server or `opencode-browser` is missing or outdated, run `mise run browse:update`.
+- **Fact:** Browse updates itself. If the `browse` command is missing or broken, run `mise run browse:install`; if the extension is not connected, run `browse doctor`, and `browse pair` to re-pair Windows Chrome.
 
 ## Local frontend servers
 
