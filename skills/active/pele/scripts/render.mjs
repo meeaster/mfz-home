@@ -120,11 +120,21 @@ function theme(svg) {
     .replace(/<svg([^>]*?) style="/, '<svg$1 style="background:var(--pele-bg,' + dracula.bg + ');');
 }
 
+// A band colour picked for a light theme, such as a pale yellow, turns the dark page into a bright block with
+// unreadable text. A band is emphasis here, and the note on it is pink, so a light band becomes the pink tint
+// (pink at 14% over the background); a band that is already dark keeps its colour.
+function darkenBands(svg) {
+  return svg.replace(/(<rect class="pele-rect"[^>]*?fill:)rgba?\((\d+),\s*(\d+),\s*(\d+)[^)]*\)/g, (whole, start, red, green, blue) =>
+    0.2126 * red + 0.7152 * green + 0.0722 * blue < 110 ? whole : `${start}rgb(70, 53, 74)`);
+}
+
 // Notes are annotations, written by hand like the human's blog: Kalam, pink when the note sits in a highlighted
 // band (`rect` in a sequence diagram) to say why it is highlighted, muted elsewhere. A note's box and any message
 // label inside a band take the band's colour, so text sits on the highlight with no outline and no dark patch,
 // and lifelines stop at the text instead of running through it.
 function annotate(svg) {
+  svg = darkenBands(svg);
+
   const bands = [...svg.matchAll(/<rect class="pele-rect" x="([-\d.]+)" y="([-\d.]+)" width="([\d.]+)" height="([\d.]+)" style="[^"]*?fill:([^;"]+)/g)]
     .map(([, x, y, width, height, fill]) => ({ x: Number(x), y: Number(y), width: Number(width), height: Number(height), fill }));
 
