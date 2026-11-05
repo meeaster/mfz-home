@@ -58,7 +58,8 @@
       "operator": "terra-medium",
       "writer": "terra",
       "operator/pr": "terra-medium",
-      "operator/jira": "terra-medium"
+      "operator/jira": "terra-medium",
+      "inspector/browser": "terra-medium"
     }
   },
   "skills": {
