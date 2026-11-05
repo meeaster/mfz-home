@@ -628,4 +628,4 @@ skills:
     source: vendored
     repo: https://github.com/nicobailon/skill-diet
     ref: main
-    subtree: .
+    subtree: skills/skill-diet
