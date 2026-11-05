@@ -24,6 +24,10 @@
         "opencode": "openai/gpt-6.1-terra#high",
         "claude-code": "sonnet"
       },
+      "terra-medium": {
+        "opencode": "openai/gpt-6.1-terra#medium",
+        "claude-code": "sonnet"
+      },
       "strong-sonnet": {
         "opencode": "openai/gpt-6.1-sol#high",
         "claude-code": "sonnet"
@@ -51,19 +55,16 @@
       "implementer": "terra",
       "implementer/plan": "deep",
       "inspector/investigate": "terra",
-      "operator": "fast",
-      "operator/pr": "terra",
-      "operator/jira": "terra"
+      "operator": "terra-medium",
+      "writer": "terra",
+      "operator/pr": "terra-medium",
+      "operator/jira": "terra-medium"
     }
   },
   "skills": {
     "slots": {
       "code-review": "thermo-nuclear-code-quality-review",
       "pr-review": "pr-review",
-      "pr-description": {
-        "skill": "tracks",
-        "autoinvoke": true
-      },
       "interface-quality": "impeccable",
       "engineering-judgment": "development-principles",
       "prototyping": {
