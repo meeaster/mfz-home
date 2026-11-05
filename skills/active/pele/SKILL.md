@@ -24,10 +24,12 @@ A diagram that fails to parse exits with status 1 and prints Pele's error on std
 ## Output
 
 - Colors are CSS custom properties with fallback values, such as `var(--pele-fg,#1f1f1f)`. Browsers and other CSS-aware viewers show them; converters without CSS variable support, including librsvg and ImageMagick, draw every shape black, which is why PNG output and `--flat` replace them first. Setting `--pele-bg`, `--pele-fg`, `--pele-muted`, `--pele-line`, `--pele-surface`, `--pele-surface-alt`, `--pele-border`, `--pele-accent`, `--pele-font`, `--pele-radius`, or `--pele-series-1` through `--pele-series-8` on the `<svg>` or an ancestor recolors the diagram.
-- Labels are sized from an Arial width table. `--font` sets the font the SVG draws with but not the measurement, so a font much wider or narrower than Arial misfits its boxes.
+- Labels are sized from an Arial width table. `--font` sets the font the SVG draws with but not the measurement, so a font much wider or narrower than Arial misfits its boxes. PNG and `--flat` output default to Arial or a font with its widths (Liberation Sans, Arimo) when one is installed.
 - The root `<svg>` has the classes `pele` and `pele-<type>`; nodes, edges, and labels carry `pele-node`, `pele-edge`, `pele-label`, and similar classes, with `data-id` set to the source id.
 
 ## Diagram types
+
+In sequence messages `#` starts a character code and drops the rest of the text; write `#35;` for a literal `#`.
 
 Each reference holds Mermaid's documentation examples for its type, all verified to render with the vendored build.
 

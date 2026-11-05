@@ -16,7 +16,8 @@ its extension.
 
   -o, --output <file>     Write to a file; a .png name renders a PNG
   -w, --width <px>        Width available to the diagram; some types lay out narrower to fit
-      --font <family>     Font family the SVG draws labels in (default: sans-serif)
+      --font <family>     Font family the SVG draws labels in (default: sans-serif; for
+                          PNG and --flat, Arial or a font with its widths when installed)
       --font-size <px>    Label font size
       --padding <px>      Space around the diagram
       --flat              Replace CSS variables with their values, so converters
@@ -68,16 +69,20 @@ function pixels(name, text, allowZero) {
   return value;
 }
 
-const options = {
-  maxWidth: pixels("width", values.width, false),
-  fontFamily: values.font,
-  fontSize: pixels("font-size", values["font-size"], false),
-  padding: pixels("padding", values.padding, true),
-};
-
 const scale = pixels("scale", values.scale ?? "2", false);
 const input = positionals[0] ?? "-";
 const png = values.output !== undefined && extname(values.output).toLowerCase() === ".png";
+
+// Outside a browser Pele sizes labels from an Arial width table, so a converter drawing them in a wider sans-serif
+// spills text out of its boxes; these fonts share Arial's widths, and the converter takes the first one installed.
+const arialMetric = 'Arial, "Liberation Sans", Arimo, sans-serif';
+
+const options = {
+  maxWidth: pixels("width", values.width, false),
+  fontFamily: values.font ?? (png || values.flat ? arialMetric : undefined),
+  fontSize: pixels("font-size", values["font-size"], false),
+  padding: pixels("padding", values.padding, true),
+};
 
 let text;
 
