@@ -172,9 +172,12 @@ if (effect) {
   }
 }
 
+// no-runtime-typeof accepts only a decoding library or a TypeScript type predicate, and plain JavaScript can declare
+// no predicate, so in .js files its only passing forms are a new dependency or a disguised typeof.
 writeFileSync(config, JSON.stringify({
   jsPlugins: effect ? [plugin, effectPlugin] : [plugin],
   rules: enabledRules,
+  overrides: [{ files: ["**/*.js", "**/*.mjs", "**/*.cjs", "**/*.jsx"], rules: { "anti-slop/no-runtime-typeof": "off" } }],
 }, null, 2));
 
 if (fixSpacing) {

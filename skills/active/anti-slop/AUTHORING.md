@@ -35,6 +35,8 @@ Success: after an ordinary JS/TS change the agent runs the checkpoint once on th
 - **Validate every operand before doing anything**, so a bad later path never produces a partial scan or partial fix. Operands go to Oxlint in their original order and are never widened to a common ancestor.
 - **The vendored plugin isn't held to its own rules.** Its ESTree boundary code legitimately uses `unknown`, `typeof`, and assertions, and upstream excludes it from linting too. Report this as an intended exclusion; don't patch upstream bytes to silence it.
 - **Single-line bindings stay grouped at every scope** (2026-10-21), following upstream PR #45. A leading comment on the next binding, a multiline binding, or a following executable statement still requires separation; existing blank lines remain untouched.
+- **`no-runtime-typeof` is off for plain JavaScript files** (human, 2026-11-05; a departure from not weakening upstream rules). The rule accepts only a decoding library or a TypeScript type predicate, and a `.js` file can declare no predicate, so an implementer in a simulated slice replaced `typeof v === "string"` with `Object(v) !== v && String(v) === v` across the boundary code to pass. The override in the launcher's generated config keeps it for TypeScript.
+- **A finding is fixed as the rule intends or left and reported, never disguised** (human, 2026-11-05), for the same incident: the lead's brief said to fix the findings without changing behaviour, and a disguised check passed the run while being worse code than the flagged one.
 
 ## Sources
 
