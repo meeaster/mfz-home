@@ -62,7 +62,9 @@
       "operator": "terra-medium",
       "writer": "terra",
       "inspector/browser": "terra-medium",
-      "operator/publish": "fast"
+      "operator/publish": "fast",
+      "operator/watch": "fast",
+      "operator/deploy": "fast"
     }
   },
   "skills": {
