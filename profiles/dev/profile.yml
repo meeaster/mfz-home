@@ -105,25 +105,7 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   codex-imagegen:
     agents: { opencode: true, claude-code: true, codex: false }
-  openspec-apply-change:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-archive-change:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-explore:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-propose:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-update-change:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-sync-specs:
-    agents: { opencode: true, claude-code: true, codex: true }
-    toggleable: false
-  openspec-verify-change:
+  openspec:
     agents: { opencode: true, claude-code: true, codex: true }
     toggleable: false
   writing-for-agents:

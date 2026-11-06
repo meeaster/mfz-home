@@ -350,10 +350,20 @@ skills:
     repo: https://github.com/cursor/plugins
     ref: main
     subtree: thermos/skills/thermo-nuclear-code-quality-review
-  - name: openspec-apply-change
+  - name: aws-agent-toolkit
+    description: >
+      AWS Agent Toolkit skills from the AWS CLI catalog, such as aws-cdk,
+      aws-iam, and aws-serverless. The profile's select names the skills.
+    source: external
+    tool: aws-cli
+    sync: mise run aws-skills:sync
+  - name: openspec
+    description: >
+      OpenSpec workflow skills (propose, explore, apply, update, sync, archive,
+      verify), installed by the OpenSpec CLI.
     source: tool
     tool: npm:@fission-ai/openspec
-    generate: &openspec-generate
+    generate:
       run: |
         set -e
         export OPENSPEC_TELEMETRY=0
@@ -361,54 +371,7 @@ skills:
         openspec config set delivery skills
         openspec config set workflows '["propose","explore","apply","update","sync","archive","verify"]'
         openspec init --tools agents --no-animation --no-copilot-cloud .
-      path: .agents/skills/{name}
-    description: >
-      Implement tasks from an OpenSpec change. Use when starting implementation,
-      continuing implementation, or working through tasks.
-  - name: openspec-archive-change
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Archive a completed change in the experimental workflow. Use when
-      finalizing and archiving a change after implementation is complete.
-  - name: openspec-explore
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Enter explore mode — a thinking partner for exploring ideas, investigating
-      problems, and clarifying requirements. Use when thinking through something
-      before or during a change.
-  - name: openspec-propose
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Propose a new change with all artifacts generated in one step. Use when
-      quickly describing what to build and getting a complete proposal with
-      design, specs, and tasks ready for implementation.
-  - name: openspec-update-change
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Revise an OpenSpec change's existing planning artifacts and keep them
-      coherent without editing implementation code.
-  - name: openspec-sync-specs
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Sync delta specs from a change to main specs. Use when updating main specs
-      with changes from a delta spec, without archiving the change.
-  - name: openspec-verify-change
-    source: tool
-    tool: npm:@fission-ai/openspec
-    generate: *openspec-generate
-    description: >
-      Verify implementation matches change artifacts. Use when validating that
-      implementation is complete, correct, and coherent before archiving.
+      collect: .agents/skills
   - name: openspec-orchestrate
     source: local
     skill: skills/prototype/openspec-orchestrate
