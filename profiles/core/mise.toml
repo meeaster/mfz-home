@@ -9,6 +9,11 @@ pnpm = "12"
 bat = "0"
 "aqua:sharkdp/fd" = "10"
 
+[hooks]
+# Runs after every `mise install`, even with nothing to install, so only install Browse when it is missing;
+# its relay keeps it updated after that.
+postinstall = "command -v browse >/dev/null || mise run browse:install"
+
 [settings]
 minimum_release_age = "1d"
 # Skipped in non-interactive sessions, so agent-run installs never update mise mid-command.
