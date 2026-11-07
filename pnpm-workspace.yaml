@@ -6,6 +6,8 @@ allowBuilds:
   msgpackr-extract: true
   protobufjs: false
 packages:
+  # Executor apps install here only for type checking; Executor builds them itself.
+  - executor/apps/*
   - mcp/*
   - opencode/plugins/active/*
   - opencode/plugins/in-progress/*

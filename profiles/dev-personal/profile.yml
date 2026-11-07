@@ -30,6 +30,9 @@ references:
   - opencode-plugins
   - openwiki
 repos: [workspace-specs, personal-knowledge, personal-sources, personal-work]
+# Hand-written Executor apps from executor/apps/; deploy with mfz executor apply.
+executor:
+  apps: [opencode]
 extra_folders:
   - path: ~/workspace/worktrees
     group: knowledge-and-artifacts
