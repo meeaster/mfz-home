@@ -17,7 +17,6 @@
 
 - Use `pnpm` for the root workspace. Root `pnpm test` covers `opencode/**/*.test.ts` and `mcp/**/*.test.ts`; focus it with `pnpm test <path/to/file.test.ts>`. Archived plugins are excluded.
 - Root `pnpm typecheck` covers OpenCode TypeScript only (excluding plugin `drive/` directories and archives), not MCP packages.
-- For Discord MCP, run `pnpm --filter @mfz/discord-mcp check`; its test script builds first because tests use compiled output.
 
 <!-- mfz:home-guidance:begin -->
 This repository is a Mindframe-Z home, the source for AI tool configuration rendered by `mfz`. Before changing configuration here, run `mfz guide` and follow its topic routing. This block is managed by `mfz apply`.
