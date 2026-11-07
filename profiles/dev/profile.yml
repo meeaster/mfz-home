@@ -7,7 +7,7 @@ instruction_references:
     description: Before FFmpeg video processing or encoding, or Psychopomp or fframes rendering
   - name: browser
     path: instructions/browser.md
-    description: Before any task involving a browser, including opening a page for the user to view, frontend UI verification, browser automation, tasks in the user's Chrome session, or user-managed login
+    description: Before any task involving a browser, including opening a page for the user to view, frontend UI verification, or browser automation
   - name: personal-knowledge
     path: instructions/personal_knowledge.md
     description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
@@ -169,8 +169,6 @@ skills:
   pr-lens:
     agents: { opencode: false, claude-code: false, codex: false }
 mcp:
-  browse:
-    agents: [opencode, claude-code, codex]
   agent-browser:
     agents: [opencode, claude-code, codex]
   context7:

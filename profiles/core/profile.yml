@@ -2,6 +2,13 @@ name: core
 description: Shared essentials for every machine, including thin clients that attach to a server's OpenCode.
 instructions:
   - instructions/global.md
+instruction_references:
+  - name: browse
+    path: instructions/browse.md
+    description: Before using the Browse MCP server, tasks in the user's Chrome session, or user-managed login
+mcp:
+  browse:
+    agents: [opencode, claude-code, codex]
 opencode:
   global_instructions: true
   cli:
