@@ -49,6 +49,13 @@ servers:
     # Served by executor.service; each agent signs in once through Executor's browser OAuth.
     url: http://127.0.0.1:4312/mcp
     opencode: { pool: true }
+  executor-lab:
+    description: Executor in the eks-lab cluster (repos/eks-lab), the self-hosted server behind Floci's ALB with Dex SSO.
+    type: remote
+    transport: http
+    # Floci's local CA signs its certificate; each agent signs in once through Executor's browser OAuth.
+    url: https://executor.localhost:18443/mcp
+    opencode: { pool: true }
   unifi-network:
     description: UniFi Network MCP server for managing the UniFi gateway, networks, clients, and firewall.
     type: local
@@ -101,12 +108,13 @@ servers:
     transport: http
     url: https://docs.mcp.cloudflare.com/mcp
     opencode: { pool: true }
-  # `mise run browse:install` installs the binary; its relay auto-updates it in place.
+  # `mise run browse:install` installs the binary; its relay auto-updates it in place. Use its full path because
+  # xdg-utils ships an unrelated /usr/bin/browse.
   browse:
     description: Browse MCP server for driving the user's Chromium browser through the Browse extension.
     type: local
     transport: stdio
-    command: [browse, mcp]
+    command: [~/.local/bin/browse, mcp]
     opencode: { pool: true, cwd: "~" }
   agent-browser:
     description: First-party browser automation MCP server for interaction, screenshots, and diagnostics.

@@ -6,4 +6,5 @@
 - **Behavior:** Coordinate operations that affect shared browser state.
 - **Tool:** For concurrent browser tasks or agents sharing an MCP process, create separate Browse sessions and pass their IDs explicitly.
 - **Tool:** Run Playwright in Browse's `execute` runtime; its `page`, `state`, and helpers are unavailable in the outer tool-orchestration runtime.
-- **Fact:** Browse updates itself. If the `browse` command is missing or broken, run `mise run browse:install`; if the extension is not connected, run `browse doctor`, and `browse pair` to re-pair Windows Chrome.
+- **Fact:** Browse installs to `~/.local/bin/browse`; call it by that path, because xdg-utils ships an unrelated `/usr/bin/browse`.
+- **Fact:** Browse updates itself. If `~/.local/bin/browse` is missing or broken, run `mise run browse:install`; if the extension is not connected, run `~/.local/bin/browse doctor`, and `~/.local/bin/browse pair` to re-pair Windows Chrome.

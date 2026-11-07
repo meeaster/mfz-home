@@ -11,8 +11,9 @@ bat = "0"
 
 [hooks]
 # Runs after every `mise install`, even with nothing to install, so only install Browse when it is missing;
-# its relay keeps it updated after that.
-postinstall = "command -v browse >/dev/null || mise run browse:install"
+# its relay keeps it updated after that. Check the installed file, not the command name: xdg-utils ships an
+# unrelated /usr/bin/browse.
+postinstall = "test -x \"$HOME/.local/bin/browse\" || mise run browse:install"
 
 [settings]
 minimum_release_age = "1d"

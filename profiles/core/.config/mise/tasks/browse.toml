@@ -9,6 +9,7 @@ set -euo pipefail
 # cannot find a Windows browser from WSL.
 curl -fsSL https://opencode.ai/browse/install | bash -s -- --no-setup
 
-echo "browse: $(browse --version) at $(command -v browse)"
-echo "browse: if Chrome is not paired yet, add Browse from the Chrome Web Store and run 'browse pair'"
+# Call it by path: xdg-utils ships an unrelated /usr/bin/browse that can come first on PATH.
+echo "browse: $("$HOME/.local/bin/browse" --version) at $HOME/.local/bin/browse"
+echo "browse: if Chrome is not paired yet, add Browse from the Chrome Web Store and run '~/.local/bin/browse pair'"
 '''
