@@ -189,6 +189,9 @@ mcp:
       disabled: [opencode, codex]
   executor:
     agents: [opencode, claude-code, codex]
+  # Reached through Executor's MCP endpoint; mfz executor apply deploys the app.
+  deepwiki:
+    executor: true
   # OpenCode gets the catalog tools from the Cairn plugin; Claude Code still needs the MCP server.
   cairn:
     agents: [claude-code]
