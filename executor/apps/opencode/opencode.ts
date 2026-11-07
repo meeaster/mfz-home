@@ -15,10 +15,13 @@ export const Start = object({
   directory: string({ minLength: 1 }),
   prompt: string({ minLength: 1 }),
   agent: string().optional(),
-  // Without a model, the session uses the directory's configured default.
+  // Without a model, sessions use defaultModel: the OpenCode default here is a blocked free model.
   model: object({ providerID: string(), id: string(), variant: string().optional() }).optional(),
   title: string().optional(),
 });
+
+// Opus 5.5 through the Claude agent provider.
+export const defaultModel = { providerID: "claude-agent", id: "opus", variant: "medium" };
 
 export const SessionRef = object({ sessionID: string() });
 
@@ -71,7 +74,7 @@ export async function startSession(client: Client, input: Infer<typeof Start>) {
     await request(client, "POST", "/api/session", {
       location: { directory: input.directory },
       ...(input.agent === undefined ? {} : { agent: input.agent }),
-      ...(input.model === undefined ? {} : { model: input.model }),
+      model: input.model ?? defaultModel,
       ...(input.title === undefined ? {} : { title: input.title }),
     }),
     Created,

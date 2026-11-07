@@ -32,7 +32,7 @@ references:
 repos: [workspace-specs, personal-knowledge, personal-sources, personal-work]
 # Hand-written Executor apps from executor/apps/; deploy with mfz executor apply.
 executor:
-  apps: [opencode]
+  apps: [opencode, discord-mentions]
 extra_folders:
   - path: ~/workspace/worktrees
     group: knowledge-and-artifacts

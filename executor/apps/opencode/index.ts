@@ -70,7 +70,7 @@ function client(
 const start = mutation(
   {
     description:
-      "Start an OpenCode session in a directory with a prompt, using the default agent unless one is named. Returns immediately; read the reply with status, or use the run workflow to wait for it.",
+      "Start an OpenCode session in a directory with a prompt, using the default agent and Opus 5.5 (claude-agent/opus, medium) unless an agent or model is named. Returns immediately; read the reply with status, or use the run workflow to wait for it.",
     input: Start,
     output: SessionRef,
     // A session can edit files and run commands on this machine.
