@@ -4,11 +4,13 @@ servers:
     type: remote
     transport: http
     url: https://mcp.context7.com/mcp/oauth
+    opencode: { pool: true }
   shadcn:
     description: Official shadcn/ui registry MCP server.
     type: local
     transport: stdio
     command: [shadcn, mcp]
+    opencode: { pool: true, cwd: "~" }
   deepwiki:
     description: Repository documentation and implementation detail MCP.
     type: remote
@@ -19,6 +21,7 @@ servers:
     type: remote
     transport: http
     url: https://developers.openai.com/mcp
+    opencode: { pool: true }
   pinescript-docs:
     description: Pine Script documentation MCP server.
     type: local
@@ -33,6 +36,7 @@ servers:
     type: remote
     transport: http
     url: http://192.168.30.39:9583/{env:HA_MCP_SECRET_PATH}
+    opencode: { pool: true }
   paper:
     description: Paper.design visual HTML/CSS design canvas MCP server (Paper Desktop).
     type: remote
@@ -44,6 +48,7 @@ servers:
     transport: http
     # Served by executor.service; each agent signs in once through Executor's browser OAuth.
     url: http://127.0.0.1:4312/mcp
+    opencode: { pool: true }
   unifi-network:
     description: UniFi Network MCP server for managing the UniFi gateway, networks, clients, and firewall.
     type: local
@@ -51,11 +56,13 @@ servers:
     # Reads UNIFI_NETWORK_HOST, UNIFI_NETWORK_USERNAME, and UNIFI_NETWORK_PASSWORD from the inherited environment.
     # OpenCode's {env:...} syntax is not expanded by other harnesses, and Codex does not inherit them.
     command: [unifi-network-mcp]
+    opencode: { pool: true, cwd: "~" }
   x-docs:
     description: X API documentation search MCP server (hosted).
     type: remote
     transport: http
     url: https://docs.x.com/mcp
+    opencode: { pool: true }
   exa:
     description: Exa AI web search MCP server (web_search_exa, web_fetch_exa).
     type: remote
@@ -75,21 +82,25 @@ servers:
     type: remote
     transport: http
     url: https://agent.robinhood.com/mcp/trading
+    opencode: { pool: true }
   sentry:
     description: Sentry issue, event, and trace investigation MCP server.
     type: remote
     transport: http
     url: https://mcp.sentry.dev/mcp
+    opencode: { pool: true }
   cloudflare:
     description: Cloudflare API MCP server.
     type: remote
     transport: http
     url: https://mcp.cloudflare.com/mcp
+    opencode: { pool: true }
   cloudflare-docs:
     description: Cloudflare documentation MCP server.
     type: remote
     transport: http
     url: https://docs.mcp.cloudflare.com/mcp
+    opencode: { pool: true }
   browser-control:
     description: Browser Control MCP server for visible Chromium browser automation.
     type: local
@@ -101,6 +112,7 @@ servers:
     type: local
     transport: stdio
     command: [browse, mcp]
+    opencode: { pool: true, cwd: "~" }
   agent-browser:
     description: First-party browser automation MCP server for interaction, screenshots, and diagnostics.
     type: local
@@ -121,6 +133,7 @@ servers:
     type: remote
     transport: http
     url: http://127.0.0.1:29980/mcp
+    opencode: { pool: true }
   openpencil:
     description: OpenPencil design editor MCP server running in WSL.
     type: remote

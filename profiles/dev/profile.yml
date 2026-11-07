@@ -84,8 +84,9 @@ skills:
     agents: { opencode: false, claude-code: false, codex: false }
   windows-app-recording:
     agents: { opencode: true, claude-code: true, codex: false }
-  terminal-control:
-    agents: { opencode: true, claude-code: true, codex: true }
+  # Disabled for now; restore when terminal-control is needed again.
+  # terminal-control:
+  #   agents: { opencode: true, claude-code: true, codex: true }
   fframes-video:
     agents: { opencode: true, claude-code: true, codex: true }
   explainer-motion:
@@ -185,8 +186,10 @@ mcp:
     agents: [opencode, claude-code, codex]
   shadcn:
     agents: [opencode, claude-code, codex]
+  # Claude Code has no disabled state, so it is omitted rather than listed here.
   terminal-control:
-    agents: [opencode, claude-code, codex]
+    agents:
+      disabled: [opencode, codex]
   executor:
     agents: [opencode, claude-code, codex]
   # OpenCode gets the catalog tools from the Cairn plugin; Claude Code still needs the MCP server.

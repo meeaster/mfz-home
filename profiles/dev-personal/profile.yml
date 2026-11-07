@@ -75,7 +75,9 @@ mcp:
   discord:
     agents: [opencode]
   pencil:
-    agents: [opencode, claude-code, codex]
+    agents:
+      enabled: [claude-code]
+      disabled: [opencode, codex]
   openpencil:
     agents:
       enabled: [claude-code]
