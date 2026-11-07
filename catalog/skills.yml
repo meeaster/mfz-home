@@ -38,13 +38,12 @@ skills:
     description: >
       Shared engineering judgment for explicit requests or workflows that require
       Development Principles.
-  - name: pr-review
+  - name: change-review
     source: local
-    skill: skills/active/pr-review
+    skill: skills/active/change-review
     description: >
-      Perform holistic merge due diligence on an unfamiliar or unobserved pull
-      request by reconstructing intent, challenging requirement and architecture
-      fit, testing simplification, and assessing validation evidence.
+      Correctness review of a code change (bugs, security, and fit to its
+      intent) for your own work or someone else's contribution.
   - name: effect
     description: >
       Opinionated guide for building production TypeScript applications with
