@@ -77,7 +77,6 @@
   },
   "skills": {
     "slots": {
-      "code-review": "change-review",
       "simplify": "thermo-nuclear-code-quality-review",
       "interface-quality": "impeccable",
       "engineering-judgment": "development-principles",

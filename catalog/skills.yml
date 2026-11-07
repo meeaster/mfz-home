@@ -38,12 +38,6 @@ skills:
     description: >
       Shared engineering judgment for explicit requests or workflows that require
       Development Principles.
-  - name: change-review
-    source: local
-    skill: skills/active/change-review
-    description: >
-      Correctness review of a code change (bugs, security, and fit to its
-      intent) for your own work or someone else's contribution.
   - name: effect
     description: >
       Opinionated guide for building production TypeScript applications with

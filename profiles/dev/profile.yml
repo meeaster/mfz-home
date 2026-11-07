@@ -70,8 +70,6 @@ skills:
     agents: { opencode: true, claude-code: true, codex: true }
   development-principles:
     agents: { opencode: true, claude-code: true, codex: true }
-  change-review:
-    agents: { opencode: true, claude-code: true, codex: true }
   effect:
     agents: { opencode: true, claude-code: true, codex: true }
   shadcn:
