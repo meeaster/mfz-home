@@ -52,6 +52,12 @@ const opencode = defineProvider({
 // One shared account, so schedules and workflows can run without a caller.
 const requirements = { app: { accounts: { opencode } } };
 
+// OpenCode's mark, as its web UI serves it at /favicon.svg; the dark tile suits both themes.
+const icon = {
+  src: "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgZmlsbD0ibm9uZSI+PHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIGZpbGw9IiMxMzEwMTAiLz48cGF0aCBkPSJNMzIwIDIyNFYzNTJIMTkyVjIyNEgzMjBaIiBmaWxsPSIjNUE1ODU4Ii8+PHBhdGggZmlsbC1ydWxlPSJldmVub2RkIiBjbGlwLXJ1bGU9ImV2ZW5vZGQiIGQ9Ik0zODQgNDE2SDEyOFY5NkgzODRWNDE2Wk0zMjAgMTYwSDE5MlYzNTJIMzIwVjE2MFoiIGZpbGw9IndoaXRlIi8+PC9zdmc+",
+  mimeType: "image/svg+xml",
+};
+
 function client(
   ctx:
     | QueryContext<typeof requirements, "app">
@@ -117,7 +123,7 @@ const run = workflow(
   },
 );
 
-export default defineApp(requirements, {
+export default defineApp({ ...requirements, icons: [icon] }, {
   tools: router(
     { start, status },
     {
