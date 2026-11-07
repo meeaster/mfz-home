@@ -1,16 +1,14 @@
 ["browse:install"]
-description = "Install or repair the Browse binary and link it as ~/.local/bin/browse; the relay updates it after that"
+description = "Install or repair the Browse binary at ~/.local/bin/browse; the relay updates it after that"
 run = '''
 #!/usr/bin/env bash
 set -euo pipefail
 
-# mfz renders the agent MCP configs and .zshrc, so the installer must not edit either. Pairing with Windows Chrome
-# is a separate `browse pair`, because install cannot find a Windows browser from WSL.
-curl -fsSL https://opencode.ai/browse/install | bash -s -- --agent none --no-modify-path --no-open --no-wait
+# The installer writes the binary to ~/.local/bin/browse. --no-setup skips `browse install`, which would edit the agent
+# MCP configs and .zshrc that mfz renders. Pairing with Windows Chrome is a separate `browse pair`, because setup
+# cannot find a Windows browser from WSL.
+curl -fsSL https://opencode.ai/browse/install | bash -s -- --no-setup
 
-# Auto-update replaces ~/.browse/bin/browse in place, so the link stays valid.
-mkdir -p "$HOME/.local/bin"
-ln -sfn "$HOME/.browse/bin/browse" "$HOME/.local/bin/browse"
-echo "browse: $(browse --version) linked at ~/.local/bin/browse"
+echo "browse: $(browse --version) at $(command -v browse)"
 echo "browse: if Chrome is not paired yet, add Browse from the Chrome Web Store and run 'browse pair'"
 '''

@@ -144,7 +144,7 @@ When the current plan enables chart-data export:
 
 Export includes loaded plotted indicator values, not arbitrary internal Pine
 variables. Add an explicitly authorized validation plot when a needed value is
-not exposed. Browser Control's extension-backed tabs cannot use Playwright download artifacts. Use a supported payload exposed by the entitled export, or have the human save the file and provide its path. Do not substitute internal extraction for a disabled export control.
+not exposed. Browse's extension-backed tabs cannot use Playwright download artifacts. Use a supported payload exposed by the entitled export, or have the human save the file and provide its path. Do not substitute internal extraction for a disabled export control.
 
 ## Loaded Study Rows
 

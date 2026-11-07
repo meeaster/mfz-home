@@ -34,8 +34,8 @@ The technical-blog skill carries a portable copy of the decided system for agent
 
 ## How to verify
 
-- Look at diagrams in Mark's **Windows Chrome** through Browser Control, or in WSL's headless Chromium (agent-browser), which has had the real fonts since 2026-10-24: Segoe UI, Segoe Print, Arial, Palatino Linotype, Georgia and Consolas are copied from `C:\Windows\Fonts` into `~/.local/share/fonts/windows`. Kalam loads from the page. Never call `page.setViewportSize` on his tab (it sticks; undo with `Emulation.clearDeviceMetricsOverride`). Screenshot with `scale: 'css'`.
-- Screenshots: `page.bringToFront()` first (a background tab never paints, so screenshots time out), `page.mouse.move(1, 1)` so Browser Control's drawn cursor stays out of the clip, and `fullPage: true` with a clip in page coordinates (a plain clip stops at the viewport). Its session pill sits at the right edge of full-page shots; crop to the content column.
+- Look at diagrams in Mark's **Windows Chrome** through Browse, or in WSL's headless Chromium (agent-browser), which has had the real fonts since 2026-10-24: Segoe UI, Segoe Print, Arial, Palatino Linotype, Georgia and Consolas are copied from `C:\Windows\Fonts` into `~/.local/share/fonts/windows`. Kalam loads from the page. Never call `page.setViewportSize` on his tab (it sticks; undo with `Emulation.clearDeviceMetricsOverride`). Screenshot with `scale: 'css'`.
+- Screenshots: use `fullPage: true` with a clip in page coordinates (a plain clip stops at the viewport).
 - Large `feTurbulence` filter regions (3000×3000 per shape) stall Chrome; keep filter regions to the diagram's bounds.
 - When proposing a change to Mark, show it before and after. The design file itself documents the system as it is: examples in each format, no before/after pairs. The overlap check runs on every diagram.
 

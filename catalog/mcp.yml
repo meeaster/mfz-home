@@ -101,11 +101,6 @@ servers:
     transport: http
     url: https://docs.mcp.cloudflare.com/mcp
     opencode: { pool: true }
-  browser-control:
-    description: Browser Control MCP server for visible Chromium browser automation.
-    type: local
-    transport: stdio
-    command: [browser-control-mcp]
   # `mise run browse:install` installs the binary; its relay auto-updates it in place.
   browse:
     description: Browse MCP server for driving the user's Chromium browser through the Browse extension.

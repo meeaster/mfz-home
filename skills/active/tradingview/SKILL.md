@@ -3,12 +3,12 @@ name: tradingview
 description: >
   TradingView browser operations. Use when interacting with TradingView charts,
   layouts, indicators, the Data Window, Pine editor, alerts, shared or private
-  watchlists, chart-data exports, or loaded study values through Browser Control.
+  watchlists, chart-data exports, or loaded study values through Browse.
 ---
 
 # TradingView
 
-This is a TradingView field guide layered on `browser-control`. Load that skill before browser operations; it owns execution, session attachment, authentication handoffs, and recovery. This skill owns TradingView routes and account-state boundaries.
+This is a TradingView field guide layered on Browse. Call the `browse` MCP `skill` tool before browser operations; its guide owns execution, session attachment, authentication handoffs, and recovery. This skill owns TradingView routes and account-state boundaries.
 
 ## Workflow
 
@@ -95,7 +95,7 @@ This is a TradingView field guide layered on `browser-control`. Load that skill 
 
 - Keep credentials, cookies, auth tokens, Chrome profiles, and private account
   data out of commands, logs, screenshots, fixtures, and skill files.
-- The human completes identity-provider login and security prompts through Browser Control's supported handoff. Verify the intended account and chart after the handoff.
+- The human completes identity-provider login and security prompts through Browse's supported handoff. Verify the intended account and chart after the handoff.
 - Preserve the user's active layout. Do not switch layouts, apply templates, or
   save incidental panel and chart changes without authority.
 - Treat symbol and timeframe changes as potentially persistent. Use a copy or

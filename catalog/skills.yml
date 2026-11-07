@@ -450,14 +450,6 @@ skills:
     repo: https://github.com/vercel-labs/agent-browser
     ref: main
     subtree: skills/agent-browser
-  - name: browser-control
-    description: >
-      Drive the user's existing Chromium-family browser with deterministic
-      Playwright, including authenticated browser workflows and human handoffs.
-    source: tool
-    tool: npm:@opencode-ai/browser-control
-    repo: https://github.com/anomalyco/browser-control
-    subtree: skills/browser-control
   - name: terminal-control
     description: >
       Drive and verify terminal applications with the termctrl CLI in a real PTY.
