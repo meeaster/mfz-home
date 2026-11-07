@@ -1,0 +1,9 @@
+{
+  "name": "@mfz/discord-relay",
+  "private": true,
+  "type": "module",
+  "description": "Holds a Discord Gateway connection and forwards matching messages to an Executor webhook.",
+  "scripts": {
+    "start": "node main.ts"
+  }
+}

@@ -1,0 +1,23 @@
+[Unit]
+Description=Discord Gateway relay to the discord-mentions Executor webhook
+After=network-online.target executor.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=%h/workspace/repos/mfz-home/relays/discord
+Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# #opencode in the chewy-notifications server, and the owner whose mentions are forwarded.
+Environment=DISCORD_RELAY_CHANNEL_ID=1550738885615554621
+Environment=DISCORD_RELAY_OWNER_ID=94119099977695232
+# The relay webhook subscription on this machine's Executor (mfz executor apply recreates it per machine).
+Environment=DISCORD_RELAY_URL=http://localhost:4312/api/webhooks/app_b66e2d29-4b9b-432a-9ef9-f115337b2b3b/whk_41ee2d53-49a8-468d-a9ad-13df3b3922dc
+# DISCORD_BOT_TOKEN and DISCORD_RELAY_SECRET come from the secrets file; the relay starts with only
+# these variables.
+ExecStart=/usr/bin/zsh -c 'channel="$DISCORD_RELAY_CHANNEL_ID"; owner="$DISCORD_RELAY_OWNER_ID"; url="$DISCORD_RELAY_URL"; fixed_home="$HOME"; fixed_path="$PATH"; source "$HOME/.mindframe-z/secrets/zsh.env"; exec /usr/bin/env -i HOME="$fixed_home" PATH="$fixed_path" DISCORD_RELAY_CHANNEL_ID="$channel" DISCORD_RELAY_OWNER_ID="$owner" DISCORD_BOT_TOKEN="${DISCORD_BOT_TOKEN:-}" DISCORD_RELAY_URL="$url" DISCORD_RELAY_SECRET="${DISCORD_RELAY_SECRET:-}" %h/.local/share/mise/shims/node main.ts'
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target

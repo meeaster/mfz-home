@@ -9,6 +9,7 @@ packages:
   # Executor apps install here only for type checking; Executor builds them itself.
   - executor/apps/*
   - mcp/*
+  - relays/*
   - opencode/plugins/active/*
   - opencode/plugins/in-progress/*
 minimumReleaseAge: 4320
