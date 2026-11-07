@@ -1,7 +1,7 @@
 import { array, boolean, decodeJson, json, object, record, string, type Infer } from "apps";
 
-// The local OpenCode background service. Its port follows the release channel, so it is stable;
-// its password is random per start unless set with `opencode service set password`.
+// The local OpenCode background service. Its port follows the release channel, and its password
+// is saved in the service config, so both survive restarts (`opencode service get password`).
 export const origin = "http://127.0.0.1:49374";
 export const host = "127.0.0.1:49374";
 
