@@ -18,7 +18,6 @@ import {
   messagesAfter,
   me,
   post,
-  react,
   threadOn,
   typing,
   type Discord,
@@ -79,13 +78,7 @@ const reply = workflow(
     // Creating a thread or a session twice would duplicate it, so these steps never retry.
     const once = { retries: { limit: 0, delay: "1 second" } } as const;
 
-    // 👀 on the mention says it was picked up; the thread shows "typing…" while OpenCode works.
-    await step.do("seen", async (ctx) => {
-      await react(discordClient(ctx), channelID, mention.messageID, "👀", true);
-
-      return null;
-    });
-
+    // The thread shows "typing…" from creation until the reply, renewed by each check below.
     const threadID = await step.do("thread", once, async (ctx) => {
       const discord = discordClient(ctx);
       const thread = await threadOn(discord, channelID, mention.messageID, mention.prompt || "OpenCode");
@@ -94,17 +87,6 @@ const reply = workflow(
 
       return thread;
     });
-
-    // Swaps 👀 for the final mark once the thread has its answer.
-    const finish = (mark: string) =>
-      step.do(`finish ${mark}`, async (ctx) => {
-        const discord = discordClient(ctx);
-
-        await react(discord, channelID, mention.messageID, "👀", false);
-        await react(discord, channelID, mention.messageID, mark, true);
-
-        return null;
-      });
 
     const { sessionID } = await step.do("session", once, async (ctx) =>
       startSession(opencodeClient(ctx), {
@@ -137,7 +119,6 @@ const reply = workflow(
 
         return null;
       });
-      await finish(result.outcome === "succeeded" ? "✅" : "❌");
 
       return null;
     }
@@ -151,7 +132,6 @@ const reply = workflow(
 
       return null;
     });
-    await finish("⏳");
 
     throw new NonRetryableError(`OpenCode session ${sessionID} was still running after thirty minutes`);
   },

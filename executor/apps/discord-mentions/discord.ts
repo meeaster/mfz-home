@@ -70,29 +70,6 @@ export async function typing(discord: Discord, channelID: string) {
   await request(discord, "POST", `/channels/${channelID}/typing`).catch(() => undefined);
 }
 
-// Adds or removes the bot's own reaction on a message. Cosmetic, so a failure never stops the caller.
-export async function react(
-  discord: Discord,
-  channelID: string,
-  messageID: string,
-  emoji: string,
-  present: boolean,
-) {
-  const path = `/channels/${channelID}/messages/${messageID}/reactions/${encodeURIComponent(emoji)}/@me`;
-
-  // Discord allows about one reaction change per quarter second, so a swap's second call often gets
-  // 429; wait the time it asks for and try again.
-  for (let attempt = 0; attempt < 3; attempt += 1) {
-    const response = await request(discord, present ? "PUT" : "DELETE", path).catch(() => undefined);
-
-    if (response?.status !== 429) return;
-
-    const wait = Number(response.headers.get("retry-after") ?? "1");
-
-    await new Promise((resolve) => setTimeout(resolve, Math.min(Math.max(wait, 0.25), 5) * 1000));
-  }
-}
-
 // Posts Markdown as Discord renders it, in as many messages as its length limit needs, without
 // pinging anyone.
 export async function post(discord: Discord, channelID: string, markdown: string) {
