@@ -39,6 +39,7 @@ references:
   - openspec
   - openevals
   - mise
+  - executor
   - mattpocock-skills
   - codex
   - openai-skills
@@ -185,6 +186,8 @@ mcp:
   shadcn:
     agents: [opencode, claude-code, codex]
   terminal-control:
+    agents: [opencode, claude-code, codex]
+  executor:
     agents: [opencode, claude-code, codex]
   # OpenCode gets the catalog tools from the Cairn plugin; Claude Code still needs the MCP server.
   cairn:

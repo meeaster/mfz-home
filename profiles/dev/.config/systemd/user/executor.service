@@ -1,0 +1,19 @@
+[Unit]
+Description=Executor 2 background server
+After=network.target
+
+[Service]
+Type=simple
+Environment=HOME=%h
+Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# mise owns the installed version, so Executor must not suggest its own upgrades.
+Environment=EXECUTOR_NO_UPDATE_CHECK=1
+# Machine-local settings, such as EXECUTOR_BROWSER_ORIGIN for a Tailscale Serve HTTPS address.
+EnvironmentFile=-%h/.config/executor.env
+# Schedules, triggers, and workflow queues only run while this process is up.
+ExecStart=%h/.local/share/mise/shims/executor serve
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

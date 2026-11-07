@@ -38,6 +38,12 @@ servers:
     type: remote
     transport: http
     url: http://127.0.0.1:29979/mcp
+  executor:
+    description: Executor 2 local server, which runs apps, schedules, triggers, and workflows over connected accounts.
+    type: remote
+    transport: http
+    # Served by executor.service; each agent signs in once through Executor's browser OAuth.
+    url: http://127.0.0.1:4312/mcp
   unifi-network:
     description: UniFi Network MCP server for managing the UniFi gateway, networks, clients, and firewall.
     type: local

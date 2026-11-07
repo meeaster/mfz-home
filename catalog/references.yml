@@ -24,6 +24,12 @@ references:
     group: agent-tooling
     summary: Mise
     signals: [mise, tool versions, tasks]
+  - name: executor
+    url: https://github.com/UsefulSoftwareCo/executor.git
+    description: "TypeScript/Bun monorepo for Executor 2, a local server that runs apps with providers, accounts, schedules, webhooks, and workflows behind one MCP endpoint. Inspect it for app authoring, the CLI and background service, the local management API, or MCP endpoint and OAuth behavior. Entrypoints: apps/local/server, apps/docs/content."
+    group: agent-tooling
+    summary: Executor
+    signals: [Executor, Executor apps, schedules and workflows]
   - name: mattpocock-skills
     url: https://github.com/mattpocock/skills.git
     description: "Shell/Markdown collection of composable AI engineering skills. Inspect it for repeatable workflows covering requirements, domain terminology, test-driven development, debugging, review, architecture, triage, handoff, or other agent practices."
