@@ -98,7 +98,5 @@ opencode:
       logTurns: true
   config:
     agents:
-      compaction:
-        model: openai/gpt-6-luna#max
       title:
         model: openai/gpt-6-luna
