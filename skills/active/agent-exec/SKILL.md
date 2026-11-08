@@ -53,13 +53,15 @@ Nested subagents are limited to depth 1 by default, but the limit and permission
 
    Capture the final answer and the session/thread handle. Machine-readable CLI output may be an event stream rather than a single result object; extract the final assistant text and handle instead of treating the raw stream as the answer. Done when the result, handle, and continuation command are visible; keep raw event streams, logs, or exports as verification evidence rather than the default user-facing output.
 
-7. Clean up disposable sessions.
+7. Clean up test sessions.
 
-   After capturing the required evidence, delete sessions created solely for a test or probe. Keep handles the user asked to continue or that are the requested deliverable. Use the harness's individual-session deletion mechanism when available; otherwise report the retained handle and why it could not be deleted. Done when every disposable handle captured in step 6 is deleted or reported as retained.
+   Sessions created only for a test, probe, eval, or benchmark come out of the user's session history once their evidence is captured, using the cleanup command in the harness reference. Keep handles the user asked to continue or that are the requested deliverable.
+
+   For a scripted batch, have the runner record every session handle it launches, such as in a manifest beside its outputs, and clean them up once grading or analysis that reads the transcripts is finished. Cleanup is part of finishing the batch, not a later chore. Done when every test handle from this run or batch is cleaned up or reported as retained with the reason.
 
 8. Report the result.
 
-   Return the target agent's useful output, any retained handle, and its exact continuation command. For deleted test/probe sessions, report the cleanup instead. Do not paste the full trace unless the user asked for it or the trace is needed to explain a failure. If the target made edits, report changed files and any verification it ran or skipped.
+   Return the target agent's useful output, any retained handle, and its exact continuation command. For cleaned-up test sessions, report the cleanup instead. Do not paste the full trace unless the user asked for it or the trace is needed to explain a failure. If the target made edits, report changed files and any verification it ran or skipped.
 
 ## Nested Harness Caveats
 

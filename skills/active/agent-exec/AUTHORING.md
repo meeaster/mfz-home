@@ -18,6 +18,7 @@ Success: the named harness runs with the requested model, effort, and permission
 - **Clean-room run** without the user's config or project config: works with the user's existing logins, keeps the same environment for continuation.
 - **Cross-harness chains**: Claude Code calling OpenCode or Codex, and Codex calling the others.
 - **Background or scripted run**: completes or fails on its own instead of waiting on stdin.
+- **Scripted batch or benchmark**: a runner that launches dozens of sessions records their handles and cleans them up once grading is done, rather than leaving them in the user's history.
 
 ## Decisions
 
@@ -28,7 +29,10 @@ Success: the named harness runs with the requested model, effort, and permission
 - **Say that CLI runs start the target's primary agent** (human, 2026-07-09). Agents described them as subagents.
 - **Return only the final answer and handle** (human, 2026-07-09). Early runs streamed every step back into the parent's context.
 - **Don't restrict tools by default.** A test with `--tools ""` couldn't load the Claude Code docs skill it needed (2026-07-09).
-- **Delete disposable test sessions** (human, 2026-07-10), so probes don't mix into the human's real session history.
+- **Clean up test sessions** (human, 2026-07-10), so probes don't mix into the human's real session history.
+- **Archive OpenCode test sessions instead of deleting them** (human, 2026-11-07). About 3,900 test sessions had piled up, most from scripted benchmark runners (such as a `run.mjs` spawning `opencode run --standalone`) whose transcripts were needed for grading after the run, so per-probe deletion never fired. Archiving hides them while keeping the evidence and is reversible.
+- **Batch runners record handles and clean up at the end of the batch** (2026-11-07). The per-handle cleanup step only covered single probes; batches had no point at which cleanup was due.
+- **Archive OpenCode subagent sessions separately.** Archiving a parent left all 244 of its subagent sessions unarchived (observed on `v2.2.6`, 2026-11-07).
 - **Clean room means redirected state plus copied auth, not a container** (human, 2026-07-14). The goal is an easy local run that reuses existing logins without API keys. It isn't a security boundary.
 - **Harness references aren't named `CLAUDE.md`, `OPENCODE.md`, or `CODEX.md`** (2026-07-14). Harnesses load files with those names as instructions.
 - **Portable** (human, 2026-09-12). Usable by a coworker without this setup: no references to Mindframe-Z, say "a temporary directory" rather than a path. Guide and nudge; don't script tool use the model already handles.
@@ -38,7 +42,7 @@ Success: the named harness runs with the requested model, effort, and permission
 
 | Source | Revision | Local use |
 |---|---|---|
-| OpenCode V2 source and [docs](https://opencode.ai/v2/docs) | source `7c5a4d01` (`v2.0.2`); stdin and `serve` behavior rechecked on `v2.0.26`, 2026-10-10 | `references/opencode.md`, `references/opencode-reload.md`. The reload claims carry no pinned source revision; verify them against source on the next version refresh |
+| OpenCode V2 source and [docs](https://opencode.ai/v2/docs) | source `7c5a4d01` (`v2.0.2`); stdin and `serve` behavior rechecked on `v2.0.26`, 2026-10-10; session archive API (`PATCH archived`, `parentID` listing) checked on `v2.2.6`, 2026-11-07 | `references/opencode.md`, `references/opencode-reload.md`. The reload claims carry no pinned source revision; verify them against source on the next version refresh |
 | [Claude Code CLI](https://code.claude.com/docs) and model docs | read 2026-07-09, rechecked 2026-10-10 | `references/claude-code.md` |
 | Codex CLI ([OpenAI docs](https://developers.openai.com/codex)) | read 2026-07-09 | `references/codex.md` |
 | [openai/codex-plugin-cc](https://github.com/openai/codex-plugin-cc) | studied 2026-07-09 | Background for the context-packet and handle design; not adopted |

@@ -41,11 +41,17 @@ Use default output when only the final answer is needed. When stdout is not a TT
 
 JSON output is an event stream, not one result object. Every event includes `sessionID`; the useful answer is usually the final `text` event's `part.text`. Return that text plus `sessionID`. If the child answer itself must be JSON, require it in the context packet and validate the final text.
 
-Delete a disposable test or probe session after capturing its evidence:
+## Cleanup
+
+Archive a test session after capturing its evidence. Archiving hides it from session lists but keeps the transcript for later grading or session archaeology, and `{"archived":false}` restores it. Delete only when the user asks.
 
 ```bash
-opencode session delete <sessionID>
+opencode api patch /api/session/<sessionID> -d '{"archived":true}'
 ```
+
+Subagent sessions stay unarchived when their parent is archived. List each session's children with `opencode api get "/api/session?parentID=<sessionID>"` and archive them recursively.
+
+Unless the clean-room XDG roots are set, `--standalone` and `--server` runs write to the normal session database, so their sessions need the same cleanup. Clean-room sessions live under the clean root and go away with it.
 
 ## Multi-Turn Session Tests
 
@@ -62,7 +68,7 @@ until curl -s -o /dev/null -m 2 "$url/"; do sleep 0.5; done
 opencode run --server "$url" --format json --title "<title>" --model <provider/model#variant> "<turn 1>" </dev/null
 opencode run --server "$url" --session <sessionID> --format json "<turn 2>" </dev/null
 
-opencode session delete --server "$url" <sessionID> </dev/null
+opencode api --server "$url" patch /api/session/<sessionID> -d '{"archived":true}' </dev/null
 kill "$server_pid"
 ```
 
