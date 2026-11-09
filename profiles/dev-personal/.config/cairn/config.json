@@ -69,7 +69,7 @@
       "reviewer/code": "terra-xhigh",
       "reviewer/code-deep": "deep",
       "reviewer/contribution": "deep",
-      "implementer/plan": "deep",
+      "planner": "deep",
       "inspector/investigate": "terra",
       "operator": "terra-medium",
       "writer": "terra",
