@@ -40,53 +40,41 @@ extra_folders:
     signals: [Git worktree, isolated implementation, prototype]
     description: "Disposable Git worktrees for isolated project work across workspace repositories."
 skills:
-  session-brief:
-    agents: { opencode: false, claude-code: false, codex: false }
-  session-derived-knowledge:
-    agents: { opencode: false, claude-code: false, codex: false }
-  effect:
-    agents: { opencode: true, claude-code: true, codex: true }
-  tradingview:
-    agents: { opencode: true, claude-code: true, codex: true }
-  xurl:
-    agents: { opencode: false, claude-code: false, codex: false }
-  home-assistant-best-practices:
-    agents: { opencode: false, claude-code: false, codex: false }
   open-pencil:
-    agents: { opencode: true, claude-code: true, codex: false }
-  open-pencil-design:
-    agents: { opencode: false, claude-code: false, codex: false }
-  open-pencil-drive:
-    agents: { opencode: true, claude-code: true, codex: false }
+    agents: { opencode: true, claude-code: false, codex: false }
   agent-desktop:
-    agents: { opencode: true, claude-code: true, codex: true }
+    agents: { opencode: true, claude-code: false, codex: false }
+
 mcp:
   x-docs:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode]
+  executor-lab:
+    agents: [opencode]
   homeassistant:
-    agents: [opencode, claude-code]
+    agents: [opencode]
   unifi-network:
-    agents: [opencode, claude-code]
+    agents: [opencode]
   robinhood:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode]
   sentry:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode]
   cloudflare:
-    agents: [opencode, claude-code, codex]
+    agents: [opencode]
   cloudflare-docs:
-    agents: [opencode, claude-code, codex]
-  pencil:
-    agents:
-      enabled: [claude-code]
-      disabled: [opencode, codex]
-  openpencil:
-    agents:
-      enabled: [claude-code]
-      disabled: [opencode]
+    agents: [opencode]
 claude:
   settings:
     permissions:
       defaultMode: auto
+    syncClaudeAiSkills: false
+    env:
+      ENABLE_CLAUDEAI_MCP_SERVERS: "false"
+    enabledPlugins:
+      plannotator@plannotator: false
+codex:
+  plugins:
+    "github@openai-curated":
+      enabled: false
 opencode:
   plugins:
     - optchat

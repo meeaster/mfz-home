@@ -12,6 +12,9 @@
 - **Tool:** Pass a task-specific `session` name on each browser tool call.
 - **Behavior:** Use an independently launched headless browser for frontend verification unless a visible browser is needed.
 - **Behavior:** Verify UI interactions through the rendered controls even when the page offers equivalent WebMCP actions.
+- **Tool:** When Code Mode's `execute` is available, look at the page first if you need to, then run each check's whole flow as one script of Agent Browser calls: act through the rendered controls, assert the page and the stored state after each step, and return only the check's pass or fail with short details. Calls inside the script don't pass through the model, so a whole flow costs one tool call instead of one per click.
+- **Behavior:** Have the script return what it observed before a step fails; fix the script and run that flow again.
+- **Behavior:** Clear an input as a user would, by selecting all and pressing Backspace; an empty `fill` doesn't fire the page's change events.
 
 ## Local frontend servers
 

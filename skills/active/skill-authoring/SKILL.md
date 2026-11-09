@@ -48,7 +48,7 @@ Skills are meant to work on any machine and in any supported harness. Everything
 
 Writing for Agents covers most of this. Local preferences:
 
-- Use prose for context and rationale, bullets for independent rules, tables for comparisons, and numbered steps only where order matters.
+- Write each rule that changes what the agent does as its own bullet, led by a short bold phrase naming the behavior, with its condition and reason after, so a reader can see what each line makes the agent do. Keep prose for a section's context and rationale, tables for comparisons, and numbered steps only where order matters.
 - Preserve concrete meaning when shortening; don't compress a criterion into a keyword that hides it.
 - Treat claims about prompting mechanics (negation, capitals, step hiding) as model-dependent, not settled.
 - For each line, ask whether the agent would get the task wrong without it. If not, cut it; don't add handling for edge cases nobody raised.

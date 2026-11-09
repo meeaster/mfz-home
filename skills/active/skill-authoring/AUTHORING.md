@@ -19,6 +19,7 @@ Success: a future author, possibly on a cheaper model, can make a relevant chang
 
 ## Decisions
 
+- **Rules are bold-led bullets, one behavior each** (human, 2026-11-08). Rewriting Cairn's `orchestrate` skill from paragraphs into bullets that each name the behavior they change made it easier for the human to read and to see what the skill does; long paragraphs hid which line changed which behavior.
 - **One `AUTHORING.md` inside each skill directory** (human, 2026-10-11). Seven files per skill was overhead, and records in a separate Personal repository couldn't serve work skills. Keeping it in the skill makes the record portable; the cost is that it ships with the skill, which is harmless because harnesses load only `SKILL.md`.
 - **`skill-creator` drives creation and testing** (human, 2026-10-11). It's maintained by Anthropic and has the strongest evaluation loop, so this skill layers on top instead of competing. Trials showed it doesn't load on its own once this skill is invoked, hence the explicit load instruction.
 - **Scenarios stay in the record; runnable evals live in `evals/evals.json`** (human, 2026-10-11). Some scenarios are too broad to run directly and can only be approximated by scoped-down evals, so the two can't be merged. Run outputs stay out of the skill.

@@ -4,14 +4,14 @@
 
 Lets an agent in WSL record smooth video of a Windows desktop app, and drive it while recording: Chromium-based apps (Electron, WebView2) over CDP, terminal apps in Windows Terminal through `termctrl`. Grew out of recording OpenPencil and OpenCode Desktop for a presentation, then OpenCode's TUI so it looks as it does in the user's terminal, then the TUI, web, and desktop clients side by side on one session; smoothness and faithful appearance are the priorities.
 
-Not for: recording web pages in a normal browser (agent-browser's own recording covers that), terminal recordings where termctrl's own renderer is acceptable (`termctrl video`), app-specific choreography (that lives in skills like `open-pencil-drive`), or editing the video afterwards.
+Not for: recording web pages in a normal browser (agent-browser's own recording covers that), terminal recordings where termctrl's own renderer is acceptable (`termctrl video`), app-specific choreography (that belongs in app-specific skills), or editing the video afterwards.
 
 Success: a finished MP4 of just the app window (or, for several apps, the whole monitor with each app in its own cell) with every display frame captured, started and stopped around the agent's other work, and checked by counting distinct frames and looking at extracted frames.
 
 ## Scenarios
 
 - **"Record OpenCode Desktop while I demo a session"**: launches with a debug port only if driving is needed, records the window with `record-window.sh`, stops cleanly, reports distinct fps.
-- **"Make a video of an agent building something in OpenPencil"**: this skill supplies launch, relay, and capture; `open-pencil-drive` supplies the camera and build.
+- **"Make a video of an agent building something in OpenPencil"**: this skill supplies launch, relay, and capture; the agent drives the camera and build itself.
 - **App already running without debugging**: asks the user to quit it instead of killing it.
 - **Port 9222 taken** (a leftover `netsh portproxy` rule held it here): picks another port instead of adding forwarding rules.
 - **"Record OpenCode in my terminal"**: opens a dedicated fullscreen Windows Terminal window under `termctrl run`, records it with `--title` and `--screen`, drives it with `termctrl`; leaves the user's other terminal windows alone.
@@ -21,7 +21,7 @@ Success: a finished MP4 of just the app window (or, for several apps, the whole 
 
 ## Decisions
 
-- **Two skills** (human, 2026-10-13): generic Windows-app capture here, OpenPencil choreography in `open-pencil-drive`, so OpenCode Desktop and later apps reuse this one.
+- **Two skills** (human, 2026-10-13): generic Windows-app capture here, OpenPencil choreography in `open-pencil-drive`, so OpenCode Desktop and later apps reuse this one. `open-pencil-drive` was removed on 2026-11-08.
 - **Windows ffmpeg `ddagrab` is the default capture** (human chose smoothness, 2026-10-13). Measured on the same overlay that changes every frame: ddagrab 60 distinct fps on OpenCode Desktop (3202x2002) and OpenPencil (3840x2160 desktop); agent-browser `record` about 27-29 fps on OpenCode Desktop and about 15 on OpenPencil; `gdigrab` captured a blank white WebView2 window.
 - **Stop through a named pipe** (2026-10-13): ffmpeg finalizes the MP4 on `q`; killing it from WSL leaves no moov atom. A held-open FIFO lets `start` and `stop` run as separate commands while the agent works in between.
 - **Whole window by default, `--region` on request** (human, 2026-10-13): the original take stays complete for editing; a partial capture is for when the user explicitly wants one area. The frame is trimmed to the monitor work area after a take showed the taskbar.

@@ -12,6 +12,10 @@
         "opencode": "openai/gpt-6-luna#high",
         "claude-code": "haiku"
       },
+      "fast-medium": {
+        "opencode": "openai/gpt-6-luna#medium",
+        "claude-code": "haiku"
+      },
       "fast-sonnet": {
         "opencode": "openai/gpt-6-luna#high",
         "claude-code": "sonnet"
@@ -70,8 +74,8 @@
       "operator": "terra-medium",
       "writer": "terra",
       "inspector/browser": "terra-medium",
-      "operator/publish": "fast",
-      "operator/watch": "fast",
+      "operator/publish": "fast-medium",
+      "operator/watch": "fast-medium",
       "operator/deploy": "fast"
     }
   },

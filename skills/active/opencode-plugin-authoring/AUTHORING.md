@@ -2,11 +2,11 @@
 
 ## Intent
 
-Give agents building, migrating, debugging, or reviewing OpenCode server and native TUI plugins a rough map and the gotchas they'd otherwise hit. The official docs are the API source, and agents are expected to read the OpenCode source for anything beyond them; the skill only points the way.
+Give agents building, migrating, debugging, or reviewing OpenCode server, native TUI, and desktop GUI plugins a rough map and the gotchas they'd otherwise hit. The official docs are the API source, and agents are expected to read the OpenCode source for anything beyond them; the skill only points the way.
 
 Not for: restating the docs, maintaining V1 plugins beyond a requested migration, MCP servers, slash commands, or generic Bun plugins.
 
-Success: the agent reads the docs and source rather than the skill for API detail, avoids each listed gotcha, and proves the plugin works in a fresh server or visible TUI while unrelated services stay healthy.
+Success: the agent reads the docs and source rather than the skill for API detail, avoids each listed gotcha, and proves the plugin works in a fresh server, a visible TUI, or a rendered desktop panel while unrelated services stay healthy.
 
 ## Scenarios
 
@@ -18,6 +18,9 @@ Success: the agent reads the docs and source rather than the skill for API detai
 - **Add a YAML parser** to a plugin whose URL points into a source checkout: declares it in that plugin's own package and leaves the shared config-directory manifest alone.
 - **TUI plugin listed in `/plugins` but never renders**: verifies a visible slot instead of trusting status.
 - **Stable CLI upgrade**: moves the plugin to the `latest` `@opencode/plugin` release, never a beta.
+- **Desktop panel from a WSL repository, app on Windows**: registers the plugin in the Windows config, loads it from a Windows folder the build copies into, and proves the panel renders and reloads over CDP.
+- **Desktop panel reading data from its server plugin**: calls the plugin's RPC through the session's server client with the session's location, and keeps only its own location's events.
+- **Plugin edit spread over several files stops reloading**: finds `failed to load plugin` in the server log and restarts the service instead of re-editing.
 
 ## Decisions
 
@@ -28,12 +31,14 @@ Success: the agent reads the docs and source rather than the skill for API detai
 - **A visible-slot render is the TUI completion gate.** An unconsumed test config once produced silent built-ins-only false negatives, and compilation or "active" status doesn't prove rendering.
 - **Omit absent optional fields** (2026-08-21). A present `undefined` failed the host schema on reload and took down model-catalog initialization; `/api/model` is the cross-service probe after reload.
 - **Exclude plugin-owned sessions from event handlers** (2026-08-26). An advisor plugin reviewed its own top-level review session and started recursive generations; `parentID` checks don't catch top-level sessions.
+- **Desktop GUI loading and verification** (human-requested, 2026-11-07). Building Cairn's first desktop panel, the plugin sat in the WSL config, which the Windows app's sidecar never reads; then, registered by `\\wsl.localhost` path, it loaded but never reloaded after rebuilds. Copying the build to a Windows folder fixed reloads. The docs say GUIs load from the app's own server and rebuilds reload; they don't say which machine's config that is, or how to verify a render. Settled by checking the sidecar's `/api/plugin` and reading the panel's DOM over CDP.
+- **Server plugin runtime, per-location instances, and stuck reloads** (human-requested, 2026-11-07). Building Cairn's tracks RPC: running the tracks script with `process.execPath` ran the `opencode` binary instead of Node; one file write produced 20 RPC events, one per location instance; and a reload during a multi-file edit cached a stale module, so later reloads failed until `opencode service restart`. The panel reached the WSL server's RPC through the session's `server.client`, since `ctx.client` is the Windows sidecar.
 - **Resolve dependencies from the entrypoint, not the shared config manifest** (human, 2026-09-24). Plugins had declared dependencies in the OpenCode config directory's `package.json` that were never installed or used, because the rendered plugin URLs point into the source checkout.
 
 ## Sources
 
 | Source | Revision | Local use |
 |---|---|---|
-| [OpenCode plugin docs](https://opencode.ai/v2/docs/build/plugins) | read at use time; reviewed against `services/www` at `171dbd6abe` | Normative API |
-| [anomalyco/opencode](https://github.com/anomalyco/opencode) source | `171dbd6abe` (2026-10-30) | Source map and gotchas. When upgrading, recheck the generate request path (`core/src/session/generate.ts`, the `claude-agent` branch logic), contribution schema decoding, event-stream closing, and the TUI host module list |
+| [OpenCode plugin docs](https://opencode.ai/v2/docs/build/plugins) | read at use time; reviewed against `services/www` at `171dbd6abe`, GUI page against `services/site` at `e5aeb2bce6` | Normative API |
+| [anomalyco/opencode](https://github.com/anomalyco/opencode) source | `171dbd6abe` (2026-10-30); GUI parts `e5aeb2bce6` (2026-11-07), app 2.2.6 | Source map and gotchas. When upgrading, recheck the generate request path (`core/src/session/generate.ts`, the `claude-agent` branch logic), contribution schema decoding, event-stream closing, the TUI host module list, and whether the GUI is still read only from the sidecar |
 | `@opencode/plugin` on npm | `latest` tag at use time | SDK version selection |
