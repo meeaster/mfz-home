@@ -458,10 +458,6 @@ skills:
     source: local
     skill: skills/active/open-pencil-design
     description: Create, redesign, refine, or visually critique OpenPencil compositions with iterative rendered checks.
-  - name: open-pencil-drive
-    source: local
-    skill: skills/active/open-pencil-drive
-    description: Film the running OpenPencil editor with camera moves and designs built over MCP.
   - name: windows-app-recording
     source: local
     skill: skills/active/windows-app-recording
