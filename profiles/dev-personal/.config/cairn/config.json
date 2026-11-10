@@ -6,6 +6,7 @@
     "~/workspace/repos/tracks-sim-app": "~/workspace/repos/tracks-sim/tracks"
   },
   "diagramTheme": "~/.config/cairn/diagram-theme.json",
+  "diagramRenderer": ["node", "~/.config/opencode/skills/pele/scripts/render.mjs", "{input}", "-o", "{output}", "--theme", "{theme}"],
   "models": {
     "tiers": {
       "fast": {
