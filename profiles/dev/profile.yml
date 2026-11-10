@@ -128,6 +128,9 @@ skills:
   diagram-design:
     agents: { opencode: true, claude-code: false, codex: false }
 mcp:
+  # Self-hosted Doop at localhost; dev-personal reaches it over Tailscale instead.
+  doop:
+    agents: [opencode, claude-code, codex]
   github:
     agents: [opencode]
   agent-browser:

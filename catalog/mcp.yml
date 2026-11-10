@@ -56,7 +56,8 @@ servers:
     description: Doop multiplayer HTML design canvas MCP server (self-hosted).
     type: remote
     transport: http
-    # Served by ~/workspace/services/doop (docker compose); each agent signs in once through Doop's browser OAuth.
+    # Must match the Doop instance's BETTER_AUTH_URL, which its OAuth metadata names; a profile
+    # that reaches Doop elsewhere overrides url. Each agent signs in once in the browser.
     url: http://localhost:4400/mcp
   executor:
     description: Executor 2 local server, which runs apps, schedules, triggers, and workflows over connected accounts.

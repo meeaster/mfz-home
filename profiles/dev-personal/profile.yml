@@ -47,7 +47,8 @@ skills:
 
 mcp:
   doop:
-    agents: [opencode, claude-code, codex]
+    # svc:doop Tailscale Service hosted by Grif; TAILNET comes from ~/.mindframe-z/secrets/zsh.env.
+    url: https://doop.{env:TAILNET}/mcp
   x-docs:
     agents: [opencode]
   executor-lab:
