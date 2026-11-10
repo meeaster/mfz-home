@@ -46,6 +46,8 @@ skills:
     agents: { opencode: true, claude-code: false, codex: false }
 
 mcp:
+  doop:
+    agents: [opencode, claude-code, codex]
   x-docs:
     agents: [opencode]
   executor-lab:
