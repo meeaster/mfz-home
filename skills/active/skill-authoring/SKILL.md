@@ -12,6 +12,7 @@ Turn intended agent behavior into economical instructions, and keep one record o
 
 ## Before changing anything
 
+- **Read Anthropic's skill best practices** before writing, revising or evaluating a skill: fetch `https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices.md` (the Markdown form, about 10k tokens) once per session. Check the change against it, and where it conflicts with this skill, follow this skill and say so in your report.
 - Load `writing-for-agents` for writing and packaging guidance.
 - Also load `skill-creator` when it's available (in Claude Code it may be listed as `anthropic-skills:skill-creator`) and follow its draft, test, and iterate loop. In OpenCode, read [references/skill-creator-opencode.md](references/skill-creator-opencode.md) first; `skill-creator` is written for Claude Code. This skill adds the authoring record, local writing preferences, and cross-harness mechanics; where the two differ on where files go or when tests run, this skill wins.
 - Read the target's runtime files and its authoring record, if one exists. The record holds accepted intent; if a requested change conflicts with it, raise the conflict before editing.
