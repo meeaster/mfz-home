@@ -10,7 +10,8 @@ Environment=HOME=/home/mark
 Environment=PATH=/home/mark/.local/bin/mise-guard:/home/mark/.local/bin:/home/mark/.local/share/mise/shims:/home/mark/.opencode/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 Environment=OPENCODE_DISABLE_AUTOUPDATE=1
 ExecStartPre=-/home/mark/.opencode/bin/opencode upgrade --method curl
-ExecStart=/usr/bin/zsh -c 'set -a; source "$HOME/.mindframe-z/secrets/zsh.env"; exec /home/mark/.opencode/bin/opencode service start'
+# zsh -c skips .zshrc, so set the GitHub MCP credential the dev .zshrc sets for interactive shells.
+ExecStart=/usr/bin/zsh -c 'set -a; source "$HOME/.mindframe-z/secrets/zsh.env"; GITHUB_MCP_TOKEN="$(gh auth token 2>/dev/null)"; exec /home/mark/.opencode/bin/opencode service start'
 ExecStop=/home/mark/.opencode/bin/opencode service stop
 
 [Install]

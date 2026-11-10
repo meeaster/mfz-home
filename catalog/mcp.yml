@@ -1,4 +1,14 @@
 servers:
+  github:
+    description: Official GitHub remote MCP server using the local GitHub CLI credential.
+    type: remote
+    transport: http
+    url: https://api.githubcopilot.com/mcp/
+    # The dev .zshrc and opencode-serve.service set GITHUB_MCP_TOKEN from `gh auth token`, so the
+    # OpenCode service sees the current GitHub CLI credential after a restart.
+    headers:
+      Authorization: "Bearer {env:GITHUB_MCP_TOKEN}"
+      X-MCP-Toolsets: "default,actions"
   context7:
     description: Documentation lookup MCP.
     type: remote
