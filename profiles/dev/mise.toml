@@ -52,6 +52,17 @@ ffmpeg = "9"
 
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
+# Doop's env file holds generated secrets, so it is created once here rather than templated by bootstrap.files;
+# post-packages runs before the Compose step that reads it.
+post-packages = "mise run doop:env"
+
+# Self-hosted Doop; the compose file is an mfz profile dotfile. Changing its image tag makes the next
+# `mise bootstrap` build the new image and recreate the container, keeping the database volume.
+[bootstrap.compose.doop]
+project_dir = "{{ env.HOME }}/.config/doop"
+files = ["compose.yml"]
+env_files = ["{{ env.HOME }}/.mindframe-z/secrets/doop.env"]
+project_name = "doop"
 
 [bootstrap.packages]
 "apt:google-chrome-stable" = "latest"
