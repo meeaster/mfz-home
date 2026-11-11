@@ -69,6 +69,7 @@
       "implementer/simplify": "terra",
       "reviewer/code": "terra-xhigh",
       "reviewer/code-deep": "deep",
+      "reviewer/verify": "deep",
       "reviewer/contribution": "deep",
       "planner": "deep",
       "inspector/investigate": "terra",
