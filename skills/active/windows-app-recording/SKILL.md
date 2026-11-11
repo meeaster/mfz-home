@@ -1,6 +1,6 @@
 ---
 name: windows-app-recording
-description: Record smooth video of a Windows desktop app from WSL, including a TUI running in Windows Terminal, and drive Electron or WebView2 apps (OpenCode Desktop, OpenPencil, VS Code, Tauri apps) over the Chrome DevTools Protocol while recording. Use when asked to record, screen-capture, or film a Windows app or its window, to make a demo clip of a desktop app, to record a terminal app as it really looks in Windows Terminal, to record several apps side by side in sync, or to attach agent-browser to a desktop app from WSL.
+description: Record smooth video of a Windows desktop app from WSL, including a TUI running in Windows Terminal, and drive Electron or WebView2 apps (OpenCode Desktop, VS Code, Tauri apps) over the Chrome DevTools Protocol while recording. Use when asked to record, screen-capture, or film a Windows app or its window, to make a demo clip of a desktop app, to record a terminal app as it really looks in Windows Terminal, to record several apps side by side in sync, or to attach agent-browser to a desktop app from WSL.
 ---
 
 # Windows app recording
@@ -34,7 +34,7 @@ scripts/record-window.sh start <ProcessName> <out.mp4> [--title T] [--fps 60] [-
 scripts/record-window.sh stop <ProcessName>
 ```
 
-`<ProcessName>` is the Windows process name without `.exe` (`OpenCode`, `OpenPencil`). `start` takes the process's main window, or with `--title` its window with exactly that title; pass `--title` whenever the process may have several windows, as Windows Terminal does. It brings the window to the front, records its visible frame trimmed to the monitor's work area so the taskbar stays out (`scripts/window-rect.ps1`), and returns while recording continues. `--region` takes pixels of a whole-window take (`X Y` from its top-left). If Windows refuses to bring the window forward (the user is typing in another window), `start` fails instead of recording whatever is on top; ask the user to click the app, then start again. `--screen` records the whole monitor as it is: a refusal only warns, and `<ProcessName>` may be any label, such as `screen`, when no single app owns the take. `stop` sends ffmpeg `q` through a named pipe, so the MP4 is finalized, then moves it to `<out.mp4>`. Killing ffmpeg instead leaves an unplayable file.
+`<ProcessName>` is the Windows process name without `.exe` (`OpenCode`, `Code`). `start` takes the process's main window, or with `--title` its window with exactly that title; pass `--title` whenever the process may have several windows, as Windows Terminal does. It brings the window to the front, records its visible frame trimmed to the monitor's work area so the taskbar stays out (`scripts/window-rect.ps1`), and returns while recording continues. `--region` takes pixels of a whole-window take (`X Y` from its top-left). If Windows refuses to bring the window forward (the user is typing in another window), `start` fails instead of recording whatever is on top; ask the user to click the app, then start again. `--screen` records the whole monitor as it is: a refusal only warns, and `<ProcessName>` may be any label, such as `screen`, when no single app owns the take. `stop` sends ffmpeg `q` through a named pipe, so the MP4 is finalized, then moves it to `<out.mp4>`. Killing ffmpeg instead leaves an unplayable file.
 
 `stop` also writes `<out.mp4>.json` for editing: `capture` (the recorded screen area, physical pixels), `client` (the screen position of the window's content area, below the title bar), `video` (size and duration), and `startedAtMs` (wall-clock time of the first frame, derived from when `q` was sent minus the duration). App-specific timelines line up against `startedAtMs`.
 
@@ -71,7 +71,7 @@ Skip this for terminal apps, which `termctrl` drives, and when the recording nee
 2. Pick a port that's free on both Windows and WSL; start the search at 9222.
 3. Launch it:
    - **Electron** (OpenCode Desktop, VS Code, Slack): `<App>.exe --remote-debugging-port=<port>`.
-   - **WebView2** (OpenPencil and other Tauri apps): WebView2 ignores those arguments and reads `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` instead. From PowerShell: `$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--remote-debugging-port=<port>"; & "<path to app.exe>"`.
+   - **WebView2** (Tauri apps): WebView2 ignores those arguments and reads `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS` instead. From PowerShell: `$env:WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS="--remote-debugging-port=<port>"; & "<path to app.exe>"`.
 
    Done when `http://127.0.0.1:<port>/json/version` answers from Windows.
 4. Reach the port from WSL. With WSL's default NAT networking, Windows loopback isn't visible from WSL; start `node scripts/cdp-relay.mjs <port> <WSL path to a Windows node.exe>` in the background, after the app is up. Avoid `netsh portproxy`: it has to listen on a network-reachable address, which exposes full control of the app, and its rules can hold the port and loop connections back into WSL. With mirrored networking, the relay isn't needed. Done when `curl http://127.0.0.1:<port>/json/list` lists the app's page.

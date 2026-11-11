@@ -11,7 +11,7 @@ Success: a finished MP4 of just the app window (or, for several apps, the whole 
 ## Scenarios
 
 - **"Record OpenCode Desktop while I demo a session"**: launches with a debug port only if driving is needed, records the window with `record-window.sh`, stops cleanly, reports distinct fps.
-- **"Make a video of an agent building something in OpenPencil"**: this skill supplies launch, relay, and capture; the agent drives the camera and build itself.
+- **"Make a video of an agent building something in a desktop design app"**: this skill supplies launch, relay, and capture; the agent drives the camera and build itself.
 - **App already running without debugging**: asks the user to quit it instead of killing it.
 - **Port 9222 taken** (a leftover `netsh portproxy` rule held it here): picks another port instead of adding forwarding rules.
 - **"Record OpenCode in my terminal"**: opens a dedicated fullscreen Windows Terminal window under `termctrl run`, records it with `--title` and `--screen`, drives it with `termctrl`; leaves the user's other terminal windows alone.

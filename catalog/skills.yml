@@ -454,23 +454,10 @@ skills:
     source: local
     skill: skills/active/agent-desktop
     description: Operate Windows desktop apps from WSL with the agent-desktop CLI, on explicit request.
-  - name: open-pencil-design
-    source: local
-    skill: skills/active/open-pencil-design
-    description: Create, redesign, refine, or visually critique OpenPencil compositions with iterative rendered checks.
   - name: windows-app-recording
     source: local
     skill: skills/active/windows-app-recording
     description: Record smooth video of Windows desktop apps from WSL and drive Electron or WebView2 apps over CDP.
-  - name: open-pencil
-    description: >
-      Work with Figma .fig design files and the running OpenPencil editor — inspect
-      structure, query nodes, analyze design tokens, export PNG/SVG/PDF/JSX, and
-      modify designs programmatically.
-    source: vendored
-    repo: https://github.com/open-pencil/open-pencil
-    ref: v0.16.0
-    subtree: skills/open-pencil
   - name: tradingview
     source: local
     skill: skills/active/tradingview

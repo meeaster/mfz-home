@@ -40,8 +40,6 @@ extra_folders:
     signals: [Git worktree, isolated implementation, prototype]
     description: "Disposable Git worktrees for isolated project work across workspace repositories."
 skills:
-  open-pencil:
-    agents: { opencode: true, claude-code: false, codex: false }
   agent-desktop:
     agents: { opencode: true, claude-code: false, codex: false }
 
