@@ -41,6 +41,10 @@
         "opencode": "openai/gpt-6.1-terra#medium",
         "claude-code": "sonnet"
       },
+      "sonnet": {
+        "opencode": "claude-agent/sonnet",
+        "claude-code": "sonnet"
+      },
       "strong-sonnet": {
         "opencode": "openai/gpt-6.1-sol#high",
         "claude-code": "sonnet"
@@ -76,6 +80,7 @@
       "inspector/investigate": "terra",
       "operator": "terra-medium",
       "writer": "terra",
+      "writer/docs": "sonnet",
       "inspector/browser": "terra-medium",
       "operator/publish": "fast-medium",
       "operator/watch": "fast-medium",
