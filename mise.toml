@@ -14,5 +14,4 @@ cairn="{{vars.cairn}}"
 pnpm --dir "$cairn" install --frozen-lockfile
 mkdir -p "$HOME/.local/bin"
 ln -sfn "$cairn/bin/cairn.js" "$HOME/.local/bin/cairn"
-ln -sfn "$cairn/bin/cairn-mcp.js" "$HOME/.local/bin/cairn-mcp"
 '''

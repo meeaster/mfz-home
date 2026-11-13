@@ -1,0 +1,12 @@
+{
+  "name": "mindframe-z-advisor",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "dependencies": {
+    "@opencode/plugin": "2.2.7",
+    "zod": "4.4.3"
+  }
+}

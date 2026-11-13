@@ -143,9 +143,3 @@ servers:
     type: local
     transport: stdio
     command: [termctrl, mcp]
-  cairn:
-    description: Cairn artifact catalog of efforts, sessions, and the files they produce.
-    type: local
-    transport: stdio
-    # Installed by mise run cairn:install in this repository.
-    command: [cairn-mcp]

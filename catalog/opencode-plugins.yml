@@ -12,6 +12,10 @@ plugins:
     description: Victor Taelin's OptChat design, a compacted conversation view with prompt-cache warm-up.
     source: local
     path: opencode/plugins/active/optchat
+  - name: advisor
+    description: Claude Code's advisor tool for any provider, a no-argument advisor() that sends the full transcript to a stronger model and returns its guidance.
+    source: local
+    path: opencode/plugins/active/advisor
   - name: pstack
     description: Skills-first OpenCode V2 adaptation of pstack.
     source: local
