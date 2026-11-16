@@ -80,6 +80,7 @@ opencode:
   plugins:
     - optchat
     - advisor
+    - chatgpt-apps
     # Disabled until tested further.
     # - plannotator
   plugin_options:
@@ -91,6 +92,11 @@ opencode:
         - executor: claude-agent/opus
           model: claude-agent/fable#medium
           trigger: auto
+    # ChatGPT connectors that connect at startup; every other linked connector is registered disabled and can be
+    # connected per session from the MCP dialog.
+    chatgpt-apps:
+      connectors:
+        - gmail
     # Temporary: logs each turn's prompt parts to ~/.local/share/optchat/plugin.log to diagnose cache misses.
     optchat:
       logTurns: true

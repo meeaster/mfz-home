@@ -16,6 +16,10 @@ plugins:
     description: Claude Code's advisor tool for any provider, a no-argument advisor() that sends the full transcript to a stronger model and returns its guidance.
     source: local
     path: opencode/plugins/active/advisor
+  - name: chatgpt-apps
+    description: ChatGPT apps (Codex plugin connectors such as GitHub, Gmail, and Google Calendar) as one MCP server per connector, authenticated with the Codex login in ~/.codex/auth.json.
+    source: local
+    path: opencode/plugins/active/chatgpt-apps
   - name: pstack
     description: Skills-first OpenCode V2 adaptation of pstack.
     source: local
