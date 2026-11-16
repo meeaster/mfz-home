@@ -7,7 +7,7 @@ import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 import { CodexAuth } from "./codex-auth.js";
-import { AppsProxy } from "./proxy.js";
+import { AppsClient, AppsProxy } from "./proxy.js";
 
 function jwt(expiresInSeconds: number) {
   const payload = Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + expiresInSeconds })).toString("base64url");
@@ -89,7 +89,8 @@ async function authFile(accessToken: string) {
 }
 
 async function startProxy(path: string, upstream: string) {
-  const proxy = new AppsProxy({ auth: new CodexAuth({ path, tokenUrl: `${upstream}/token` }), upstream: `${upstream}/mcp` });
+  const client = new AppsClient({ auth: new CodexAuth({ path, tokenUrl: `${upstream}/token` }), upstream: `${upstream}/mcp` });
+  const proxy = new AppsProxy(client);
   const base = await proxy.start();
 
   closers.push(() => proxy.close());
@@ -104,16 +105,16 @@ async function startProxy(path: string, upstream: string) {
     return { contentType: response.headers.get("content-type"), text: await response.text() };
   };
 
-  return { proxy, rpc };
+  return { client, rpc };
 }
 
 describe("AppsProxy", () => {
   it("gives each connector only its own tools and forwards calls with the Codex login", async () => {
     const access = jwt(3600);
     const chatgpt = await fakeChatGpt("unused");
-    const { proxy, rpc } = await startProxy(await authFile(access), chatgpt.url);
+    const { client, rpc } = await startProxy(await authFile(access), chatgpt.url);
 
-    expect(await proxy.connectors()).toEqual([
+    expect(await client.connectors()).toEqual([
       { id: "c_gh", name: "GitHub", tools: 2 },
       { id: "c_gm", name: "Gmail", tools: 1 },
     ]);

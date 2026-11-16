@@ -2,7 +2,7 @@ import { Plugin } from "@opencode/plugin";
 import { z } from "zod";
 
 import { CodexAuth } from "./codex-auth.js";
-import { AppsProxy, type Connector } from "./proxy.js";
+import { AppsClient, AppsProxy, type Connector } from "./proxy.js";
 
 // Connectors that run ChatGPT and Codex themselves rather than an outside app; never registered.
 const INTERNAL_CONNECTORS = new Set([
@@ -12,6 +12,9 @@ const INTERNAL_CONNECTORS = new Set([
   "safety-settings",
   "search-service",
 ]);
+
+// Module scope, so every location's plugin instance shares one token refresher and one cached tool list.
+const client = new AppsClient({ auth: new CodexAuth() });
 
 const Options = z
   .object({
@@ -34,8 +37,8 @@ function selects(selector: string, connector: Connector) {
   return wanted === connector.id.toLowerCase() || wanted === connector.name.toLowerCase() || wanted === slug(connector.name);
 }
 
-async function register(context: Plugin.Context, proxy: AppsProxy, base: string, selectors: string[]) {
-  const connectors = (await proxy.connectors()).filter((connector) => !INTERNAL_CONNECTORS.has(slug(connector.name)));
+async function register(context: Plugin.Context, base: string, selectors: string[]) {
+  const connectors = (await client.connectors()).filter((connector) => !INTERNAL_CONNECTORS.has(slug(connector.name)));
   const unmatched = selectors.filter((selector) => !connectors.some((connector) => selects(selector, connector)));
 
   if (unmatched.length > 0)
@@ -57,13 +60,13 @@ export default Plugin.define({
   id: "chatgpt-apps",
   setup: async (context) => {
     const options = Options.parse(context.options);
-    const proxy = new AppsProxy({ auth: new CodexAuth() });
+    const proxy = new AppsProxy(client);
     const base = await proxy.start();
 
     // Listing connectors needs the network; don't hold up plugin loading for it.
     void (async () => {
       try {
-        await register(context, proxy, base, options.connectors);
+        await register(context, base, options.connectors);
       } catch (error) {
         console.warn("[chatgpt-apps] could not register ChatGPT connectors:", error instanceof Error ? error.message : error);
       }

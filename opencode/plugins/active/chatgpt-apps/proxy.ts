@@ -30,7 +30,7 @@ export interface Connector {
   readonly tools: number;
 }
 
-export interface AppsProxyOptions {
+export interface AppsClientOptions {
   readonly auth: CodexAuth;
   readonly upstream?: string;
 }
@@ -71,41 +71,24 @@ function sendJson(response: ServerResponse, status: number, body: JsonReply) {
   response.end(JSON.stringify(body));
 }
 
-// Serves one MCP endpoint per ChatGPT connector at /c/<connector_id> on localhost. tools/list is answered from the
-// upstream list filtered to that connector; every other message is forwarded to ChatGPT with the Codex login attached.
-export class AppsProxy {
+// The ChatGPT apps endpoint with the Codex login attached. One instance serves every proxy in the process, so they
+// share one token refresher (two concurrent refreshes would reuse a rotated refresh token) and one cached tool list.
+export class AppsClient {
   readonly #auth: CodexAuth;
 
   readonly #upstream: string;
 
-  readonly #server: Server;
-
   #tools: { readonly at: number; readonly list: Promise<Tool[]> } | undefined;
 
-  constructor(options: AppsProxyOptions) {
+  constructor(options: AppsClientOptions) {
     this.#auth = options.auth;
     this.#upstream = options.upstream ?? CHATGPT_APPS_URL;
-    this.#server = createServer((request, response) => void this.#serve(request, response));
-  }
-
-  async start() {
-    await new Promise<void>((resolve) => this.#server.listen(0, "127.0.0.1", resolve));
-
-    // SAFETY: listen() on a TCP port, unlike a pipe, always yields an AddressInfo.
-    const { port } = this.#server.address() as AddressInfo;
-
-    return `http://127.0.0.1:${port}`;
-  }
-
-  async close() {
-    this.#server.closeAllConnections();
-    await new Promise<void>((resolve) => this.#server.close(() => resolve()));
   }
 
   async connectors(): Promise<Connector[]> {
     const byId = new Map<string, { name: string; tools: number }>();
 
-    for (const tool of await this.#allTools()) {
+    for (const tool of await this.tools()) {
       if (!tool._meta) continue;
 
       const entry = byId.get(tool._meta.connector_id) ?? { name: tool._meta.connector_name, tools: 0 };
@@ -117,7 +100,7 @@ export class AppsProxy {
     return [...byId].map(([id, { name, tools }]) => ({ id, name, tools }));
   }
 
-  async #post(body: string, headers = new Headers()) {
+  async post(body: string, headers = new Headers()) {
     const { accessToken, accountId } = await this.#auth.token();
 
     headers.set("authorization", `Bearer ${accessToken}`);
@@ -129,7 +112,7 @@ export class AppsProxy {
     return fetch(this.#upstream, { method: "POST", headers, body });
   }
 
-  #allTools() {
+  tools() {
     if (this.#tools && Date.now() - this.#tools.at < TOOLS_TTL_MS) return this.#tools.list;
 
     const list = this.#fetchTools();
@@ -150,7 +133,7 @@ export class AppsProxy {
 
     do {
       const params = cursor === undefined ? {} : { cursor };
-      const response = await this.#post(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params }));
+      const response = await this.post(JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list", params }));
       const text = await response.text();
 
       if (!response.ok) throw new Error(`ChatGPT apps tools/list failed with HTTP ${response.status}: ${text.slice(0, 200)}`);
@@ -162,6 +145,33 @@ export class AppsProxy {
     } while (cursor !== undefined);
 
     return tools;
+  }
+}
+
+// Serves one MCP endpoint per ChatGPT connector at /c/<connector_id> on localhost. tools/list is answered from the
+// upstream list filtered to that connector; every other message is forwarded to ChatGPT.
+export class AppsProxy {
+  readonly #client: AppsClient;
+
+  readonly #server: Server;
+
+  constructor(client: AppsClient) {
+    this.#client = client;
+    this.#server = createServer((request, response) => void this.#serve(request, response));
+  }
+
+  async start() {
+    await new Promise<void>((resolve) => this.#server.listen(0, "127.0.0.1", resolve));
+
+    // SAFETY: listen() on a TCP port, unlike a pipe, always yields an AddressInfo.
+    const { port } = this.#server.address() as AddressInfo;
+
+    return `http://127.0.0.1:${port}`;
+  }
+
+  async close() {
+    this.#server.closeAllConnections();
+    await new Promise<void>((resolve) => this.#server.close(() => resolve()));
   }
 
   async #serve(request: IncomingMessage, response: ServerResponse) {
@@ -186,7 +196,7 @@ export class AppsProxy {
 
     if (parsed.success && parsed.data.method === "tools/list") {
       const id = decodeURIComponent(connectorId);
-      const tools = (await this.#allTools()).filter((tool) => tool._meta?.connector_id === id);
+      const tools = (await this.#client.tools()).filter((tool) => tool._meta?.connector_id === id);
 
       return sendJson(response, 200, { jsonrpc: "2.0", id: parsed.data.id ?? null, result: { tools } });
     }
@@ -199,7 +209,7 @@ export class AppsProxy {
       if (value !== undefined) forwarded.set(name, value);
     }
 
-    const upstream = await this.#post(body, forwarded);
+    const upstream = await this.#client.post(body, forwarded);
 
     for (const name of ["content-type", "mcp-session-id"]) {
       const value = upstream.headers.get(name);
