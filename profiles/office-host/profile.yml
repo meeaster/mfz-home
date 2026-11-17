@@ -33,10 +33,6 @@ extra_folders:
     description: Disposable Git worktrees for isolated project work across workspace repositories.
     read: allow
     edit: allow
-executor:
-  apps:
-    - opencode
-    - discord-mentions
 claude:
   settings:
     statusLine:
