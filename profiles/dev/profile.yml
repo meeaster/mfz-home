@@ -30,7 +30,8 @@ capability_groups:
   - name: motion-graphics
     title: Motion Graphics
     summary: Code-first motion graphics, explainer videos, and rendered presentation backgrounds.
-repos: [mfz-home, mindframe-z, cairn, psychopomp]
+# The office owns the MFZ home and engine checkouts; their paths are extra folders below.
+repos: [cairn, psychopomp]
 references:
   - opencode
   - openspec
@@ -359,6 +360,22 @@ claude:
               type: command
 
 extra_folders:
+  - path: ~/office/builder/repos/mfz-home
+    group: agent-tooling
+    summary: Personal Mindframe-Z home
+    signals: [Mindframe-Z, Personal profile, agent configuration]
+    description: Personal mindframe-z home for shared base and Personal profile configuration.
+    url: https://github.com/meeaster/mfz-home
+    read: allow
+    edit: allow
+  - path: ~/office/builder/repos/mindframe-z
+    group: agent-tooling
+    summary: Mindframe-Z engine
+    signals: [Mindframe-Z, mfz CLI, renderers]
+    description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
+    url: https://github.com/meeaster/mindframe-z
+    read: allow
+    edit: allow
   - path: ~/workspace
     group: knowledge-and-artifacts
     summary: Workspace root

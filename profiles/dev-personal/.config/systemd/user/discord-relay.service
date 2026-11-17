@@ -5,7 +5,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-WorkingDirectory=%h/workspace/repos/mfz-home/relays/discord
+WorkingDirectory=%h/office/builder/repos/mfz-home/relays/discord
 Environment=HOME=%h
 Environment=PATH=%h/.local/share/mise/shims:%h/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 # #opencode in the chewy-notifications server, and the owner whose mentions are forwarded.
