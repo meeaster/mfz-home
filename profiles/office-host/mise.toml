@@ -1,98 +1,132 @@
-# Machine bootstrap and service tools only; developer pins live in ~/office.
+# Standalone equivalent of the core -> dev -> dev-personal Mise layers, merged into one file.
 [tools]
-node = "26.13.1"
-gh = "2.103.3"
-jq = "1.8.2"
-ripgrep = "15.2.0"
-pnpm = "12.20.0"
-bat = "0.26.1"
-"aqua:sharkdp/fd" = "10.5.2"
-pipx = "1.18.16"
-uv = "0.13.8"
-sqlite = "3.54.1"
-"npm:ccstatusline" = "2.2.34"
+# core
+node = "26"
+gh = "2"
+jq = "1"
+ripgrep = "15"
+pnpm = "12"
+# The firewall binary itself, pinned; ~/.local/bin/mise-guard/mise routes installs through it.
+"github:SocketDev/sfw-free" = { version = "1", bin = "sfw" }
+bat = "0"
+"aqua:sharkdp/fd" = "10"
+
+# dev
+bun = "1.4"
+go = "1"
+python = "3.14"
+# mise cannot pass rustup's --no-self-update, and a failed rustup self-update fails an otherwise successful toolchain upgrade.
+rust = { version = "1", postinstall = "rustup set auto-self-update disable" }
+# 0.15.2 builds terminal-control only; 0.17 is first, so it is the zig on PATH.
+zig = ["0.17", "0.15.2"]
+# Its libghostty build runs the zig on PATH and requires 0.15.2; the exact-version path exists as soon as zig installs.
+# Zig fetches ghostty dependencies through any proxy and ignores NO_PROXY, and the sfw proxy rejects them, so this
+# build alone runs without the proxy. Its crates skip sfw; minimum_release_age still applies.
+"cargo:terminal-control" = { version = "1", depends = ["zig", "rust"], install_env = { PATH = "{{ xdg_data_home }}/mise/installs/zig/0.15.2/bin:{{ env.PATH }}", HTTP_PROXY = "", HTTPS_PROXY = "", http_proxy = "", https_proxy = "" }, postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
+aws-cli = "2"
+aws-sam-cli = "1"
+terraform = "1.16"
+terragrunt = "1"
+sops = "3"
+kind = "0"
+kubeconform = "0"
+helm = "4"
+flux2 = "2"
+"aqua:derailed/k9s" = "0.51.0"
+# A new release can change the server protocol, so stop the old server before bootstrapping plugins; `server stop` bypasses the protocol guard, and no server may be running.
+herdr = { version = "0", postinstall = 'herdr server stop >/dev/null 2>&1 || true; bash "$HOME/.local/bin/bootstrap-herdr-plugins"' }
+pipx = "1"
+pre-commit = "4"
+uv = "0"
+actionlint = "1"
+zizmor = "1"
+shellcheck = "0"
+sqlite = "3"
+shfmt = "3"
+"npm:oxlint" = "1"
+"npm:@oxlint/plugins" = "1"
+"npm:oxfmt" = "0"
+tflint = "0"
+yamllint = "1"
+"npm:ccstatusline" = "2"
+"npm:aws-cdk" = "2"
+# This profile enables no tool skills, so the refresh postinstalls select nothing and only re-sync the skill snapshot.
+"npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
 "npm:executor" = "2.0.0-beta.54"
-usage = "6.12.1"
-caddy = "2.11.9"
+# Tool skills follow the installed version; a failed refresh must not fail the install.
+"npm:@fission-ai/openspec" = { version = "1", postinstall = "mfz skills refresh --tool npm:@fission-ai/openspec || echo 'openspec: skill refresh failed; rerun mfz skills refresh' >&2" }
+"github:kitlangton/ghui" = "0"
+"npm:agent-browser" = "0"
+"npm:opencode-drive" = { version = "2", postinstall = "mfz skills refresh --tool npm:opencode-drive || echo 'opencode-drive: skill refresh failed; rerun mfz skills refresh' >&2" }
+"github:charmbracelet/glow" = "3"
+imagemagick = "7"
+ffmpeg = "9"
+"pipx:git-filter-repo" = "2"
+"cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
 
-[tools."github:SocketDev/sfw-free"]
-version = "1.16.0"
-bin = "sfw"
-
-[tools.herdr]
-version = "0.9.5"
-postinstall = "herdr server stop >/dev/null 2>&1 || true; bash \"$HOME/.local/bin/bootstrap-herdr-plugins\""
+# dev-personal
+yt-dlp = "2026"
+usage = "6"
+"npm:wrangler" = "4"
+"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
+"github:xdevplatform/xurl" = { version = "1", postinstall = "mfz skills refresh --tool github:xdevplatform/xurl || echo 'xurl: skill refresh failed; rerun mfz skills refresh' >&2" }
+caddy = "2"
 
 [tools."pipx:unifi-network-mcp"]
-version = "0.45.0"
+version = "0"
 uvx = false
 
 [hooks]
+# Runs after every `mise install`, even with nothing to install, so only install Browse when it is missing;
+# its relay keeps it updated after that. Check the installed file, not the command name: xdg-utils ships an
+# unrelated /usr/bin/browse.
 postinstall = "test -x \"$HOME/.local/bin/browse\" || mise run browse:install"
 
 [settings]
 minimum_release_age = "1d"
+# Skipped in non-interactive sessions, so agent-run installs never update mise mid-command.
+self_update.auto = true
+# Installs run only through ~/.local/bin/mise-guard/mise, which routes package downloads through sfw.
 auto_install = false
-
-[settings.self_update]
-auto = true
 
 [settings.npm]
 package_manager = "pnpm"
 
 [bootstrap.hooks]
-pre-packages = "bash \"$HOME/.local/bin/ensure-google-chrome-apt-repository\""
+pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
+# Doop's env file holds generated secrets, so it is created once here rather than templated by bootstrap.files;
+# post-packages runs before the Compose step that reads it.
 post-packages = "mise run doop:env"
 
+# Self-hosted Doop; the compose file is an mfz profile dotfile. Changing its image tag makes the next
+# `mise bootstrap` build the new image and recreate the container, keeping the database volume.
 [bootstrap.compose.doop]
 project_dir = "{{ env.HOME }}/.config/doop"
-files = [ "compose.yml" ]
-env_files = [ "{{ env.HOME }}/.mindframe-z/secrets/doop.env" ]
+files = ["compose.yml"]
+env_files = ["{{ env.HOME }}/.mindframe-z/secrets/doop.env"]
 project_name = "doop"
 
 [bootstrap.packages]
 "apt:google-chrome-stable" = "latest"
-
-[bootstrap.packages."apt:libclang-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:clang"]
-os = "linux"
-
-[bootstrap.packages."apt:pkg-config"]
-os = "linux"
-
-[bootstrap.packages."apt:nasm"]
-os = "linux"
-
-[bootstrap.packages."apt:yasm"]
-os = "linux"
-
-[bootstrap.packages."apt:ninja-build"]
-os = "linux"
-
-[bootstrap.packages."apt:libx264-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libx265-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libopus-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libvpx-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libfreetype-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libfontconfig-dev"]
-os = "linux"
-
-[bootstrap.packages."apt:libasound2-dev"]
-os = "linux"
+# fframes builds: bindgen for ffmpeg-sys-fframes needs libclang; FFmpeg source builds need the assemblers,
+# ninja, and codec headers; Skia links FreeType and Fontconfig; the preview window plays audio through ALSA.
+"apt:libclang-dev" = { os = "linux" }
+"apt:clang" = { os = "linux" }
+"apt:pkg-config" = { os = "linux" }
+"apt:nasm" = { os = "linux" }
+"apt:yasm" = { os = "linux" }
+"apt:ninja-build" = { os = "linux" }
+"apt:libx264-dev" = { os = "linux" }
+"apt:libx265-dev" = { os = "linux" }
+"apt:libopus-dev" = { os = "linux" }
+"apt:libvpx-dev" = { os = "linux" }
+"apt:libfreetype-dev" = { os = "linux" }
+"apt:libfontconfig-dev" = { os = "linux" }
+"apt:libasound2-dev" = { os = "linux" }
 
 [env]
 IMPECCABLE_NO_TELEMETRY = "1"
 IMPECCABLE_NO_UPDATE_CHECK = "1"
+# fframes' prebuilt FFmpeg links x264 ABI 163 and Ubuntu 24.04 ships 164, so build FFmpeg from source.
+# A project that already downloaded the prebuilt also needs `cargo clean -p ffmpeg-sys-fframes`.
 FFMPEG_FORCE_BUILD = "1"
