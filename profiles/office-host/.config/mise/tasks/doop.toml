@@ -1,0 +1,24 @@
+["doop:env"]
+description = "Create Doop's machine-local settings and secrets at ~/.mindframe-z/secrets/doop.env if missing"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+env_file="$HOME/.mindframe-z/secrets/doop.env"
+
+# Created once and never overwritten: replacing these secrets signs everyone out and loses stored credentials.
+# BETTER_AUTH_URL is the address agents use; edit it where a reverse proxy such as a Tailscale Service fronts Doop.
+[ -f "$env_file" ] && exit 0
+mkdir -p "$(dirname "$env_file")"
+umask 077
+{
+  echo "BETTER_AUTH_URL=http://localhost:4400"
+  echo "BETTER_AUTH_SECRET=$(openssl rand -hex 32)"
+  echo "SECRETS_ENCRYPTION_KEYS=k1:$(openssl rand -base64 32)"
+} >"$env_file"
+echo "doop: created $env_file"
+'''
+
+["doop:logs"]
+description = "Follow Doop's server logs"
+run = 'docker compose -p doop -f "$HOME/.config/doop/compose.yml" --env-file "$HOME/.mindframe-z/secrets/doop.env" logs -f doop'

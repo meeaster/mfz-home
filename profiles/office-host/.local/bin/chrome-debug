@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+// Exposes a Windows Chrome DevTools Protocol port to WSL so agent-browser can drive and
+// record Chrome. The relay itself lives in windows-cdp-debug.mjs.
+//
+// Chrome 136+ ignores --remote-debugging-port on the default user data directory, so this
+// runs a separate, persistent Chrome profile alongside the everyday one. Sign-ins made in it
+// stay for the next session.
+import { fileURLToPath } from "node:url";
+import { powershell, runCli } from "./windows-cdp-debug.mjs";
+
+const exe = process.env.CHROME_DEBUG_EXE ?? "$env:ProgramFiles\\Google\\Chrome\\Application\\chrome.exe";
+
+const userDataDir = process.env.CHROME_DEBUG_USER_DATA_DIR ?? "$env:LOCALAPPDATA\\ChromeDebugProfile";
+
+runCli(
+  {
+    name: "chrome-debug",
+    label: "Chrome (debug profile)",
+    envPrefix: "CHROME_DEBUG",
+    envHelp: [
+      "  CHROME_DEBUG_EXE             Windows path to chrome.exe",
+      "  CHROME_DEBUG_USER_DATA_DIR   Windows path to the debug profile directory",
+    ].join("\n"),
+    defaultPort: 9230,
+    processName: "chrome",
+    // Only a Chrome already using the debug profile swallows a new launch; the everyday
+    // profile runs as a separate browser process and is left alone.
+    running: () =>
+      powershell(`
+$dir = "${userDataDir}".ToLowerInvariant()
+@(Get-CimInstance Win32_Process -Filter "Name='chrome.exe'" | Where-Object {
+  $_.CommandLine -and $_.CommandLine.ToLowerInvariant().Contains($dir)
+}).Count
+      `) !== "0",
+    launch(port) {
+      powershell(`
+$arguments = @(
+  '--remote-debugging-port=${port}',
+  ('--user-data-dir="{0}"' -f "${userDataDir}"),
+  '--no-first-run',
+  '--no-default-browser-check'
+)
+Start-Process -FilePath "${exe}" -ArgumentList $arguments
+      `);
+    },
+  },
+  fileURLToPath(import.meta.url),
+);

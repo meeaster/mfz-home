@@ -1,0 +1,107 @@
+{
+  "designs": "~/workspace/repos/personal-work/designs",
+  "knowledge": "~/workspace/repos/personal-work/knowledge",
+  "tracks": "~/workspace/repos/personal-work/tracks",
+  "projectTracks": {
+    "~/workspace/repos/tracks-sim-app": "~/workspace/repos/tracks-sim/tracks"
+  },
+  "diagramTheme": "~/.config/cairn/diagram-theme.json",
+  "diagramRenderer": ["node", "~/.config/opencode/skills/pele/scripts/render.mjs", "{input}", "-o", "{output}", "--theme", "{theme}"],
+  "models": {
+    "tiers": {
+      "fast": {
+        "opencode": "openai/gpt-6-luna#high",
+        "claude-code": "haiku"
+      },
+      "fast-medium": {
+        "opencode": "openai/gpt-6-luna#medium",
+        "claude-code": "haiku"
+      },
+      "fast-sonnet": {
+        "opencode": "openai/gpt-6-luna#high",
+        "claude-code": "sonnet"
+      },
+      "fast-max": {
+        "opencode": "openai/gpt-6-luna#max",
+        "claude-code": "sonnet"
+      },
+      "balanced": {
+        "opencode": "openai/gpt-6.1-sol#medium",
+        "claude-code": "sonnet"
+      },
+      "terra": {
+        "opencode": "openai/gpt-6.1-terra#high",
+        "claude-code": "sonnet"
+      },
+      "terra-xhigh": {
+        "opencode": "openai/gpt-6.1-terra#xhigh",
+        "claude-code": "sonnet"
+      },
+      "terra-medium": {
+        "opencode": "openai/gpt-6.1-terra#medium",
+        "claude-code": "sonnet"
+      },
+      "sonnet": {
+        "opencode": "claude-agent/sonnet",
+        "claude-code": "sonnet"
+      },
+      "strong-sonnet": {
+        "opencode": "openai/gpt-6.1-sol#high",
+        "claude-code": "sonnet"
+      },
+      "deep": {
+        "opencode": "openai/gpt-6.1-sol#high",
+        "claude-code": "opus"
+      },
+      "astra": {
+        "opencode": "openai/gpt-6-astra#medium",
+        "claude-code": "opus"
+      },
+      "astra-high": {
+        "opencode": "openai/gpt-6-astra#high",
+        "claude-code": "opus"
+      }
+    },
+    "roles": {
+      "prototyper": "strong-sonnet",
+      "architect": "astra",
+      "architect/design-docs": "deep",
+      "creative-director": "astra-high",
+      "triage": "balanced",
+      "implementer/motion": "fast-sonnet",
+      "implementer": "terra",
+      "implementer/simplify": "terra",
+      "reviewer/code": "terra-xhigh",
+      "reviewer/code-deep": "deep",
+      "reviewer/verify": "terra-xhigh",
+      "reviewer/verify-deep": "deep",
+      "reviewer/contribution": "deep",
+      "planner": "deep",
+      "inspector/investigate": "terra",
+      "operator": "terra-medium",
+      "writer": "terra",
+      "writer/docs": "sonnet",
+      "inspector/browser": "terra-medium",
+      "operator/publish": "fast-medium",
+      "operator/watch": "fast-medium",
+      "operator/deploy": "fast"
+    }
+  },
+  "skills": {
+    "enabled": ["tracks-v2"],
+    "slots": {
+      "simplify": "thermo-nuclear-code-quality-review",
+      "interface-quality": "impeccable",
+      "engineering-judgment": "development-principles",
+      "prototyping": {
+        "skill": "prototype",
+        "autoinvoke": true
+      },
+      "agent-guidance": {
+        "skill": "writing-for-agents",
+        "autoinvoke": true
+      },
+      "reader-context": "artifact-context"
+    }
+  }
+}

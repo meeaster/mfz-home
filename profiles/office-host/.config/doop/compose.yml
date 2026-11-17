@@ -1,0 +1,51 @@
+# Self-hosted Doop design canvas (https://github.com/kgoedecke/doop), reached by agents over its MCP endpoint.
+# `mise bootstrap` keeps it running ([bootstrap.compose.doop] in the dev profile's mise.toml). To upgrade, change the
+# tag in both `image` and `build`; the next bootstrap builds the new image and recreates the container, keeping the
+# database volume.
+#
+# Machine-local settings and secrets live in ~/.mindframe-z/secrets/doop.env, which `mise run doop:env` creates:
+# BETTER_AUTH_URL is the address agents use (localhost by default; a Tailscale Service URL where one fronts Doop),
+# BETTER_AUTH_SECRET signs sessions, and SECRETS_ENCRYPTION_KEYS encrypts stored model credentials.
+name: doop
+
+services:
+  doop:
+    # A local-only name, so Compose never looks for this image on a registry.
+    image: mfz-doop:v0.14.0
+    build: https://github.com/kgoedecke/doop.git#v0.14.0
+    ports:
+      # Loopback only; remote access goes through a reverse proxy such as tailscale serve.
+      - "127.0.0.1:4400:4400"
+    # Values come from doop.env passed as --env-file. A service-level env_file would make `docker compose config
+    # --hash` disagree with the container's config-hash label, so mise bootstrap would always report drift.
+    environment:
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL:?run mise run doop:env}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?run mise run doop:env}
+      SECRETS_ENCRYPTION_KEYS: ${SECRETS_ENCRYPTION_KEYS:?run mise run doop:env}
+      DATABASE_URL: postgres://doop:doop@db:5432/doop
+      # Browsers on this machine may also open Doop by its local address.
+      TRUSTED_ORIGINS: http://localhost:4400,http://127.0.0.1:4400
+      # Connecting a ChatGPT subscription from a server is unsanctioned by OpenAI; users connect API keys instead.
+      CHATGPT_CONNECT_DISABLED: "1"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: doop
+      POSTGRES_PASSWORD: doop
+      POSTGRES_DB: doop
+    volumes:
+      - doop-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U doop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  doop-pg:

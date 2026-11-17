@@ -1,0 +1,98 @@
+# Machine bootstrap and service tools only; developer pins live in ~/office.
+[tools]
+node = "26.13.1"
+gh = "2.103.3"
+jq = "1.8.2"
+ripgrep = "15.2.0"
+pnpm = "12.20.0"
+bat = "0.26.1"
+"aqua:sharkdp/fd" = "10.5.2"
+pipx = "1.18.16"
+uv = "0.13.8"
+sqlite = "3.54.1"
+"npm:ccstatusline" = "2.2.34"
+"npm:executor" = "2.0.0-beta.54"
+usage = "6.12.1"
+caddy = "2.11.9"
+
+[tools."github:SocketDev/sfw-free"]
+version = "1.16.0"
+bin = "sfw"
+
+[tools.herdr]
+version = "0.9.5"
+postinstall = "herdr server stop >/dev/null 2>&1 || true; bash \"$HOME/.local/bin/bootstrap-herdr-plugins\""
+
+[tools."pipx:unifi-network-mcp"]
+version = "0.45.0"
+uvx = false
+
+[hooks]
+postinstall = "test -x \"$HOME/.local/bin/browse\" || mise run browse:install"
+
+[settings]
+minimum_release_age = "1d"
+auto_install = false
+
+[settings.self_update]
+auto = true
+
+[settings.npm]
+package_manager = "pnpm"
+
+[bootstrap.hooks]
+pre-packages = "bash \"$HOME/.local/bin/ensure-google-chrome-apt-repository\""
+post-packages = "mise run doop:env"
+
+[bootstrap.compose.doop]
+project_dir = "{{ env.HOME }}/.config/doop"
+files = [ "compose.yml" ]
+env_files = [ "{{ env.HOME }}/.mindframe-z/secrets/doop.env" ]
+project_name = "doop"
+
+[bootstrap.packages]
+"apt:google-chrome-stable" = "latest"
+
+[bootstrap.packages."apt:libclang-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:clang"]
+os = "linux"
+
+[bootstrap.packages."apt:pkg-config"]
+os = "linux"
+
+[bootstrap.packages."apt:nasm"]
+os = "linux"
+
+[bootstrap.packages."apt:yasm"]
+os = "linux"
+
+[bootstrap.packages."apt:ninja-build"]
+os = "linux"
+
+[bootstrap.packages."apt:libx264-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libx265-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libopus-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libvpx-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libfreetype-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libfontconfig-dev"]
+os = "linux"
+
+[bootstrap.packages."apt:libasound2-dev"]
+os = "linux"
+
+[env]
+IMPECCABLE_NO_TELEMETRY = "1"
+IMPECCABLE_NO_UPDATE_CHECK = "1"
+FFMPEG_FORCE_BUILD = "1"

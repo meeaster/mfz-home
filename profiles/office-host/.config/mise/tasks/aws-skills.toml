@@ -1,0 +1,58 @@
+["aws-skills:sync"]
+description = "Install, update, and remove AWS Agent Toolkit skills to match the aws-agent-toolkit selection in the active mfz profile"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+# The profile owns the selection; this task only reconciles the AWS CLI's installs with it.
+mapfile -t wanted < <(mfz skills selection aws-agent-toolkit)
+mapfile -t agents < <(mfz skills selection aws-agent-toolkit --agents)
+
+# OpenCode and Codex both read ~/.agents/skills, the AWS CLI's "universal" folder.
+targets=()
+for agent in "${agents[@]}"; do
+  case "$agent" in
+    opencode | codex) targets+=(universal) ;;
+    claude-code) targets+=(claude-code) ;;
+  esac
+done
+mapfile -t targets < <(printf '%s\n' "${targets[@]}" | sort -u | sed '/^$/d')
+
+contains() {
+  local needle=$1
+  shift
+  local item
+  for item in "$@"; do [ "$item" = "$needle" ] && return 0; done
+  return 1
+}
+
+# Skills previously installed for an agent the profile no longer selects are removed too.
+for target in universal claude-code; do
+  read -r -a installed <<< "$(aws agent-toolkit list-installed-skills --agent "$target" --query 'skills[].name' --output text)"
+
+  if ! contains "$target" "${targets[@]}"; then
+    for skill in "${installed[@]}"; do
+      [ "$skill" = "None" ] && continue
+      aws agent-toolkit remove-skill --skill-name "$skill" --agent "$target"
+    done
+    continue
+  fi
+
+  for skill in "${installed[@]}"; do
+    [ "$skill" = "None" ] && continue
+    contains "$skill" "${wanted[@]}" || aws agent-toolkit remove-skill --skill-name "$skill" --agent "$target"
+  done
+
+  for skill in "${wanted[@]}"; do
+    contains "$skill" "${installed[@]}" || aws agent-toolkit add-skill --skill-name "$skill" --agent "$target"
+  done
+
+  read -r -a outdated <<< "$(aws agent-toolkit check-skill-updates --agent "$target" --query 'skills[?updateAvailable].name' --output text)"
+  for skill in "${outdated[@]}"; do
+    [ "$skill" = "None" ] && continue
+    aws agent-toolkit update-skill --skill-name "$skill" --agent "$target"
+  done
+done
+
+echo "aws-skills: ${#wanted[@]} selected for ${targets[*]:-no agents}"
+'''

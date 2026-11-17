@@ -1,0 +1,54 @@
+["deadbolt:install"]
+description = "Install the Deadbolt dev CLI, set its idle lock, and keep the standalone extension in a Windows folder (WSL); skips what is already done"
+run = '''
+#!/usr/bin/env bash
+set -euo pipefail
+
+if command -v deadbolt >/dev/null 2>&1; then
+  echo "deadbolt: already installed at $(command -v deadbolt); run deadbolt update to update it"
+else
+  # No stable release yet, and npm dev builds change on every push, so it installs outside mise and
+  # deadbolt update keeps it current. The script deployed at deadbolt.pw/install predates the dev channel
+  # and 404s on missing GitHub releases, so use the repository's current copy.
+  curl -fsSL https://raw.githubusercontent.com/anomalyco/deadbolt/dev/site/public/install | DEADBOLT_CHANNEL=dev sh
+fi
+deadbolt=$(command -v deadbolt || echo "${DEADBOLT_INSTALL:-$HOME/.local/bin}/deadbolt")
+
+# Deadbolt rewrites config.toml itself (extension folders), so mfz only ensures this key instead of owning the
+# file. The default never locks while idle, and under WSL sleep and screen lock likely go unseen. Deadbolt reads
+# it at each unlock. It goes first: appended, it would land inside an [[extensions]] table.
+config="${XDG_CONFIG_HOME:-$HOME/.config}/deadbolt/config.toml"
+timeout='unlock_timeout = "16h"'
+if ! grep -qx "$timeout" "$config" 2>/dev/null; then
+  mkdir -p "$(dirname "$config")"
+  { echo "$timeout"; grep -v '^unlock_timeout' "$config" 2>/dev/null || true; } > "$config.tmp"
+  mv "$config.tmp" "$config"
+  echo "deadbolt: set $timeout in $config"
+fi
+
+if ! grep -qi microsoft /proc/sys/kernel/osrelease 2>/dev/null; then
+  exit 0
+fi
+
+# Windows Chrome cannot reach a native host inside WSL, so it runs the standalone build as its own device,
+# loaded from a Windows folder that keeps working when WSL is not running.
+dest=${DEADBOLT_EXTENSION_DIR:-}
+if [ -z "$dest" ]; then
+  # Run cmd.exe from a Windows drive so it does not warn about a UNC working directory.
+  localappdata=$(cd /mnt/c && /mnt/c/Windows/System32/cmd.exe /d /c 'echo %LOCALAPPDATA%' 2>/dev/null | tr -d '\r') || true
+  if [ -z "$localappdata" ]; then
+    echo "deadbolt: cannot reach Windows to find %LOCALAPPDATA%; set DEADBOLT_EXTENSION_DIR" >&2
+    exit 1
+  fi
+  dest="$(wslpath -u "$localappdata")/Deadbolt/extension"
+fi
+
+if grep -qF "dir = \"$dest\"" "$config" 2>/dev/null; then
+  echo "deadbolt: standalone extension already kept at $(wslpath -w "$dest")"
+  exit 0
+fi
+"$deadbolt" browser install --standalone --extension-dir "$dest"
+# Downloads the extension into the new folder; it also updates the CLI when a newer build is out.
+"$deadbolt" update
+echo "deadbolt: load $(wslpath -w "$dest") unpacked in chrome://extensions (Developer mode)"
+'''

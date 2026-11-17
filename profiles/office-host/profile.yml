@@ -1,0 +1,369 @@
+# Slim standalone profile; dev-personal remains available as rollback. No optional OpenCode MCP routes.
+name: office-host
+description: Slim OpenCode bootstrap for office sessions; preserve other harnesses, machine services, and Cairn.
+agents:
+  - opencode
+  - claude-code
+  - codex
+  - pi
+instructions:
+  - instructions/global.md
+  - instructions/personal.md
+instruction_references:
+  - name: browse
+    path: instructions/browse.md
+    description: Before using the Browse MCP server, tasks in the user's Chrome session, or user-managed login
+  - name: video-editing
+    path: instructions/video_editing.md
+    description: Before FFmpeg video processing or encoding, or Psychopomp or fframes rendering
+  - name: browser
+    path: instructions/browser.md
+    description: Before any task involving a browser, including opening a page for the user to view, frontend UI
+      verification, or browser automation
+  - name: personal-knowledge
+    path: instructions/personal_knowledge.md
+    description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
+  - name: explanatory-artifacts
+    path: instructions/explanatory_artifacts.md
+    description: Before creating or revising an explanatory page, visual artifact, or diagram, including with diagram-design
+  - name: github-actions
+    path: instructions/github_actions.md
+    description: Before creating or changing GitHub Actions workflows or actions
+  - name: opencode-session-api
+    path: instructions/opencode_session_api.md
+    description: In OpenCode, before moving the session to another directory or compacting it on request
+  - name: artifact-sharing
+    path: instructions/artifact_sharing.md
+    description: When the user asks to put a viewable artifact in the share folder or for a shareable link
+capability_groups:
+  - name: agent-tooling
+    title: Agent Tooling
+    summary: Agent harnesses, configuration engines, workflow frameworks, and skill sources.
+  - name: knowledge-and-artifacts
+    title: Knowledge and Artifacts
+    summary: Specifications, knowledge, evidence, work artifacts, and workspace coordination paths.
+  - name: motion-graphics
+    title: Motion Graphics
+    summary: Code-first motion graphics, explainer videos, and rendered presentation backgrounds.
+  - name: personal-trading
+    summary: Personal trading alerts, market-data ingestion, and stock analysis knowledge.
+references:
+  - opencode
+  - openspec
+  - openevals
+  - mise
+  - executor
+  - mattpocock-skills
+  - codex
+  - openai-skills
+  - openai-plugins
+  - cursor-plugins
+  - opencode-plugins
+  - openwiki
+repos:
+  - cairn
+  - psychopomp
+  - workspace-specs
+  - personal-knowledge
+  - personal-sources
+  - personal-work
+extra_folders:
+  - path: ~/office/builder/repos/mfz-home
+    description: Personal mindframe-z home for shared base and Personal profile configuration.
+    url: https://github.com/meeaster/mfz-home
+    read: allow
+    edit: allow
+    group: agent-tooling
+    summary: Personal Mindframe-Z home
+    signals:
+      - Mindframe-Z
+      - Personal profile
+      - agent configuration
+  - path: ~/office/builder/repos/mindframe-z
+    description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
+    url: https://github.com/meeaster/mindframe-z
+    read: allow
+    edit: allow
+    group: agent-tooling
+    summary: Mindframe-Z engine
+    signals:
+      - Mindframe-Z
+      - mfz CLI
+      - renderers
+  - path: ~/workspace
+    description: Workspace root for cross-repository project work and shared specifications, knowledge, references,
+      artifacts, and scratch material.
+    read: allow
+    edit: allow
+    group: knowledge-and-artifacts
+    summary: Workspace root
+    signals:
+      - cross-repository work
+      - specifications
+      - knowledge
+  - path: ~/.mindframe-z
+    description: mindframe-z configuration and generated indexes.
+    read: allow
+    edit: allow
+    group: agent-tooling
+    summary: Generated Mindframe-Z state
+    signals:
+      - Mindframe-Z
+      - generated configuration
+      - capability indexes
+  - path: ~/.agent/diagrams
+    description: Agent diagram files and exports.
+    read: allow
+    edit: allow
+    group: knowledge-and-artifacts
+    summary: Agent diagram artifacts
+    signals:
+      - diagrams
+      - SVG
+      - architecture visuals
+  - path: ~/workspace/worktrees
+    description: Disposable Git worktrees for isolated project work across workspace repositories.
+    read: allow
+    edit: allow
+    group: knowledge-and-artifacts
+    summary: Disposable worktrees
+    signals:
+      - Git worktree
+      - isolated implementation
+      - prototype
+skills:
+  anti-slop:
+    agents:
+      opencode: false
+      claude-code: true
+      codex: true
+    toggleable: true
+mcp:
+  doop:
+    agents:
+      enabled:
+        - claude-code
+      disabled:
+        - codex
+    url: https://doop.{env:TAILNET}/mcp
+executor:
+  apps:
+    - opencode
+    - discord-mentions
+opencode:
+  config:
+    agents:
+      general:
+        permissions:
+          - action: subagent
+            resource: general
+            effect: allow
+      explore:
+        model: openai/gpt-6-luna#high
+        permissions:
+          - action: skill
+            resource: learnings
+            effect: allow
+          - action: execute
+            resource: "*"
+            effect: allow
+          - action: cairn_catalog_find
+            resource: "*"
+            effect: allow
+          - action: edit
+            resource: "*"
+            effect: deny
+          - action: edit
+            resource: ~/.local/state/cairn/*
+            effect: allow
+      title:
+        model: openai/gpt-6-luna
+  permissions:
+    - action: skill
+      resource: agent-browser
+      effect: deny
+    - action: skill
+      resource: built-in-browser
+      effect: deny
+    - action: skill
+      resource: chrome-browser
+      effect: deny
+    - action: skill
+      resource: computer-use
+      effect: deny
+    - action: skill
+      resource: deep-research
+      effect: deny
+    - action: skill
+      resource: docs
+      effect: deny
+    - action: skill
+      resource: docx
+      effect: deny
+    - action: skill
+      resource: google-workspace
+      effect: deny
+    - action: skill
+      resource: import-memory
+      effect: deny
+    - action: skill
+      resource: morning
+      effect: deny
+    - action: skill
+      resource: pdf
+      effect: deny
+    - action: skill
+      resource: pptx
+      effect: deny
+    - action: skill
+      resource: xlsx
+      effect: deny
+  dependencies: {}
+  cli:
+    theme:
+      name: dracula
+    plugins:
+      - -opencode.sidebar.context
+  global_instructions: true
+  plugins:
+    - session-usage
+    - cairn
+  plugin_options: {}
+  commands: []
+  agents: []
+claude:
+  settings:
+    statusLine:
+      type: command
+      command: ccstatusline
+      padding: 0
+      refreshInterval: 10
+    attribution:
+      commit: ""
+      pr: ""
+    syncClaudeAiSkills: false
+    extraKnownMarketplaces:
+      cairn:
+        source:
+          source: directory
+          path: "{repo:cairn}"
+    enabledPlugins:
+      cairn@cairn: true
+      plannotator@plannotator: false
+    pluginConfigs:
+      agents-md@builtin:
+        options:
+          instructionFiles: claude-md-and-agents-md
+    hooks:
+      SessionStart:
+        - hooks:
+            - command: bash "$HOME/.claude/hooks/herdr-agent-state.sh" session
+              timeout: 10
+              type: command
+          matcher: "*"
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStart:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      SubagentStop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+      PostToolUse:
+        - matcher: Write|Edit|MultiEdit|NotebookEdit|Skill
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+        - matcher: Read
+          hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+              async: true
+      Stop:
+        - hooks:
+            - command: cairn hook claude-code
+              timeout: 10
+              type: command
+    permissions:
+      defaultMode: auto
+    env:
+      ENABLE_CLAUDEAI_MCP_SERVERS: "false"
+codex:
+  config:
+    tui:
+      status_line:
+        - model-with-reasoning
+        - current-dir
+        - git-branch
+        - context-used
+        - permissions
+        - approval-mode
+      status_line_use_colors: true
+      theme: dracula
+  plugins:
+    github@openai-curated:
+      enabled: false
+pi:
+  settings:
+    theme: dark
+    defaultProvider: openai-codex
+    defaultModel: gpt-5.5
+    defaultThinkingLevel: medium
+    packages:
+      - npm:pi-subagents
+      - npm:pi-web-access
+      - npm:@ff-labs/pi-fff
+      - npm:pi-interview
+  subagent_config:
+    agentOverrides:
+      scout:
+        model: openai-codex/gpt-5.4-mini
+        thinking: low
+      delegate:
+        model: openai-codex/gpt-5.4-mini
+        thinking: medium
+      researcher:
+        model: openai-codex/gpt-5.4-mini
+        thinking: medium
+      context-builder:
+        model: openai-codex/gpt-5.4
+        thinking: medium
+      planner:
+        model: openai-codex/gpt-5.5
+        thinking: high
+      worker:
+        model: openai-codex/gpt-5.5
+        thinking: medium
+      reviewer:
+        model: openai-codex/gpt-5.5
+        thinking: high
+      oracle:
+        model: openai-codex/gpt-5.5
+        thinking: high
+thread:
+  stores:
+    - name: personal-knowledge
+      root: ~/workspace/knowledge/personal-knowledge
+      path: threads
+      publication:
+        mode: pull-request
+        base: main
+        auto_merge: true
+      default: true
+  defaults:
+    discover: opencode:openai/gpt-6-luna@medium
+    gather: opencode:openai/gpt-6-luna@high
+    synthesize: opencode:openai/gpt-6-sol@medium
+    session_sources:
+      - claude-code
+      - opencode
+    digest: opencode:openai/gpt-6-sol@high
+  credentials: subscription

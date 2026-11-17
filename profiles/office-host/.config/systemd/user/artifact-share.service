@@ -1,0 +1,10 @@
+[Unit]
+Description=Artifact share file server (published on the tailnet by grif-wsl Tailscale Serve)
+After=network.target
+
+[Service]
+ExecStart=%h/.local/share/mise/shims/caddy file-server --listen 127.0.0.1:8787 --root %h/workspace/artifacts/share --browse
+Restart=on-failure
+
+[Install]
+WantedBy=default.target
