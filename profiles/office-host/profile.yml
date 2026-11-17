@@ -5,104 +5,34 @@ description: Office host machine setup with Claude Code and Codex settings; Open
 agents:
   - claude-code
   - codex
-# Kept although MFZ renders no instructions: without groups, the kept repos and extra folders (which grant
-# Claude Code and Codex folder access) would put the full reference and folder indexes into both harnesses.
-capability_groups:
-  - name: agent-tooling
-    title: Agent Tooling
-    summary: Agent harnesses, configuration engines, workflow frameworks, and skill sources.
-  - name: knowledge-and-artifacts
-    title: Knowledge and Artifacts
-    summary: Specifications, knowledge, evidence, work artifacts, and workspace coordination paths.
-  - name: motion-graphics
-    title: Motion Graphics
-    summary: Code-first motion graphics, explainer videos, and rendered presentation backgrounds.
-  - name: personal-trading
-    summary: Personal trading alerts, market-data ingestion, and stock analysis knowledge.
-references:
-  - opencode
-  - openspec
-  - openevals
-  - mise
-  - executor
-  - mattpocock-skills
-  - codex
-  - openai-skills
-  - openai-plugins
-  - cursor-plugins
-  - opencode-plugins
-  - openwiki
-repos:
-  - cairn
-  - psychopomp
-  - workspace-specs
-  - personal-knowledge
-  - personal-sources
-  - personal-work
 extra_folders:
   - path: ~/office/builder/repos/mfz-home
     description: Personal mindframe-z home for shared base and Personal profile configuration.
     url: https://github.com/meeaster/mfz-home
     read: allow
     edit: allow
-    group: agent-tooling
-    summary: Personal Mindframe-Z home
-    signals:
-      - Mindframe-Z
-      - Personal profile
-      - agent configuration
   - path: ~/office/builder/repos/mindframe-z
     description: "TypeScript engine behind mfz: CLI, manifest schemas, profile resolution, harness renderers, and workspace setup."
     url: https://github.com/meeaster/mindframe-z
     read: allow
     edit: allow
-    group: agent-tooling
-    summary: Mindframe-Z engine
-    signals:
-      - Mindframe-Z
-      - mfz CLI
-      - renderers
   - path: ~/workspace
     description: Workspace root for cross-repository project work and shared specifications, knowledge, references,
       artifacts, and scratch material.
     read: allow
     edit: allow
-    group: knowledge-and-artifacts
-    summary: Workspace root
-    signals:
-      - cross-repository work
-      - specifications
-      - knowledge
   - path: ~/.mindframe-z
     description: mindframe-z configuration and generated indexes.
     read: allow
     edit: allow
-    group: agent-tooling
-    summary: Generated Mindframe-Z state
-    signals:
-      - Mindframe-Z
-      - generated configuration
-      - capability indexes
   - path: ~/.agent/diagrams
     description: Agent diagram files and exports.
     read: allow
     edit: allow
-    group: knowledge-and-artifacts
-    summary: Agent diagram artifacts
-    signals:
-      - diagrams
-      - SVG
-      - architecture visuals
   - path: ~/workspace/worktrees
     description: Disposable Git worktrees for isolated project work across workspace repositories.
     read: allow
     edit: allow
-    group: knowledge-and-artifacts
-    summary: Disposable worktrees
-    signals:
-      - Git worktree
-      - isolated implementation
-      - prototype
 executor:
   apps:
     - opencode
