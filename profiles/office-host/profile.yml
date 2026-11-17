@@ -1,11 +1,10 @@
-# Slim standalone profile; dev-personal remains available as rollback. No optional OpenCode MCP routes.
+# Slim standalone profile; dev-personal remains available as rollback.
+# OpenCode is omitted from agents so MFZ renders no OpenCode configuration; the office supplies it.
 name: office-host
-description: Slim OpenCode bootstrap for office sessions; preserve other harnesses, machine services, and Cairn.
+description: Office host machine setup with Claude Code and Codex settings; OpenCode configuration comes from the office.
 agents:
-  - opencode
   - claude-code
   - codex
-  - pi
 instructions:
   - instructions/global.md
   - instructions/personal.md
@@ -29,9 +28,6 @@ instruction_references:
   - name: github-actions
     path: instructions/github_actions.md
     description: Before creating or changing GitHub Actions workflows or actions
-  - name: opencode-session-api
-    path: instructions/opencode_session_api.md
-    description: In OpenCode, before moving the session to another directory or compacting it on request
   - name: artifact-sharing
     path: instructions/artifact_sharing.md
     description: When the user asks to put a viewable artifact in the share folder or for a shareable link
@@ -131,13 +127,6 @@ extra_folders:
       - Git worktree
       - isolated implementation
       - prototype
-skills:
-  anti-slop:
-    agents:
-      opencode: false
-      claude-code: true
-      codex: true
-    toggleable: true
 mcp:
   doop:
     agents:
@@ -150,87 +139,10 @@ executor:
   apps:
     - opencode
     - discord-mentions
+# Not OpenCode config: with opencode out of agents, this only makes the shared AGENTS.md
+# (imported by Claude's CLAUDE.md) inline the capability index.
 opencode:
-  config:
-    agents:
-      general:
-        permissions:
-          - action: subagent
-            resource: general
-            effect: allow
-      explore:
-        model: openai/gpt-6-luna#high
-        permissions:
-          - action: skill
-            resource: learnings
-            effect: allow
-          - action: execute
-            resource: "*"
-            effect: allow
-          - action: cairn_catalog_find
-            resource: "*"
-            effect: allow
-          - action: edit
-            resource: "*"
-            effect: deny
-          - action: edit
-            resource: ~/.local/state/cairn/*
-            effect: allow
-      title:
-        model: openai/gpt-6-luna
-  permissions:
-    - action: skill
-      resource: agent-browser
-      effect: deny
-    - action: skill
-      resource: built-in-browser
-      effect: deny
-    - action: skill
-      resource: chrome-browser
-      effect: deny
-    - action: skill
-      resource: computer-use
-      effect: deny
-    - action: skill
-      resource: deep-research
-      effect: deny
-    - action: skill
-      resource: docs
-      effect: deny
-    - action: skill
-      resource: docx
-      effect: deny
-    - action: skill
-      resource: google-workspace
-      effect: deny
-    - action: skill
-      resource: import-memory
-      effect: deny
-    - action: skill
-      resource: morning
-      effect: deny
-    - action: skill
-      resource: pdf
-      effect: deny
-    - action: skill
-      resource: pptx
-      effect: deny
-    - action: skill
-      resource: xlsx
-      effect: deny
-  dependencies: {}
-  cli:
-    theme:
-      name: dracula
-    plugins:
-      - -opencode.sidebar.context
   global_instructions: true
-  plugins:
-    - session-usage
-    - cairn
-  plugin_options: {}
-  commands: []
-  agents: []
 claude:
   settings:
     statusLine:
@@ -242,13 +154,7 @@ claude:
       commit: ""
       pr: ""
     syncClaudeAiSkills: false
-    extraKnownMarketplaces:
-      cairn:
-        source:
-          source: directory
-          path: "{repo:cairn}"
     enabledPlugins:
-      cairn@cairn: true
       plannotator@plannotator: false
     pluginConfigs:
       agents-md@builtin:
@@ -261,37 +167,6 @@ claude:
               timeout: 10
               type: command
           matcher: "*"
-        - hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
-      SubagentStart:
-        - hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
-      SubagentStop:
-        - hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
-      PostToolUse:
-        - matcher: Write|Edit|MultiEdit|NotebookEdit|Skill
-          hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
-        - matcher: Read
-          hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
-              async: true
-      Stop:
-        - hooks:
-            - command: cairn hook claude-code
-              timeout: 10
-              type: command
     permissions:
       defaultMode: auto
     env:
@@ -311,43 +186,6 @@ codex:
   plugins:
     github@openai-curated:
       enabled: false
-pi:
-  settings:
-    theme: dark
-    defaultProvider: openai-codex
-    defaultModel: gpt-5.5
-    defaultThinkingLevel: medium
-    packages:
-      - npm:pi-subagents
-      - npm:pi-web-access
-      - npm:@ff-labs/pi-fff
-      - npm:pi-interview
-  subagent_config:
-    agentOverrides:
-      scout:
-        model: openai-codex/gpt-5.4-mini
-        thinking: low
-      delegate:
-        model: openai-codex/gpt-5.4-mini
-        thinking: medium
-      researcher:
-        model: openai-codex/gpt-5.4-mini
-        thinking: medium
-      context-builder:
-        model: openai-codex/gpt-5.4
-        thinking: medium
-      planner:
-        model: openai-codex/gpt-5.5
-        thinking: high
-      worker:
-        model: openai-codex/gpt-5.5
-        thinking: medium
-      reviewer:
-        model: openai-codex/gpt-5.5
-        thinking: high
-      oracle:
-        model: openai-codex/gpt-5.5
-        thinking: high
 thread:
   stores:
     - name: personal-knowledge
