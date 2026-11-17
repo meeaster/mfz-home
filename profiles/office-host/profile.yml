@@ -5,32 +5,8 @@ description: Office host machine setup with Claude Code and Codex settings; Open
 agents:
   - claude-code
   - codex
-instructions:
-  - instructions/global.md
-  - instructions/personal.md
-instruction_references:
-  - name: browse
-    path: instructions/browse.md
-    description: Before using the Browse MCP server, tasks in the user's Chrome session, or user-managed login
-  - name: video-editing
-    path: instructions/video_editing.md
-    description: Before FFmpeg video processing or encoding, or Psychopomp or fframes rendering
-  - name: browser
-    path: instructions/browser.md
-    description: Before any task involving a browser, including opening a page for the user to view, frontend UI
-      verification, or browser automation
-  - name: personal-knowledge
-    path: instructions/personal_knowledge.md
-    description: Private Personal knowledge, Session Captures, Practices, threads, or work-unit continuity
-  - name: explanatory-artifacts
-    path: instructions/explanatory_artifacts.md
-    description: Before creating or revising an explanatory page, visual artifact, or diagram, including with diagram-design
-  - name: github-actions
-    path: instructions/github_actions.md
-    description: Before creating or changing GitHub Actions workflows or actions
-  - name: artifact-sharing
-    path: instructions/artifact_sharing.md
-    description: When the user asks to put a viewable artifact in the share folder or for a shareable link
+# Kept although MFZ renders no instructions: without groups, the kept repos and extra folders (which grant
+# Claude Code and Codex folder access) would put the full reference and folder indexes into both harnesses.
 capability_groups:
   - name: agent-tooling
     title: Agent Tooling
@@ -139,10 +115,6 @@ executor:
   apps:
     - opencode
     - discord-mentions
-# Not OpenCode config: with opencode out of agents, this only makes the shared AGENTS.md
-# (imported by Claude's CLAUDE.md) inline the capability index.
-opencode:
-  global_instructions: true
 claude:
   settings:
     statusLine:
