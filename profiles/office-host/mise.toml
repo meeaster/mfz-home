@@ -1,4 +1,5 @@
-# Standalone equivalent of the core -> dev -> dev-personal Mise layers, merged into one file.
+# Standalone equivalent of the core -> dev -> dev-personal Mise layers, merged into one file,
+# without herdr and Doop (the office provides Doop).
 [tools]
 # core
 node = "26"
@@ -33,8 +34,6 @@ kubeconform = "0"
 helm = "4"
 flux2 = "2"
 "aqua:derailed/k9s" = "0.51.0"
-# A new release can change the server protocol, so stop the old server before bootstrapping plugins; `server stop` bypasses the protocol guard, and no server may be running.
-herdr = { version = "0", postinstall = 'herdr server stop >/dev/null 2>&1 || true; bash "$HOME/.local/bin/bootstrap-herdr-plugins"' }
 pipx = "1"
 pre-commit = "4"
 uv = "0"
@@ -94,18 +93,6 @@ package_manager = "pnpm"
 
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
-# Doop's env file holds generated secrets, so it is created once here rather than templated by bootstrap.files;
-# post-packages runs before the Compose step that reads it.
-post-packages = "mise run doop:env"
-
-# Self-hosted Doop; the compose file is an mfz profile dotfile. Changing its image tag makes the next
-# `mise bootstrap` build the new image and recreate the container, keeping the database volume.
-[bootstrap.compose.doop]
-project_dir = "{{ env.HOME }}/.config/doop"
-files = ["compose.yml"]
-env_files = ["{{ env.HOME }}/.mindframe-z/secrets/doop.env"]
-project_name = "doop"
-
 [bootstrap.packages]
 "apt:google-chrome-stable" = "latest"
 # fframes builds: bindgen for ffmpeg-sys-fframes needs libclang; FFmpeg source builds need the assemblers,

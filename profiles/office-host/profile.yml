@@ -103,14 +103,6 @@ extra_folders:
       - Git worktree
       - isolated implementation
       - prototype
-mcp:
-  doop:
-    agents:
-      enabled:
-        - claude-code
-      disabled:
-        - codex
-    url: https://doop.{env:TAILNET}/mcp
 executor:
   apps:
     - opencode
@@ -132,13 +124,6 @@ claude:
       agents-md@builtin:
         options:
           instructionFiles: claude-md-and-agents-md
-    hooks:
-      SessionStart:
-        - hooks:
-            - command: bash "$HOME/.claude/hooks/herdr-agent-state.sh" session
-              timeout: 10
-              type: command
-          matcher: "*"
     permissions:
       defaultMode: auto
     env:
@@ -158,22 +143,3 @@ codex:
   plugins:
     github@openai-curated:
       enabled: false
-thread:
-  stores:
-    - name: personal-knowledge
-      root: ~/workspace/knowledge/personal-knowledge
-      path: threads
-      publication:
-        mode: pull-request
-        base: main
-        auto_merge: true
-      default: true
-  defaults:
-    discover: opencode:openai/gpt-6-luna@medium
-    gather: opencode:openai/gpt-6-luna@high
-    synthesize: opencode:openai/gpt-6-sol@medium
-    session_sources:
-      - claude-code
-      - opencode
-    digest: opencode:openai/gpt-6-sol@high
-  credentials: subscription
