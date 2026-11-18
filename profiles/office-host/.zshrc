@@ -64,11 +64,8 @@ path=("$PNPM_HOME/bin" "$PNPM_HOME" ${path:#$PNPM_HOME})
 
 # Safety wrappers and convenience aliases.
 alias ll="ls -la"
-alias npm="sfw npm"
-alias pnpm="sfw pnpm"
-alias pip="sfw pip"
-alias uv="sfw uv"
-alias cargo="sfw cargo"
+# npm, pnpm, pip, uv and cargo go through Socket Firewall by the office's wrappers, first on PATH
+# from its environment file below; an alias here would start a second sfw.
 
 # Source framework/hooks after profile-specific plugin additions are appended.
 mfz_finalize_zsh() {
@@ -107,6 +104,9 @@ fi
 mfz_finalize_zsh
 # The mise-guard wrapper must stay ahead of the real mise in ~/.local/bin.
 path=("$HOME/.local/bin/mise-guard" "$HOME/.local/bin" ${${path:#$HOME/.local/bin}:#$HOME/.local/bin/mise-guard})
+# The office's environment, shared with its agents: after mise activate, so its Socket Firewall
+# wrappers stay ahead of mise's tool folders.
+[ -r "$HOME/.local/share/office/env.sh" ] && . "$HOME/.local/share/office/env.sh"
 rehash
 
 unset -f mfz_finalize_zsh
