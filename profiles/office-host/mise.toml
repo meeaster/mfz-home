@@ -28,7 +28,6 @@ kubeconform = "0"
 helm = "4"
 flux2 = "2"
 "aqua:derailed/k9s" = "0.51.0"
-pipx = "1"
 pre-commit = "4"
 actionlint = "1"
 zizmor = "1"
@@ -60,9 +59,8 @@ usage = "6"
 "github:xdevplatform/xurl" = { version = "1", postinstall = "mfz skills refresh --tool github:xdevplatform/xurl || echo 'xurl: skill refresh failed; rerun mfz skills refresh' >&2" }
 caddy = "2"
 
-[tools."pipx:unifi-network-mcp"]
-version = "0"
-uvx = false
+# The pipx: backend installs with uv, a machine runtime the office pins, so pipx itself is not needed.
+"pipx:unifi-network-mcp" = "0"
 
 [settings]
 # Skipped in non-interactive sessions, so agent-run installs never update mise mid-command.
