@@ -1,7 +1,7 @@
 # Slim standalone profile; dev-personal remains available as rollback.
 # OpenCode is omitted from agents so MFZ renders no OpenCode configuration; the office supplies it.
 name: office-host
-description: Office host machine setup with Claude Code and Codex settings; OpenCode configuration comes from the office.
+description: Office host bootstrap and machine-local access rules. The personal office owns the shell and toolchain.
 agents:
   - claude-code
   - codex
@@ -33,39 +33,3 @@ extra_folders:
     description: Disposable Git worktrees for isolated project work across workspace repositories.
     read: allow
     edit: allow
-claude:
-  settings:
-    statusLine:
-      type: command
-      command: ccstatusline
-      padding: 0
-      refreshInterval: 10
-    attribution:
-      commit: ""
-      pr: ""
-    syncClaudeAiSkills: false
-    enabledPlugins:
-      plannotator@plannotator: false
-    pluginConfigs:
-      agents-md@builtin:
-        options:
-          instructionFiles: claude-md-and-agents-md
-    permissions:
-      defaultMode: auto
-    env:
-      ENABLE_CLAUDEAI_MCP_SERVERS: "false"
-codex:
-  config:
-    tui:
-      status_line:
-        - model-with-reasoning
-        - current-dir
-        - git-branch
-        - context-used
-        - permissions
-        - approval-mode
-      status_line_use_colors: true
-      theme: dracula
-  plugins:
-    github@openai-curated:
-      enabled: false

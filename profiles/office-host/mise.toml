@@ -1,70 +1,9 @@
-# What stays with Mindframe-Z on the office host, from the core -> dev -> dev-personal Mise layers merged into one
-# file, without herdr, Doop and the host Executor (the office provides Doop and Executor).
-# The office (~/office) owns the machine's runtimes and the tools its agents need: node, bun, pnpm, python, uv, go,
-# rust, gh, ripgrep and jq, agent-browser and the Browse install hook, minimum_release_age and npm's package manager,
-# all in its machine.toml and package fragments, linked into conf.d as office-*.toml so they win over this file.
-# sops and oxlint are the office repository's own, in its mise.toml. Left here: Socket Firewall until the office takes
-# it over, personal and project tools, the tools whose postinstall refreshes MFZ skills, apt packages and personal env.
-[tools]
-# core
-# The firewall binary itself, pinned; ~/.local/bin/mise-guard/mise routes installs through it.
-"github:SocketDev/sfw-free" = { version = "1", bin = "sfw" }
-bat = "0"
-"aqua:sharkdp/fd" = "10"
-
-# dev
-# 0.15.2 builds terminal-control only; 0.17 is first, so it is the zig on PATH.
-zig = ["0.17", "0.15.2"]
-# Its libghostty build runs the zig on PATH and requires 0.15.2; the exact-version path exists as soon as zig installs.
-# Zig fetches ghostty dependencies through any proxy and ignores NO_PROXY, and the sfw proxy rejects them, so this
-# build alone runs without the proxy. Its crates skip sfw; minimum_release_age still applies. rust comes from the office.
-"cargo:terminal-control" = { version = "1", depends = ["zig", "rust"], install_env = { PATH = "{{ xdg_data_home }}/mise/installs/zig/0.15.2/bin:{{ env.PATH }}", HTTP_PROXY = "", HTTPS_PROXY = "", http_proxy = "", https_proxy = "" }, postinstall = "mfz skills refresh --tool cargo:terminal-control || echo 'terminal-control: skill refresh failed; rerun mfz skills refresh' >&2" }
-aws-cli = "2"
-aws-sam-cli = "1"
-terraform = "1.16"
-terragrunt = "1"
-kind = "0"
-kubeconform = "0"
-helm = "4"
-flux2 = "2"
-"aqua:derailed/k9s" = "0.51.0"
-pre-commit = "4"
-actionlint = "1"
-zizmor = "1"
-shellcheck = "0"
-sqlite = "3"
-shfmt = "3"
-"npm:oxfmt" = "0"
-tflint = "0"
-yamllint = "1"
-"npm:ccstatusline" = "2"
-"npm:aws-cdk" = "2"
-# This profile enables no tool skills, so the refresh postinstalls select nothing and only re-sync the skill snapshot.
-"npm:shadcn" = { version = "4", postinstall = "mfz skills refresh --tool npm:shadcn || echo 'shadcn: skill refresh failed; rerun mfz skills refresh' >&2" }
-# Tool skills follow the installed version; a failed refresh must not fail the install.
-"npm:@fission-ai/openspec" = { version = "1", postinstall = "mfz skills refresh --tool npm:@fission-ai/openspec || echo 'openspec: skill refresh failed; rerun mfz skills refresh' >&2" }
-"github:kitlangton/ghui" = "0"
-"npm:opencode-drive" = { version = "2", postinstall = "mfz skills refresh --tool npm:opencode-drive || echo 'opencode-drive: skill refresh failed; rerun mfz skills refresh' >&2" }
-"github:charmbracelet/glow" = "3"
-imagemagick = "7"
-ffmpeg = "9"
-"pipx:git-filter-repo" = "2"
-"cargo:cargo-fframes" = { version = "1", postinstall = "mfz skills refresh --tool cargo:cargo-fframes || echo 'cargo-fframes: skill refresh failed; rerun mfz skills refresh' >&2" }
-
-# dev-personal
-yt-dlp = "2026"
-usage = "6"
-"npm:wrangler" = "4"
-"npm:openwiki" = { version = "0", allow_builds = ["better-sqlite3"] }
-"github:xdevplatform/xurl" = { version = "1", postinstall = "mfz skills refresh --tool github:xdevplatform/xurl || echo 'xurl: skill refresh failed; rerun mfz skills refresh' >&2" }
-caddy = "2"
-
+# The personal office owns all Mise tools and settings. MFZ still bootstraps host apt packages.
 [bootstrap.hooks]
 pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
 [bootstrap.packages]
 "apt:google-chrome-stable" = "latest"
-# fframes builds: bindgen for ffmpeg-sys-fframes needs libclang; FFmpeg source builds need the assemblers,
-# ninja, and codec headers; Skia links FreeType and Fontconfig; the preview window plays audio through ALSA.
+# Native build dependencies for fframes, including codec, font, and audio libraries.
 "apt:libclang-dev" = { os = "linux" }
 "apt:clang" = { os = "linux" }
 "apt:pkg-config" = { os = "linux" }
@@ -78,10 +17,3 @@ pre-packages = 'bash "$HOME/.local/bin/ensure-google-chrome-apt-repository"'
 "apt:libfreetype-dev" = { os = "linux" }
 "apt:libfontconfig-dev" = { os = "linux" }
 "apt:libasound2-dev" = { os = "linux" }
-
-[env]
-IMPECCABLE_NO_TELEMETRY = "1"
-IMPECCABLE_NO_UPDATE_CHECK = "1"
-# fframes' prebuilt FFmpeg links x264 ABI 163 and Ubuntu 24.04 ships 164, so build FFmpeg from source.
-# A project that already downloaded the prebuilt also needs `cargo clean -p ffmpeg-sys-fframes`.
-FFMPEG_FORCE_BUILD = "1"
