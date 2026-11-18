@@ -53,6 +53,8 @@ const AdvisorRule = z
 
 const AdvisorOptions = z
   .object({
+    // false loads the plugin without registering its tool or hooks, so its rules can stay configured.
+    enabled: z.boolean().default(true),
     // Checked in order; the first rule whose executor pattern matches the session's model picks its advisor. Models
     // no rule matches get no advisor tool at all.
     advisors: z.array(AdvisorRule).min(1),
@@ -122,6 +124,8 @@ type Tracked = { request: ExecutorRequest; rule: Rule };
 
 export async function setupAdvisor(context: Plugin.Context) {
   const options = AdvisorOptions.parse(context.options);
+
+  if (!options.enabled) return;
 
   const rules: Rule[] = options.advisors.map((rule) => ({
     pattern: executorPattern(rule.executor),

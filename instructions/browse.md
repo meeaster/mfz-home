@@ -1,10 +1,8 @@
 # Browse guidance
 
-- **Tool:** Use the Browse MCP server (`browse`) for tasks in the user's existing Chrome session or workflows requiring user-managed login.
-- **Tool:** Before the first Browse operation in a session, run `~/.local/bin/browse skill` and follow the guide it prints; no Browse skill is installed.
-- **Fact:** Browse sessions share the relay and browser profile; separate sessions do not isolate global browser state.
+- **Fact:** Browse's agent guide arrives with the MCP server's instructions and the `execute` tool description; `~/.local/bin/browse --help` prints the same guide for terminal use.
+- **Fact:** Browse sessions share the relay and browser profile; separate sessions do not isolate global browser state such as cookies, logins, and open windows.
 - **Behavior:** Coordinate operations that affect shared browser state.
-- **Tool:** For concurrent browser tasks or agents sharing an MCP process, create separate Browse sessions and pass their IDs explicitly.
-- **Tool:** Run Playwright in Browse's `execute` runtime; its `page`, `state`, and helpers are unavailable in the outer tool-orchestration runtime.
+- **Fact:** The `files` helper inside `execute` reads and writes only under `/tmp`, in directories and files you own without group or world write access. To hand a local file to a script, copy it into a fresh `mktemp -d` directory with mode 600.
 - **Fact:** Browse installs to `~/.local/bin/browse`; call it by that path, because xdg-utils ships an unrelated `/usr/bin/browse`.
-- **Fact:** Browse updates itself. If `~/.local/bin/browse` is missing or broken, run `mise run browse:install`; if the extension is not connected, run `~/.local/bin/browse doctor`, and `~/.local/bin/browse pair` to re-pair Windows Chrome.
+- **Fact:** Browse updates itself and changes often; trust `--help` and the server instructions over remembered commands. If `~/.local/bin/browse` is missing or broken, run `mise run browse:install`. If the extension is not connected, check `~/.local/bin/browse status`, and run `~/.local/bin/browse pair` to re-pair Windows Chrome.

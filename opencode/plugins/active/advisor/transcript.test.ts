@@ -81,6 +81,25 @@ describe("advisor prompts", () => {
     expect(prompt).not.toContain('id="a1"');
   });
 
+  it("leaves inline image data out of tool results", () => {
+    const screenshot: Message = {
+      role: "tool",
+      content: [
+        {
+          type: "tool-result",
+          id: "x1",
+          name: "execute",
+          result: { type: "content", value: [{ type: "file", uri: "data:image/jpeg;base64,AAAABBBB", mime: "image/jpeg" }] },
+        },
+      ],
+    };
+
+    const rendered = renderMessage(screenshot);
+
+    expect(rendered).toContain("image/jpeg");
+    expect(rendered).not.toContain("AAAABBBB");
+  });
+
   it("continues with only the messages it is given", () => {
     const prompt = continuePrompt([renderMessage(toolResult("read", "r2", "NEW RESULT"))], step);
 

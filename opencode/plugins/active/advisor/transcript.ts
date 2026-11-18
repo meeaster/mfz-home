@@ -156,6 +156,12 @@ function resultText(result: Extract<ToolResult, { type: "text" | "error" }>) {
   return text.success ? text.data : JSON.stringify(result.value);
 }
 
+// Screenshots arrive as data: URIs; the executor sees them as images, so inlining their base64 would make the
+// advisor's transcript hundreds of thousands of characters per image.
 function renderContent(content: ToolContent) {
-  return content.type === "text" ? content.text : `[file: ${content.name ?? content.uri} (${content.mime})]`;
+  if (content.type === "text") return content.text;
+
+  const source = content.uri.startsWith("data:") ? "inline data omitted" : content.uri;
+
+  return `[file${content.name === undefined ? "" : ` ${content.name}`}: ${content.mime}, ${source}]`;
 }

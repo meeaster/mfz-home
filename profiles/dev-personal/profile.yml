@@ -45,7 +45,10 @@ skills:
 
 mcp:
   doop:
-    # svc:doop Tailscale Service hosted by Grif; TAILNET comes from ~/.mindframe-z/secrets/zsh.env.
+    # Off in OpenCode and Codex: an office's design package registers its own doop server, and a global one of the
+    # same name would clash with it. Claude Code keeps it, since a child profile can't turn that route off.
+    # svc:doop is the Tailscale Service hosted by Grif; TAILNET comes from ~/.mindframe-z/secrets/zsh.env.
+    agents: { disabled: [opencode, codex] }
     url: https://doop.{env:TAILNET}/mcp
   x-docs:
     agents: [opencode]
@@ -77,16 +80,26 @@ codex:
     "github@openai-curated":
       enabled: false
 opencode:
+  permissions:
+    - action: skill
+      resource: tracks
+      effect: deny
   plugins:
     - optchat
     - advisor
     - chatgpt-apps
     # Disabled until tested further.
     # - plannotator
+  commands:
+    - conductor-opus
+    - conductor-terra
+    - conductor-reviewed
   plugin_options:
     # Only Opus sessions get an advisor (Fable 5.2), consulted on its own judgment. Models without a rule get none;
     # the manual default applies to any rule added without its own trigger.
     advisor:
+      # Disabled while oversized-transcript handling is reworked.
+      enabled: false
       trigger: manual
       advisors:
         - executor: claude-agent/opus
